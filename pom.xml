@@ -9,6 +9,9 @@
 	<packaging>jar</packaging>
 	<name>Milton WebDav Library</name>
 	<url>http://maven.apache.org</url>
+	<scm>
+		<connection>scm:svn:svn://www.ettrema.com/milton/trunk/milton</connection>
+	</scm>
 	<developers>
 		<developer>
 			<name>Brad McEvoy</name>
