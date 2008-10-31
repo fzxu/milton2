@@ -20,6 +20,8 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.io.StreamToStream;
+import java.io.ByteArrayInputStream;
 
 public class PropFindHandler extends ExistingEntityHandler {
 
@@ -85,7 +87,9 @@ public class PropFindHandler extends ExistingEntityHandler {
 
 //            log.info("out: " + out.toString());
             response.getOutputStream().write(out.toByteArray());
-            response.close();
+// don't close, probably should allow the servlet to do that            
+//            response.close();
+            
         } catch (IOException ex) {
             log.warn("ioexception sending output",ex);
         }
@@ -170,12 +174,17 @@ public class PropFindHandler extends ExistingEntityHandler {
     private Set<String> getRequestedFields(Request request) throws IOException, SAXException, FileNotFoundException {
         final Set<String> set = new LinkedHashSet<String>();
         InputStream in = request.getInputStream();
-
-        XMLReader reader = XMLReaderFactory.createXMLReader();
-        PropFindSaxHandler handler = new PropFindSaxHandler();
-        reader.setContentHandler(handler);
-        reader.parse(new InputSource(in));
-        set.addAll(handler.getAttributes().keySet());
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        StreamToStream.readTo(in, bout,false,true);
+        byte[] arr = bout.toByteArray();
+        if( arr.length > 1 ) {
+            ByteArrayInputStream bin = new ByteArrayInputStream(arr);       
+            XMLReader reader = XMLReaderFactory.createXMLReader();
+            PropFindSaxHandler handler = new PropFindSaxHandler();
+            reader.setContentHandler(handler);
+            reader.parse(new InputSource(bin));
+            set.addAll(handler.getAttributes().keySet());
+        }
 
         if( set.size() == 0 ) {
             log.debug("adding default fields");
