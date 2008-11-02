@@ -1,0 +1,10 @@
+Until further notice, in order to build milton-servlet, 
+you need to install manually mime-util manually in your local repository.
+We've looked at other options like jmimemagic, but it causes memory problems for huge files.
+Until we have a better solution:
+
+for windows:
+mvn install:install-file -DgroupId=eu.medsea -DartifactId=mime-util -Dversion=1.0 -Dpackaging=jar -DgeneratePom=true -Dfile=src\lib\mime-util.jar
+
+for unix:
+mvn install:install-file -DgroupId=eu.medsea -DartifactId=mime-util -Dversion=1.0 -Dpackaging=jar -DgeneratePom=true -Dfile=src/lib/mime-util.jar
