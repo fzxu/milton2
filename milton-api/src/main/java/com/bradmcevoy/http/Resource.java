@@ -25,6 +25,11 @@ public interface Resource extends Comparable<Resource> {
     String getUniqueId();
     
     /**
+     * Note that this name MUST be consistent with URL resolution in your ResourceFactory
+     * 
+     * If they arent consistent Milton will generate a different href in PropFind
+     * responses then what clients have request and this will cause either an
+     * error or no resources to be displayed
      * 
      * @return - the name of this resource. Ie just the local name, within its folder
      */
@@ -33,6 +38,8 @@ public interface Resource extends Comparable<Resource> {
     
     /**
      * Check the given credentials, and return a relevant object if accepted.
+     * 
+     * Returning null indicates credentials were not accpeted
      * 
      * @param user - the username provided by the user's agent
      * @param password - the password provided by the user's agent
