@@ -118,7 +118,6 @@ public class GetHandler extends ExistingEntityHandler {
     protected boolean doCheckRedirect(Request request, Response response,Resource resource) {
         String redirectUrl = resource.checkRedirect(request);
         if( redirectUrl != null ) {
-//            log.debug("redirecting to: " + redirectUrl);
             respondRedirect( response, redirectUrl );
             return true;
         } else {
