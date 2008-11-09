@@ -52,18 +52,18 @@ public class LockHandler extends ExistingEntityHandler {
         log.debug("locking: " + r.getName());
         LockToken tok = r.lock(timeout, lockInfo);
         log.debug("..locked: " + tok.tokenId);
-        response.setLockTokenHeader("(<opaquelocktoken:" + tok.tokenId + ">)");  // spec says to set response header. See 8.10.1
-        respondWithToken(tok, response);
+        response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
+        respondWithToken(tok, request, response);
     }
 
     protected void processRefresh(HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout, String ifHeader) {
         String token = parseToken(ifHeader);
         log.debug("refreshing lock: " + token);
         LockToken tok = r.refreshLock(token);
-        respondWithToken(tok, response);
+        respondWithToken(tok, request, response);
     }
 
-    protected void respondWithToken(LockToken tok, Response response) {
+    protected void respondWithToken(LockToken tok, Request request, Response response) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlWriter writer = new XmlWriter(out);
         writer.writeXMLHeader();        
@@ -79,6 +79,7 @@ public class LockHandler extends ExistingEntityHandler {
         appendOwner(writer, tok.info.owner);
         appendTimeout(writer, tok.timeout.seconds);
         appendTokenId(writer, tok.tokenId);
+        appendRoot(writer, request.getAbsoluteUrl());
         writer.close("D:activelock");
         writer.close("D:lockdiscovery");
         writer.close("D:prop");
@@ -146,6 +147,10 @@ public class LockHandler extends ExistingEntityHandler {
         writer.writeProperty(null, "D:locktype", "<D:" + type.toString().toLowerCase() + "/>");
     }
 
-
+    private void appendRoot(XmlWriter writer, String lockRoot) {
+        XmlWriter.Element el = writer.begin("D:lockroot").open();
+        writer.writeProperty(null, "D:href", lockRoot);
+        el.close(); 
+    }
     
 }
