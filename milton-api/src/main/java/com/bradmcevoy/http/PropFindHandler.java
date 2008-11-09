@@ -36,6 +36,7 @@ public class PropFindHandler extends ExistingEntityHandler {
         add(new DisplayNamePropertyWriter());
         add(new LastModifiedDatePropertyWriter());
         add(new ResourceTypePropertyWriter());
+        add(new EtagPropertyWriter());        
         
         add(new MSHrefPropertyWriter());
         add(new MSIsCollectionPropertyWriter());
@@ -194,6 +195,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             set.add("resourcetype");
             set.add("getcontenttype");
             set.add("getcontentlength");
+            set.add("getetag");
         }
         return set;
     }
@@ -284,6 +286,21 @@ public class PropFindHandler extends ExistingEntityHandler {
 
         public String fieldName() {
             return "getcontentlength";
+        }
+        
+    }
+
+    class EtagPropertyWriter implements PropertyWriter{
+
+        public void append(XmlWriter writer, PropFindableResource resource, String href) {
+            String etag = resource.getUniqueId();
+            if(etag != null) {
+                sendStringProp(writer, "D:getetag", etag);
+            }
+        }
+
+        public String fieldName() {
+            return "getetag";
         }
         
     }
