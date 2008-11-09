@@ -102,7 +102,7 @@ public class LockHandler extends ExistingEntityHandler {
             token = token.substring(pos+1);
             pos = token.indexOf(">");
             if( pos >= 0 ) {
-                token = token.substring(0, pos-1);
+                token = token.substring(0, pos); 
             }
         }
         return token;
