@@ -23,6 +23,7 @@ public class LockHandler extends ExistingEntityHandler {
         LockableResource r = (LockableResource) resource;
         LockTimeout timeout = LockTimeout.parseTimeout(request);
         String ifHeader = request.getIfHeader();
+        response.setContentTypeHeader( Response.ContentType.XML.toString() );        
         if( ifHeader == null || ifHeader.length() == 0  ) {
             processNewLock(milton,request,response,r,timeout);
         } else {
