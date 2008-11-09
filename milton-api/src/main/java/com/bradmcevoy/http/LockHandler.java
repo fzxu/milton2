@@ -128,7 +128,7 @@ public class LockHandler extends ExistingEntityHandler {
     }
 
     private void appendScope(XmlWriter writer, LockScope scope) {
-        writer.writeProperty(null, "D:locktype", "<D:" + scope.toString().toLowerCase() + "/>");   
+        writer.writeProperty(null, "D:lockscope", "<D:" + scope.toString().toLowerCase() + "/>");   
     }
 
     private void appendTimeout(XmlWriter writer, Long seconds) {        
