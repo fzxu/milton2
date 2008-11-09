@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +102,7 @@ public class PropFindHandler extends ExistingEntityHandler {
         log.debug("collectionHref: " + collectionHref);
         sendResponse(writer, resource,requestedFields, collectionHref);
         
-        if( resource instanceof CollectionResource ) {
+        if(depth > 0 && resource instanceof CollectionResource ) {
             CollectionResource col = (CollectionResource) resource;
             List<Resource> list = new ArrayList<Resource>(col.getChildren());
             log.debug("appendResponses: " + list.size());
@@ -117,18 +118,36 @@ public class PropFindHandler extends ExistingEntityHandler {
 
     void sendResponse(XmlWriter writer, PropFindableResource resource,Set<String> requestedFields, String href) {
         XmlWriter.Element el = writer.begin("D:response").open();
-        
+        final Set<PropertyWriter> unknownProperties = new HashSet<PropertyWriter>();
+        final Set<PropertyWriter> knownProperties = new HashSet<PropertyWriter>();
         String href2 = urlEncode(href);
         writer.writeProperty(null, "D:href", href2);
-        XmlWriter.Element elPropStat = writer.begin("D:propstat").open();
-        XmlWriter.Element elProp = writer.begin("D:prop").open();        
+        
         for( String field : requestedFields ) {
-            appendField(field,writer,resource, href);
+            final PropertyWriter pw = writersMap.get(field);
+            if(pw != null)
+                knownProperties.add(pw);
+            else
+                unknownProperties.add(new UnknownPropertyWriter(field));
         }
-        elProp.close();
-        writer.writeProperty(null, "D:status", "HTTP/1.1 200 OK");
-        elPropStat.close();
+        
+        sendResponseProperties(writer, resource, knownProperties, href, "HTTP/1.1 200 Ok");
+        sendResponseProperties(writer, resource, unknownProperties, href, "HTTP/1.1 404 Not Found");
+        
         el.close();
+    }
+    
+    void sendResponseProperties(XmlWriter writer, PropFindableResource resource,Set<PropertyWriter> properties, String href, String status) {
+        if(!properties.isEmpty()) {
+            XmlWriter.Element elUnknownPropStat = writer.begin("D:propstat").open();
+            XmlWriter.Element elUnknownProp = writer.begin("D:prop").open();
+            for(final PropertyWriter pw : properties) {
+                appendField(pw, writer, resource, href);
+            }
+            elUnknownProp.close();
+            writer.writeProperty(null, "D:status", status);
+            elUnknownPropStat.close();
+        }
     }
     
     private String suffixSlash(String s) {
@@ -145,31 +164,23 @@ public class PropFindHandler extends ExistingEntityHandler {
 
     protected void sendStringProp(XmlWriter writer, String name, String value) {
         String s = value;
-        if( s == null ) s = "";
-        writer.writeProperty(null, name, s);
+        if( s == null ) { 
+            writer.writeProperty(null, name);
+        } else {
+            writer.writeProperty(null, name, s);
+        }
     }
 
     void sendDateProp(XmlWriter writer, String name, Date date) {
-        String s;
-        if (date == null) {
-            s = "";
-        } else {
-            s = DateUtils.formatDate(date);
-        }
-        sendStringProp(writer, name, s);
+        sendStringProp(writer, name, (date == null ? null : DateUtils.formatDate(date)) );
     }
 
     protected boolean isFolder(PropFindableResource resource) {
         return (resource instanceof CollectionResource);
     }
 
-    private void appendField(String field, XmlWriter writer, PropFindableResource resource, String collectionHref) {
-        PropertyWriter pw = writersMap.get(field);
-        if( pw == null ) {
-//            log.warn("Couldnt find writer for field:" + field);
-            pw = new UnknownPropertyWriter(field);
-        }
-        pw.append(writer, resource, collectionHref);
+    private void appendField(PropertyWriter propertyWriter, XmlWriter writer, PropFindableResource resource, String collectionHref) {
+        propertyWriter.append(writer, resource, collectionHref);
     }
 
     private Set<String> getRequestedFields(Request request) throws IOException, SAXException, FileNotFoundException {
@@ -188,7 +199,6 @@ public class PropFindHandler extends ExistingEntityHandler {
         }
 
         if( set.size() == 0 ) {
-            log.debug("adding default fields");
             set.add("creationdate");
             set.add("getlastmodified");
             set.add("displayname");
@@ -349,7 +359,7 @@ public class PropFindHandler extends ExistingEntityHandler {
         }
         
         public void append(XmlWriter writer, PropFindableResource res, String href) {
-            sendStringProp(writer, "D:" + fieldName(), "");
+            sendStringProp(writer, "D:" + fieldName(), null);
         }
 
         public String fieldName() {
