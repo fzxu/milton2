@@ -1,14 +1,17 @@
 package com.bradmcevoy.http;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServletResponse extends AbstractResponse {
 
+    private Logger log = LoggerFactory.getLogger(GetHandler.class);
+    
     private static ThreadLocal<HttpServletResponse> tlResponse = new ThreadLocal<HttpServletResponse>();
     
     public static HttpServletResponse getResponse() {
@@ -16,7 +19,7 @@ public class ServletResponse extends AbstractResponse {
     }
     
     private final HttpServletResponse r;
-    private ByteArrayOutputStream out = new ByteArrayOutputStream();
+//    private ByteArrayOutputStream out = new ByteArrayOutputStream();
     private Long contentLength;
     private Response.Status status;
     private Map<String,String> headers = new HashMap<String, String>();
@@ -51,19 +54,40 @@ public class ServletResponse extends AbstractResponse {
     }
     
     public OutputStream getOutputStream() {        
-        return out;
+        try {
+//        return out;
+            return r.getOutputStream();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
     public void close() {
+        log.debug("closing: contentlength: " + this.contentLength);
         try {
-            byte[] arr = out.toByteArray();
-            long length = (long)arr.length;
-            if( contentLength == null ) setContentLengthHeader(length);
-            OutputStream o = r.getOutputStream();
-            o.write( arr );
+            r.flushBuffer();
+            r.getOutputStream().flush();
+//        try {
+//            byte[] arr = out.toByteArray();
+//            long length = (long)arr.length;
+//            if( contentLength == null ) setContentLengthHeader(length);
+//            OutputStream o = r.getOutputStream();
+//            o.write( arr );
+//        } catch (IOException ex) {
+//            throw new RuntimeException(ex);
+//        }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
-        }        
+        }
+//        try {
+//            byte[] arr = out.toByteArray();
+//            long length = (long)arr.length;
+//            if( contentLength == null ) setContentLengthHeader(length);
+//            OutputStream o = r.getOutputStream();
+//            o.write( arr );
+//        } catch (IOException ex) {
+//            throw new RuntimeException(ex);
+//        }        
     }
 }
