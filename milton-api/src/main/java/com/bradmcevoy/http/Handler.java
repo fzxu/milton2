@@ -118,10 +118,7 @@ public abstract class Handler {
         response.setContentTypeHeader( resource.getContentType(acc) );
         setCacheControl(resource, response);        
         response.setLastModifiedHeader(resource.getModifiedDate());
-        long t = System.currentTimeMillis();
         sendContent(request, response,resource,params);
-        t = System.currentTimeMillis() - t;
-//        log.debug("sendContent: " + t + "ms");
     }
     
     protected void sendContent(Request request, Response response, GetableResource resource,Map<String,String> params) {
@@ -132,10 +129,10 @@ public abstract class Handler {
         OutputStream out = outputStreamForResponse(request, response, resource);
         try {
             resource.sendContent(out,null,params);
-            if( out != response.getOutputStream() ) {
-                out.flush();
-                out.close();
-                response.getOutputStream().flush();
+            if( out != response.getOutputStream() ) { // is outputstream wrapping the response
+                out.flush();// flush and close the wrapping stream to ensure all bytes are written
+                out.close(); 
+//                response.getOutputStream().flush();
             } else {
                 out.flush();                
             }
