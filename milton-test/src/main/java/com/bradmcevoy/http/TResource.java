@@ -35,7 +35,7 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
     
     public String getHref() {
         if( parent == null ) {
-            return "http://localhost:8084/MiltonTestWeb/";
+            return "/webdav/";
         } else {
             String s = parent.getHref();
             if( !s.endsWith("/") ) s = s + "/";
