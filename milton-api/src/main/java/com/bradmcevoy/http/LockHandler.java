@@ -1,6 +1,7 @@
 
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.LockInfo.LockScope;
 import com.bradmcevoy.http.LockInfo.LockType;
 import com.bradmcevoy.http.Request.Method;
@@ -10,7 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-public class LockHandler extends ExistingEntityHandler {
+/**
+ * Note that this is both a new entity handler and an existing entity handler
+ * 
+ * @author brad
+ */
+public class LockHandler extends Handler {
 
     private Logger log = LoggerFactory.getLogger(LockHandler.class);
 
@@ -19,7 +25,21 @@ public class LockHandler extends ExistingEntityHandler {
     }
     
     @Override
-    protected void process(HttpManager milton, Request request, Response response, Resource resource) {
+    public void process(HttpManager manager, Request request, Response response) {
+        String host = request.getHostHeader();
+        String url = HttpManager.decodeUrl(request.getAbsolutePath());
+
+        // Find a resource if it exists
+        Resource r = manager.getResourceFactory().getResource(host, url);
+        if (r != null) {
+            processExistingResource(manager, request, response, r);
+        } else {            
+            processNonExistingResource(manager, request, response, host, url);
+        }                       
+    }
+    
+    
+    protected void processExistingResource(HttpManager milton, Request request, Response response, Resource resource) {
         LockableResource r = (LockableResource) resource;
         LockTimeout timeout = LockTimeout.parseTimeout(request);
         String ifHeader = request.getIfHeader();
@@ -29,6 +49,49 @@ public class LockHandler extends ExistingEntityHandler {
         } else {
             processRefresh(milton,request,response,r,timeout,ifHeader);
         }        
+    }
+    
+    private void processNonExistingResource(HttpManager manager, Request request, Response response, String host, String url) {
+        String name;
+        
+        Path parentPath = Path.path(url);
+        name = parentPath.getName();
+        parentPath = parentPath.getParent();
+        url = parentPath.toString();
+        
+        Resource r = manager.getResourceFactory().getResource(host, url);
+        if( r != null ) {
+            log.debug("process: resource: " + r.getClass().getName());
+            processCreateAndLock(request,response,r, name);
+        } else {
+            response.setStatus(Response.Status.SC_NOT_FOUND);
+        }
+    }
+
+    private void processCreateAndLock(Request request, Response response, Resource parentResource, String name) {
+        if( parentResource instanceof LockingCollectionResource ) {
+            LockingCollectionResource lockingParent = (LockingCollectionResource) parentResource;
+            LockTimeout timeout = LockTimeout.parseTimeout(request);
+            response.setContentTypeHeader( Response.ContentType.XML.toString() );
+
+            LockInfo lockInfo;        
+            try {
+                lockInfo = LockInfo.parseLockInfo(request);            
+            } catch (SAXException ex) {
+                throw new RuntimeException("Exception reading request body", ex);
+            } catch (IOException ex) {
+                throw new RuntimeException("Exception reading request body", ex);
+            }
+            
+            log.debug("Creating lock on unmapped resource: " + name);
+            LockToken tok = lockingParent.createAndLock(name, timeout, lockInfo);
+            response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
+            respondWithToken(tok, request, response);
+            
+        } else {
+            log.debug("The parent resource does not support LOCK on unmapped resources");
+            response.setStatus(Response.Status.SC_METHOD_NOT_ALLOWED);
+        }
     }
     
     @Override
@@ -152,6 +215,5 @@ public class LockHandler extends ExistingEntityHandler {
         XmlWriter.Element el = writer.begin("D:lockroot").open();
         writer.writeProperty(null, "D:href", lockRoot);
         el.close(); 
-    }
-    
+    }    
 }

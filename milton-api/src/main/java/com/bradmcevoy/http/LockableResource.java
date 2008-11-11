@@ -9,7 +9,7 @@ public interface LockableResource extends Resource {
      * Lock this resource and return a token
      * 
      * @param timeout - in seconds, or null
-     * @param lockInfo - in seconds, or null
+     * @param lockInfo
      * @return - a token representing the lock
      */
     public LockToken lock(LockTimeout timeout, LockInfo lockInfo);

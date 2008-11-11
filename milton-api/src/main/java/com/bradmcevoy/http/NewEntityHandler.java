@@ -51,13 +51,7 @@ public abstract class NewEntityHandler extends Handler {
             respondMethodNotAllowed(resource,response);
             return ;
         }
-        
-//        String redirectUrl = resource.checkRedirect(request);
-//        if( redirectUrl != null ) {
-//            respondRedirect( response, redirectUrl );
-//            return ;
-//        }
-        
+                
         if( resource instanceof CollectionResource ) {
             CollectionResource col = (CollectionResource)resource;
             process(manager,request,response,col, name);
