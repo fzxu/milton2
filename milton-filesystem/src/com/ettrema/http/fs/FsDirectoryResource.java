@@ -38,14 +38,14 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
 
     public Resource child(String name) {
         File fchild = new File(file,name);
-        return FileSystemResourceFactory.resolveFile(fchild);
+        return factory.resolveFile(fchild);
         
     }
 
     public List<? extends Resource> getChildren() {
         ArrayList<FsResource> list = new ArrayList<FsResource>();
         for( File fchild : this.file.listFiles()) {
-            FsResource res = FileSystemResourceFactory.resolveFile(fchild);
+            FsResource res = factory.resolveFile(fchild);
             list.add(res);
         }
         return list;
@@ -61,7 +61,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         FileOutputStream out = new FileOutputStream(dest);
         IOUtils.copy(in, out);
         // todo: ignores contentType
-        return FileSystemResourceFactory.resolveFile(dest);
+        return factory.resolveFile(dest);
     }
 
     @Override

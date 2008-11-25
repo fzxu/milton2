@@ -7,6 +7,7 @@ import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
+import com.bradmcevoy.io.StreamToStream;
 import eu.medsea.util.MimeUtil;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +31,6 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
     }
 
     public String getContentType(String preferredList) {
-        // String contentType = MiltonUtils.getContentType(config.servletContext, file.getName());
         String mime = MimeUtil.getMimeType(file);
         return MimeUtil.getPreferedMimeType(preferredList, mime);        
     }
@@ -41,8 +41,16 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
 
     public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
         FileInputStream in = new FileInputStream(file);
-        IOUtils.copy(in, out);
-        // todo: implement range
+//        if( range != null ) {
+//            long start = range.getStart();
+//            if( start > 0 ) in.skip(start);
+//            long finish = range.getFinish();
+//            if( finish > 0 ) {
+//                StreamToStream.readTo(in, out);
+//            }
+//        } else {
+            IOUtils.copy(in, out);
+//        }
     }
 
     public Long getMaxAgeSeconds() {
