@@ -1,0 +1,91 @@
+package com.ettrema.http.fs;
+
+import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.CollectionResource;
+import com.bradmcevoy.http.CopyableResource;
+import com.bradmcevoy.http.MoveableResource;
+import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Resource;
+import java.io.File;
+import java.util.Date;
+import org.apache.commons.io.FileUtils;
+
+/**
+ *
+ */
+public abstract class  FsResource implements Resource, MoveableResource, CopyableResource {
+    File file;
+    final FileSystemResourceFactory factory;
+
+    protected abstract void doCopy(File dest);
+    
+    public FsResource(FileSystemResourceFactory factory, File file) {
+        this.file = file;
+        this.factory = factory;
+    }
+    
+    public File getFile() {
+        return file;
+    }
+    
+    public String getUniqueId() {
+        return null;
+    }
+
+    public String getName() {
+        return file.getName();
+    }
+
+    public Object authenticate(String user, String password) {
+        return user; // todo
+    }
+
+    public boolean authorise(Request arg0, Method arg1, Auth arg2) {
+        return true; // todo
+    }
+
+    public String getRealm() {
+        return factory.getRealm();
+    }
+
+    public Date getModifiedDate() {
+        return new Date(file.lastModified());
+    }
+
+    public Date getCreateDate() {
+        return null;
+    }
+    
+    public int compareTo(Resource o) {
+        return this.getName().compareTo(o.getName());
+    }
+
+    public void moveTo(CollectionResource newParent, String newName) {
+        if( newParent instanceof FsDirectoryResource ) {
+            FsDirectoryResource newFsParent = (FsDirectoryResource) newParent;
+            File dest = new File(newFsParent.getFile(), newName);
+            boolean ok = this.file.renameTo(dest);
+            if( !ok ) throw new RuntimeException("Failed to move to: " + dest.getAbsolutePath());
+            this.file = dest;
+        } else {
+            throw new RuntimeException("Destination is an unknown type. Must be a FsDirectoryResource, is a: " + newParent.getClass());
+        }
+    }
+    
+    public void copyTo(CollectionResource newParent, String newName) {
+        if( newParent instanceof FsDirectoryResource ) {
+            FsDirectoryResource newFsParent = (FsDirectoryResource) newParent;
+            File dest = new File(newFsParent.getFile(), newName);
+            doCopy(dest);
+        } else {
+            throw new RuntimeException("Destination is an unknown type. Must be a FsDirectoryResource, is a: " + newParent.getClass());
+        }        
+    }
+
+    public void delete() {
+        boolean ok = file.delete();
+        if( !ok ) throw new RuntimeException("Failed to delete");
+    }
+    
+}
