@@ -15,14 +15,30 @@ public class AbstractMiltonEndPoint {
     
     protected void init(String resourceFactoryClassName) throws ServletException {
         log.debug("resourceFactoryClassName: " + resourceFactoryClassName);
-        ResourceFactory rf;
+        ResourceFactory rf = instantiate(resourceFactoryClassName);
+        init(rf);
+    }
+    
+    protected void initFromFactoryFactory(String resourceFactoryFactoryClassName) throws ServletException {
+        log.debug("resourceFactoryFactoryClassName: " + resourceFactoryFactoryClassName);
+        ResourceFactoryFactory rff = instantiate(resourceFactoryFactoryClassName);
+        rff.init();
+        ResourceFactory rf = rff.createResourceFactory();
+        init(rf);
+    }
+    
+    protected void init(ResourceFactory rf) {
+        httpManager = new ServletHttpManager(rf);        
+    }
+    
+    protected <T> T instantiate(String className) throws ServletException {
         try {
-            Class c = Class.forName(resourceFactoryClassName);
-            rf = (ResourceFactory) c.newInstance();
+            Class c = Class.forName(className);
+            T rf = (T) c.newInstance();
+            return rf;
         } catch (Throwable ex) {
-            throw new ServletException("Failed to instantiate resource factory: " + resourceFactoryClassName, ex);
+            throw new ServletException("Failed to instantiate: " + className, ex);
         }                
-        httpManager = new ServletHttpManager(rf);
     }
     
     public void destroy() {

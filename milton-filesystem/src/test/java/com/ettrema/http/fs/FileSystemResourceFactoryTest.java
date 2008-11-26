@@ -15,7 +15,7 @@ public class FileSystemResourceFactoryTest extends TestCase{
     protected void setUp() throws Exception {
         super.setUp();
         root = new File(System.getProperty("java.home"));
-        factory = new FileSystemResourceFactory(root, "arealm");
+        factory = new FileSystemResourceFactory(root, null);
         System.out.println("testing with root: " + root.getAbsolutePath());
     }
     

@@ -4,9 +4,6 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +15,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     private static final Logger log = LoggerFactory.getLogger(FileSystemResourceFactory.class);
     
     File root;
-    String realm;
+    FsSecurityManager securityManager;
 
     /**
      * Creates and (optionally) initialises the factory. This looks for a 
@@ -37,36 +34,27 @@ public class FileSystemResourceFactory implements ResourceFactory {
      * 
      */
     public FileSystemResourceFactory() {
-        Properties props = new Properties();
-        InputStream in = FileSystemResourceFactory.class.getResourceAsStream("FileSystemResourceFactory.properties");
-        if( in != null ) {
-            log.debug("Configuring from FileSystemResourceFactory.properties");
-            try {
-                props.load(in);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-            String sRoot = props.getProperty("root");
-            log.debug("root: " + sRoot);
-            String sRealm = props.getProperty("realm");
-            init(sRoot, sRealm);
-        } else {
-            log.debug("Configuring from defaults");
-            String sRoot = System.getProperty("user.home");
-            String sRealm = "milton-fs-test";
-            init(sRoot, sRealm);
-        }
+        log.debug("setting default configuration...");
+        String sRoot = System.getProperty("user.home");
+        FsSecurityManager sm = new NullSecurityManager();
+        init(sRoot, sm);
     }
     
-    protected void init(String sRoot, String sRealm) {
-        log.debug("root: " + sRoot + " - realm:" + sRealm);
+    protected void init(String sRoot, FsSecurityManager securityManager) {
         setRoot( new File(sRoot));        
-        setRealm(sRealm);
+        setSecurityManager(securityManager);
     }
 
-    public FileSystemResourceFactory(File root, String realm) {
+    /**
+     * 
+     * @param root - the root folder of the filesystem to expose. This must include
+     * the context path. Eg, if you've deployed to webdav-fs, root must contain a folder
+     * called webdav-fs
+     * @param securityManager
+     */
+    public FileSystemResourceFactory(File root, FsSecurityManager securityManager) {
         setRoot(root);
-        setRealm(realm);
+        setSecurityManager(securityManager);
     }
 
     public File getRoot() {
@@ -74,9 +62,10 @@ public class FileSystemResourceFactory implements ResourceFactory {
     }
 
     public void setRoot(File root) {
+        log.debug("root: " + root.getAbsolutePath());        
         this.root = root;
         if( !root.exists() ) {
-            log.warn("Root folder does not exisst: " + root.getAbsolutePath());
+            log.warn("Root folder does not exist: " + root.getAbsolutePath());
         }
         if( !root.isDirectory() ) {
             log.warn("Root exists but is not a directory: " + root.getAbsolutePath());
@@ -121,7 +110,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     }
 
     public String getRealm() {
-        return realm;
+        return securityManager.getRealm();
     }
 
     /**
@@ -131,10 +120,17 @@ public class FileSystemResourceFactory implements ResourceFactory {
     public Long getMaxAgeSeconds() {
         return 60l*60;
     }
-    
-    
-
-    private void setRealm(String realm) {
-        this.realm = realm;
+       
+    public void setSecurityManager(FsSecurityManager securityManager) {
+        if( securityManager != null ) {
+            log.debug("securityManager: " + securityManager.getClass());        
+        } else {
+            log.warn("Setting null FsSecurityManager. This WILL cause null pointer exceptions");
+        }
+        this.securityManager = securityManager;
     }
+
+    public FsSecurityManager getSecurityManager() {
+        return securityManager;
+    }       
 }

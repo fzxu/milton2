@@ -33,9 +33,14 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
     public void init(ServletConfig config) throws ServletException {
         try {
             this.config = config;
-            String resourceFactoryClassName = config.getInitParameter("resource.factory.class");
-            init(resourceFactoryClassName);
-            httpManager.init(new ApplicationConfig(config),httpManager);        
+            String resourceFactoryFactoryClassName = config.getInitParameter("resource.factory.factory.class");
+            if( resourceFactoryFactoryClassName != null && resourceFactoryFactoryClassName.length() > 0 ) {
+                initFromFactoryFactory(resourceFactoryFactoryClassName);
+            } else {
+                String resourceFactoryClassName = config.getInitParameter("resource.factory.class");
+                init(resourceFactoryClassName);                
+            }
+            httpManager.init(new ApplicationConfig(config),httpManager); 
         } catch( ServletException ex )  {
             log.error("Exception starting milton servlet",ex);
             throw ex;
