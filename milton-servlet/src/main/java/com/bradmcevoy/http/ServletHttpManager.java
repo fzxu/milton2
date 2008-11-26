@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 public class ServletHttpManager extends HttpManager implements Initable {
     
-    private Logger log = LoggerFactory.getLogger(ServletHttpManager.class);
+    private static final Logger log = LoggerFactory.getLogger(ServletHttpManager.class);
     
     public ServletHttpManager(ResourceFactory resourceFactory) {
         super(resourceFactory);

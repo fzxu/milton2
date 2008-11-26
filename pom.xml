@@ -28,6 +28,8 @@
 		<module>milton-api</module>
 		<module>milton-servlet</module>
 		<module>milton-test</module>
+		<module>milton-filesystem</module>                
+		<module>milton-filesystem-test</module>                                
 	</modules>
 	<build>
 		<plugins>

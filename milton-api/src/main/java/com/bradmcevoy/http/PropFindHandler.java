@@ -276,7 +276,12 @@ public class PropFindHandler extends ExistingEntityHandler {
     class ContentTypePropertyWriter implements PropertyWriter{
 
         public void append(XmlWriter xmlWriter, PropFindableResource res, String href) {
-            sendStringProp(xmlWriter, "D:"+fieldName(), res.getContentType(null));
+            if( res instanceof GetableResource )  {
+                GetableResource getable = (GetableResource) res;
+                sendStringProp(xmlWriter, "D:"+fieldName(), getable.getContentType(null));
+            } else {
+                sendStringProp(xmlWriter, "D:"+fieldName(), "");
+            }
         }
 
 
@@ -289,9 +294,14 @@ public class PropFindHandler extends ExistingEntityHandler {
     class ContentLengthPropertyWriter implements PropertyWriter{
 
         public void append(XmlWriter xmlWriter, PropFindableResource res, String href) {
-            Long l = res.getContentLength();
-            String s = l == null ? "0" : l.toString();
-            sendStringProp(xmlWriter, "D:"+fieldName(), s);
+            if( res instanceof GetableResource) {
+                GetableResource getable = (GetableResource) res;
+                Long l = getable.getContentLength();
+                String s = l == null ? "0" : l.toString();
+                sendStringProp(xmlWriter, "D:"+fieldName(), s);
+            } else {
+                sendStringProp(xmlWriter, "D:"+fieldName(), "");
+            }
         }
 
         public String fieldName() {

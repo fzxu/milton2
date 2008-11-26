@@ -14,10 +14,19 @@ import org.slf4j.LoggerFactory;
 public class StreamToStream {
     
     private static Logger log = LoggerFactory.getLogger(StreamToStream.class);
+
     
     private StreamToStream() {
     }
 
+    private static void skip(InputStream in, Long start) {
+        try {
+            in.skip(start);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
     public static long readTo(File inFile, OutputStream out, boolean closeOut) throws ReadingException, WritingException {
         FileInputStream in = null;
         try {
@@ -74,7 +83,7 @@ public class StreamToStream {
      * @throws com.bradmcevoy.io.WritingException
      */
     public static long readTo(InputStream in, OutputStream out) throws ReadingException, WritingException {
-        return readTo(in, out, false, false);
+        return readTo(in, out, false, false, null, null);
     }
     
     /**
@@ -85,11 +94,21 @@ public class StreamToStream {
      * @param out
      * @param closeIn
      * @param closeOut
-     * @return
+     * @return - number of bytes written
      * @throws com.bradmcevoy.io.ReadingException
      * @throws com.bradmcevoy.io.WritingException
      */
     public static long readTo(InputStream in, OutputStream out, boolean closeIn, boolean closeOut) throws ReadingException, WritingException {
+        return readTo(in, out,closeIn, closeOut, null, null);
+    }
+    
+    private static long readTo(InputStream in, OutputStream out, boolean closeIn, boolean closeOut, Long start, Long finish) throws ReadingException, WritingException {
+        long cnt=0;        
+        if( start != null ) {
+            skip(in, start);
+            cnt = start;
+        }
+            
         byte[] buf = new byte[1024];
         int s;
         try{
@@ -99,7 +118,6 @@ public class StreamToStream {
                 throw new ReadingException(ex);
             }
             long numBytes = 0;
-            int cnt=0;
             while( s > 0 ) {
                 try {
                     numBytes+=s;

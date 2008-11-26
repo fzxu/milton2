@@ -1,5 +1,6 @@
 package com.ettrema.http.fs;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import java.io.File;
@@ -19,6 +20,22 @@ public class FileSystemResourceFactory implements ResourceFactory {
     File root;
     String realm;
 
+    /**
+     * Creates and (optionally) initialises the factory. This looks for a 
+     * properties file FileSystemResourceFactory.properties in the classpath
+     * If one is found it uses the root and realm properties to initialise
+     * 
+     * If not found the factory is initialised with the defaults
+     *   root: user.home system property
+     *   realm: milton-fs-test
+     * 
+     * These initialised values are not final, and may be changed through the 
+     * setters or init method
+     * 
+     * To be honest its pretty naf configuring like this, but i don't  want to
+     * force people to use spring or any other particular configuration tool
+     * 
+     */
     public FileSystemResourceFactory() {
         Properties props = new Properties();
         InputStream in = FileSystemResourceFactory.class.getResourceAsStream("FileSystemResourceFactory.properties");
@@ -68,7 +85,12 @@ public class FileSystemResourceFactory implements ResourceFactory {
         
     
     public Resource getResource(String host, String url) {
+        log.debug("getResource: host: " + host + " - url:" + url);
         File requested = resolvePath(root,url);
+        if( requested == null ) {
+            log.debug("file not found");
+            return null;
+        }
         return resolveFile(requested);
     }
 
@@ -78,17 +100,24 @@ public class FileSystemResourceFactory implements ResourceFactory {
     
     public FsResource resolveFile(File file) {
         if( !file.exists() ) {
+            log.debug("  not found: " + file.getAbsolutePath());
             return null;
         } else if( file.isDirectory() ) {
+            log.debug(" found directory: " + file.getAbsolutePath());
             return new FsDirectoryResource(this, file);
         } else {
+            log.debug("  found file: " + file.getAbsolutePath());
             return new FsFileResource(this, file);
         }        
     }
     
     public File resolvePath(File root, String url) {
-        // todo
-        return null;
+        Path path = Path.path(url);
+        File f = root;
+        for( String s : path.getParts() ) { 
+            f = new File(f,s);
+        }
+        return f;
     }
 
     public String getRealm() {
@@ -106,6 +135,6 @@ public class FileSystemResourceFactory implements ResourceFactory {
     
 
     private void setRealm(String realm) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        this.realm = realm;
     }
 }
