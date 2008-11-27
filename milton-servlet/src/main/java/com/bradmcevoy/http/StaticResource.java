@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import eu.medsea.util.MimeUtil;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +14,9 @@ import java.util.Map;
 
 /**
  * Used to provide access to static files via Milton
+ * 
+ * For a full implementation of webdav on a filesystem use the milton-filesysten
+ * project
  * 
  * @author brad
  */
@@ -72,11 +76,9 @@ public class StaticResource implements GetableResource {
     }
 
     public String getContentType(String accepts) {
-//        String s = MimeUtil.getMimeType(file.getAbsolutePath());
-//        s = MimeUtil.getPreferedMimeType(accepts,s);
-//        return s;
-        
-        return null;
+        String s = MimeUtil.getMimeType(file.getAbsolutePath());
+        s = MimeUtil.getPreferedMimeType(accepts,s);
+        return s;
     }
 
     public String checkRedirect(Request request) {

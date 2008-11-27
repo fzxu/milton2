@@ -5,6 +5,7 @@
            
     <bean id="milton.resource.factory" class="com.ettrema.http.fs.FileSystemResourceFactory">
         <property name="securityManager" ref="milton.fs.security.manager" />        
+        <property name="maxAgeSeconds" value="3600" />
     </bean>
     
     <bean id="milton.fs.security.manager" class="com.ettrema.http.fs.NullSecurityManager" >

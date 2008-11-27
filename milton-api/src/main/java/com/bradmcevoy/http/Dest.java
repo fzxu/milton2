@@ -3,12 +3,29 @@ package com.bradmcevoy.http;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ * @author brad
+ * 
+ * Represents the destination of a MOVE or COPY method
+ * 
+ * The target url is parsed into the 3 components, host, parent url and name
+ * to make it easier to differentiate between the name and folder of the destination
+ */
 class Dest {
     
     private Logger log = LoggerFactory.getLogger(Dest.class);
     
     public final String host;
+    
+    /**
+     * path of the parent folder
+     */
     public final String url;
+    
+    /**
+     * the name portion of the destination
+     */
     public final String name;
     
     
@@ -17,7 +34,6 @@ class Dest {
         log.debug("sDest: " + sDest);
         String sUrl;
         if( sDest.endsWith("/") ) sDest = sDest.substring(0,sDest.length()-1);
-        log.debug("sDest2: " + sDest);
         if( sDest.contains("http://") ) {
             String s = sDest.replace("http://","");
             int pos = s.indexOf(":");
@@ -40,8 +56,5 @@ class Dest {
             url = sUrl.substring(0,pos);
         }
         name = sUrl.substring(pos+1);
-        log.debug("Dest: host: " + host);
-        log.debug("Dest: url: " + url);
-        log.debug("Dest: name: " + name);
     }
 }

@@ -7,7 +7,6 @@ import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
-import com.bradmcevoy.io.StreamToStream;
 import eu.medsea.util.MimeUtil;
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,7 +53,7 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
     }
 
     public Long getMaxAgeSeconds() {
-        return factory.getMaxAgeSeconds();
+        return factory.maxAgeSeconds(this);
     }
 
     @Override

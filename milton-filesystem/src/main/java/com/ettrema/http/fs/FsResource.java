@@ -38,11 +38,11 @@ public abstract class  FsResource implements Resource, MoveableResource, Copyabl
     }
 
     public Object authenticate(String user, String password) {
-        return user; // todo
+        return factory.getSecurityManager().authenticate(user, password);
     }
 
-    public boolean authorise(Request arg0, Method arg1, Auth arg2) {
-        return true; // todo
+    public boolean authorise(Request request, Method method, Auth auth) {
+        return factory.getSecurityManager().authorise(request, method, auth, this);
     }
 
     public String getRealm() {

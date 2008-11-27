@@ -11,6 +11,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+/**
+ * 
+ * MiltonServlet is a thin wrapper around HttpManager. It takes care of initialisation
+ * and delegates requests to the HttpManager
+ * 
+ * The servlet API is hidden by the Milton API, however you can get access to
+ * the underlying request and response objects from the static request and response
+ * methods which use ThreadLocal variables
+ * 
+ * @author brad
+ */
 public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
     
     private Logger log = LoggerFactory.getLogger(MiltonServlet.class);
@@ -19,10 +30,18 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
     
     private static final ThreadLocal<HttpServletRequest> originalRequest = new ThreadLocal<HttpServletRequest>();
     private static final ThreadLocal<HttpServletResponse> originalResponse = new ThreadLocal<HttpServletResponse>();
+
+    public static HttpServletRequest request() {
+        return originalRequest.get();
+    }
+    
+    public static HttpServletResponse response() {
+        return originalResponse.get();
+    }
     
     public static void forward(String url) {
         try {
-            originalRequest.get().getRequestDispatcher(url).forward(originalRequest.get(),originalResponse.get());
+            request().getRequestDispatcher(url).forward(originalRequest.get(),originalResponse.get());
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         } catch (ServletException ex) {
@@ -63,8 +82,6 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
             originalRequest.remove();
             originalResponse.remove();
             servletResponse.flushBuffer();
-//            servletResponse.getOutputStream().flush();
-//            servletResponse.getOutputStream().close();
         }
     }
 

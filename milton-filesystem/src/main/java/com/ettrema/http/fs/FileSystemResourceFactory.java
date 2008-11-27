@@ -16,6 +16,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     
     File root;
     FsSecurityManager securityManager;
+    Long maxAgeSeconds;
 
     /**
      * Creates and (optionally) initialises the factory. This looks for a 
@@ -117,8 +118,8 @@ public class FileSystemResourceFactory implements ResourceFactory {
      * 
      * @return - the caching time for files
      */
-    public Long getMaxAgeSeconds() {
-        return 60l*60;
+    public Long maxAgeSeconds(FsResource resource) {
+        return maxAgeSeconds;
     }
        
     public void setSecurityManager(FsSecurityManager securityManager) {
@@ -132,5 +133,15 @@ public class FileSystemResourceFactory implements ResourceFactory {
 
     public FsSecurityManager getSecurityManager() {
         return securityManager;
-    }       
+    }
+
+    public void setMaxAgeSeconds(Long maxAgeSeconds) {
+        this.maxAgeSeconds = maxAgeSeconds;
+    }
+
+    public Long getMaxAgeSeconds() {
+        return maxAgeSeconds;
+    }
+    
+    
 }
