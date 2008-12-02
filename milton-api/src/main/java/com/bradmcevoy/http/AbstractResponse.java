@@ -3,17 +3,27 @@ package com.bradmcevoy.http;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractResponse implements Response {
 
+    private static final Logger log = LoggerFactory.getLogger(AbstractResponse.class);
+    
     protected DateFormat hdf;
+    protected Long contentLength;
+    
 
     public AbstractResponse() {
         hdf = new SimpleDateFormat(DateUtils.PATTERN_RESPONSE_HEADER);
         hdf.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
+
+
 
     public void setResponseHeader(Response.Header header, String value) {
         //log.debug("setResponseHeader: " + header.code + " - " + value);
@@ -28,6 +38,11 @@ public abstract class AbstractResponse implements Response {
         setResponseHeader(Response.Header.CONTENT_ENCODING, encoding.code);
     }
 
+    public Long getContentLength() {
+        return contentLength;
+    }
+    
+    
     public void setDateHeader(Date date) {
         //Date: Tue, 15 Nov 1994 08:12:31 GMT
         if (date == null)
@@ -47,8 +62,11 @@ public abstract class AbstractResponse implements Response {
     }
 
     public void setContentLengthHeader(Long totalLength) {
-        String s = totalLength == null ? "*" : totalLength.toString();
+        String s = totalLength == null ? "" : totalLength.toString();
+        log.debug("setting content length: " + s + " - " + this.hashCode() + " - " + this.getClass());
         setResponseHeader(Header.CONTENT_LENGTH, s);
+        this.contentLength = totalLength;
+        
     }
 
     public void setContentTypeHeader(String type) {

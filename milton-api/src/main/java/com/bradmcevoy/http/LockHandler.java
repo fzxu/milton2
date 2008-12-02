@@ -155,7 +155,7 @@ public class LockHandler extends Handler {
         } catch (IOException ex) {
             log.warn("exception writing to outputstream", ex);
         }
-        response.close();
+//        response.close();
 
     }
 

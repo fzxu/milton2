@@ -116,6 +116,13 @@ public interface Response {
     }
 
     public Response.Status getStatus();
+    
+    /**
+     * 
+     * @return - the content length which might have been set by a handler, or null
+     * if none has been set
+     */
+    public Long getContentLength();
 
     public void setContentEncodingHeader(ContentEncoding encoding);
 

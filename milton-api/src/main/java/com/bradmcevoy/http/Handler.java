@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Handler {
     
-    private Logger log = LoggerFactory.getLogger(Handler.class);
+    private static final Logger log = LoggerFactory.getLogger(Handler.class);
     
     public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
     
@@ -113,7 +113,11 @@ public abstract class Handler {
         Long contentLength = resource.getContentLength();
         if( contentLength != null ) { // often won't know until rendered
             response.setContentLengthHeader( contentLength ); 
+            log.debug("content length for: " + request.getAbsolutePath() + " is: " + contentLength);
+        } else {
+            log.debug("no content length for: " + request.getAbsolutePath());
         }
+        log.debug("confirming content length: " + response.getContentLength() + " response is: " + response.hashCode() + " - " + response.getClass());
         String acc = request.getAcceptHeader();
         response.setContentTypeHeader( resource.getContentType(acc) );
         setCacheControl(resource, response);        
@@ -129,41 +133,42 @@ public abstract class Handler {
         OutputStream out = outputStreamForResponse(request, response, resource);
         try {
             resource.sendContent(out,null,params);
-            if( out != response.getOutputStream() ) { // is outputstream wrapping the response
-                out.flush();// flush and close the wrapping stream to ensure all bytes are written
-                out.close(); 
+//            if( out != response.getOutputStream() ) { // is outputstream wrapping the response
+//                out.flush();// flush and close the wrapping stream to ensure all bytes are written
+//                out.close(); 
 //                response.getOutputStream().flush();
-            } else {
+//            } else {
                 out.flush();                
-            }
+//            }
         } catch (IOException ex) {
             log.warn("IOException sending content");
-        }                
+        }
     }   
     
     protected OutputStream outputStreamForResponse(Request request, Response response, GetableResource resource) {
         OutputStream outToUse = response.getOutputStream();
-        String acc = request.getAcceptHeader();
-        String contentType = resource.getContentType(acc);
-//        log.debug("outputStreamForResponse: accepts: " + acc + " contentType: " + contentType);
-        if( contentType != null ) {
-            contentType = contentType.toLowerCase();
-            boolean contentIsCompressable = contentType.contains("text") || contentType.contains("css") || contentType.contains("js") || contentType.contains("javascript");
-            if( contentIsCompressable ) {
-                String accepts = request.getAcceptEncodingHeader();
-                boolean supportsGzip = (accepts != null && accepts.toLowerCase().indexOf("gzip") > -1);
-                if( supportsGzip ) {
-//                    log.debug("..responding with GZIPed content");
-                    try {
-                        response.setContentEncodingHeader(Response.ContentEncoding.GZIP);
-                        outToUse = new GZIPOutputStream(outToUse);
-                    } catch (IOException ex) {
-                        throw new RuntimeException("Exception wrapping outputstream with GZIP output stream", ex);
-                    }
-                }
-            }
-        }
         return outToUse;
+//        String acc = request.getAcceptHeader();
+//        String contentType = resource.getContentType(acc);
+////        log.debug("outputStreamForResponse: accepts: " + acc + " contentType: " + contentType);
+//        if( contentType != null ) {
+//            contentType = contentType.toLowerCase();
+//            boolean contentIsCompressable = contentType.contains("text") || contentType.contains("css") || contentType.contains("js") || contentType.contains("javascript");
+//            if( contentIsCompressable ) {
+//                String accepts = request.getAcceptEncodingHeader();
+//                boolean supportsGzip = (accepts != null && accepts.toLowerCase().indexOf("gzip") > -1);
+//                if( supportsGzip ) {
+////                    log.debug("..responding with GZIPed content");
+//                    try {
+//                        response.setContentEncodingHeader(Response.ContentEncoding.GZIP);
+//                        outToUse = new GZIPOutputStream(outToUse);
+//                    } catch (IOException ex) {
+//                        throw new RuntimeException("Exception wrapping outputstream with GZIP output stream", ex);
+//                    }
+//                }
+//            }
+//        }
+//        return outToUse;
     }
     
     

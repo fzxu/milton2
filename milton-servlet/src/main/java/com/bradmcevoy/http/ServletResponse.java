@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public class ServletResponse extends AbstractResponse {
 
-    private Logger log = LoggerFactory.getLogger(GetHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(ServletResponse.class);
     
     private static ThreadLocal<HttpServletResponse> tlResponse = new ThreadLocal<HttpServletResponse>();
     
@@ -20,7 +20,7 @@ public class ServletResponse extends AbstractResponse {
     
     private final HttpServletResponse r;
 //    private ByteArrayOutputStream out = new ByteArrayOutputStream();
-    private Long contentLength;
+
     private Response.Status status;
     private Map<String,String> headers = new HashMap<String, String>();
     
@@ -46,13 +46,7 @@ public class ServletResponse extends AbstractResponse {
     public Response.Status getStatus() {
         return status;
     }
-    
-    @Override
-    public void setContentLengthHeader(Long totalLength) {
-        contentLength = totalLength;
-        super.setContentLengthHeader(totalLength);
-    }
-    
+        
     public OutputStream getOutputStream() {        
         try {
 //        return out;
@@ -64,7 +58,6 @@ public class ServletResponse extends AbstractResponse {
 
     @Override
     public void close() {
-        log.debug("closing: contentlength: " + this.contentLength);
         try {
             r.flushBuffer();
             r.getOutputStream().flush();

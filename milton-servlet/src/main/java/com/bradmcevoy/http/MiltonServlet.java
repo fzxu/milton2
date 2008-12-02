@@ -81,6 +81,7 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
         } finally {
             originalRequest.remove();
             originalResponse.remove();
+            servletResponse.getOutputStream().flush();            
             servletResponse.flushBuffer();
         }
     }
