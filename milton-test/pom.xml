@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>com.ettrema</groupId>
 			<artifactId>milton-servlet</artifactId>
-			<version>1.1</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>

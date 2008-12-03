@@ -6,14 +6,18 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
-public class TResource implements PostableResource, GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource {    
+public class TResource implements PostableResource, GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, LockableResource {    
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     String name;
     Date modDate;
     Date createdDate;
     TFolderResource parent;        
+    
+    TLock lock;
+    
     
     private String user;
     private String password;
@@ -178,4 +182,63 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         return this.hashCode()+"";
     }
 
+    public LockToken lock(LockTimeout timeout, LockInfo lockInfo) {
+        if( lock != null ) {
+            // todo
+            throw new RuntimeException("already locked");
+        }
+                
+        LockTimeout.DateAndSeconds lockedUntil = timeout.getLockedUntil(60l, 3600l);
+        this.lock = new TLock(lockedUntil.date, UUID.randomUUID().toString(), lockedUntil.seconds, lockInfo);
+        
+        LockToken token = new LockToken();
+        token.info = lockInfo;
+        token.timeout = new LockTimeout(lockedUntil.seconds);
+        token.tokenId = UUID.randomUUID().toString();
+                        
+        return token;
+    }
+
+    public LockToken refreshLock(String token) {
+        if( lock == null ) throw new RuntimeException("not locked");
+        if( !lock.lockId.equals(token)) throw new RuntimeException("invalid lock id");
+        this.lock = lock.refresh();
+        return makeToken();
+    }
+
+    public void unlock(String tokenId) {
+        if( lock == null ) {
+            log.warn("request to unlock not locked resource");
+            return ;
+        }
+        if( !lock.lockId.equals(tokenId) ) throw new RuntimeException("Invalid lock token");
+        this.lock = null;
+    }
+
+    LockToken makeToken() {
+        LockToken token = new LockToken();
+        token.info = lock.lockInfo;
+        token.timeout = new LockTimeout(lock.seconds);
+        token.tokenId = lock.lockId;
+        return token;
+    }
+    
+    class TLock {
+        final Date lockedUntil;
+        final String lockId;
+        final long seconds;
+        final LockInfo lockInfo;
+
+        public TLock(Date lockedUntil, String lockId, long seconds, LockInfo lockInfo) {
+            this.lockedUntil = lockedUntil;
+            this.lockId = lockId;
+            this.seconds = seconds;
+            this.lockInfo = lockInfo;
+        }
+
+        TLock refresh() {
+            Date dt = Utils.addSeconds(Utils.now(), seconds);
+            return new TLock(dt, lockId, seconds, lockInfo);
+        }                        
+    }
 }
