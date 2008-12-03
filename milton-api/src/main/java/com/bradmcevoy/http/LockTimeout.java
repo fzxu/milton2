@@ -1,6 +1,8 @@
 package com.bradmcevoy.http;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +20,9 @@ public class LockTimeout {
     }
     
     public static LockTimeout parseTimeout(String s) {      
-        if ( s==null ) return new LockTimeout(null);
+        if ( s==null ) return new LockTimeout((List<Long>)null);
         s = s.trim();
-        if( s.length() == 0 ) return new LockTimeout(null);
+        if( s.length() == 0 ) return new LockTimeout((List<Long>)null);
 
         List<Long> list = new ArrayList<Long>();
         for( String part : s.split(",")) {
@@ -68,6 +70,11 @@ public class LockTimeout {
     final Long seconds;
     final Long[] otherSeconds;
 
+    public LockTimeout(Long timeout) {
+        this.seconds = timeout;
+        this.otherSeconds = null;
+    }
+    
     private LockTimeout(List<Long> timeouts) {
         if( timeouts == null || timeouts.size()==0 ) {
             this.seconds = null;
@@ -96,5 +103,51 @@ public class LockTimeout {
         return otherSeconds;
     }
     
+
+    /**
+     * 
+     * @return - the current time + getSeconds()
+     */
+    public DateAndSeconds getLockedUntil(Long defaultSeconds, Long maxSeconds) {
+        Long l = getSeconds();        
+        if( l == null ) {
+            if( defaultSeconds != null ) {
+                return addSeconds(defaultSeconds);
+            } else if( maxSeconds != null ) {
+                return addSeconds( maxSeconds);
+            } else {
+                return addSeconds(60l); // default default
+            }
+        } else {
+            if( maxSeconds != null ) {
+                if( getSeconds() > maxSeconds ) {
+                    return addSeconds(maxSeconds);
+                } else {
+                    return addSeconds(l);
+                }
+            } else {
+                return addSeconds(l);
+            }
+        }
+    }
     
+    private DateAndSeconds addSeconds( Long l) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(System.currentTimeMillis());
+        int secs = (int)l.longValue();
+        cal.add(Calendar.SECOND, secs);
+        DateAndSeconds das = new DateAndSeconds();
+        das.date = cal.getTime();        
+        das.seconds = l;
+        return das;
+    }
+    
+    private Date getNow() {
+        return new Date();
+    }
+    
+    public class DateAndSeconds {
+        public Date date;
+        public Long seconds;
+    }
 }

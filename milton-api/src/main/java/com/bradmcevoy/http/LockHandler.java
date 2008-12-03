@@ -113,6 +113,10 @@ public class LockHandler extends Handler {
         } catch (IOException ex) {
             throw new RuntimeException("Exception reading request body", ex);
         }
+
+        // todo: check if already locked and return 423 locked or 412-precondition failed
+        // also must support multi-status. when locking a collection and a DEPTH > 1, must lock all
+        // child elements
         log.debug("locking: " + r.getName());
         LockToken tok = r.lock(timeout, lockInfo);
         log.debug("..locked: " + tok.tokenId);
