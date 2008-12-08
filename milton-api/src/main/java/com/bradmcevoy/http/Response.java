@@ -165,5 +165,13 @@ public interface Response {
     void setDateHeader(Date date);
 
     void close();
- 
+
+    /**
+     * Will set the status to moved_temporaruly and set the location header
+     * to the given url
+     * 
+     * @param unencodedUrl
+     */
+    void sendRedirect(String url);
+
 }

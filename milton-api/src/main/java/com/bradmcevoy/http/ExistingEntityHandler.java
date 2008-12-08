@@ -40,13 +40,13 @@ public abstract class ExistingEntityHandler extends Handler {
             
             manager.onProcessResourceStart(request, response, resource);
 
-            if (!checkAuthorisation(resource, request)) {
-                respondUnauthorised(resource, response);
+            if (!isCompatible(resource)) {
+                respondMethodNotAllowed(resource, response);
                 return;
             }
 
-            if (!isCompatible(resource)) {
-                respondMethodNotAllowed(resource, response);
+            if (!checkAuthorisation(resource, request)) {
+                respondUnauthorised(resource, response);
                 return;
             }
 

@@ -3,9 +3,7 @@ package com.bradmcevoy.http;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,4 +132,11 @@ public abstract class AbstractResponse implements Response {
 
     public void close() {
     }
+
+    public void sendRedirect(String url) {
+        setStatus(Response.Status.SC_MOVED_TEMPORARILY);
+        setLocationHeader( url );        
+    }
+    
+    
 }
