@@ -40,6 +40,11 @@ public class LockHandler extends Handler {
     
     
     protected void processExistingResource(HttpManager milton, Request request, Response response, Resource resource) {
+        if (!isCompatible(resource)) {
+            respondMethodNotAllowed(resource, response);
+            return;
+        }
+
         LockableResource r = (LockableResource) resource;
         LockTimeout timeout = LockTimeout.parseTimeout(request);
         String ifHeader = request.getIfHeader();
@@ -89,8 +94,7 @@ public class LockHandler extends Handler {
             respondWithToken(tok, request, response);
             
         } else {
-            log.debug("The parent resource does not support LOCK on unmapped resources");
-            response.setStatus(Response.Status.SC_METHOD_NOT_ALLOWED);
+            respondMethodNotAllowed(parentResource, response);
         }
     }
     
