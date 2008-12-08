@@ -47,6 +47,8 @@ public class ServletResponse extends AbstractResponse {
         return status;
     }
         
+    
+    
     public OutputStream getOutputStream() {        
         try {
 //        return out;
@@ -83,4 +85,16 @@ public class ServletResponse extends AbstractResponse {
 //            throw new RuntimeException(ex);
 //        }        
     }
+
+    @Override
+    public void sendRedirect(String url) {
+        String u = r.encodeRedirectURL(url);
+        try {
+            r.sendRedirect(u);
+        } catch (IOException ex) {
+            log.warn("exception sending redirect",ex);
+        }
+    }
+    
+    
 }
