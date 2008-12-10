@@ -33,7 +33,6 @@ public class StandardFilter implements Filter {
                 log.warn("exception writing content");
             }
         } finally {
-            log.debug("response close: " + response.hashCode());
             response.close();            
         }
     }    

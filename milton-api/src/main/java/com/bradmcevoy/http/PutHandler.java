@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 public class PutHandler extends NewEntityHandler {
     
-    private Logger log = LoggerFactory.getLogger(PutHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(PutHandler.class);
     
     public PutHandler(HttpManager manager) {
         super(manager);

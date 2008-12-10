@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public class GetHandler extends ExistingEntityHandler {
     
-    private Logger log = LoggerFactory.getLogger(GetHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(GetHandler.class);
     
     public GetHandler(HttpManager manager) {
         super(manager);
@@ -18,6 +18,7 @@ public class GetHandler extends ExistingEntityHandler {
     
     @Override
     protected void process(HttpManager milton, Request request, Response response, Resource resource) {
+        log.debug("process: " + request.getAbsolutePath());
         GetableResource r = (GetableResource)resource;
         if( checkConditional(r,request) ) {
             respondNotModified(r,response,request);

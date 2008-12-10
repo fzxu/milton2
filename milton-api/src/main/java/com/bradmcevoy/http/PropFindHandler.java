@@ -99,18 +99,18 @@ public class PropFindHandler extends ExistingEntityHandler {
 
     void appendResponses(XmlWriter writer, PropFindableResource resource, int depth,Set<String> requestedFields, String requestUrl, String host) {
         String collectionHref = suffixSlash("http://" + host + requestUrl);
-        log.debug("collectionHref: " + collectionHref);
+//        log.debug("collectionHref: " + collectionHref);
         sendResponse(writer, resource,requestedFields, collectionHref);
         
         if(depth > 0 && resource instanceof CollectionResource ) {
             CollectionResource col = (CollectionResource) resource;
             List<Resource> list = new ArrayList<Resource>(col.getChildren());
-            log.debug("appendResponses: " + list.size());
+//            log.debug("appendResponses: " + list.size());
             for (Resource child : list) {
                 if (child instanceof PropFindableResource) {
                     sendResponse(writer, (PropFindableResource) child, requestedFields, collectionHref + child.getName());
                 } else {
-                    log.debug("not adding child: " + child);
+//                    log.debug("not adding child: " + child);
                 }
             }
         }

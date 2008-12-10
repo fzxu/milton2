@@ -11,7 +11,7 @@ public abstract class AbstractRequest implements Request{
     
     public static final int INFINITY = 3; // To limit tree browsing a bit
     
-    protected abstract String getRequestHeader(Request.Header header);
+    public abstract String getRequestHeader(Request.Header header);
     
     public Date getIfModifiedHeader() {
         String s = getRequestHeader( Request.Header.IF_MODIFIED );

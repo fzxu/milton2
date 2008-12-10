@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +14,7 @@ public abstract class Handler {
     private static final Logger log = LoggerFactory.getLogger(Handler.class);
     
     public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
+    public static final String NOT_FOUND_HTML = "<html><body><h1>Not Found (404)</h1></body></html>";
     
     protected final HttpManager manager;
     
@@ -113,11 +113,7 @@ public abstract class Handler {
         Long contentLength = resource.getContentLength();
         if( contentLength != null ) { // often won't know until rendered
             response.setContentLengthHeader( contentLength ); 
-            log.debug("content length for: " + request.getAbsolutePath() + " is: " + contentLength);
-        } else {
-            log.debug("no content length for: " + request.getAbsolutePath());
         }
-        log.debug("confirming content length: " + response.getContentLength() + " response is: " + response.hashCode() + " - " + response.getClass());
         String acc = request.getAcceptHeader();
         response.setContentTypeHeader( resource.getContentType(acc) );
         setCacheControl(resource, response);        
@@ -193,6 +189,33 @@ public abstract class Handler {
         long deltaMs = deltaSeconds*1000;
         long expiresAt = System.currentTimeMillis() + deltaMs;
         return new Date(expiresAt);        
+    }
+
+    protected  void respondNotFound(Request request, Response response) {
+        log.debug("responding not found");
+        String notFoundPath = manager.getNotFoundPath();
+        if( notFoundPath != null ) {
+            ResourceFactory rf = manager.getResourceFactory();
+            Resource notFoundResource = rf.getResource(request.getHostHeader(), notFoundPath);
+            if( notFoundResource != null ) {
+                GetableResource gr = (GetableResource) notFoundResource;
+                try {
+                    gr.sendContent(response.getOutputStream(), null, null);
+                } catch (IOException ex) {
+                    log.error("IOException writing not found content. notFoundPath: " + notFoundPath ,ex);
+                }
+                return;
+            } else {
+                log.warn("notFoundResource was not found at path: " + notFoundPath);
+            }
+        }
+
+        response.setStatus(Response.Status.SC_NOT_FOUND);
+        try {
+            response.getOutputStream().write(NOT_FOUND_HTML.getBytes());
+        } catch (IOException ex) {
+            log.error("exception writing default not found content",ex);
+        }
     }
     
 }

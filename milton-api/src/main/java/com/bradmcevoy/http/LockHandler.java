@@ -32,8 +32,10 @@ public class LockHandler extends Handler {
         // Find a resource if it exists
         Resource r = manager.getResourceFactory().getResource(host, url);
         if (r != null) {
+            log.debug("locking existing resource: " + r.getName());
             processExistingResource(manager, request, response, r);
-        } else {            
+        } else {
+            log.debug("lock target doesnt exist, attempting lock null..");
             processNonExistingResource(manager, request, response, host, url);
         }                       
     }
@@ -66,18 +68,19 @@ public class LockHandler extends Handler {
         
         Resource r = manager.getResourceFactory().getResource(host, url);
         if( r != null ) {
-            log.debug("process: resource: " + r.getClass().getName());
             processCreateAndLock(request,response,r, name);
         } else {
-            response.setStatus(Response.Status.SC_NOT_FOUND);
+            log.debug("couldnt find parent to execute lock-null, returning not found");
+            respondNotFound(request, response);
         }
     }
 
     private void processCreateAndLock(Request request, Response response, Resource parentResource, String name) {
         if( parentResource instanceof LockingCollectionResource ) {
+            log.debug("parent supports lock-null. doing createAndLock");
             LockingCollectionResource lockingParent = (LockingCollectionResource) parentResource;
             LockTimeout timeout = LockTimeout.parseTimeout(request);
-            response.setContentTypeHeader( Response.ContentType.XML.toString() );
+            response.setContentTypeHeader( Response.XML );
 
             LockInfo lockInfo;        
             try {
@@ -94,6 +97,7 @@ public class LockHandler extends Handler {
             respondWithToken(tok, request, response);
             
         } else {
+            log.debug("parent does not support lock-null, respondong method not allowed");
             respondMethodNotAllowed(parentResource, response);
         }
     }

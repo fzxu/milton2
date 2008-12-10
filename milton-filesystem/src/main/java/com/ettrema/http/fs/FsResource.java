@@ -9,7 +9,6 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import java.io.File;
 import java.util.Date;
-import org.apache.commons.io.FileUtils;
 
 /**
  *

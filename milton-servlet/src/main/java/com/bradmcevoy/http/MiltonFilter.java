@@ -20,12 +20,14 @@ import javax.servlet.http.HttpServletResponse;
  *
  *  This means that you can have a combination of static file system resources
  *  and resource factory isntances
+ *
+ * @deprecated  - use MiltonServlet
  */
 public class MiltonFilter extends AbstractMiltonEndPoint implements Filter {
     
     public void init(FilterConfig config) throws ServletException {
         String resourceFactoryClassName = config.getInitParameter("resource.factory.class");
-        init(resourceFactoryClassName);
+        init(resourceFactoryClassName, null);
         httpManager.init(new ApplicationConfig(config),httpManager);        
     }
 

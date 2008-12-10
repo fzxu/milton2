@@ -66,7 +66,7 @@ public class ServletRequest extends AbstractRequest {
     
     
     @Override
-    protected String getRequestHeader(Request.Header header) {
+    public String getRequestHeader(Request.Header header) {
         return request.getHeader(header.code);
     }
 
@@ -157,4 +157,17 @@ public class ServletRequest extends AbstractRequest {
     protected boolean isMultiPart() {
         return ( ContentType.MULTIPART.equals( getRequestContentType() ) );
     }
+
+    public Map<String, String> getHeaders() {
+        Map<String,String> map = new HashMap<String, String>();
+        Enumeration num = request.getHeaderNames();
+        while(num.hasMoreElements()) {
+            String name = (String) num.nextElement();
+            String val = request.getHeader(name);
+            map.put(name, val);
+        }
+        return map;
+    }
+
+
 }

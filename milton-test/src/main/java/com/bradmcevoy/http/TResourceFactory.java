@@ -28,7 +28,7 @@ public class TResourceFactory implements ResourceFactory {
     
     
     public Resource getResource(String host, String url) {
-        log.debug("getResource: url: " + url );
+//        log.debug("getResource: url: " + url );
         Path path = Path.path(url);
         return find(path);
     }
@@ -49,7 +49,7 @@ public class TResourceFactory implements ResourceFactory {
     }
 
     public String getSupportedLevels() {
-        return "1";
+        return "1,2";
     }
 
 }

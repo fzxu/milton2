@@ -7,9 +7,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpManager {
-    
+
+    private static final Logger log = LoggerFactory.getLogger(HttpManager.class);
+
     final OptionsHandler optionsHandler;
     final GetHandler getHandler;
     final PostHandler postHandler;
@@ -32,13 +36,15 @@ public class HttpManager {
     final List<EventListener> eventListeners = new ArrayList<EventListener>();
     
     final ResourceFactory resourceFactory;
+    final String notFoundPath;
     
     private SessionAuthenticationHandler sessionAuthenticationHandler;
-    
-    public HttpManager(ResourceFactory resourceFactory) {
+
+    public HttpManager(ResourceFactory resourceFactory, String notFoundPath) {
         if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
         this.resourceFactory = resourceFactory;
-        
+
+        this.notFoundPath = notFoundPath;
         optionsHandler = add( createOptionsHandler() );
         getHandler = add( createGetHandler() );
         postHandler = add( createPostHandler() );
@@ -53,13 +59,21 @@ public class HttpManager {
         lockHandler = add(createLockHandler());
         unlockHandler = add(createUnlockHandler());
         allHandlers = new Handler[]{optionsHandler,getHandler,postHandler,propFindHandler,mkColHandler,moveFactory,putFactory,deleteHandler,propPatchHandler, lockHandler, unlockHandler};
-        
+
         filters.add(createStandardFilter());
+    }
+
+    public HttpManager(ResourceFactory resourceFactory) {
+        this(resourceFactory, null);
     }
     
     public Collection<Filter> getFilters() {
         ArrayList<Filter> col = new ArrayList<Filter>(filters);
         return col;
+    }
+
+    public String getNotFoundPath() {
+        return notFoundPath;
     }
     
     public ResourceFactory getResourceFactory() {
@@ -98,7 +112,7 @@ public class HttpManager {
     }
     
     public void process(Request request, Response response) {
-//        log.debug("process: " + request.getAbsoluteUrl() + "  " + request.getMethod());
+        log.debug(request.getMethod() + " :: " + request.getAbsoluteUrl());
         FilterChain chain = new FilterChain(this);
         chain.process(request,response);
     }

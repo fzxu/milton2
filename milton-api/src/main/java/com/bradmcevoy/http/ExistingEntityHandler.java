@@ -1,6 +1,5 @@
 package com.bradmcevoy.http;
 
-import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,8 +8,7 @@ public abstract class ExistingEntityHandler extends Handler {
 
     private Logger log = LoggerFactory.getLogger(ExistingEntityHandler.class);
 
-    public static final String NOT_FOUND_HTML = "<html><body><h1>Not Found (404)</h1></body></html>";
-    
+
     public ExistingEntityHandler(HttpManager manager) {
         super(manager);
     }
@@ -40,6 +38,10 @@ public abstract class ExistingEntityHandler extends Handler {
             
             manager.onProcessResourceStart(request, response, resource);
 
+            if (doCheckRedirect(request, response, resource)) {
+                return;
+            }
+
             if (!isCompatible(resource)) {
                 respondMethodNotAllowed(resource, response);
                 return;
@@ -47,10 +49,6 @@ public abstract class ExistingEntityHandler extends Handler {
 
             if (!checkAuthorisation(resource, request)) {
                 respondUnauthorised(resource, response);
-                return;
-            }
-
-            if (doCheckRedirect(request, response, resource)) {
                 return;
             }
 
@@ -69,12 +67,5 @@ public abstract class ExistingEntityHandler extends Handler {
         return false;
     }
 
-    protected  void respondNotFound(Request request, Response response) {
-        try {
-            response.setStatus(Response.Status.SC_NOT_FOUND);
-            response.getOutputStream().write(NOT_FOUND_HTML.getBytes());
-        } catch (IOException ex) {
-            log.warn("exception writing content");            
-        }
-    }
+
 }

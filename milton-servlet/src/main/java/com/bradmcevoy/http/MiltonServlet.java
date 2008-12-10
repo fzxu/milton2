@@ -52,12 +52,13 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
     public void init(ServletConfig config) throws ServletException {
         try {
             this.config = config;
+            String notFoundPath = config.getInitParameter("not.found.path");
             String resourceFactoryFactoryClassName = config.getInitParameter("resource.factory.factory.class");
             if( resourceFactoryFactoryClassName != null && resourceFactoryFactoryClassName.length() > 0 ) {
-                initFromFactoryFactory(resourceFactoryFactoryClassName);
+                initFromFactoryFactory(resourceFactoryFactoryClassName, notFoundPath);
             } else {
                 String resourceFactoryClassName = config.getInitParameter("resource.factory.class");
-                init(resourceFactoryClassName);                
+                init(resourceFactoryClassName, notFoundPath);
             }
             httpManager.init(new ApplicationConfig(config),httpManager); 
         } catch( ServletException ex )  {

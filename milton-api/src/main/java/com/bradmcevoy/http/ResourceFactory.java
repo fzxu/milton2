@@ -57,4 +57,5 @@ public interface ResourceFactory {
      * @return - a string identifying the supported levels. Should be "1" or "1,2"
      */
     String getSupportedLevels();
+    
 }

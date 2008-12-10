@@ -11,9 +11,13 @@ import org.slf4j.LoggerFactory;
 public class ServletResponse extends AbstractResponse {
 
     private static final Logger log = LoggerFactory.getLogger(ServletResponse.class);
-    
+
     private static ThreadLocal<HttpServletResponse> tlResponse = new ThreadLocal<HttpServletResponse>();
-    
+
+    /**
+     * We make this available via a threadlocal so it can be accessed from parts
+     * of the application which don't have a reference to the servletresponse
+     */
     public static HttpServletResponse getResponse() {
         return tlResponse.get();
     }
@@ -28,6 +32,8 @@ public class ServletResponse extends AbstractResponse {
         this.r = r;
         tlResponse.set(r);
     }
+
+
 
     public String getNonStandardHeader(String code) {
         return headers.get(code);
@@ -94,7 +100,6 @@ public class ServletResponse extends AbstractResponse {
         } catch (IOException ex) {
             log.warn("exception sending redirect",ex);
         }
-    }
-    
+    }    
     
 }

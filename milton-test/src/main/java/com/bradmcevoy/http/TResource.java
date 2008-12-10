@@ -28,6 +28,7 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         modDate = new Date();
         createdDate = new Date();
         if( parent != null ) {
+            checkAndRemove(parent,name);
             parent.children.add(this);
         }
     }
@@ -183,10 +184,11 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
     }
 
     public LockToken lock(LockTimeout timeout, LockInfo lockInfo) {
-        if( lock != null ) {
-            // todo
-            throw new RuntimeException("already locked");
-        }
+        log.warn("already locked....");
+//        if( lock != null ) {
+//            // todo
+//            throw new RuntimeException("already locked");
+//        }
                 
         LockTimeout.DateAndSeconds lockedUntil = timeout.getLockedUntil(60l, 3600l);
         this.lock = new TLock(lockedUntil.date, UUID.randomUUID().toString(), lockedUntil.seconds, lockInfo);
@@ -222,6 +224,12 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         token.tokenId = lock.lockId;
         return token;
     }
+
+    private void checkAndRemove(TFolderResource parent, String name) {
+        Resource r = parent.child(name);
+        if( r != null ) parent.children.remove(r);
+    }
+
     
     class TLock {
         final Date lockedUntil;

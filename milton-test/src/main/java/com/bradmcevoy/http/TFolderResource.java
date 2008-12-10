@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.io.StreamToStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TFolderResource extends TResource implements PutableResource, MakeCollectionableResource {
+public class TFolderResource extends TResource implements PutableResource, MakeCollectionableResource, LockingCollectionResource {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     ArrayList<TResource> children = new ArrayList<TResource>();
@@ -69,11 +70,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
     
     private ByteArrayOutputStream readStream(final InputStream in) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte[] buf = new byte[1024];
-        int len;
-        while ((len = in.read(buf)) > 0) {
-            bos.write(buf, 0, len);
-        }
+        StreamToStream.readTo(in, bos);
         return bos;
     }
     
@@ -103,6 +100,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
 
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
         ByteArrayOutputStream bos = readStream(inputStream);
+        log.debug("createNew: " + bos.size());
         TResource r = new TBinaryResource(this,newName, bos.toByteArray());
         return r;
     }
@@ -112,6 +110,16 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
             if( r.getName().equals(childName)) return r;
         }
         return null;
+    }
+
+    public LockToken createAndLock(String name, LockTimeout timeout, LockInfo lockInfo) {
+        TTempResource temp = new TTempResource(this, name);
+        temp.lock(timeout, lockInfo);
+        LockToken token = new LockToken();
+        token.info = temp.lock.lockInfo;
+        token.timeout = timeout;
+        token.tokenId = temp.lock.lockId;
+        return token;
     }
     
 }

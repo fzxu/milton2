@@ -85,10 +85,13 @@ public interface Request {
         }
     };
 
+    public Map<String,String> getHeaders();
+
     public String getFromAddress();
 
     public String getLockTokenHeader();
-    
+
+    public String getRequestHeader(Request.Header header);
         
     public Method getMethod();
     

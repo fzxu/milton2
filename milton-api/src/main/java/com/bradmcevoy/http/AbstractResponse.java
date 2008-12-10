@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,7 +12,8 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractResponse implements Response {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractResponse.class);
-    
+
+
     protected DateFormat hdf;
     protected Long contentLength;
     
@@ -137,6 +139,13 @@ public abstract class AbstractResponse implements Response {
         setStatus(Response.Status.SC_MOVED_TEMPORARILY);
         setLocationHeader( url );        
     }
-    
+
+    public void write(String s) {
+        try {
+            this.getOutputStream().write(s.getBytes());
+        } catch (IOException ex) {
+            log.warn("Exception writing to output. Probably client closed connection", ex);
+        }
+    }    
     
 }
