@@ -2,6 +2,8 @@ package com.bradmcevoy.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
@@ -101,5 +103,9 @@ public class ServletResponse extends AbstractResponse {
             log.warn("exception sending redirect",ex);
         }
     }    
-    
+
+    public Map<String, String> getHeaders() {
+        return Collections.unmodifiableMap(headers);
+    }
+
 }

@@ -5,6 +5,7 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.LockInfo.LockScope;
 import com.bradmcevoy.http.LockInfo.LockType;
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Response.Status;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.slf4j.Logger;
@@ -78,6 +79,7 @@ public class LockHandler extends Handler {
     private void processCreateAndLock(Request request, Response response, Resource parentResource, String name) {
         if( parentResource instanceof LockingCollectionResource ) {
             log.debug("parent supports lock-null. doing createAndLock");
+            response.setStatus(Status.SC_CREATED);
             LockingCollectionResource lockingParent = (LockingCollectionResource) parentResource;
             LockTimeout timeout = LockTimeout.parseTimeout(request);
             response.setContentTypeHeader( Response.XML );
@@ -140,6 +142,7 @@ public class LockHandler extends Handler {
     }
 
     protected void respondWithToken(LockToken tok, Request request, Response response) {
+        response.setStatus(Status.SC_OK);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlWriter writer = new XmlWriter(out);
         writer.writeXMLHeader();        

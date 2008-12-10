@@ -3,6 +3,7 @@ package com.bradmcevoy.http;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public interface Response {
 
@@ -116,7 +117,9 @@ public interface Response {
     }
 
     public Response.Status getStatus();
-    
+
+    public Map<String,String> getHeaders();
+
     /**
      * 
      * @return - the content length which might have been set by a handler, or null

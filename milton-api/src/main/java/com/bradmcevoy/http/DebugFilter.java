@@ -2,6 +2,7 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.Request.Header;
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamToStream;
 import com.bradmcevoy.io.WritingException;
@@ -15,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,17 +30,24 @@ public class DebugFilter implements Filter{
     private static int counter = 0;
 
     public void process(FilterChain chain, Request request, Response response) {
-        DebugRequest req2 = new DebugRequest(request);
-        record(req2);
-        chain.process(req2, response);
+        try {
+            DebugRequest req2 = new DebugRequest(request);
+            DebugResponse resp2 = new DebugResponse(response);
+            chain.process(req2, resp2);
+            record(req2,resp2);
+            response.getOutputStream().write(resp2.out.toByteArray());
+            response.getOutputStream().flush();
+        } catch (IOException ex) {
+            log.error("", ex);
+        }
     }
 
-    private static synchronized void record(DebugRequest req2) {
+    private static synchronized void record(DebugRequest req2, DebugResponse resp2) {
         counter++;
         FileOutputStream fout = null;
         try {
             File f = new File(System.getProperty("user.home"));
-            f = new File(f, counter + ".req");
+            f = new File(f, counter + "_" + req2.getMethod() + "_.req");
             fout = new FileOutputStream(f);
             req2.record(fout);
         } catch (FileNotFoundException ex) {
@@ -49,10 +58,77 @@ public class DebugFilter implements Filter{
             } catch (IOException ex) {
             }
         }
+
+        try {
+            File f = new File(System.getProperty("user.home"));
+            f = new File(f, counter + "_" + req2.getMethod() + "_.resp");
+            fout = new FileOutputStream(f);
+            resp2.record(fout);
+        } catch (FileNotFoundException ex) {
+            throw new RuntimeException(ex);
+        } finally {
+            try {
+                fout.close();
+            } catch (IOException ex) {
+            }
+        }
+
+    }
+
+    public class DebugResponse extends AbstractResponse {
+        final Response r;
+        final ByteArrayOutputStream out;
+
+        public DebugResponse(Response r) {
+            this.r = r;
+            out = new ByteArrayOutputStream();
+        }
+
+        public Status getStatus() {
+            return r.getStatus();
+        }
+
+        public void setStatus(Status status) {
+            r.setStatus(status);
+        }
+
+        public void setNonStandardHeader(String code, String value) {
+            r.setNonStandardHeader(code, value);
+        }
+
+        public String getNonStandardHeader(String code) {
+            return r.getNonStandardHeader(code);
+        }
+
+        public OutputStream getOutputStream() {
+            return out;
+        }
+
+        public  Map<String,String> getHeaders() {
+            return r.getHeaders();
+        }
+
+        private void record(FileOutputStream fout) {
+            try {
+                PrintWriter writer = new PrintWriter(fout);
+                writer.println("HTTP/1.1 " + getStatus().code);
+                for (Map.Entry<String, String> header : this.getHeaders().entrySet()) {
+                    writer.println(header.getKey() + ": " + header.getValue());
+                }
+                writer.flush();
+                fout.write(out.toByteArray());
+                fout.flush();
+            } catch (IOException ex) {
+                log.error("",ex);
+            }
+        }
+
+
     }
 
     public class DebugRequest extends AbstractRequest {
         final Request r;
+        final byte[] contentBytes;
         final ByteArrayInputStream content;
 
         public DebugRequest(Request r) {
@@ -63,7 +139,8 @@ public class DebugFilter implements Filter{
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            this.content = new ByteArrayInputStream(out.toByteArray());
+            this.contentBytes = out.toByteArray();
+            this.content = new ByteArrayInputStream(this.contentBytes);
             log.debug(out.toString());
         }
 
@@ -108,23 +185,12 @@ public class DebugFilter implements Filter{
             }
             writer.flush();
             try {
-                StreamToStream.readTo(content, out);
-            } catch (ReadingException ex) {
-                log.error("",ex);
-            } catch (WritingException ex) {
+                out.write(contentBytes);
+            } catch (IOException ex) {
                 log.error("",ex);
             }
         }
 
     }
 
-    public class DebugResponse { //todo
-        final Response r;
-
-        public DebugResponse(Response r) {
-            this.r = r;
-        }
-
-
-    }
 }
