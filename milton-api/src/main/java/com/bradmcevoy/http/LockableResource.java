@@ -10,9 +10,10 @@ public interface LockableResource extends Resource {
      * 
      * @param timeout - in seconds, or null
      * @param lockInfo
-     * @return - a token representing the lock
+     * @return - a result containing the token representing the lock if succesful,
+     * otherwise a failure reason code
      */
-    public LockToken lock(LockTimeout timeout, LockInfo lockInfo);
+    public LockResult lock(LockTimeout timeout, LockInfo lockInfo);
     
     /**
      * Renew the lock and return new lock info
@@ -20,7 +21,13 @@ public interface LockableResource extends Resource {
      * @param token
      * @return
      */
-    public LockToken refreshLock(String token);
-    
+    public LockResult refreshLock(String token);
+
+    /**
+     * If the resource is currently locked, and the tokenId  matches the current
+     * one, unlock the resource
+     *
+     * @param tokenId
+     */
     public void unlock(String tokenId);
 }

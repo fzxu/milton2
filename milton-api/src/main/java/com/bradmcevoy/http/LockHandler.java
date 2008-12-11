@@ -58,7 +58,36 @@ public class LockHandler extends Handler {
             processRefresh(milton,request,response,r,timeout,ifHeader);
         }        
     }
-    
+
+    /**
+     * (from the spec)
+     * 7.4 Write Locks and Null Resources
+     *
+     * It is possible to assert a write lock on a null resource in order to lock the name.
+     *
+     * A write locked null resource, referred to as a lock-null resource, MUST respond with
+     * a 404 (Not Found) or 405 (Method Not Allowed) to any HTTP/1.1 or DAV methods except
+     * for PUT, MKCOL, OPTIONS, PROPFIND, LOCK, and UNLOCK. A lock-null resource MUST appear
+     * as a member of its parent collection. Additionally the lock-null resource MUST have
+     * defined on it all mandatory DAV properties. Most of these properties, such as all
+     * the get* properties, will have no value as a lock-null resource does not support the GET method.
+     * Lock-Null resources MUST have defined values for lockdiscovery and supportedlock properties.
+     *
+     * Until a method such as PUT or MKCOL is successfully executed on the lock-null resource the resource 
+     * MUST stay in the lock-null state. However, once a PUT or MKCOL is successfully executed on
+     * a lock-null resource the resource ceases to be in the lock-null state.
+     *
+     * If the resource is unlocked, for any reason, without a PUT, MKCOL, or 
+     * similar method having been successfully executed upon it then the resource
+     * MUST return to the null state.
+     *
+     *
+     * @param manager
+     * @param request
+     * @param response
+     * @param host
+     * @param url
+     */
     private void processNonExistingResource(HttpManager manager, Request request, Response response, String host, String url) {
         String name;
         
@@ -128,17 +157,27 @@ public class LockHandler extends Handler {
         // also must support multi-status. when locking a collection and a DEPTH > 1, must lock all
         // child elements
         log.debug("locking: " + r.getName());
-        LockToken tok = r.lock(timeout, lockInfo);
-        log.debug("..locked: " + tok.tokenId);
-        response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
-        respondWithToken(tok, request, response);
+        LockResult result = r.lock(timeout, lockInfo);
+        if( result.isSuccessful()) {
+            LockToken tok = result.lockToken;
+            log.debug("..locked: " + tok.tokenId);
+            response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
+            respondWithToken(tok, request, response);
+        } else {
+            responseWithLockFailure(result, request, response);
+        }
     }
 
     protected void processRefresh(HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout, String ifHeader) {
         String token = parseToken(ifHeader);
         log.debug("refreshing lock: " + token);
-        LockToken tok = r.refreshLock(token);
-        respondWithToken(tok, request, response);
+        LockResult result = r.refreshLock(token);
+        if( result.isSuccessful()) {
+            LockToken tok = result.lockToken;
+            respondWithToken(tok, request, response);
+        } else {
+            responseWithLockFailure(result, request, response);
+        }
     }
 
     protected void respondWithToken(LockToken tok, Request request, Response response) {
@@ -230,5 +269,10 @@ public class LockHandler extends Handler {
         XmlWriter.Element el = writer.begin("D:lockroot").open();
         writer.writeProperty(null, "D:href", lockRoot);
         el.close(); 
-    }    
+    }
+
+    private void responseWithLockFailure(LockResult result, Request request, Response response) {
+        response.setStatus( result.failureReason.status);
+        
+    }
 }

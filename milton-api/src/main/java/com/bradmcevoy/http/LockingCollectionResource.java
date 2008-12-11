@@ -15,6 +15,10 @@ public interface  LockingCollectionResource extends CollectionResource{
     /**
      * Create an empty non-collection resource of the given name and immediately
      *  lock it
+     *
+     * It is suggested that the implementor have a specific Resource class to act
+     * as the lock null resource. You should consider using the LockNullResource
+     * interface
      * 
      * @param name - the name of the resource to create
      * @param timeout - in seconds
