@@ -183,8 +183,7 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         return this.hashCode()+"";
     }
 
-    public LockToken lock(LockTimeout timeout, LockInfo lockInfo) {
-        log.warn("already locked....");
+    public LockResult lock(LockTimeout timeout, LockInfo lockInfo) {
 //        if( lock != null ) {
 //            // todo
 //            throw new RuntimeException("already locked");
@@ -198,14 +197,15 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         token.timeout = new LockTimeout(lockedUntil.seconds);
         token.tokenId = UUID.randomUUID().toString();
                         
-        return token;
+        return LockResult.success(token);
     }
 
-    public LockToken refreshLock(String token) {
+    public LockResult refreshLock(String token) {
         if( lock == null ) throw new RuntimeException("not locked");
         if( !lock.lockId.equals(token)) throw new RuntimeException("invalid lock id");
         this.lock = lock.refresh();
-        return makeToken();
+        LockToken tok = makeToken();
+        return LockResult.success(tok);
     }
 
     public void unlock(String tokenId) {
