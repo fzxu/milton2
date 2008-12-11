@@ -28,8 +28,11 @@ public class StaticResourceFilter implements Filter {
         log.debug("check path: " + s);
         String path = filterConfig.getServletContext().getRealPath(s);
         log.debug("real path: " + path);
-        File f = new File(path);
-        if( f.exists() && !f.isDirectory() ) {  // can't forward to a folder
+        File f = null; 
+        if( path != null && path.length() > 0 ) {
+            f = new File(path);
+        }
+        if( f != null && f.exists() && !f.isDirectory() ) {  // can't forward to a folder
             log.debug("static file exists. forwarding..");
             req.getRequestDispatcher(s).forward(request,response);
         } else {
