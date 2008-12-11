@@ -233,7 +233,13 @@ public class PropFindHandler extends ExistingEntityHandler {
 
         public void append(XmlWriter xmlWriter, PropFindableResource res, String href) {
             //sendDateProp(xmlWriter, "D:" + fieldName(), res.getModifiedDate());
-            String f = DateUtils.formatForWebDavModifiedDate(res.getModifiedDate());
+            Date dt = res.getModifiedDate();
+            String f;
+            if( dt == null ) {
+                f = "";
+            } else {
+                f = DateUtils.formatForWebDavModifiedDate(res.getModifiedDate());
+            }
             sendStringProp(xmlWriter, "D:" + fieldName(), f);
             //sendDateProp(xmlWriter, "D:" + fieldName(), res.getModifiedDate());
             //sendStringProp(xmlWriter, "D:" + fieldName(), "Thu, 01 Jan 1970 00:00:00 GMT");
