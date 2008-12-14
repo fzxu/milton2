@@ -1,14 +1,16 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.PropPatchHandler.Fields;
 import com.bradmcevoy.http.Request.Method;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class TResource implements PostableResource, GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, LockableResource {    
+public class TResource implements PostableResource, GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, LockableResource, PropPatchableResource {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     String name;
@@ -21,6 +23,7 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
     
     private String user;
     private String password;
+    private Map<String,String> props = new HashMap<String, String>();
     
     public TResource(TFolderResource parent, String name) {
         this.parent = parent;
@@ -228,6 +231,15 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
     private void checkAndRemove(TFolderResource parent, String name) {
         Resource r = parent.child(name);
         if( r != null ) parent.children.remove(r);
+    }
+
+    public void setProperties(Fields fields) {
+        for( PropPatchHandler.SetField f : fields.setFields ) {
+            props.put(f.name, f.value);
+        }
+        for( PropPatchHandler.Field f : fields.removeFields ) {
+            props.remove(f.name);
+        }
     }
 
     

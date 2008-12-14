@@ -2,6 +2,8 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.Path;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Utils {
     
@@ -28,4 +30,20 @@ public class Utils {
             return null;
         }
     }
+
+    public static Date now() {
+        return new Date();
+    }
+
+    public static Date addSeconds(Date dt, long seconds) {
+        return addSeconds(dt, (int)seconds);
+    }
+
+    public static Date addSeconds(Date dt, int seconds) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(dt);
+        cal.add(Calendar.SECOND, seconds);
+        return cal.getTime();
+    }
+
 }

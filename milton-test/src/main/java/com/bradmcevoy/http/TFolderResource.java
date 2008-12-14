@@ -114,12 +114,12 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
 
     public LockToken createAndLock(String name, LockTimeout timeout, LockInfo lockInfo) {
         TTempResource temp = new TTempResource(this, name);
-        temp.lock(timeout, lockInfo);
-        LockToken token = new LockToken();
-        token.info = temp.lock.lockInfo;
-        token.timeout = timeout;
-        token.tokenId = temp.lock.lockId;
-        return token;
+        LockResult r = temp.lock(timeout, lockInfo);
+        if( r.isSuccessful() ) {
+            return r.lockToken;
+        } else {
+            throw new RuntimeException("didnt lock");
+        }
     }
     
 }

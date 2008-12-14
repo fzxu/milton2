@@ -13,7 +13,7 @@ import java.util.Date;
  * 
  * @author Alienware1
  */
-public interface Resource extends Comparable<Resource> {
+public interface Resource {
 
     /**
      * 
