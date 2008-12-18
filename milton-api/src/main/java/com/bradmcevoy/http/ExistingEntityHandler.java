@@ -43,7 +43,7 @@ public abstract class ExistingEntityHandler extends Handler {
             }
 
             if (!isCompatible(resource)) {
-                respondMethodNotAllowed(resource, response);
+                respondMethodNotImplemented(resource, response);
                 return;
             }
 

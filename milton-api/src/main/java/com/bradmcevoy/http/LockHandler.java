@@ -44,7 +44,7 @@ public class LockHandler extends Handler {
     
     protected void processExistingResource(HttpManager milton, Request request, Response response, Resource resource) {
         if (!isCompatible(resource)) {
-            respondMethodNotAllowed(resource, response);
+            respondMethodNotImplemented(resource, response);
             return;
         }
 
@@ -131,7 +131,7 @@ public class LockHandler extends Handler {
             
         } else {
             log.debug("parent does not support lock-null, respondong method not allowed");
-            respondMethodNotAllowed(parentResource, response);
+            respondMethodNotImplemented(parentResource, response);
         }
     }
     
@@ -272,6 +272,7 @@ public class LockHandler extends Handler {
         writer.writeProperty(null, "D:href", lockRoot);
         el.close(); 
     }
+
 
     private void responseWithLockFailure(LockResult result, Request request, Response response) {
         response.setStatus( result.failureReason.status);

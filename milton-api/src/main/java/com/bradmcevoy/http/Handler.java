@@ -15,9 +15,11 @@ public abstract class Handler {
     
     public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
     public static final String NOT_FOUND_HTML = "<html><body><h1>Not Found (404)</h1></body></html>";
-    
+    public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
+    public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
+
     protected final HttpManager manager;
-    
+
     public abstract void process(HttpManager httpManager, Request request, Response response);
     
     protected abstract boolean isCompatible(Resource r);
@@ -63,6 +65,17 @@ public abstract class Handler {
         response.setAuthenticateHeader( resource.getRealm() );        
     }
 
+    protected void respondMethodNotImplemented(Resource resource, Response response) {
+        log.debug("method not implemented. handler: " + this.getClass().getName() + " resource: " + resource.getClass().getName());
+        try {
+            response.setStatus(Response.Status.SC_NOT_IMPLEMENTED);
+            OutputStream out = response.getOutputStream();
+            out.write(METHOD_NOT_IMPLEMENTED_HTML.getBytes());
+        } catch (IOException ex) {
+            log.warn("exception writing content");
+        }
+    }
+
     protected void respondMethodNotAllowed(Resource res, Response response) {
         log.debug("method not allowed. handler: " + this.getClass().getName() + " resource: " + res.getClass().getName());
         try {
@@ -75,7 +88,13 @@ public abstract class Handler {
     }
 
     protected void respondConflict(Resource resource, Response response) {
-        throw new UnsupportedOperationException("Not yet implemented"); // TODO        
+        try {
+            response.setStatus(Response.Status.SC_CONFLICT);
+            OutputStream out = response.getOutputStream();
+            out.write(CONFLICT_HTML.getBytes());
+        } catch (IOException ex) {
+            log.warn("exception writing content");
+        }
     }
     
     protected void respondRedirect(Response response, String redirectUrl) {
@@ -84,7 +103,6 @@ public abstract class Handler {
         response.setLocationHeader( redirectUrl );
     }
 
-    
     
     protected  String generateNamespaceDeclarations() {
 //            return " xmlns:" + nsWebDav.abbrev + "=\"" + nsWebDav.url + "\"";

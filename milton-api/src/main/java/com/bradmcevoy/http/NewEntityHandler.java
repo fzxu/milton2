@@ -48,7 +48,7 @@ public abstract class NewEntityHandler extends Handler {
         }
         
         if( !isCompatible(resource) ) {
-            respondMethodNotAllowed(resource,response);
+            respondMethodNotImplemented(resource,response);
             return ;
         }
                 
