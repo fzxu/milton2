@@ -97,6 +97,11 @@ public class PropFindHandler extends ExistingEntityHandler {
         }
     }
 
+    protected String generateNamespaceDeclarations() {
+//            return " xmlns:" + nsWebDav.abbrev + "=\"" + nsWebDav.url + "\"";
+        return " xmlns:D" + "=\"DAV:\"";
+    }
+    
     void appendResponses(XmlWriter writer, PropFindableResource resource, int depth,Set<String> requestedFields, String requestUrl, String host) {
         String collectionHref = suffixSlash("http://" + host + requestUrl);
 //        log.debug("collectionHref: " + collectionHref);

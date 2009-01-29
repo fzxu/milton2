@@ -32,16 +32,14 @@ public class CopyHandler extends ExistingEntityHandler {
 
         if( rDest == null ) {
             log.debug("process: destination parent does not exist: " + sDest);
-            response.setStatus( Response.Status.SC_CONFLICT );
-            output(response, "Destination does not exist: " + sDest);
+            manager.getResponseHandler().respondConflict(resource, response, request, "Destination does not exist: " + sDest);
         } else if( !(rDest instanceof CollectionResource) ) {
             log.debug("process: destination exists but is not a collection");
-            response.setStatus( Response.Status.SC_CONFLICT );
-            output(response, "Destination exists but is not a collection: " + sDest);
+            manager.getResponseHandler().respondConflict(resource, response,request, "Destination exists but is not a collection: " + sDest);
         } else { 
             log.debug("process: moving resource to: " + rDest.getName());
             r.copyTo( (CollectionResource)rDest, dest.name );
-            response.setStatus( Response.Status.SC_CREATED );
+            manager.getResponseHandler().respondCreated(resource, response, request);
         }
         log.debug("process: finished");
     }

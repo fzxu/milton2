@@ -39,7 +39,7 @@ public class PutHandler extends NewEntityHandler {
             log.warn("IOException reading input stream. Probably interrupted upload: " + ex.getMessage());
             return;
         }
-        response.setStatus( Response.Status.SC_CREATED );
+        getResponseHandler().respondCreated(resource, response, request);
         
         log.debug("process: finished");
     }

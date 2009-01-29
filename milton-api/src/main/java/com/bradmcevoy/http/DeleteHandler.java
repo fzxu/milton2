@@ -36,22 +36,9 @@ public class DeleteHandler extends ExistingEntityHandler {
             log.debug("deleted ok");
         } catch(CantDeleteException e) {
             log.error("failed to delete: " + request.getAbsoluteUrl(),e);
-            response.setStatus(Response.Status.SC_MULTI_STATUS);
-            response.setStatus( Response.Status.SC_MULTI_STATUS );
-            response.setContentTypeHeader( Response.ContentType.XML.toString() );
-            
-            String href = request.getAbsoluteUrl();
-            
-            XmlWriter writer = new XmlWriter( response.getOutputStream() );
-            writer.writeXMLHeader();
-            writer.open("multistatus" + generateNamespaceDeclarations());
-            writer.newLine();
-            XmlWriter.Element elResponse = writer.begin("response").open();
-                writer.writeProperty("","href",href );
-                writer.writeProperty("","status",e.status.code+"" );
-            elResponse.close();
-            writer.close("multistatus");
-            writer.flush();            
+            List<HrefStatus> statii = new ArrayList<HrefStatus>();
+            statii.add( new HrefStatus(request.getAbsoluteUrl(), e.status));
+            manager.getResponseHandler().responseMultiStatus(resource, response, request, statii);
         }
         
     }

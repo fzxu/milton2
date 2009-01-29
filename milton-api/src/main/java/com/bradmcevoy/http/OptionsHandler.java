@@ -13,7 +13,7 @@ public class OptionsHandler extends ExistingEntityHandler {
     
     @Override
     protected void process(HttpManager milton, Request request, Response response, Resource resource) {
-        respondWithOptions(response,resource);
+        respondWithOptions(response,request, resource);
     }
     
     @Override
@@ -36,13 +36,9 @@ public class OptionsHandler extends ExistingEntityHandler {
         return list;
     }
 
-    private void respondWithOptions(Response response, Resource resource) {
-        response.setStatus(Response.Status.SC_OK);
-        response.setDavHeader(manager.getSupportedLevels());
+    private void respondWithOptions(Response response, Request request, Resource resource) {
         List<Method> methodsAllowed = determineMethodsAllowed(resource);
-        response.setAllowHeader( methodsAllowed );
-        response.setNonStandardHeader("MS-Author-Via", "DAV");            
-        response.setContentLengthHeader((long)0);
+        getResponseHandler().respondWithOptions(resource, response, request, methodsAllowed);
     }
 
 }

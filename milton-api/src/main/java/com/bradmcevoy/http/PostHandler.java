@@ -40,9 +40,9 @@ public class PostHandler extends ExistingEntityHandler {
         manager.onPost(request, response, resource, params, files);
         String url = processForm(r,params, files);
         if( url != null ) {
-            respondRedirect(response,url);
+            respondRedirect(response,request,url);
         } else {
-            respondWithContent(request,response,r,params);
+            getResponseHandler().respondContent(resource, response, request, params);
         }
     }
 
@@ -51,16 +51,12 @@ public class PostHandler extends ExistingEntityHandler {
     protected String processForm(PostableResource r, Map<String,String> parameters, Map<String,FileItem> files) {
         return r.processForm(parameters, files);
     }
-    
-    protected void respondWithContent(Request request, Response response, PostableResource resource,Map<String,String> parameters) {
-        _respondWithContent(request,response,resource,parameters);
-    }    
-    
+        
     @Override
     protected boolean doCheckRedirect(Request request, Response response,Resource resource) {
         String redirectUrl = resource.checkRedirect(request);
         if( redirectUrl != null ) {
-            respondRedirect( response, redirectUrl );
+            respondRedirect( response, request, redirectUrl );
             return true;
         } else {
             return false;

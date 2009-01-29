@@ -36,13 +36,51 @@ public class HttpManager {
     final List<EventListener> eventListeners = new ArrayList<EventListener>();
     
     final ResourceFactory resourceFactory;
+    final ResponseHandler responseHandler;
     final String notFoundPath;
     
     private SessionAuthenticationHandler sessionAuthenticationHandler;
 
+    /**
+     * @deprecated
+     *
+     * Creates the manager with a DefaultResponseHandler. Method handlers are
+     * instantiated with createXXXHandler methods
+     *
+     * The notFoundPath property is deprecated. Instead, you should use an appropriate
+     * ResponseHandler
+     *
+     * @param resourceFactory
+     * @param notFoundPath
+     */
     public HttpManager(ResourceFactory resourceFactory, String notFoundPath) {
+        this(resourceFactory, notFoundPath, new DefaultResponseHandler()); 
+    }
+
+    /**
+     * Creates the manager with a DefaultResponseHandler
+     *
+     * @param resourceFactory
+     */
+    public HttpManager(ResourceFactory resourceFactory) {
+        this(resourceFactory, null, null);
+    }
+
+    public HttpManager(ResourceFactory resourceFactory, ResponseHandler responseHandler) {
+        this(resourceFactory, null, responseHandler);
+    }
+
+    /**
+     * @deprecated - instead of notFoundPath, use an appropriate ResponseHandler
+     *
+     * @param resourceFactory
+     * @param notFoundPath
+     * @param responseHandler
+     */
+    public HttpManager(ResourceFactory resourceFactory, String notFoundPath, ResponseHandler responseHandler) {
         if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
         this.resourceFactory = resourceFactory;
+        this.responseHandler = responseHandler;
 
         this.notFoundPath = notFoundPath;
         optionsHandler = add( createOptionsHandler() );
@@ -62,16 +100,16 @@ public class HttpManager {
 
         filters.add(createStandardFilter());
     }
-
-    public HttpManager(ResourceFactory resourceFactory) {
-        this(resourceFactory, null);
-    }
     
     public Collection<Filter> getFilters() {
         ArrayList<Filter> col = new ArrayList<Filter>(filters);
         return col;
     }
 
+    /**
+     * @deprecated - instead, use an appropriate ResponseHandler
+     * @return
+     */
     public String getNotFoundPath() {
         return notFoundPath;
     }
@@ -101,8 +139,8 @@ public class HttpManager {
         return this.sessionAuthenticationHandler.getSessionAuthentication(request);
     }
 
-    public String getSupportedLevels() {
-        return resourceFactory.getSupportedLevels();
+    public ResponseHandler getResponseHandler() {
+        return responseHandler;
     }
 
     

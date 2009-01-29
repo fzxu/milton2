@@ -43,12 +43,12 @@ public abstract class NewEntityHandler extends Handler {
     
     protected void process(Request request, Response response, Resource resource, String name) {        
         if( !checkAuthorisation(resource,request) ) {
-            respondUnauthorised(resource,response);
+            respondUnauthorised(resource,response,request);
             return ;
         }
         
         if( !isCompatible(resource) ) {
-            respondMethodNotImplemented(resource,response);
+            respondMethodNotImplemented(resource,response,request);
             return ;
         }
                 
@@ -56,7 +56,7 @@ public abstract class NewEntityHandler extends Handler {
             CollectionResource col = (CollectionResource)resource;
             process(manager,request,response,col, name);
         } else {
-            respondConflict(resource, response);
+            respondConflict(resource, response,request);
         }
     }
 }

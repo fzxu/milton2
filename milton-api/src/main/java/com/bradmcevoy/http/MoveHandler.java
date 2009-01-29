@@ -34,16 +34,14 @@ public class MoveHandler extends ExistingEntityHandler {
         log.debug("process: moving from: " + r.getName() + " -> " + dest.url + "/" + dest.name);
         if( rDest == null ) {
             log.debug("process: destination parent does not exist: " + sDest);
-            response.setStatus( Response.Status.SC_CONFLICT );
-            output(response, "Destination does not exist: " + sDest);
+            getResponseHandler().respondConflict(resource, response, request, "Destination does not exist: " + sDest);
         } else if( !(rDest instanceof CollectionResource) ) {
             log.debug("process: destination exists but is not a collection");
-            response.setStatus( Response.Status.SC_CONFLICT );
-            output(response, "Destination exists but is not a collection: " + sDest);
+            getResponseHandler().respondConflict(resource, response, request, "Destination exists but is not a collection: " + sDest);
         } else { 
             log.debug("process: moving resource to: " + rDest.getName());
             r.moveTo( (CollectionResource)rDest, dest.name );
-            response.setStatus( Response.Status.SC_CREATED );
+            getResponseHandler().respondCreated(resource, response, request);
         }
         log.debug("process: finished");
     }

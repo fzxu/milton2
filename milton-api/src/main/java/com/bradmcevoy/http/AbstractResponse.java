@@ -63,7 +63,7 @@ public abstract class AbstractResponse implements Response {
 
     public void setContentLengthHeader(Long totalLength) {
         String s = totalLength == null ? "" : totalLength.toString();
-        log.debug("setting content length: " + s + " - " + this.hashCode() + " - " + this.getClass());
+        log.debug("setting content length: " + s );
         setResponseHeader(Header.CONTENT_LENGTH, s);
         this.contentLength = totalLength;
         

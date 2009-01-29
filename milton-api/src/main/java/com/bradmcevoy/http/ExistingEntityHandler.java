@@ -28,7 +28,7 @@ public abstract class ExistingEntityHandler extends Handler {
         if (r != null) {
             processResource(manager, request, response, r);
         } else {            
-            respondNotFound(request,response);
+            respondNotFound(response, request);
         }
     }
 
@@ -43,12 +43,12 @@ public abstract class ExistingEntityHandler extends Handler {
             }
 
             if (!isCompatible(resource)) {
-                respondMethodNotImplemented(resource, response);
+                respondMethodNotImplemented(resource, response, request);
                 return;
             }
 
             if (!checkAuthorisation(resource, request)) {
-                respondUnauthorised(resource, response);
+                respondUnauthorised(resource, response, request);
                 return;
             }
 

@@ -35,7 +35,7 @@ public class GetHandler extends ExistingEntityHandler {
             return ;
         }
         manager.onGet(request, response, resource, params);
-        respondWithContent(request,response,r, params);
+        sendContent(request, response, r, params);
     }
         
     public Range getRange(Request requestInfo) {
@@ -59,11 +59,7 @@ public class GetHandler extends ExistingEntityHandler {
     }
     
     protected void respondNotModified(GetableResource resource, Response response, Request request) {
-        log.debug("not modified");
-        response.setDateHeader(new Date());
-        String acc = request.getAcceptHeader();
-        response.setContentTypeHeader( resource.getContentType(acc) );
-        response.setStatus(Response.Status.SC_NOT_MODIFIED);
+        getResponseHandler().respondNotModified(resource, response, request);
     }
     
     protected boolean checkIfMatch(GetableResource handler, Request requestInfo) {
@@ -94,32 +90,20 @@ public class GetHandler extends ExistingEntityHandler {
     }                
 
 
-    protected void respondWithContent(Request request, Response response, GetableResource resource, Map<String,String> params) {        
-        _respondWithContent(request,response,resource,params);
-    }
-
-    @Override
-    public void setStatus(final GetableResource resource, final Response response, final Request request) {
-        Range range = getRange(request);
-        if (range == null) {
-            response.setStatus( Response.Status.SC_OK );
-        }  else {
-            response.setStatus( Response.Status.SC_PARTIAL_CONTENT );
-            response.setContentRangeHeader(range.start, range.finish, resource.getContentLength());
-        }
-    }
-
-    @Override
     protected void sendContent(Request request, Response response, GetableResource resource,Map<String,String> params) {
         Range range = getRange(request);
-        sendContent(request, response, resource, params, range);
+        if( range != null ) {
+            getResponseHandler().respondPartialContent(resource, response, request, params, range);
+        } else {
+            getResponseHandler().respondContent(resource, response, request, params);
+        }
     }
     
     @Override
     protected boolean doCheckRedirect(Request request, Response response,Resource resource) {
         String redirectUrl = resource.checkRedirect(request);
         if( redirectUrl != null ) {
-            respondRedirect( response, redirectUrl );
+            respondRedirect( response, request, redirectUrl );
             return true;
         } else {
             return false;

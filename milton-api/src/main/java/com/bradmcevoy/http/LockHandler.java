@@ -44,7 +44,7 @@ public class LockHandler extends Handler {
     
     protected void processExistingResource(HttpManager milton, Request request, Response response, Resource resource) {
         if (!isCompatible(resource)) {
-            respondMethodNotImplemented(resource, response);
+            respondMethodNotImplemented(resource, response, request);
             return;
         }
 
@@ -101,7 +101,7 @@ public class LockHandler extends Handler {
             processCreateAndLock(request,response,r, name);
         } else {
             log.debug("couldnt find parent to execute lock-null, returning not found");
-            respondNotFound(request, response);
+            respondNotFound(response,request);
         }
     }
 
@@ -131,7 +131,7 @@ public class LockHandler extends Handler {
             
         } else {
             log.debug("parent does not support lock-null, respondong method not allowed");
-            respondMethodNotImplemented(parentResource, response);
+            respondMethodNotImplemented(parentResource, response, request);
         }
     }
     
