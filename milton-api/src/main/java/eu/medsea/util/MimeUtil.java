@@ -291,13 +291,18 @@ public class MimeUtil {
     		return "application/directory";
     	}
         int len = mMagicMimeEntries.size();
-        RandomAccessFile raf = new RandomAccessFile(f, "r");
-        for (int i=0; i < len; i++) {
-            MagicMimeEntry me = (MagicMimeEntry) mMagicMimeEntries.get(i);
-            String mtype = me.getMatch(raf);
-            if (mtype != null) {
-                return mtype;
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(f, "r");
+            for (int i=0; i < len; i++) {
+                MagicMimeEntry me = (MagicMimeEntry) mMagicMimeEntries.get(i);
+                String mtype = me.getMatch(raf);
+                if (mtype != null) {
+                    return mtype;
+                }
             }
+        } finally {
+            if( raf != null ) raf.close();
         }
         return null;
     }
