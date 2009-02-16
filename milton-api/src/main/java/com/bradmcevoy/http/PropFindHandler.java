@@ -88,7 +88,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             appendResponses(writer, pfr, depth,requestedFields, request.getAbsolutePath(), request.getHostHeader(), protocol);
             writer.close("D:multistatus");
             writer.flush();
-
+            log.debug(out.toString());
             response.getOutputStream().write(out.toByteArray());   // note: this can and should write to the outputstream directory. but if it aint broke, dont fix it...
         } catch (IOException ex) {
             log.warn("ioexception sending output",ex);
@@ -161,7 +161,7 @@ public class PropFindHandler extends ExistingEntityHandler {
     }
     
     private String urlEncode(String href) {
-        String s = href.replaceAll(" ", "%20");
+        String s = href.replaceAll(" ", "%20").replaceAll("&", "%26");  // http://www.ettrema.com:8080/browse/MIL-24
         return s;
     }
 
@@ -349,7 +349,7 @@ public class PropFindHandler extends ExistingEntityHandler {
     class MSHrefPropertyWriter implements PropertyWriter{
 
         public void append(XmlWriter writer, PropFindableResource res, String href) {
-            sendStringProp(writer, "D:" + fieldName(), href);
+            sendStringProp(writer, "D:" + fieldName(), urlEncode(href));
         }
 
         public String fieldName() {
