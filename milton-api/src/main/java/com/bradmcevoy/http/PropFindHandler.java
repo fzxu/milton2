@@ -77,21 +77,19 @@ public class PropFindHandler extends ExistingEntityHandler {
         } catch (SAXException ex) {
             throw new RuntimeException(ex);
         }
-        try {            
+        try {
+            String url = request.getAbsoluteUrl();
+            String protocol = Utils.getProtocol(url);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             XmlWriter writer = new XmlWriter(out);
             writer.writeXMLHeader();
             writer.open("D:multistatus" + generateNamespaceDeclarations());
-            writer.newLine();            
-            appendResponses(writer, pfr, depth,requestedFields, request.getAbsolutePath(), request.getHostHeader());
+            writer.newLine();
+            appendResponses(writer, pfr, depth,requestedFields, request.getAbsolutePath(), request.getHostHeader(), protocol);
             writer.close("D:multistatus");
             writer.flush();
 
-//            log.info("out: " + out.toString());
-            response.getOutputStream().write(out.toByteArray());
-// don't close, probably should allow the servlet to do that            
-//            response.close();
-            
+            response.getOutputStream().write(out.toByteArray());   // note: this can and should write to the outputstream directory. but if it aint broke, dont fix it...
         } catch (IOException ex) {
             log.warn("ioexception sending output",ex);
         }
@@ -102,8 +100,8 @@ public class PropFindHandler extends ExistingEntityHandler {
         return " xmlns:D" + "=\"DAV:\"";
     }
     
-    void appendResponses(XmlWriter writer, PropFindableResource resource, int depth,Set<String> requestedFields, String requestUrl, String host) {
-        String collectionHref = suffixSlash("http://" + host + requestUrl);
+    void appendResponses(XmlWriter writer, PropFindableResource resource, int depth,Set<String> requestedFields, String requestUrl, String host, String protocol) {
+        String collectionHref = suffixSlash( protocol + "://" + host + requestUrl);
 //        log.debug("collectionHref: " + collectionHref);
         sendResponse(writer, resource,requestedFields, collectionHref);
         

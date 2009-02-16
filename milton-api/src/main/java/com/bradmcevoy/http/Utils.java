@@ -46,4 +46,8 @@ public class Utils {
         return cal.getTime();
     }
 
+    public static String getProtocol(String url) {
+        String protocol = url.substring(0, url.indexOf(":"));
+        return protocol;
+    }
 }

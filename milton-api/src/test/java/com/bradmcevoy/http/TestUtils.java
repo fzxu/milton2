@@ -23,7 +23,19 @@ public class TestUtils extends TestCase {
         Resource r = Utils.findChild(col1, path);
         assertEquals(page, r);
     }
-    
+
+    public void testGetProtocol() {
+        String url = "http://abc.com/aaa";
+        assertEquals("http", Utils.getProtocol(url));
+
+        url = "http://abc.com:80/aaa";
+        assertEquals("http", Utils.getProtocol(url));
+
+        url = "https://abc.com/aaa";
+        assertEquals("https", Utils.getProtocol(url));
+
+    }
+
     class Res implements Resource {
 
         final String name;
