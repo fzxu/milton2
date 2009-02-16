@@ -165,6 +165,11 @@ public class PropFindHandler extends ExistingEntityHandler {
         return s;
     }
 
+    private String nameEncode(String href) {
+        String s = href.replaceAll("&", "&amp;");  // http://www.ettrema.com:8080/browse/MIL-24
+        return s;
+    }
+
     protected void sendStringProp(XmlWriter writer, String name, String value) {
         String s = value;
         if( s == null ) { 
@@ -223,7 +228,7 @@ public class PropFindHandler extends ExistingEntityHandler {
     class DisplayNamePropertyWriter implements PropertyWriter{
 
         public void append(XmlWriter writer, PropFindableResource res, String href) {
-            sendStringProp(writer, "D:" + fieldName(), res.getName());
+            sendStringProp(writer, "D:" + fieldName(), nameEncode(res.getName()));
         }
 
 
@@ -338,7 +343,7 @@ public class PropFindHandler extends ExistingEntityHandler {
     class MSNamePropertyWriter implements PropertyWriter{
 
         public void append(XmlWriter writer, PropFindableResource res, String href) {
-            sendStringProp(writer, "D:" + fieldName(), res.getName());
+            sendStringProp(writer, "D:" + fieldName(), nameEncode(res.getName()));
         }
 
         public String fieldName() {
