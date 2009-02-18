@@ -39,17 +39,22 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
     }
 
     public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
-        FileInputStream in = new FileInputStream(file);
-//        if( range != null ) {
-//            long start = range.getStart();
-//            if( start > 0 ) in.skip(start);
-//            long finish = range.getFinish();
-//            if( finish > 0 ) {
-//                StreamToStream.readTo(in, out);
-//            }
-//        } else {
-            IOUtils.copy(in, out);
-//        }
+        FileInputStream in = null;
+        try {
+            in = new FileInputStream(file);
+    //        if( range != null ) {
+    //            long start = range.getStart();
+    //            if( start > 0 ) in.skip(start);
+    //            long finish = range.getFinish();
+    //            if( finish > 0 ) {
+    //                StreamToStream.readTo(in, out);
+    //            }
+    //        } else {
+                IOUtils.copy(in, out);
+    //        }
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
     }
 
     public Long getMaxAgeSeconds() {
