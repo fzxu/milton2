@@ -3,17 +3,22 @@ package com.ettrema.http.fs;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
+import com.bradmcevoy.http.LockInfo;
+import com.bradmcevoy.http.LockResult;
+import com.bradmcevoy.http.LockTimeout;
+import com.bradmcevoy.http.LockableResource;
 import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.ResourceFactory;
 import java.io.File;
 import java.util.Date;
 
 /**
  *
  */
-public abstract class  FsResource implements Resource, MoveableResource, CopyableResource {
+public abstract class  FsResource implements Resource, MoveableResource, CopyableResource, LockableResource {
     File file;
     final FileSystemResourceFactory factory;
 
@@ -86,5 +91,17 @@ public abstract class  FsResource implements Resource, MoveableResource, Copyabl
         boolean ok = file.delete();
         if( !ok ) throw new RuntimeException("Failed to delete");
     }
-    
+
+    public LockResult lock(LockTimeout timeout, LockInfo lockInfo) {
+        return factory.getLockManager().lock(timeout, lockInfo, this);
+    }
+
+    public LockResult refreshLock(String token) {
+        return factory.getLockManager().refresh(token, this);
+    }
+
+    public void unlock(String tokenId) {
+        factory.getLockManager().unlock(tokenId, this);
+    }
+
 }

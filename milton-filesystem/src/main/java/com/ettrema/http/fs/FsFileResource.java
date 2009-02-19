@@ -15,11 +15,15 @@ import java.io.OutputStream;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class FsFileResource extends FsResource implements CopyableResource, DeletableResource, GetableResource, MoveableResource, PropFindableResource{
+
+    private static final Logger log = LoggerFactory.getLogger(FsFileResource.class);
 
     public FsFileResource(FileSystemResourceFactory factory, File file) {
         super(factory, file);
@@ -39,6 +43,7 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
     }
 
     public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
+        log.debug("send content: " + file.getAbsolutePath());
         FileInputStream in = null;
         try {
             in = new FileInputStream(file);
@@ -50,7 +55,9 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
     //                StreamToStream.readTo(in, out);
     //            }
     //        } else {
-                IOUtils.copy(in, out);
+                int bytes = IOUtils.copy(in, out);
+                log.debug("wrote bytes:  " + bytes);
+                out.flush();
     //        }
         } finally {
             IOUtils.closeQuietly(in);
@@ -68,6 +75,5 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
         } catch (IOException ex) {
             throw new RuntimeException("Failed doing copy to: " + dest.getAbsolutePath(), ex);
         }
-    }
-    
+    }    
 }

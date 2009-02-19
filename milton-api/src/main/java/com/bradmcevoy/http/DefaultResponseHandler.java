@@ -143,6 +143,9 @@ public class DefaultResponseHandler implements ResponseHandler {
             setCacheControl(gr, response);
         }        
         response.setLastModifiedHeader(resource.getModifiedDate());
+        if( resource instanceof GetableResource ) {
+            sendContent(request, response, (GetableResource)resource, params, null);
+        }
     }
 
     public void respondNotModified(GetableResource resource, Response response, Request request) {
@@ -204,7 +207,7 @@ public class DefaultResponseHandler implements ResponseHandler {
             resource.sendContent(out,null,params);
             out.flush();
         } catch (IOException ex) {
-            log.warn("IOException sending content");
+            log.warn("IOException sending content",ex);
         }
     }
 

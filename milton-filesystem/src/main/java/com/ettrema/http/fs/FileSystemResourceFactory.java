@@ -16,6 +16,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     
     File root;
     FsSecurityManager securityManager;
+    FsLockManager lockManager;
     Long maxAgeSeconds;
 
     /**
@@ -141,6 +142,14 @@ public class FileSystemResourceFactory implements ResourceFactory {
 
     public Long getMaxAgeSeconds() {
         return maxAgeSeconds;
+    }
+
+    public FsLockManager getLockManager() {
+        return lockManager;
+    }
+
+    public void setLockManager(FsLockManager lockManager) {
+        this.lockManager = lockManager;
     }
     
     

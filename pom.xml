@@ -37,7 +37,40 @@
 					<target>1.5</target>
 				</configuration>
 			</plugin>
-<!--
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <configuration>
+                            <tasks>
+                                <echo>Doing java to html...</echo>
+                                <!-- requires j2h.jar to be on classpath. see http://www.java2html.com/java2html_ant_task.html -->
+                                <taskdef name="java2html" classname="com.java2html.Java2HTMLTask" />
+
+                                <java2html title="Example" simple="no" tabsize="4" marginsize="2" header="true" footer="false" destination="target/html">
+                                    <fileset dir="${basedir}/src/main/java">
+                                        <include name="**/*.java"/>
+                                    </fileset>
+                                </java2html>
+                                <echo>...done</echo>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>java2html</groupId>
+                        <artifactId>j2h</artifactId>
+                        <version>1.3.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<executions>
@@ -60,7 +93,7 @@
 					</execution>
 				</executions>
 			</plugin>
--->
+
 		</plugins>
 	</build>
 	<dependencies>
@@ -82,4 +115,13 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+    <repositories>
+        <repository>
+            <!-- needed for java2html -->
+            <id>mvnrepository.com</id>
+            <name>mvnrepository.com</name>
+            <url>http://www.mvnrepository.com/artifacts</url>
+        </repository>
+    </repositories>
 </project>
