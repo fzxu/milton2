@@ -4,7 +4,6 @@ import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockResult;
 import com.bradmcevoy.http.LockTimeout;
 import com.bradmcevoy.http.LockToken;
-import com.bradmcevoy.http.Resource;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;

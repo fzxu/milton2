@@ -93,7 +93,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
                 log.error("error reading stream: ",ex );
                 return null;
             }
-            new TBinaryResource(this,fitem.getName(),bos.toByteArray());
+            new TBinaryResource(this,fitem.getName(),bos.toByteArray(),null); // todo: infer content type from extension
         }
         return null;
     }
@@ -101,7 +101,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
         ByteArrayOutputStream bos = readStream(inputStream);
         log.debug("createNew: " + bos.size());
-        TResource r = new TBinaryResource(this,newName, bos.toByteArray());
+        TResource r = new TBinaryResource(this,newName, bos.toByteArray(), contentType);
         return r;
     }
 

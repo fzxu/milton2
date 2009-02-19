@@ -11,7 +11,6 @@ import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.ResourceFactory;
 import java.io.File;
 import java.util.Date;
 

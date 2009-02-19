@@ -7,8 +7,9 @@ import java.util.Map;
 public class TBinaryResource extends TResource {
     
     byte[] bytes;
+    String contentType;
     
-    public TBinaryResource(TFolderResource parent, String name, byte[] bytes) {
+    public TBinaryResource(TFolderResource parent, String name, byte[] bytes, String contentType) {
         super(parent,name);
         this.bytes = bytes;
         System.out.println("created resource of size: " + bytes.length);
@@ -24,6 +25,11 @@ public class TBinaryResource extends TResource {
     @Override
     public Long getContentLength() {
         return (long)bytes.length;
+    }
+
+    @Override
+    public String getContentType(String accept) {
+        return contentType;
     }
 
     

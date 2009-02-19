@@ -125,25 +125,28 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
     public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) {
-        log.debug("respondContent");
+        log.debug("respondContent: " + resource.getClass());
         response.setStatus(Response.Status.SC_OK);
         response.setDateHeader(new Date());
         String etag = resource.getUniqueId();
         if (etag != null) {
             response.setEtag(etag);
         }
+        response.setLastModifiedHeader(resource.getModifiedDate());
         if( resource instanceof GetableResource ) {
+            log.debug("..is getable");
             GetableResource gr = (GetableResource)resource;
             Long contentLength = gr.getContentLength();
             if (contentLength != null) { // often won't know until rendered
                 response.setContentLengthHeader(contentLength);
             }
             String acc = request.getAcceptHeader();
-            response.setContentTypeHeader(gr.getContentType(acc));
+            String ct = gr.getContentType(acc);
+            log.debug("getting content type..  " + ct);
+            if( ct != null ) {
+                response.setContentTypeHeader(ct);
+            }
             setCacheControl(gr, response);
-        }        
-        response.setLastModifiedHeader(resource.getModifiedDate());
-        if( resource instanceof GetableResource ) {
             sendContent(request, response, (GetableResource)resource, params, null);
         }
     }
@@ -152,13 +155,17 @@ public class DefaultResponseHandler implements ResponseHandler {
         log.debug("not modified");
         response.setDateHeader(new Date());
         String acc = request.getAcceptHeader();
-        response.setContentTypeHeader(resource.getContentType(acc));
+        String ct = resource.getContentType(acc);
+        if( ct != null ) {
+            response.setContentTypeHeader(ct);
+        }
         response.setStatus(Response.Status.SC_NOT_MODIFIED);
     }
 
     public void responseMultiStatus(Resource resource, Response response, Request request, List<HrefStatus> statii) {
         response.setStatus(Response.Status.SC_MULTI_STATUS);
-        response.setContentTypeHeader(Response.ContentType.XML.toString());
+        response.setContentTypeHeader(Response.XML);
+        //response.setContentTypeHeader(Response.ContentType.XML.toString());
 
         String href = request.getAbsoluteUrl();
 

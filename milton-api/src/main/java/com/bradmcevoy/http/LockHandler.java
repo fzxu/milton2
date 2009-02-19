@@ -51,7 +51,7 @@ public class LockHandler extends Handler {
         LockableResource r = (LockableResource) resource;
         LockTimeout timeout = LockTimeout.parseTimeout(request);
         String ifHeader = request.getIfHeader();
-        response.setContentTypeHeader( Response.ContentType.XML.toString() );        
+        response.setContentTypeHeader( Response.XML );
         if( ifHeader == null || ifHeader.length() == 0  ) {
             processNewLock(milton,request,response,r,timeout);
         } else {
