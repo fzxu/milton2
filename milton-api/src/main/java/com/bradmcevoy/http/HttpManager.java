@@ -32,8 +32,8 @@ public class HttpManager {
     
     Map<Request.Method, Handler> methodFactoryMap = new ConcurrentHashMap<Request.Method, Handler>();
     
-    final List<Filter> filters = new ArrayList<Filter>();
-    final List<EventListener> eventListeners = new ArrayList<EventListener>();
+    List<Filter> filters = new ArrayList<Filter>();
+    List<EventListener> eventListeners = new ArrayList<EventListener>();
     
     final ResourceFactory resourceFactory;
     final ResponseHandler responseHandler;
@@ -101,10 +101,6 @@ public class HttpManager {
         filters.add(createStandardFilter());
     }
     
-    public Collection<Filter> getFilters() {
-        ArrayList<Filter> col = new ArrayList<Filter>(filters);
-        return col;
-    }
 
     /**
      * @deprecated - instead, use an appropriate ResponseHandler
@@ -257,5 +253,18 @@ public class HttpManager {
             l.onGet(request, response, resource, params);
         }   
     }
-    
+
+    public List<Filter> getFilters() {
+        ArrayList<Filter> col = new ArrayList<Filter>(filters);
+        return col;
+    }
+
+    public void setFilters(List<Filter> filters) {
+        this.filters = filters;
+        filters.add(new StandardFilter());
+    }
+
+    public void setEventListeners(List<EventListener> eventListeners) {
+        this.eventListeners = eventListeners;
+    }
 }

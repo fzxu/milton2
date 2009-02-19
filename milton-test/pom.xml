@@ -23,7 +23,7 @@
                     </connectors>
                     <stopKey>stop</stopKey>
 #
-                    <stopPort>8889</stopPort>
+                    <stopPort>8089</stopPort>
 				</configuration>
 			</plugin>
 		</plugins>

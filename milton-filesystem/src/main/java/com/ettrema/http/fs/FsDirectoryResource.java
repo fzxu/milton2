@@ -3,6 +3,11 @@ package com.ettrema.http.fs;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.DeletableResource;
+import com.bradmcevoy.http.LockInfo;
+import com.bradmcevoy.http.LockResult;
+import com.bradmcevoy.http.LockTimeout;
+import com.bradmcevoy.http.LockToken;
+import com.bradmcevoy.http.LockingCollectionResource;
 import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
@@ -21,7 +26,7 @@ import org.apache.commons.io.IOUtils;
 /**
  *
  */
-public class FsDirectoryResource extends FsResource implements MakeCollectionableResource, PutableResource, CopyableResource, DeletableResource,  MoveableResource, PropFindableResource{
+public class FsDirectoryResource extends FsResource implements MakeCollectionableResource, PutableResource, CopyableResource, DeletableResource,  MoveableResource, PropFindableResource, LockingCollectionResource{
     
     public FsDirectoryResource(FileSystemResourceFactory factory, File dir) {
         super(factory, dir);
@@ -76,6 +81,25 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
             FileUtils.copyDirectory(this.getFile(), dest);
         } catch (IOException ex) {
             throw new RuntimeException("Failed to copy to:" + dest.getAbsolutePath() , ex);
+        }
+    }
+
+    public LockToken createAndLock(String name, LockTimeout timeout, LockInfo lockInfo) {
+        File dest = new File(this.getFile(), name);
+        createEmptyFile(dest);
+        FsFileResource newRes = new FsFileResource(factory, dest);
+        LockResult res = newRes.lock(timeout, lockInfo);
+        return res.getLockToken();
+    }
+
+    private void createEmptyFile(File file) {
+        FileOutputStream fout = null;
+        try {
+            fout = new FileOutputStream(file);
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            IOUtils.closeQuietly(fout);
         }
     }
     

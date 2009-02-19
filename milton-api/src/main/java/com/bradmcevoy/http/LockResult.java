@@ -35,4 +35,14 @@ public class LockResult {
     public boolean isSuccessful() {
         return failureReason == null;
     }
+
+    public FailureReason getFailureReason() {
+        return failureReason;
+    }
+
+    public LockToken getLockToken() {
+        return lockToken;
+    }
+
+    
 }
