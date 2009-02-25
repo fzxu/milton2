@@ -10,6 +10,15 @@
     <packaging>jar</packaging>
     <name>Milton WebDav Servlet Library</name>
     <dependencies>
+        <!-- this is apparently needed to compile on java5 -->
+        <!-- BUT is not available in maven repo. will add to mitlon's repo  -->
+        <!--
+        <dependency>
+            <groupId>activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>

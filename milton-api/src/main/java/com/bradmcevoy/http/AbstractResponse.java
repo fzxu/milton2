@@ -44,11 +44,7 @@ public abstract class AbstractResponse implements Response {
     
     
     public void setDateHeader(Date date) {
-        //Date: Tue, 15 Nov 1994 08:12:31 GMT
-        if (date == null)
-            return;
-        String fmt = hdf.format(date);
-        setResponseHeader(Header.DATE, fmt);
+        setAnyDateHeader(Header.DATE, date);
     }
 
     public void setAuthenticateHeader(String realm) {
@@ -85,8 +81,7 @@ public abstract class AbstractResponse implements Response {
         if (expiresAt == null) {
             setResponseHeader(Header.EXPIRES, null);
         } else {
-            String fmt = hdf.format(expiresAt);
-            setResponseHeader(Header.EXPIRES, fmt);
+            setAnyDateHeader(Header.EXPIRES, expiresAt);
         }
     }
 
@@ -95,10 +90,7 @@ public abstract class AbstractResponse implements Response {
     }
 
     public void setLastModifiedHeader(Date date) {
-        if (date == null)
-            return;
-        String fmt = hdf.format(date);
-        setResponseHeader(Header.LAST_MODIFIED, fmt);
+        setAnyDateHeader(Header.LAST_MODIFIED, date);
     }
 
     public void setCacheControlNoCacheHeader() {
@@ -147,5 +139,12 @@ public abstract class AbstractResponse implements Response {
             log.warn("Exception writing to output. Probably client closed connection", ex);
         }
     }    
-    
+
+    protected void setAnyDateHeader(Header name, Date date) {
+        if (date == null)
+            return;
+        String fmt = hdf.format(date);
+        setResponseHeader(name, fmt);
+
+    }
 }

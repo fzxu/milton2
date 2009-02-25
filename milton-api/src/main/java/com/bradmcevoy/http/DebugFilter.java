@@ -3,9 +3,7 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.Request.Header;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
-import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamToStream;
-import com.bradmcevoy.io.WritingException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -16,7 +14,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Map;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

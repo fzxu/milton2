@@ -1,9 +1,10 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.Response.Header;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
-import java.util.Enumeration;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
@@ -35,7 +36,16 @@ public class ServletResponse extends AbstractResponse {
         tlResponse.set(r);
     }
 
-
+    /**
+     * Override to use servlets own date setting
+     *
+     * @param name
+     * @param date
+     */
+    @Override
+    protected void setAnyDateHeader(Header name, Date date) {
+        r.setDateHeader(name.code, date.getTime());
+    }
 
     public String getNonStandardHeader(String code) {
         return headers.get(code);
