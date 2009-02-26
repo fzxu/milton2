@@ -7,6 +7,6 @@ public class ReadingException extends IOException{
     private static final long serialVersionUID = 1L;
 
     public ReadingException(IOException cause) {
-        super("exception reading",cause);
+        super(cause.getMessage());
     }
 }
