@@ -45,6 +45,11 @@
         </dependency>
         <dependency>
             <groupId>com.ettrema</groupId>
+            <artifactId>milton-console</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ettrema</groupId>
             <artifactId>milton-filesystem</artifactId>
             <version>${project.version}</version>
         </dependency>
