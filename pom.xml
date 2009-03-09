@@ -24,6 +24,7 @@
 	<modules>
 		<module>milton-api</module>
 		<module>milton-servlet</module>
+        <module>milton-console</module>
 		<module>milton-test</module>
 		<module>milton-filesystem</module>                
 		<module>milton-filesystem-test</module>                                
@@ -37,6 +38,7 @@
 					<target>1.5</target>
 				</configuration>
 			</plugin>
+<!--
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -45,7 +47,7 @@
                         <configuration>
                             <tasks>
                                 <echo>Doing java to html...</echo>
-                                <!-- requires j2h.jar to be on classpath. see http://www.java2html.com/java2html_ant_task.html -->
+                                requires j2h.jar to be on classpath. see http://www.java2html.com/java2html_ant_task.html
                                 <taskdef name="java2html" classname="com.java2html.Java2HTMLTask" />
 
                                 <java2html title="Example" simple="no" tabsize="4" marginsize="2" header="true" footer="false" destination="target/html">
@@ -88,11 +90,12 @@
 					<execution>
 						<id>attach-javadocs</id>
 						<goals>
-							<goal>jar</goal>
+							<goal>deploy</goal>
 						</goals>
 					</execution>
 				</executions>
 			</plugin>
+-->
 
 		</plugins>
 	</build>

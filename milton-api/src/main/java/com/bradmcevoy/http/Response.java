@@ -147,8 +147,18 @@ public interface Response {
     
     String getContentTypeHeader();
 
+    /**
+     * Set the cache control header to allow the resource to be cached
+     * for the given number of seconds
+     *
+     * @param deltaSeconds - must not be null
+     */
     void setCacheControlMaxAgeHeader(Long deltaSeconds);
-    
+
+    /**
+     * Set the cache control header to indicate that the resource should not
+     * be cached
+     */
     void setCacheControlNoCacheHeader();
     
     void setLastModifiedHeader(Date date);

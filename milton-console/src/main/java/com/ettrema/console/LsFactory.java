@@ -23,5 +23,9 @@ public class LsFactory implements ConsoleCommandFactory {
         return "List. List contents of the current or a specified directory";
     }
 
+    public void setConsoleResourceFactory(ConsoleResourceFactory crf) {
+ 
+    }
+
     
 }

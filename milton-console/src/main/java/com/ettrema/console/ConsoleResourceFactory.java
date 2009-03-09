@@ -31,10 +31,12 @@ public class ConsoleResourceFactory implements ResourceFactory {
     final String secureResourcePath;
     final Date modDate;
     final Map<String,ConsoleCommandFactory> mapOfFactories;
+    final List<ConsoleCommandFactory> factories;
     final String consolePageContent;
     final String dojoJsContent;
 
     public ConsoleResourceFactory(ResourceFactory wrappedFactory, String consolePath, String secureResourcePath, List<ConsoleCommandFactory> factories) {
+        this.factories = factories;
         this.wrappedFactory = wrappedFactory;
         this.consolePath = consolePath;
         this.consoleName = consolePath.substring(consolePath.lastIndexOf("/"));
@@ -44,6 +46,7 @@ public class ConsoleResourceFactory implements ResourceFactory {
         for (ConsoleCommandFactory f : factories) {
             for (String cmdName : f.getCommandNames()) {
                 log.debug("Console Command Factory: " + cmdName + " - " + f.getClass());
+                f.setConsoleResourceFactory(this);
                 mapOfFactories.put(cmdName, f);
             }
         }

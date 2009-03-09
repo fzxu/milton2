@@ -12,6 +12,8 @@
                 <bean class="com.ettrema.console.LsFactory" />
                 <bean class="com.ettrema.console.CdFactory" />
                 <bean class="com.ettrema.console.RmFactory" />
+                <bean class="com.ettrema.console.HelpFactory" />
+                <bean class="com.ettrema.console.CpFactory" />
             </list>
         </constructor-arg>
     </bean>

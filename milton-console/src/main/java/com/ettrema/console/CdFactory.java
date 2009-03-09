@@ -21,6 +21,9 @@ public class CdFactory implements ConsoleCommandFactory {
     public String getDescription() {
         return "Change Directory to a path, absolute or relative";
     }
+
+    public void setConsoleResourceFactory(ConsoleResourceFactory crf) {
+    }
     
     
 

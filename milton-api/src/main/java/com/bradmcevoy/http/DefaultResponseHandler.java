@@ -196,7 +196,6 @@ public class DefaultResponseHandler implements ResponseHandler {
             Date expiresAt = calcExpiresAt(resource.getModifiedDate(), delta.longValue());
             response.setExpiresHeader(expiresAt);
         } else {
-            response.setExpiresHeader(null);
             response.setCacheControlNoCacheHeader();
         }
     }

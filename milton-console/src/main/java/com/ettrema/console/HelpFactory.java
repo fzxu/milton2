@@ -5,26 +5,29 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.ResourceFactory;
 import java.util.List;
 
-public class RmFactory implements ConsoleCommandFactory {
+public class HelpFactory implements ConsoleCommandFactory {
+
+    private ConsoleResourceFactory consoleResourceFactory;
 
     @Override
     public ConsoleCommand create(List<String> args, String host, String currentDir, Auth auth,ResourceFactory resourceFactory) {
-        return new Rm(args, host, currentDir, resourceFactory);
+        return new Help(args, host, currentDir, resourceFactory, consoleResourceFactory);
     }
 
     @Override
     public String[] getCommandNames() {
-        return new String[]{"rm","delete","del"};
+        return new String[]{"help"};
     }
 
     @Override
     public String getDescription() {
-        return "Remove. Removes a file or folder by path or name, including regular expressions";
+        return "Help. Display all commands";
     }
 
     public void setConsoleResourceFactory(ConsoleResourceFactory crf) {
-    
+        this.consoleResourceFactory = crf;
     }
-
+    
+    
 
 }

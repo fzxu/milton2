@@ -5,26 +5,23 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.ResourceFactory;
 import java.util.List;
 
-public class RmFactory implements ConsoleCommandFactory {
-
+public class CpFactory implements ConsoleCommandFactory{
     @Override
     public ConsoleCommand create(List<String> args, String host, String currentDir, Auth auth,ResourceFactory resourceFactory) {
-        return new Rm(args, host, currentDir, resourceFactory);
+        return new Cp(args, host, currentDir, resourceFactory);
     }
 
     @Override
     public String[] getCommandNames() {
-        return new String[]{"rm","delete","del"};
+        return new String[]{"cp","copy"};
     }
 
     @Override
     public String getDescription() {
-        return "Remove. Removes a file or folder by path or name, including regular expressions";
+        return "Copies a file or folder to a destination file or folder";
     }
 
     public void setConsoleResourceFactory(ConsoleResourceFactory crf) {
-    
+        
     }
-
-
 }
