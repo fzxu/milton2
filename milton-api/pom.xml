@@ -3,7 +3,7 @@
   	<parent>
   		<groupId>com.ettrema</groupId>
   		<artifactId>milton</artifactId>
-  		<version>1.4-SNAPSHOT</version>
+  		<version>1.4</version>
   	</parent>
 	<groupId>com.ettrema</groupId>
 	<artifactId>milton-api</artifactId>
