@@ -15,7 +15,12 @@ public class TResourceFactory implements ResourceFactory {
         file = new TResource(ROOT,"index.html");
         folder = new TFolderResource(ROOT,"folder1");
         folder = new TFolderResource(ROOT,"folder2");
+        new TFolderResource(folder,"folder2a");
         folder = new TFolderResource(ROOT,"folder3");
+        TFolderResource fSpecial = new TFolderResource(ROOT,"special chars");
+        TFolderResource fSpecialSub = new TFolderResource(ROOT,"folder with ampersand &");
+        new TFolderResource(fSpecial,"folder with percentage %");
+        //new TFolderResource(fSpecial,"folder with speciæl chars"); // contains ae character
         file = new TResource(folder,"index.html");
         file = new TResource(folder,"stuff.html");
         folder = new TFolderResource(folder,"subfolder1");
@@ -28,13 +33,16 @@ public class TResourceFactory implements ResourceFactory {
     
     
     public Resource getResource(String host, String url) {
-//        log.debug("getResource: url: " + url );
+        log.debug("getResource: url: " + url );
         Path path = Path.path(url);
-        return find(path);
+        Resource r = find(path);
+        log.debug("_found: " + r);
+        return r;
     }
 
     private TResource find(Path path) {
-        if( path==null || path.getParent().isRoot() ) return ROOT;
+        log.debug("find:" + path);
+        if( path==null || path.getParent().isRoot() ) return ROOT;        
         TResource r = find(path.getParent());
         if( r == null ) return null;
         if( r instanceof TFolderResource ) {

@@ -102,18 +102,15 @@ public class PropFindHandler extends ExistingEntityHandler {
     
     void appendResponses(XmlWriter writer, PropFindableResource resource, int depth,Set<String> requestedFields, String requestUrl, String host, String protocol) {
         String collectionHref = suffixSlash( protocol + "://" + host + requestUrl);
-//        log.debug("collectionHref: " + collectionHref);
         sendResponse(writer, resource,requestedFields, collectionHref);
         
         if(depth > 0 && resource instanceof CollectionResource ) {
             CollectionResource col = (CollectionResource) resource;
             List<Resource> list = new ArrayList<Resource>(col.getChildren());
-//            log.debug("appendResponses: " + list.size());
             for (Resource child : list) {
                 if (child instanceof PropFindableResource) {
-                    sendResponse(writer, (PropFindableResource) child, requestedFields, collectionHref + child.getName());
-                } else {
-//                    log.debug("not adding child: " + child);
+                    String childHref = collectionHref + Utils.percentEncode(child.getName());
+                    sendResponse(writer, (PropFindableResource) child, requestedFields, childHref);
                 }
             }
         }
@@ -123,8 +120,7 @@ public class PropFindHandler extends ExistingEntityHandler {
         XmlWriter.Element el = writer.begin("D:response").open();
         final Set<PropertyWriter> unknownProperties = new HashSet<PropertyWriter>();
         final Set<PropertyWriter> knownProperties = new HashSet<PropertyWriter>();
-        String href2 = urlEncode(href);
-        writer.writeProperty(null, "D:href", href2);
+        writer.writeProperty(null, "D:href", href);
         
         for( String field : requestedFields ) {
             final PropertyWriter pw = writersMap.get(field);
@@ -159,15 +155,12 @@ public class PropFindHandler extends ExistingEntityHandler {
             }
             return s;
     }
-    
-    private String urlEncode(String href) {
-        String s = href.replaceAll(" ", "%20").replaceAll("&", "%26");  // http://www.ettrema.com:8080/browse/MIL-24
-        return s;
-    }
 
-    private String nameEncode(String href) {
-        String s = href.replaceAll("&", "&amp;");  // http://www.ettrema.com:8080/browse/MIL-24
-        return s;
+
+    private String nameEncode(String s) {
+        //return Utils.encode(href, false); // see MIL-31
+        return Utils.escapeXml(s);
+        //return href.replaceAll("&", "&amp;");  // http://www.ettrema.com:8080/browse/MIL-24
     }
 
     protected void sendStringProp(XmlWriter writer, String name, String value) {
@@ -354,7 +347,7 @@ public class PropFindHandler extends ExistingEntityHandler {
     class MSHrefPropertyWriter implements PropertyWriter{
 
         public void append(XmlWriter writer, PropFindableResource res, String href) {
-            sendStringProp(writer, "D:" + fieldName(), urlEncode(href));
+            sendStringProp(writer, "D:" + fieldName(), href + Utils.percentEncode(res.getName()));
         }
 
         public String fieldName() {
