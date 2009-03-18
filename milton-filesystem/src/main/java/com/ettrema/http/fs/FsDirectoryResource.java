@@ -58,7 +58,8 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
 
 
     public String checkRedirect(Request request) {
-        return request.getAbsoluteUrl() + "/index.html";
+        //return request.getAbsoluteUrl() + "/index.html";
+        return null;
     }
 
     public Resource createNew(String name, InputStream in, Long length, String contentType) throws IOException {
