@@ -46,24 +46,24 @@ public class UtilsTest extends TestCase {
     }
 
     public void testPercentEncode() {
-        for( int i=0; i<70; i++ ) {
-            System.out.println(i + " = " + (char)i);
-        }
+//        for( int i=0; i<70; i++ ) {
+//            System.out.println(i + " = " + (char)i);
+//        }
         assertEquals("", Utils.percentEncode(""));
         assertEquals("abc", Utils.percentEncode("abc"));
         assertEquals("%20", Utils.percentEncode(" "));
         assertEquals("ampersand%26", Utils.percentEncode("ampersand&"));
     }
 
-//    public void testEncode() {
-//        assertEquals("abc", Utils.encodeHref("abc", false));
-//        assertEquals("a c", Utils.encodeHref("a c", false));
-//        assertEquals("a%C3%A6c", Utils.encodeHref("aæc", false));
-//        assertEquals("ac%3F", Utils.encodeHref("ac?", false));
-//        assertEquals("a%26c", Utils.encodeHref("a&c", false));
-//
-//        assertEquals("a%20c", Utils.encodeHref("a c", true));
-//    }
-//
 
+    public void testDecodeHref() {
+        String href = "/";
+        String result = Utils.decodePath(href);
+        assertEquals(result, href);
+
+        href = "/with%20space";
+        result = Utils.decodePath(href);
+        assertEquals("/with space", result);
+
+    }
 }

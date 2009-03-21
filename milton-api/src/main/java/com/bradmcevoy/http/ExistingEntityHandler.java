@@ -1,6 +1,9 @@
 package com.bradmcevoy.http;
 
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +26,7 @@ public abstract class ExistingEntityHandler extends Handler {
     public void process(HttpManager manager, Request request, Response response) {
         String host = request.getHostHeader();
         String url = HttpManager.decodeUrl(request.getAbsolutePath());
-
+        log.debug("find resource: " + url);
         Resource r = manager.getResourceFactory().getResource(host, url);
         if (r != null) {
             processResource(manager, request, response, r);

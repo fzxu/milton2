@@ -1,7 +1,5 @@
 package com.bradmcevoy.http;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -210,11 +208,7 @@ public class HttpManager {
     }
     
     public static String decodeUrl(String s) {
-        try {
-            return URLDecoder.decode(s,"UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            throw new RuntimeException(ex);
-        }
+            return Utils.decodePath(s);
     }
     
     public void addFilter(int pos, Filter filter) {

@@ -103,9 +103,9 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         for( String nm : parameters.keySet() ) {
             log.debug(" - param: " + nm);
         }
-        String name = (String)parameters.get("name");
-        if( name != null ) {
-            this.name = name;
+        String newName = (String)parameters.get("name");
+        if( newName != null ) {
+            this.name = newName;
         }
         return null;
     }

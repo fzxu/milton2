@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
-import java.text.Normalizer;
 import java.util.Calendar;
 import java.util.Date;
 import sun.nio.cs.ThreadLocalCoders;
@@ -21,6 +20,25 @@ public class Utils {
     public static Resource findChild(Resource parent, Path path) {
         return _findChild(parent, path.getParts(), 0);
     }
+
+    /**
+     * does percentage decoding on a path portion of a url
+     *
+     * Eg /foo  > /foo
+     * /with%20space -> /with space
+     *
+     * @param href
+     * @return
+     */
+    public static String decodePath(String href) {
+        try {
+            URI uri = new URI("http://anything.com" + href);
+            return  uri.getPath();
+        } catch (URISyntaxException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 
     private static Resource _findChild(Resource parent, String[] arr, int i) {
         if (parent instanceof CollectionResource) {
@@ -106,6 +124,7 @@ public class Utils {
         return s;
     }
 
+
     /**
      * this is a modified verion of java.net.URI.encode(s)
      *
@@ -134,7 +153,11 @@ public class Utils {
             }
         }
 
-        String ns = Normalizer.normalize(s, Normalizer.Form.NFC);
+        
+        // this normalizer thing is probably very important, but its not in jdk1.5
+        // and the tests work without it, so what the heck..
+        //String ns = Normalizer.normalize(s, Normalizer.Form.NFC);
+        String ns = s;
         ByteBuffer bb = null;
         try {
             bb = ThreadLocalCoders.encoderFor("UTF-8").encode(CharBuffer.wrap(ns));
@@ -145,7 +168,7 @@ public class Utils {
         StringBuffer sb = new StringBuffer();
         while (bb.hasRemaining()) {
             int b = bb.get() & 0xff;
-            if (b >= 0x80 || b <= (char)48) {
+            if (b >= 0x80 || b <= (char)48 && b != '.') {
                 appendEscape(sb, (byte) b);
             } else {
                 sb.append((char) b);
