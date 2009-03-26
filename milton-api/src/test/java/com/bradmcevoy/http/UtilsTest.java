@@ -46,13 +46,16 @@ public class UtilsTest extends TestCase {
     }
 
     public void testPercentEncode() {
-//        for( int i=0; i<70; i++ ) {
-//            System.out.println(i + " = " + (char)i);
-//        }
+        for( int i=0; i<80; i++ ) {
+            String s = String.valueOf((char)i);
+            System.out.println(i + " = " + s);
+        }
         assertEquals("", Utils.percentEncode(""));
         assertEquals("abc", Utils.percentEncode("abc"));
         assertEquals("%20", Utils.percentEncode(" "));
         assertEquals("ampersand%26", Utils.percentEncode("ampersand&"));
+        assertEquals("0", Utils.percentEncode("0"));
+        assertEquals("2009-01_02", Utils.percentEncode("2009-01_02"));
     }
 
 

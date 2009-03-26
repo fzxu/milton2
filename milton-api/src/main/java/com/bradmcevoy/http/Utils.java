@@ -80,12 +80,6 @@ public class Utils {
         return protocol;
     }
 
-    /*
-     * Provided by Kenneth V - see http://www.ettrema.com:8080/browse/MIL-31
-     * 
-     *
-     *
-     */
     public static String encodeHref(String s) {
         if (s.startsWith("https")) {
             s = s.substring(6);
@@ -168,7 +162,7 @@ public class Utils {
         StringBuffer sb = new StringBuffer();
         while (bb.hasRemaining()) {
             int b = bb.get() & 0xff;
-            if (b >= 0x80 || b <= (char)48 && b != '.') {
+            if (b >= 0x80 || b < (char)48 && b != '.' && b != '-') {
                 appendEscape(sb, (byte) b);
             } else {
                 sb.append((char) b);
