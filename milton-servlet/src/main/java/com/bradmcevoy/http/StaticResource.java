@@ -86,7 +86,7 @@ public class StaticResource implements GetableResource {
     }
 
     public Long getMaxAgeSeconds() {
-        return (long)60*60*24;
+        return (long)60*60*24*7;
     }
 
 }
