@@ -155,6 +155,8 @@ public interface Response {
      */
     void setCacheControlMaxAgeHeader(Long deltaSeconds);
 
+    void setCacheControlPrivateMaxAgeHeader(Long deltaSeconds);
+
     /**
      * Set the cache control header to indicate that the resource should not
      * be cached

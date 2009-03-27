@@ -74,8 +74,22 @@ public abstract class AbstractResponse implements Response {
     }
 
     public void setCacheControlMaxAgeHeader(Long delta) {
-        setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.MAX_AGE.code + "=" + delta);
+        if( delta != null ) {
+            setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.MAX_AGE.code + "=" + delta);
+        } else {
+            setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.NO_CACHE.code);
+        }
     }
+
+    public void setCacheControlPrivateMaxAgeHeader(Long delta) {
+        if( delta != null ) {
+            setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.PRIVATE.code + " " + CacheControlResponse.MAX_AGE.code + "=" + delta);
+        } else {
+            setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.PRIVATE.code);
+        }
+    }
+
+
 
     public void setExpiresHeader(Date expiresAt) {
         if (expiresAt == null) {

@@ -177,4 +177,12 @@ public class Utils {
         sb.append(hexDigits[(b >> 0) & 0x0f]);
     }
 
+    public static Date mostRecent(Date ... dates) {
+        if( dates == null || dates.length == 0 ) return null;
+        Date recent = dates[0];
+        for( Date dt : dates) {
+            if( dt.getTime() > recent.getTime() ) recent = dt;
+        }
+        return recent;
+    }
 }

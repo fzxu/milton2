@@ -146,7 +146,7 @@ public class DefaultResponseHandler implements ResponseHandler {
             if( ct != null ) {
                 response.setContentTypeHeader(ct);
             }
-            setCacheControl(gr, response);
+            setCacheControl(gr, response, request.getAuthorization());
             sendContent(request, response, (GetableResource)resource, params, null);
         }
     }
@@ -189,10 +189,14 @@ public class DefaultResponseHandler implements ResponseHandler {
         return " xmlns:D" + "=\"DAV:\"";
     }
 
-    protected void setCacheControl(final GetableResource resource, final Response response) {
+    protected void setCacheControl(final GetableResource resource, final Response response, Auth auth) {
         Long delta = resource.getMaxAgeSeconds();
         if (delta != null) {
-            response.setCacheControlMaxAgeHeader(resource.getMaxAgeSeconds());
+            if( auth != null ) {
+                response.setCacheControlPrivateMaxAgeHeader(delta);
+            } else {
+                response.setCacheControlMaxAgeHeader(delta);
+            }
             Date expiresAt = calcExpiresAt(resource.getModifiedDate(), delta.longValue());
             response.setExpiresHeader(expiresAt);
         } else {

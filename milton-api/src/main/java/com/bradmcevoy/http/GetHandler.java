@@ -65,13 +65,24 @@ public class GetHandler extends ExistingEntityHandler {
     protected boolean checkIfMatch(GetableResource handler, Request requestInfo) {
         return false;   // TODO: not implemented
     }
-    
+
+    /**
+     *
+     * @param handler
+     * @param requestInfo
+     * @return - true if the resource has NOT been modified since that date in the request
+     */
     protected boolean checkIfModifiedSince(GetableResource handler, Request requestInfo) {
         Date dtRequest = requestInfo.getIfModifiedHeader();
         if( dtRequest == null ) return false;
         Date dtCurrent = handler.getModifiedDate();
         if( dtCurrent == null ) return true;
-        return ( dtCurrent.compareTo(dtRequest) < 0 );
+        long timeActual = dtCurrent.getTime();
+        long timeRequest = dtRequest.getTime()+1000; // allow for rounding to nearest second
+//        log.debug("times as long: " + dtCurrent.getTime() + " - " + dtRequest.getTime());
+        boolean unchangedSince = (timeRequest >= timeActual);
+//        log.debug("checkModifiedSince: actual: " + dtCurrent + " - request:" + dtRequest + " = " + unchangedSince  + " (true indicates no change)");
+        return unchangedSince;
     }
     
     protected boolean checkIfNoneMatch(GetableResource handler, Request requestInfo) {
