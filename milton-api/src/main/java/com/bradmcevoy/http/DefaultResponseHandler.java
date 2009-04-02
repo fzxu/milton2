@@ -16,13 +16,14 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultResponseHandler implements ResponseHandler {
 
-    private String supportedLevels;
-
     private static final Logger log = LoggerFactory.getLogger(DefaultResponseHandler.class);
+
     public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
     public static final String NOT_FOUND_HTML = "<html><body><h1>Not Found (404)</h1></body></html>";
     public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
     public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
+
+    private String supportedLevels;
 
     public DefaultResponseHandler() {
         this("1");  // no locking
@@ -58,7 +59,7 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
     public void respondMethodNotImplemented(Resource resource, Response response, Request request) {
-        log.debug("method not implemented. handler: " + this.getClass().getName() + " resource: " + resource.getClass().getName());
+        log.debug("method not implemented. resource: " + resource.getClass().getName() + " - method " + request.getMethod());
         try {
             response.setStatus(Response.Status.SC_NOT_IMPLEMENTED);
             OutputStream out = response.getOutputStream();
@@ -108,6 +109,11 @@ public class DefaultResponseHandler implements ResponseHandler {
         response.setStatus(Response.Status.SC_CREATED);
     }
 
+    public void respondNoContent(Resource resource, Response response, Request request) {
+        log.debug("respondNoContent");
+        response.setStatus(Response.Status.SC_OK);
+    }
+
     public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) {
         log.debug("respondPartialContent");
         response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
@@ -155,10 +161,12 @@ public class DefaultResponseHandler implements ResponseHandler {
         log.debug("not modified");
         response.setDateHeader(new Date());
         String acc = request.getAcceptHeader();
-        String ct = resource.getContentType(acc);
-        if( ct != null ) {
-            response.setContentTypeHeader(ct);
+        String etag = resource.getUniqueId();
+        if (etag != null) {
+            response.setEtag(etag);
         }
+        response.setLastModifiedHeader(resource.getModifiedDate());
+        setCacheControl(resource, response, request.getAuthorization());
         response.setStatus(Response.Status.SC_NOT_MODIFIED);
     }
 

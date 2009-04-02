@@ -12,8 +12,9 @@ public class TResourceFactory implements ResourceFactory {
     static {
         TFolderResource folder;
         TResource file;
-        file = new TResource(ROOT,"index.html");
+        file = new TTextResource(ROOT,"index.html","Hi there");
         folder = new TFolderResource(ROOT,"folder1");
+        file = new TTextResource(folder,"index.html","i am a web page in folder1");
         folder = new TFolderResource(ROOT,"folder2");
         new TFolderResource(folder,"folder2a");
         folder = new TFolderResource(ROOT,"folder3");
@@ -21,13 +22,13 @@ public class TResourceFactory implements ResourceFactory {
         TFolderResource fSpecialSub = new TFolderResource(ROOT,"folder with ampersand &");
         new TFolderResource(fSpecial,"folder with percentage %");
         //new TFolderResource(fSpecial,"folder with speciæl chars"); // contains ae character
-        file = new TResource(folder,"index.html");
-        file = new TResource(folder,"stuff.html");
+        file = new TTextResource(folder,"index.html","i am a web page");
+        file = new TTextResource(folder,"stuff.html","");
         folder = new TFolderResource(folder,"subfolder1");
-        file = new TResource(folder,"index.html");
+        file = new TTextResource(folder,"index.html","");
         folder = new TFolderResource(ROOT,"secure");
         folder.setSecure("test","pwd");
-        file = new TResource(folder,"index.html");
+        file = new TTextResource(folder,"index.html","");
         file.setSecure("test","pwd");
     }
     

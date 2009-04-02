@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TFolderResource extends TResource implements PutableResource, MakeCollectionableResource, LockingCollectionResource {
+public class TFolderResource extends TTextResource implements PutableResource, MakeCollectionableResource, LockingCollectionResource {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     ArrayList<TResource> children = new ArrayList<TResource>();
     
     public TFolderResource(TFolderResource parent, String name) {
-        super(parent,name);
+        super(parent,name,"");
     }
     
     @Override
@@ -49,7 +49,9 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
     protected void sendContentMenu(final PrintWriter printer) {
         printer.print("<ul>");
         for( TResource r : children ) {
-            printer.print("<li><a href='" + r.getHref() + "'>" + r.getName() + "</a>");
+            String href = Utils.escapeXml(r.getHref());
+            String name = Utils.escapeXml(r.getName());
+            print(printer, "<li><a href='" + href + "'>" + name + "</a>");
         }
         printer.print("</ul>");
     }
@@ -68,7 +70,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
         return r;
     }
     
-    private ByteArrayOutputStream readStream(final InputStream in) throws IOException {
+    static ByteArrayOutputStream readStream(final InputStream in) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         StreamToStream.readTo(in, bos);
         return bos;

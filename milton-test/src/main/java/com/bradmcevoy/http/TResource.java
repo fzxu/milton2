@@ -2,29 +2,26 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.PropPatchHandler.Fields;
 import com.bradmcevoy.http.Request.Method;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class TResource implements PostableResource, GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, LockableResource, PropPatchableResource {
+public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, LockableResource, PropPatchableResource {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     String name;
     Date modDate;
     Date createdDate;
-    TFolderResource parent;        
-    
-    TLock lock;
-    
-    
+    TFolderResource parent;            
+    TLock lock;        
     private String user;
     private String password;
     private Map<String,String> props = new HashMap<String, String>();
-    
+
+    protected abstract Object clone(TFolderResource newParent);
+
     public TResource(TFolderResource parent, String name) {
         this.parent = parent;
         this.name = name;
@@ -53,62 +50,16 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         }
     }
     
-    
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
-        PrintWriter printer = new PrintWriter(out,true);
-        sendContentStart(printer);
-        sendContentMiddle(printer);
-        sendContentFinish(printer);
-    }    
-
-    protected  void sendContentMiddle(final PrintWriter printer) {       
-        printer.print("rename");
-        printer.print("<form method='POST' action='" + this.getHref() + "'><input type='text' name='name' value='" + this.getName() + "'/><input type='submit'></form>");
-    }
-
-    protected void sendContentFinish(final PrintWriter printer) {       
-        printer.print("</body></html>");
-        printer.flush();
-    }
-
-    protected void sendContentStart(final PrintWriter printer) {
-        printer.print("<html><body>");
-        printer.print("<h1>" + getName() + "</h1>");        
-        sendContentMenu(printer);        
-    }
-
-    protected void sendContentMenu(final PrintWriter printer) {
-        printer.print("<ul>");
-        for( TResource r : parent.children ) {
-            printer.print("<li><a href='" + r.getHref() + "'>" + r.getName() + "</a>");
-        }
-        printer.print("</ul>");
-    }
-    
 
     public Long getContentLength() {
         return null;
     }
 
-    public String getContentType(String accept) {
-        return Response.ContentType.HTTP.toString();
-    }
 
     public String checkRedirect(Request request) {
         return null;
     }
 
-    public String processForm(Map<String, String> parameters, Map<String, FileItem> files) {
-        log.debug("processForm: " + parameters.size());
-        for( String nm : parameters.keySet() ) {
-            log.debug(" - param: " + nm);
-        }
-        String newName = (String)parameters.get("name");
-        if( newName != null ) {
-            this.name = newName;
-        }
-        return null;
-    }
 
     public Long getMaxAgeSeconds() {
         return (long)10;
@@ -168,11 +119,6 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         rClone.name = name;
     }     
     
-    protected Object clone(TFolderResource newParent) {
-        TResource r = new TResource(newParent,name);
-        return r;
-    }    
-
     public int compareTo(Resource o) {
         if( o instanceof TResource ) {
             TResource res = (TResource)o;
@@ -242,7 +188,10 @@ public class TResource implements PostableResource, GetableResource, PropFindabl
         }
     }
 
-    
+    protected void print(PrintWriter printer, String s) {
+        printer.print(s);
+    }
+
     class TLock {
         final Date lockedUntil;
         final String lockId;

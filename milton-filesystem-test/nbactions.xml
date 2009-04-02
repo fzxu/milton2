@@ -52,4 +52,11 @@
                 <netbeans.deploy.debugmode>true</netbeans.deploy.debugmode>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-deploy</actionName>
+            <displayName>deploy</displayName>
+            <goals>
+                <goal>deploy</goal>
+            </goals>
+        </action>
     </actions>

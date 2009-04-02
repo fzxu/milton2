@@ -14,7 +14,15 @@ public class TBinaryResource extends TResource {
         this.bytes = bytes;
         System.out.println("created resource of size: " + bytes.length);
     }
- 
+
+    @Override
+    protected Object clone(TFolderResource newParent) {
+        return new TBinaryResource(newParent, name, bytes, contentType);
+    }
+
+
+
+
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
         System.out.println("writing binary resource:");

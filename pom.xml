@@ -9,6 +9,17 @@
 	<scm>
 		<connection>scm:svn:svn://www.ettrema.com/milton/tags/milton-1.4</connection>
 	</scm>
+    <distributionManagement>
+        <repository>
+          <id>ettrema-repo</id>
+          <url>http://www.ettrema.com/maven2</url>
+        </repository>
+        <snapshotRepository>
+          <uniqueVersion>false</uniqueVersion>
+          <id>ettrema-repo</id>
+          <url>http://www.ettrema.com/maven2</url>
+        </snapshotRepository>
+    </distributionManagement>
 	<developers>
 		<developer>
 			<name>Brad McEvoy</name>
@@ -98,6 +109,13 @@
 -->
 
 		</plugins>
+      <extensions>
+         <extension>
+            <groupId>org.apache.maven.wagon</groupId>
+            <artifactId>wagon-webdav</artifactId>
+            <version>1.0-beta-2</version>
+         </extension>
+      </extensions>
 	</build>
 	<dependencies>
 		<dependency>
@@ -120,6 +138,10 @@
 	</dependencies>
 
     <repositories>
+        <repository>
+          <id>ettrema-repo</id>
+          <url>http://www.ettrema.com/maven2</url>
+        </repository>
         <repository>
             <!-- needed for java2html -->
             <id>mvnrepository.com</id>

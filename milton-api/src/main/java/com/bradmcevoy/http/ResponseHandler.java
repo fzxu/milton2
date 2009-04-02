@@ -17,6 +17,17 @@ import java.util.Map;
  *  here
  */
 public interface ResponseHandler {
+    /**
+     * Invoked when an operation is successful, but there is no content, and
+     * there is nothing more specific to return (Eg created)
+     *
+     * For example, as a result of a PUT when a resouce has been updated)
+     *
+     * @param resource
+     * @param response
+     * @param request
+     */
+    void respondNoContent(Resource resource, Response response,Request request);
     void respondContent(Resource resource, Response response, Request request, Map<String,String> params);
     void respondPartialContent(GetableResource resource, Response response, Request request, Map<String,String> params, Range range);
     void respondCreated(Resource resource, Response response, Request request);
@@ -29,4 +40,5 @@ public interface ResponseHandler {
     void respondNotModified(GetableResource resource, Response response, Request request);
     void respondNotFound(Response response, Request request);
     void respondWithOptions(Resource resource, Response response,Request request, List<Method> methodsAllowed);
+
 }
