@@ -42,13 +42,13 @@
     <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">
         <constructor-arg ref="milton.resource.factory" />
         <constructor-arg ref="milton.response.handler" />
-<!--
+
         <property name="filters">
             <list>
                 <ref bean="milton.debug.filter" />
             </list>
         </property>
--->
+
     </bean>
 
 

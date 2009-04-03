@@ -6,23 +6,18 @@
 	 version="2.4">
                           
     <servlet>
-        <servlet-name>milton</servlet-name>
-        <servlet-class>com.bradmcevoy.http.SpringAwareMiltonServlet</servlet-class>
+        <servlet-name>springDispatcher</servlet-name>
+        <servlet-class>com.bradmcevoy.http.MiltonDispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
     </servlet>
     
     <servlet-mapping>
-        <servlet-name>milton</servlet-name>
+        <servlet-name>springDispatcher</servlet-name>
         <url-pattern>/*</url-pattern>
-    </servlet-mapping>    
-    
-    <session-config>
-        <session-timeout>
-            30
-        </session-timeout>
-    </session-config>
-    <welcome-file-list>
-	<welcome-file>
-            index.jsp
-        </welcome-file>
-    </welcome-file-list>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>springDispatcher</servlet-name>
+        <url-pattern>/miltonController</url-pattern>
+    </servlet-mapping>
 </web-app>
