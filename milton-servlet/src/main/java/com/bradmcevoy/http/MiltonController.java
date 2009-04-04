@@ -9,6 +9,14 @@ import org.springframework.web.servlet.mvc.Controller;
 
 /**
  *
+ * IMPORTANT !!!!!!!!!!!
+ * This controller will ONLY work if used in conjunction with DavEnabledDispatcherServlet
+ *
+ * It WILL NOT work with the standard spring DispatcherServlet because it
+ * explicitly forbids the use of webdav methods such as PROPFIND
+ *
+ * Please see the javadoc for DavEnabledDispatcherServlet for details
+ *
  */
 public class MiltonController implements Controller {
 
