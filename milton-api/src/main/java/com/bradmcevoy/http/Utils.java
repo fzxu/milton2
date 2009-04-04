@@ -32,8 +32,14 @@ public class Utils {
      */
     public static String decodePath(String href) {
         try {
-            URI uri = new URI("http://anything.com" + href);
-            return  uri.getPath();
+            if( href.startsWith("/")) {
+                URI uri = new URI("http://anything.com" + href);
+                return  uri.getPath();
+            } else {
+                URI uri = new URI("http://anything.com/" + href);
+                String s = uri.getPath();
+                return s.substring(1);
+            }
         } catch (URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
@@ -80,35 +86,6 @@ public class Utils {
         return protocol;
     }
 
-    public static String encodeHref(String s) {
-        if (s.startsWith("https")) {
-            s = s.substring(6);
-            return encodeUrl(s, "https");
-        } else {
-            s = s.substring(5);
-            return encodeUrl(s, "http");
-        }
-
-    }
-
-    /**
-     * This encodes all ampersands so will not work with request parameters
-     *
-     * @param s
-     * @param scheme
-     * @return
-     */
-    public static String encodeUrl(String s, String scheme) {
-        try {
-            URI uri = new URI(scheme, s, null);
-            s = uri.toASCIIString();
-            s = s.replaceAll("&", "%26");
-            return s;
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException(s, ex);
-        }
-    }
-
     public static String escapeXml(String s) {
         s = s.replaceAll("\"", "&quot;");
         s = s.replaceAll("&", "&amp;");
@@ -150,8 +127,7 @@ public class Utils {
         
         // this normalizer thing is probably very important, but its not in jdk1.5
         // and the tests work without it, so what the heck..
-        //String ns = Normalizer.normalize(s, Normalizer.Form.NFC);
-        String ns = s;
+        String ns = normalize(s);
         ByteBuffer bb = null;
         try {
             bb = ThreadLocalCoders.encoderFor("UTF-8").encode(CharBuffer.wrap(ns));
@@ -184,5 +160,22 @@ public class Utils {
             if( dt.getTime() > recent.getTime() ) recent = dt;
         }
         return recent;
+    }
+
+    /**
+     * java.text.Normalizer is only available for jdk 1.6. Since it isnt
+     * really required and we don't want to annoy our 1.5 colleagues, this
+     * is commented out.
+     *
+     * It isnt really needed because URLs still get consistently encoded and
+     * decoded without it. Its just that you might get different results on different
+     * platforms
+     *
+     * @param s
+     * @return
+     */
+    private static String normalize(String s) {
+        //return Normalizer.normalize(s, Normalizer.Form.NFC);
+        return s;
     }
 }
