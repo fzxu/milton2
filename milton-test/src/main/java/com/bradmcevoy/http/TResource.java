@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, LockableResource, PropPatchableResource {
+public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, PropPatchableResource { //, LockableResource
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     String name;

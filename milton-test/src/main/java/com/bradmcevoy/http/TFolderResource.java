@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TFolderResource extends TTextResource implements PutableResource, MakeCollectionableResource, LockingCollectionResource {
+public class TFolderResource extends TTextResource implements PutableResource, MakeCollectionableResource { //, LockingCollectionResource {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     ArrayList<TResource> children = new ArrayList<TResource>();
