@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.Request.Method;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +29,8 @@ public interface ResponseHandler {
      * @param request
      */
     void respondNoContent(Resource resource, Response response,Request request);
-    void respondContent(Resource resource, Response response, Request request, Map<String,String> params);
-    void respondPartialContent(GetableResource resource, Response response, Request request, Map<String,String> params, Range range);
+    void respondContent(Resource resource, Response response, Request request, Map<String,String> params) throws NotAuthorizedException;
+    void respondPartialContent(GetableResource resource, Response response, Request request, Map<String,String> params, Range range) throws NotAuthorizedException;
     void respondCreated(Resource resource, Response response, Request request);
     void respondUnauthorised(Resource resource, Response response, Request request);
     void respondMethodNotImplemented(Resource resource, Response response, Request request);

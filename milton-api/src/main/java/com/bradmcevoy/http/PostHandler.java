@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.Request.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class PostHandler extends ExistingEntityHandler {
     }
 
     @Override
-    protected void process(HttpManager milton, Request request, Response response, Resource resource) {
+    protected void process(HttpManager milton, Request request, Response response, Resource resource) throws NotAuthorizedException {
         PostableResource r = (PostableResource) resource;
         Map<String, String> params = new HashMap<String,String>();
         Map<String, FileItem> files = new HashMap<String,FileItem>();

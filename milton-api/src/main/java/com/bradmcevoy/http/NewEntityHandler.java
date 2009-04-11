@@ -1,5 +1,7 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,11 +19,11 @@ public abstract class NewEntityHandler extends Handler {
      *  the appropriate method specific interface if isCompatible has been implemented
      *  correctly
      */
-    protected abstract void process(HttpManager milton, Request request, Response response, CollectionResource resource, String newName);
+    protected abstract void process(HttpManager milton, Request request, Response response, CollectionResource resource, String newName) throws ConflictException, NotAuthorizedException;
     
     
     @Override
-    public void process(HttpManager manager, Request request, Response response) {
+    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException{
         String host = request.getHostHeader();
         String url = HttpManager.decodeUrl(request.getAbsolutePath());
         String name;
@@ -41,7 +43,7 @@ public abstract class NewEntityHandler extends Handler {
         }
     }
     
-    protected void process(Request request, Response response, Resource resource, String name) {        
+    protected void process(Request request, Response response, Resource resource, String name) throws ConflictException, NotAuthorizedException{
         if( !checkAuthorisation(resource,request) ) {
             respondUnauthorised(resource,response,request);
             return ;

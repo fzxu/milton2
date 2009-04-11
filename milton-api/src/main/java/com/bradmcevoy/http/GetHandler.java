@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,7 @@ public class GetHandler extends ExistingEntityHandler {
     }
     
     @Override
-    protected void process(HttpManager milton, Request request, Response response, Resource resource) {
+    protected void process(HttpManager milton, Request request, Response response, Resource resource) throws NotAuthorizedException{
         log.debug("process: " + request.getAbsolutePath());
         GetableResource r = (GetableResource)resource;
         if( checkConditional(r,request) ) {
@@ -101,7 +102,7 @@ public class GetHandler extends ExistingEntityHandler {
     }                
 
 
-    protected void sendContent(Request request, Response response, GetableResource resource,Map<String,String> params) {
+    protected void sendContent(Request request, Response response, GetableResource resource,Map<String,String> params) throws NotAuthorizedException {
         Range range = getRange(request);
         if( range != null ) {
             getResponseHandler().respondPartialContent(resource, response, request, params, range);

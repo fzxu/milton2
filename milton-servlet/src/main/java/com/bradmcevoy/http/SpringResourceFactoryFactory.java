@@ -29,7 +29,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
     <bean id="milton.resource.factory" class="com.ettrema.http.fs.FileSystemResourceFactory">
         <property name="securityManager" ref="milton.fs.security.manager" />        
     </bean>
-    
+
+     <bean id="milton.response.handler" class="com.ettrema.http.DefaultResponseHandler" />
+
     <bean id="milton.fs.security.manager" class="com.ettrema.http.fs.NullSecurityManager" >
         <property name="realm" value="aRealm" />
     </bean>
@@ -51,5 +53,11 @@ public class SpringResourceFactoryFactory implements ResourceFactoryFactory{
         ResourceFactory rf = (ResourceFactory) context.getBean("milton.resource.factory");
         return rf;
     }
+
+    public ResponseHandler createResponseHandler() {
+        return  (ResponseHandler) context.getBean("milton.response.handler");
+    }
+
+
 
 }

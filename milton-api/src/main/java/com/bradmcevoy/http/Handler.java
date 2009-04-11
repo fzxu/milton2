@@ -1,6 +1,7 @@
 package com.bradmcevoy.http;
 
-import java.io.IOException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import java.io.PrintWriter;
 
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ public abstract class Handler {
 
     protected final HttpManager manager;
 
-    public abstract void process(HttpManager httpManager, Request request, Response response);
+    public abstract void process(HttpManager httpManager, Request request, Response response) throws ConflictException, NotAuthorizedException;
     
     protected abstract boolean isCompatible(Resource r);
     

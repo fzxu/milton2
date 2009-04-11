@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
 import java.io.IOException;
@@ -114,7 +115,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         response.setStatus(Response.Status.SC_OK);
     }
 
-    public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) {
+    public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException{
         log.debug("respondPartialContent");
         response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
         response.setContentRangeHeader(range.start, range.finish, resource.getContentLength());
@@ -130,7 +131,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         }
     }
 
-    public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) {
+    public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException{
         log.debug("respondContent: " + resource.getClass());
         response.setStatus(Response.Status.SC_OK);
         response.setDateHeader(new Date());
@@ -219,7 +220,7 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
 
-    protected void sendContent(Request request, Response response, GetableResource resource,Map<String,String> params, Range range) {
+    protected void sendContent(Request request, Response response, GetableResource resource,Map<String,String> params, Range range) throws NotAuthorizedException{
         OutputStream out = outputStreamForResponse(request, response, resource);
         try {
             resource.sendContent(out,null,params);

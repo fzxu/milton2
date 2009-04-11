@@ -13,10 +13,16 @@ public class AbstractMiltonEndPoint {
     
     protected ServletHttpManager httpManager;
     
-    protected void init(String resourceFactoryClassName, String notFoundPath) throws ServletException {
+    protected void init(String resourceFactoryClassName, String notFoundPath, String responseHandlerClassName) throws ServletException {
         log.debug("resourceFactoryClassName: " + resourceFactoryClassName);
         ResourceFactory rf = instantiate(resourceFactoryClassName);
-        init(rf, notFoundPath);
+        ResponseHandler responseHandler;
+        if( responseHandlerClassName == null ) {
+            responseHandler = new DefaultResponseHandler();
+        } else {
+            responseHandler = instantiate(responseHandlerClassName);
+        }
+        init(rf, responseHandler, notFoundPath);
     }
     
     protected void initFromFactoryFactory(String resourceFactoryFactoryClassName, String notFoundPath) throws ServletException {
@@ -24,11 +30,12 @@ public class AbstractMiltonEndPoint {
         ResourceFactoryFactory rff = instantiate(resourceFactoryFactoryClassName);
         rff.init();
         ResourceFactory rf = rff.createResourceFactory();
-        init(rf, notFoundPath);
+        ResponseHandler responseHandler = rff.createResponseHandler(); 
+        init(rf, responseHandler, notFoundPath);
     }
     
-    protected void init(ResourceFactory rf, String notFoundPath) {
-        httpManager = new ServletHttpManager(rf, notFoundPath);
+    protected void init(ResourceFactory rf, ResponseHandler responseHandler, String notFoundPath) {
+        httpManager = new ServletHttpManager(rf, notFoundPath, responseHandler);
     }
     
     protected <T> T instantiate(String className) throws ServletException {

@@ -19,6 +19,14 @@ package com.bradmcevoy.http;
  * 
  */
 public interface ResourceFactoryFactory {
+
+    /**
+     * Create and return a ResponseHandler. Normally this will be DefaultResponseHandler
+     *
+     * @return
+     */
+    public ResponseHandler createResponseHandler();
+
     /**
      * Called immediaely after construction
      */

@@ -1,9 +1,8 @@
 package com.bradmcevoy.http;
 
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.logging.Level;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +19,10 @@ public abstract class ExistingEntityHandler extends Handler {
      *  the appropriate method specific interface if isCompatible has been implemented
      *  correctly
      */
-    protected abstract void process(HttpManager milton, Request request, Response response, Resource resource);
+    protected abstract void process(HttpManager milton, Request request, Response response, Resource resource) throws NotAuthorizedException, ConflictException;
 
     @Override
-    public void process(HttpManager manager, Request request, Response response) {
+    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
         String host = request.getHostHeader();
         String url = HttpManager.decodeUrl(request.getAbsolutePath());
         log.debug("find resource: " + url);
@@ -35,7 +34,7 @@ public abstract class ExistingEntityHandler extends Handler {
         }
     }
 
-    protected void processResource(HttpManager manager, Request request, Response response, Resource resource) {
+    protected void processResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, ConflictException {
         long t = System.currentTimeMillis();
         try {
             
