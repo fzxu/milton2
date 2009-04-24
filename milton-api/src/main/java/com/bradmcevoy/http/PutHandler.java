@@ -2,6 +2,8 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -27,7 +29,7 @@ public class PutHandler extends Handler {
     }        
 
     @Override
-    public void process(HttpManager manager, Request request, Response response) {
+    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
         String host = request.getHostHeader();
         String urlToCreateOrUpdate = HttpManager.decodeUrl(request.getAbsolutePath());
         String name;
@@ -50,7 +52,7 @@ public class PutHandler extends Handler {
             // either no existing resource, or its not replaceable. check for folder
             String urlFolder = path.getParent().toString();
             String nameToCreate = path.getName();
-            Resource folderResource = manager.getResourceFactory().getResource(host, urlFolder);
+            CollectionResource folderResource = findOrCreateFolders(host, path.getParent());
             if( folderResource != null ) {
                 log.debug("found folder: " + urlFolder);
                 if( folderResource instanceof PutableResource ) {
@@ -86,6 +88,39 @@ public class PutHandler extends Handler {
         getResponseHandler().respondCreated(folder, response, request);
         
         log.debug("process: finished");
+    }
+
+    private CollectionResource findOrCreateFolders( String host, Path parent ) throws NotAuthorizedException, ConflictException {
+        Resource root = manager.getResourceFactory().getResource(host, "/");
+        if( root == null ) {
+            log.debug( "root resource not found");
+            return null;
+        }
+        if( root instanceof CollectionResource) {
+            CollectionResource folder = (CollectionResource) root;
+            for( String s : parent.getParts()) {
+                Resource r = folder.child( s);
+                if( r == null ) {
+                    if( folder instanceof MakeCollectionableResource) {
+                        MakeCollectionableResource mkcol = (MakeCollectionableResource) r;
+                        folder = mkcol.createCollection( s );
+                    } else {
+                        log.debug( "parent folder isnt a MakeCollectionableResource: " + folder.getName());
+                        return null;
+                    }
+                } else if( r instanceof CollectionResource ) {
+                    folder = (CollectionResource) r;
+                } else {
+                    log.debug( "parent in URL is not a collection: " + r.getName());
+                    return null;
+                }
+            }
+            return folder;
+        } else {
+            log.debug( "root is not a collection");
+            return null;
+        }
+
     }
 
     /**

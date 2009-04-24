@@ -133,13 +133,7 @@ public class DefaultResponseHandler implements ResponseHandler {
 
     public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException{
         log.debug("respondContent: " + resource.getClass());
-        response.setStatus(Response.Status.SC_OK);
-        response.setDateHeader(new Date());
-        String etag = resource.getUniqueId();
-        if (etag != null) {
-            response.setEtag(etag);
-        }
-        response.setLastModifiedHeader(resource.getModifiedDate());
+        setRespondContentCommonHeaders(response, resource);
         if( resource instanceof GetableResource ) {
             log.debug("..is getable");
             GetableResource gr = (GetableResource)resource;
@@ -198,7 +192,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         return " xmlns:D" + "=\"DAV:\"";
     }
 
-    protected void setCacheControl(final GetableResource resource, final Response response, Auth auth) {
+    public static void setCacheControl(final GetableResource resource, final Response response, Auth auth) {
         Long delta = resource.getMaxAgeSeconds();
         if (delta != null) {
             if( auth != null ) {
@@ -213,7 +207,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         }
     }
 
-    protected Date calcExpiresAt(Date modifiedDate, long deltaSeconds) {
+    public static Date calcExpiresAt(Date modifiedDate, long deltaSeconds) {
         long deltaMs = deltaSeconds * 1000;
         long expiresAt = System.currentTimeMillis() + deltaMs;
         return new Date(expiresAt);
@@ -233,27 +227,6 @@ public class DefaultResponseHandler implements ResponseHandler {
     protected OutputStream outputStreamForResponse(Request request, Response response, GetableResource resource) {
         OutputStream outToUse = response.getOutputStream();
         return outToUse;
-//        String acc = request.getAcceptHeader();
-//        String contentType = resource.getContentType(acc);
-////        log.debug("outputStreamForResponse: accepts: " + acc + " contentType: " + contentType);
-//        if( contentType != null ) {
-//            contentType = contentType.toLowerCase();
-//            boolean contentIsCompressable = contentType.contains("text") || contentType.contains("css") || contentType.contains("js") || contentType.contains("javascript");
-//            if( contentIsCompressable ) {
-//                String accepts = request.getAcceptEncodingHeader();
-//                boolean supportsGzip = (accepts != null && accepts.toLowerCase().indexOf("gzip") > -1);
-//                if( supportsGzip ) {
-////                    log.debug("..responding with GZIPed content");
-//                    try {
-//                        response.setContentEncodingHeader(Response.ContentEncoding.GZIP);
-//                        outToUse = new GZIPOutputStream(outToUse);
-//                    } catch (IOException ex) {
-//                        throw new RuntimeException("Exception wrapping outputstream with GZIP output stream", ex);
-//                    }
-//                }
-//            }
-//        }
-//        return outToUse;
     }
 
     public String getSupportedLevels() {
@@ -273,6 +246,16 @@ public class DefaultResponseHandler implements ResponseHandler {
         PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
         pw.print(s);
         pw.flush();
+    }
+
+    public static void setRespondContentCommonHeaders( Response response, Resource resource ) {
+        response.setStatus( Response.Status.SC_OK );
+        response.setDateHeader( new Date() );
+        String etag = resource.getUniqueId();
+        if( etag != null ) {
+            response.setEtag( etag );
+        }
+        response.setLastModifiedHeader( resource.getModifiedDate() );
     }
 
 }

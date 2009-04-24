@@ -7,7 +7,7 @@
                           
     <servlet>
         <servlet-name>springDispatcher</servlet-name>
-        <servlet-class>com.bradmcevoy.http.MiltonDispatcherServlet</servlet-class>
+        <servlet-class>com.bradmcevoy.http.DavEnabledDispatcherServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
     

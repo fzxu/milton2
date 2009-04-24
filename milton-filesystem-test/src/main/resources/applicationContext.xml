@@ -28,9 +28,22 @@
         <property name="root" value="/www/webs" />
         -->
     </bean>
-    
+
+<!--
     <bean id="milton.fs.security.manager" class="com.ettrema.http.fs.NullSecurityManager" >
         <property name="realm" value="aRealm" />
+    </bean>
+-->
+
+    <bean id="milton.fs.security.manager" class="com.ettrema.http.fs.SimpleSecurityManager" >
+        <property name="realm" value="aRealm" />
+        <property name="nameAndPasswords">
+            <map>
+                <entry key="me" value="pwd"/>
+                <entry key="user1" value="pwd1"/>
+                <entry key="user2" value="pwd2"/>
+            </map>
+        </property>
     </bean>
 
     <bean id="milton.fs.lock.manager" class="com.ettrema.http.fs.MemoryLockManager" />

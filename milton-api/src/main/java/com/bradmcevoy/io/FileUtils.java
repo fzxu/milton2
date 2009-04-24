@@ -154,12 +154,14 @@ public class FileUtils {
             String[] arr = nm.split("[.]");
             StringBuffer sb = new StringBuffer();
             for( int i=0; i<arr.length-1; i++ ) {
-                if( i!=0 ) sb.append(".");
-                sb.append(arr[i]);
+                if(arr[i] != null ) {
+                    if( i!=0 ) sb.append(".");
+                    sb.append(arr[i]);
+                }
             }
             return sb.toString();
         } else {
-            return null;
+            return nm;
         }
     }
     
@@ -186,7 +188,9 @@ public class FileUtils {
                 count = 1;
             }
         }
-        return mainName + "(" + count + ")."  + ext;
+        String s = mainName + "(" + count + ")";
+        if( ext != null) s = s + "." + ext;
+        return s;
     }
     
     /**

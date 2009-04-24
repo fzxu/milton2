@@ -351,7 +351,8 @@ public class PropFindHandler extends ExistingEntityHandler {
     class MSHrefPropertyWriter implements PropertyWriter {
 
         public void append(XmlWriter writer, PropFindableResource res, String href) {
-            sendStringProp(writer, "D:" + fieldName(), href + Utils.percentEncode(res.getName()));
+            sendStringProp(writer, "D:" + fieldName(), href);
+            // sendStringProp(writer, "D:" + fieldName(), href + Utils.percentEncode(res.getName()));
         }
 
         public String fieldName() {
