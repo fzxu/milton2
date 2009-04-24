@@ -3,6 +3,7 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.BufferingOutputStream;
+import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamToStream;
 import com.bradmcevoy.io.WritingException;
@@ -60,9 +61,12 @@ public class CompressingResponseHandler implements ResponseHandler {
                     OutputStream gzipOut = new GZIPOutputStream( tempOut );
                     r.sendContent(gzipOut,null,params);
                     gzipOut.flush();
+                    gzipOut.close();
                     tempOut.flush();
-                } catch (IOException ex) {
+                } catch (Exception ex) {
                     throw new RuntimeException( ex );
+                } finally {
+                    FileUtils.close( tempOut);
                 }
 
                 log.debug( "respondContent-compressed: " + resource.getClass() );
@@ -89,7 +93,7 @@ public class CompressingResponseHandler implements ResponseHandler {
     }
 
     private boolean canCompress( GetableResource r, String contentType, String acceptableEncodings ) {
-        log.debug( "canCompress: contentType: " + contentType );
+        log.debug( "canCompress: contentType: " + contentType + " acceptable-encodings: " + acceptableEncodings );
         if( contentType != null ) {
             contentType = contentType.toLowerCase();
             boolean contentIsCompressable = contentType.contains( "text" ) || contentType.contains( "css" ) || contentType.contains( "js" ) || contentType.contains( "javascript" );

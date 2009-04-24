@@ -7,11 +7,13 @@ import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
-import eu.medsea.util.MimeUtil;
+import eu.medsea.mimeutil.MimeType;
+import eu.medsea.mimeutil.MimeUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -34,8 +36,22 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
     }
 
     public String getContentType(String preferredList) {
-        String mime = MimeUtil.getMimeType(file);
-        return MimeUtil.getPreferedMimeType(preferredList, mime);        
+        Collection mimeTypes = MimeUtil.getMimeTypes( file );
+        StringBuffer sb = null;
+        for( Object o : mimeTypes ) {
+            MimeType mt = (MimeType) o;
+            if( sb == null) {
+                sb = new StringBuffer();
+            } else {
+                sb.append( ",");
+            }
+            sb.append(mt.toString());
+        }
+        if( sb == null ) return null;
+        String mime = sb.toString();
+        log.debug( "mime types: " + mime + "   preferred: " + preferredList);
+        MimeType mt = MimeUtil.getPreferedMimeType(preferredList, mime);
+        return mt.toString();
     }
 
     public String checkRedirect(Request arg0) {

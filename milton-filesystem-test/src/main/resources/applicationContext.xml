@@ -55,16 +55,21 @@
         <constructor-arg value="1,2" />  
     </bean>
 
+    <bean id="milton.response.handler.compressing" class="com.bradmcevoy.http.CompressingResponseHandler">
+        <constructor-arg ref="milton.response.handler" />
+    </bean>
+
+
     <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">
         <constructor-arg ref="milton.resource.factory" />
-        <constructor-arg ref="milton.response.handler" />
-
+        <constructor-arg ref="milton.response.handler.compressing" />
+<!--
         <property name="filters">
             <list>
                 <ref bean="milton.debug.filter" />
             </list>
         </property>
-
+-->
     </bean>
 
 

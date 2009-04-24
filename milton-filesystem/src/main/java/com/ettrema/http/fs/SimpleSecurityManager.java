@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Has a realm and a map where the keys are user names and the values are
+ * passwords
  *
  * @author brad
  */
