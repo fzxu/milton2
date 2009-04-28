@@ -1,6 +1,6 @@
 package com.bradmcevoy.http;
 
-import eu.medsea.util.MimeUtil;
+import eu.medsea.mimeutil.MimeType;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,7 +9,8 @@ import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map;
 
-//import eu.medsea.util.MimeUtil;
+import eu.medsea.mimeutil.MimeUtil;
+import java.util.Collection;
 
 
 /**
@@ -75,10 +76,22 @@ public class StaticResource implements GetableResource {
         return file.length();
     }
 
-    public String getContentType(String accepts) {
-        String s = MimeUtil.getMimeType(file.getAbsolutePath());
-        s = MimeUtil.getPreferedMimeType(accepts,s);
-        return s;
+    public String getContentType(String preferredList) {
+        Collection mimeTypes = MimeUtil.getMimeTypes( file );
+        StringBuffer sb = null;
+        for( Object o : mimeTypes ) {
+            MimeType mt = (MimeType) o;
+            if( sb == null) {
+                sb = new StringBuffer();
+            } else {
+                sb.append( ",");
+            }
+            sb.append(mt.toString());
+        }
+        if( sb == null ) return null;
+        String mime = sb.toString();
+        MimeType mt = MimeUtil.getPreferedMimeType(preferredList, mime);
+        return mt.toString();
     }
 
     public String checkRedirect(Request request) {

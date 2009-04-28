@@ -7,7 +7,6 @@ import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamToStream;
 import com.bradmcevoy.io.WritingException;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
