@@ -6,6 +6,7 @@ import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockResult;
 import com.bradmcevoy.http.LockTimeout;
+import com.bradmcevoy.http.LockToken;
 import com.bradmcevoy.http.LockableResource;
 import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.Request;
@@ -102,5 +103,11 @@ public abstract class  FsResource implements Resource, MoveableResource, Copyabl
     public void unlock(String tokenId) {
         factory.getLockManager().unlock(tokenId, this);
     }
+
+    public LockToken getCurrentLock() {
+        return factory.getLockManager().getCurrentToken( this );
+    }
+
+
 
 }

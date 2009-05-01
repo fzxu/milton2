@@ -33,7 +33,7 @@ public class MemoryLockManager implements FsLockManager {
             return LockResult.failed(LockResult.FailureReason.ALREADY_LOCKED);
         }
         LockToken newToken = new LockToken(UUID.randomUUID().toString(),lockInfo, timeout);
-        CurrentLock newLock = new CurrentLock(resource.getFile(), newToken);
+        CurrentLock newLock = new CurrentLock(resource.getFile(), newToken, lockInfo.owner);
         locksByFile.put(resource.getFile(), newLock);
         locksByToken.put(newToken.tokenId, newLock);
         return LockResult.success(newToken);
@@ -70,13 +70,27 @@ public class MemoryLockManager implements FsLockManager {
         locksByToken.remove(currentLock.token.tokenId);
     }
 
+    public LockToken getCurrentToken( FsResource resource ) {
+        CurrentLock lock = locksByFile.get( resource.getFile());
+        if( lock == null ) return null;
+        LockToken token = new LockToken();
+        token.info = new LockInfo( LockInfo.LockScope.EXCLUSIVE, LockInfo.LockType.WRITE, lock.owner, LockInfo.LockDepth.ZERO );
+        token.timeout = lock.token.timeout;
+        token.tokenId = lock.token.tokenId;
+        return token;
+    }
+
+
+
     class CurrentLock {
         final File file;
         final LockToken token;
+        final String owner;
 
-        public CurrentLock(File file, LockToken token) {
+        public CurrentLock(File file, LockToken token, String owner) {
             this.file = file;
             this.token = token;
+            this.owner = owner;
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.ettrema.http.fs;
 
+import com.bradmcevoy.common.ContentTypeUtils;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
@@ -23,73 +24,61 @@ import org.slf4j.LoggerFactory;
 /**
  *
  */
-public class FsFileResource extends FsResource implements CopyableResource, DeletableResource, GetableResource, MoveableResource, PropFindableResource{
+public class FsFileResource extends FsResource implements CopyableResource, DeletableResource, GetableResource, MoveableResource, PropFindableResource {
 
-    private static final Logger log = LoggerFactory.getLogger(FsFileResource.class);
+    private static final Logger log = LoggerFactory.getLogger( FsFileResource.class );
 
-    public FsFileResource(FileSystemResourceFactory factory, File file) {
-        super(factory, file);
+    public FsFileResource( FileSystemResourceFactory factory, File file ) {
+        super( factory, file );
     }
 
     public Long getContentLength() {
         return file.length();
     }
 
-    public String getContentType(String preferredList) {
-        Collection mimeTypes = MimeUtil.getMimeTypes( file );
-        StringBuffer sb = null;
-        for( Object o : mimeTypes ) {
-            MimeType mt = (MimeType) o;
-            if( sb == null) {
-                sb = new StringBuffer();
-            } else {
-                sb.append( ",");
-            }
-            sb.append(mt.toString());
-        }
-        if( sb == null ) return null;
-        String mime = sb.toString();
-        log.debug( "mime types: " + mime + "   preferred: " + preferredList);
-        MimeType mt = MimeUtil.getPreferedMimeType(preferredList, mime);
-        return mt.toString();
+    public String getContentType( String preferredList ) {
+        String mime = ContentTypeUtils.findContentTypes( this.file );
+        log.debug( "mime types: " + mime + "   preferred: " + preferredList );
+
+        return ContentTypeUtils.findAcceptableContentType( mime, preferredList );
     }
 
-    public String checkRedirect(Request arg0) {
+    public String checkRedirect( Request arg0 ) {
         return null;
     }
 
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
-        log.debug("send content: " + file.getAbsolutePath());
+    public void sendContent( OutputStream out, Range range, Map<String, String> params ) throws IOException {
+        log.debug( "send content: " + file.getAbsolutePath() );
         FileInputStream in = null;
         try {
-            in = new FileInputStream(file);
-    //        if( range != null ) {
-    //            long start = range.getStart();
-    //            if( start > 0 ) in.skip(start);
-    //            long finish = range.getFinish();
-    //            if( finish > 0 ) {
-    //                StreamToStream.readTo(in, out);
-    //            }
-    //        } else {
-                int bytes = IOUtils.copy(in, out);
-                log.debug("wrote bytes:  " + bytes);
-                out.flush();
-    //        }
+            in = new FileInputStream( file );
+            //        if( range != null ) {
+            //            long start = range.getStart();
+            //            if( start > 0 ) in.skip(start);
+            //            long finish = range.getFinish();
+            //            if( finish > 0 ) {
+            //                StreamToStream.readTo(in, out);
+            //            }
+            //        } else {
+            int bytes = IOUtils.copy( in, out );
+            log.debug( "wrote bytes:  " + bytes );
+            out.flush();
+        //        }
         } finally {
-            IOUtils.closeQuietly(in);
+            IOUtils.closeQuietly( in );
         }
     }
 
     public Long getMaxAgeSeconds() {
-        return factory.maxAgeSeconds(this);
+        return factory.maxAgeSeconds( this );
     }
 
     @Override
-    protected void doCopy(File dest) {
+    protected void doCopy( File dest ) {
         try {
-            FileUtils.copyFile(file, dest);
-        } catch (IOException ex) {
-            throw new RuntimeException("Failed doing copy to: " + dest.getAbsolutePath(), ex);
+            FileUtils.copyFile( file, dest );
+        } catch( IOException ex ) {
+            throw new RuntimeException( "Failed doing copy to: " + dest.getAbsolutePath(), ex );
         }
-    }    
+    }
 }
