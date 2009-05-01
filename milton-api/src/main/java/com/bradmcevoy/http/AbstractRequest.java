@@ -91,6 +91,12 @@ public abstract class AbstractRequest implements Request{
         return getRequestHeader(Header.LOCK_TOKEN);
     }
 
+    public String getRangeHeader() {
+        String s = getRequestHeader( Header.RANGE);
+        if( s != null ) return s;
+        return getHeaders().get( "range" );
+    }
+
     public final String getAbsolutePath() {
         return stripToPath(getAbsoluteUrl());
     }

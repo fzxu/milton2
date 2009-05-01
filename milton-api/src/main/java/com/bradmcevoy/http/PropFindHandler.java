@@ -22,6 +22,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.XmlWriter.Element;
 import com.bradmcevoy.io.StreamToStream;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -41,6 +42,9 @@ public class PropFindHandler extends ExistingEntityHandler {
         add(new LastModifiedDatePropertyWriter());
         add(new ResourceTypePropertyWriter());
         add(new EtagPropertyWriter());
+
+        add(new SupportedLockPropertyWriter());
+        add(new LockDiscoveryPropertyWriter());
 
         add(new MSHrefPropertyWriter());
         add(new MSIsCollectionPropertyWriter());
@@ -336,6 +340,55 @@ public class PropFindHandler extends ExistingEntityHandler {
         }
     }
 
+//    <D:supportedlock/><D:lockdiscovery/>
+
+    class LockDiscoveryPropertyWriter implements PropertyWriter {
+
+        public void append(XmlWriter writer, PropFindableResource resource, String href) {
+            if( !(resource instanceof LockableResource) )return ;
+            LockableResource lr = (LockableResource) resource;
+            LockToken token = lr.getCurrentLock();
+            Element lockentry = writer.begin("D:lockdiscovery").open();
+            if( token != null ) {
+                LockInfo info = token.info;
+                writer.begin( "D:lockscope").open().writeText( "<D:" + info.scope.name().toLowerCase() + "/>").close();
+                writer.begin( "D:locktype").open().writeText( "<D:" + info.type.name().toLowerCase() + "/>").close();
+                writer.begin( "D:depth").open().writeText( "0").close();
+                writer.begin( "D:owner").open().writeText( info.owner).close();
+                writer.begin( "D:timeout").open().writeText( token.timeout.toString()).close();
+
+                Element elToken = writer.begin( "D:locktoken").open();
+                writer.begin( "D:href").open().writeText( "urn:uuid:" + token.tokenId).close();
+                writer.begin( "D:lockroot").open().writeText( href).close();
+                elToken.close();
+            }
+            lockentry.close();
+        }
+
+        public String fieldName() {
+            return "supportedlock";
+        }
+    }
+
+
+    class SupportedLockPropertyWriter implements PropertyWriter {
+
+        public void append(XmlWriter writer, PropFindableResource resource, String href) {
+            if( resource instanceof LockableResource ){
+                Element lockentry = writer.begin("lockentry").open();
+                writer.begin( "lockscope").open().writeText( "<D:exclusive/>").close();
+                writer.begin( "locktype").open().writeText( "<D:write/>").close();
+                lockentry.close();
+            }
+        }
+
+        public String fieldName() {
+            return "supportedlock";
+        }
+    }
+
+
+
     // MS specific fields
     class MSNamePropertyWriter implements PropertyWriter {
 
@@ -388,4 +441,6 @@ public class PropFindHandler extends ExistingEntityHandler {
             return name;
         }
     }
+
+
 }

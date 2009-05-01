@@ -102,6 +102,17 @@ public class LockTimeout {
     public Long[] getOtherSeconds() {
         return otherSeconds;
     }
+
+    @Override
+    public String toString() {
+        if(this.seconds.equals( Long.MAX_VALUE )) {
+            return INFINITE;
+        } else {
+            return "Second-" + this.seconds;
+        }
+    }
+
+
     
 
     /**

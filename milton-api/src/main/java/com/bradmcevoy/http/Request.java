@@ -45,6 +45,7 @@ public interface Request {
         DESTINATION("Destination"),
         REFERER("Referer"),
         ACCEPT("Accept"),
+        RANGE("Range"),
         ACCEPT_ENCODING("Accept-Encoding"),
         TIMEOUT("Timeout"),
         LOCK_TOKEN("Lock-Token"),        
@@ -132,4 +133,10 @@ public interface Request {
     String getAcceptHeader();
 
     String getAcceptEncodingHeader();
+
+    /**
+     *
+     * @return a range header, for partial gets
+     */
+    String getRangeHeader();
 }

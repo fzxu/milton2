@@ -30,4 +30,10 @@ public interface LockableResource extends Resource {
      * @param tokenId
      */
     public void unlock(String tokenId);
+
+    /**
+     *
+     * @return - the current lock, if the resource is locked, or null
+     */
+    public LockToken getCurrentLock();
 }

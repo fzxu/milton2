@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.common.ContentTypeUtils;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.ConflictException;
@@ -32,7 +33,6 @@ public class PutHandler extends Handler {
     public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
         String host = request.getHostHeader();
         String urlToCreateOrUpdate = HttpManager.decodeUrl(request.getAbsolutePath());
-        String name;
         log.debug("process request: host: " + host + " url: " + urlToCreateOrUpdate);
 
         Path path = Path.path(urlToCreateOrUpdate);
@@ -77,7 +77,7 @@ public class PutHandler extends Handler {
         log.debug("process: putting to: " + folder.getName() );
         try {
             Long l = request.getContentLengthHeader();
-            String ct = request.getContentTypeHeader();
+            String ct = findContentTypes(request, newName);
             log.debug("PutHandler: creating resource of type: " + ct);
             folder.createNew(newName, request.getInputStream(), l, ct );
             log.debug("PutHandler: DONE creating resource");
@@ -90,37 +90,59 @@ public class PutHandler extends Handler {
         log.debug("process: finished");
     }
 
-    private CollectionResource findOrCreateFolders( String host, Path parent ) throws NotAuthorizedException, ConflictException {
-        Resource root = manager.getResourceFactory().getResource(host, "/");
-        if( root == null ) {
-            log.debug( "root resource not found");
-            return null;
-        }
-        if( root instanceof CollectionResource) {
-            CollectionResource folder = (CollectionResource) root;
-            for( String s : parent.getParts()) {
-                Resource r = folder.child( s);
-                if( r == null ) {
-                    if( folder instanceof MakeCollectionableResource) {
-                        MakeCollectionableResource mkcol = (MakeCollectionableResource) r;
-                        folder = mkcol.createCollection( s );
-                    } else {
-                        log.debug( "parent folder isnt a MakeCollectionableResource: " + folder.getName());
-                        return null;
-                    }
-                } else if( r instanceof CollectionResource ) {
-                    folder = (CollectionResource) r;
-                } else {
-                    log.debug( "parent in URL is not a collection: " + r.getName());
-                    return null;
-                }
+    /**
+     * returns a textual representation of the list of content types for the
+     * new resource. This will be the content type header if there is one,
+     * otherwise it will be determined by the file name
+     *
+     * @param request
+     * @param newName
+     * @return
+     */
+    private String findContentTypes( Request request, String newName ) {
+        String ct = request.getContentTypeHeader();
+        if( ct != null ) return ct;
+
+        return ContentTypeUtils.findContentTypes( newName );
+    }
+
+    private CollectionResource findOrCreateFolders( String host, Path path ) throws NotAuthorizedException, ConflictException {
+        log.debug( "findOrCreateFolders");
+
+        if( path == null) return null;
+
+        Resource thisResource = manager.getResourceFactory().getResource( host, path.toString());
+        if( thisResource != null ) {
+            if( thisResource instanceof CollectionResource ){
+                return (CollectionResource) thisResource;
+            } else {
+                log.warn( "parent is not a collection: " + path);
+                return null;
             }
-            return folder;
-        } else {
-            log.debug( "root is not a collection");
+        }
+
+        CollectionResource parent = findOrCreateFolders( host, path.getParent());
+        if( parent == null ) {
+            log.warn( "couldnt find parent: " + path);
             return null;
         }
 
+        Resource r = parent.child( path.getName());
+        if( r == null ) {
+            if( parent instanceof MakeCollectionableResource) {
+                MakeCollectionableResource mkcol = (MakeCollectionableResource) parent;
+                log.debug( "autocreating new folder: " + path.getName());
+                return mkcol.createCollection( path.getName() );
+            } else {
+                log.debug( "parent folder isnt a MakeCollectionableResource: " + parent.getName());
+                return null;
+            }
+        } else if( r instanceof CollectionResource ) {
+            return (CollectionResource) r;
+        } else {
+            log.debug( "parent in URL is not a collection: " + r.getName());
+            return null;
+        }
     }
 
     /**
