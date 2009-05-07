@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.CustomProperty;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,8 +31,10 @@ import java.net.URI;
 public class PropFindHandler extends ExistingEntityHandler {
 
     private Logger log = LoggerFactory.getLogger( PropFindHandler.class );
+
+    private static final String CUSTOM_NS_PREFIX = "R";
 //    private Namespace nsWebDav = new Namespace();
-    final Map<String, PropertyWriter> writersMap = new HashMap<String, PropFindHandler.PropertyWriter>();
+    final Map<String, PropertyWriter> writersMap = new HashMap<String,PropertyWriter>();
 
 
     {
@@ -92,13 +95,6 @@ public class PropFindHandler extends ExistingEntityHandler {
         return " xmlns:D" + "=\"DAV:\"";
     }
 
-    interface PropertyConsumer {
-
-        public Element open( String string );
-
-        public void writeProp( String string, String href );
-        void writeProp(PropertyWriter pw, PropFindableResource res, String href);
-    }
 
     class XmlWriterPropertyConsumer implements PropertyConsumer {
 
@@ -108,22 +104,46 @@ public class PropFindHandler extends ExistingEntityHandler {
             this.writer = writer;
         }
 
-        public void writeProp( PropertyWriter pw, PropFindableResource res, String href ) {
-            pw.append( writer, res, href );
+        public void startResource( String href ) {
+            writeProp( "D:href", href );
         }
 
         public Element open( String elementName ) {
             return writer.begin( elementName ).open();
         }
 
-        public void writeProp( String elementName, String value ) {
+        void writeProp( String elementName, String value ) {
             writer.writeProperty( null, elementName, value );
         }
 
+        public void consumeProperties( Set<PropertyWriter> knownProperties, Set<PropertyWriter> unknownProperties, String href, PropFindableResource resource ) {
+            XmlWriter.Element el = writer.begin( "D:response" );
+            if( resource instanceof CustomPropertyResource) {
+                CustomPropertyResource cpr = (CustomPropertyResource) resource;
+                el.writeAtt( "xmlns:" + CUSTOM_NS_PREFIX, cpr.getNameSpaceURI());
+            }
+            el.open();
+            startResource( href );
+            sendResponseProperties( resource, knownProperties, href, "HTTP/1.1 200 Ok" );
+            sendResponseProperties( resource, unknownProperties, href, "HTTP/1.1 404 Not Found" );
+            el.close();
+        }
 
+        void sendResponseProperties( PropFindableResource resource, Set<PropertyWriter> properties, String href, String status ) {
+            if( !properties.isEmpty() ) {
+                XmlWriter.Element elPropStat = writer.begin( "D:propstat" ).open();
+                XmlWriter.Element elProp = writer.begin( "D:prop" ).open();
+                for( final PropertyWriter pw : properties ) {
+                    pw.append( writer, resource, href );
+                }
+                elProp.close();
+                writeProp( "D:status", status );
+                elPropStat.close();
+            }
+        }
     }
 
-    void appendResponses( PropertyConsumer consumer, PropFindableResource resource, int depth, Set<String> requestedFields, String encodedCollectionUrl ) {
+    public void appendResponses( PropertyConsumer consumer, PropFindableResource resource, int depth, Set<String> requestedFields, String encodedCollectionUrl ) {
         try {
             String collectionHref = suffixSlash( encodedCollectionUrl );
             URI parentUri = new URI( collectionHref );
@@ -148,7 +168,7 @@ public class PropFindHandler extends ExistingEntityHandler {
     }
 
     void sendResponse( PropertyConsumer consumer, PropFindableResource resource, Set<String> requestedFields, String href ) {
-        XmlWriter.Element el = consumer.open("D:response");
+
         final Set<PropertyWriter> unknownProperties = new HashSet<PropertyWriter>();
         final Set<PropertyWriter> knownProperties = new HashSet<PropertyWriter>();
         if( resource instanceof CollectionResource ) {
@@ -156,35 +176,27 @@ public class PropFindHandler extends ExistingEntityHandler {
                 href = href + "/";
             }
         }
-        consumer.writeProp( "D:href", href );
-        
-
+        CustomPropertyResource cpr = null;
+        if( resource instanceof CustomPropertyResource) {
+            cpr = (CustomPropertyResource) resource;
+        }
         for( String field : requestedFields ) {
-            final PropertyWriter pw = writersMap.get( field );
-            if( pw != null ) {
+            PropertyWriter pw = null;
+            CustomProperty customProp = null;
+            if( cpr != null ) customProp = cpr.getProperty( field);
+            if( customProp == null ) pw = writersMap.get( field );
+            if( customProp != null  ) {
+                PropertyWriter customPw = new CustomPropertyWriter( field, customProp );
+                knownProperties.add( customPw);
+            } else if( pw != null ) {
                 knownProperties.add( pw );
             } else {
                 unknownProperties.add( new UnknownPropertyWriter( field ) );
             }
         }
 
-        sendResponseProperties( consumer, resource, knownProperties, href, "HTTP/1.1 200 Ok" );
-        sendResponseProperties( consumer, resource, unknownProperties, href, "HTTP/1.1 404 Not Found" );
-
-        el.close();
-    }
-
-    void sendResponseProperties( PropertyConsumer consumer, PropFindableResource resource, Set<PropertyWriter> properties, String href, String status ) {
-        if( !properties.isEmpty() ) {
-            XmlWriter.Element elUnknownPropStat = consumer.open( "D:propstat" );
-            XmlWriter.Element elUnknownProp = consumer.open( "D:prop" );
-            for( final PropertyWriter pw : properties ) {
-                appendField( consumer, pw, resource, href );
-            }
-            elUnknownProp.close();
-            consumer.writeProp( "D:status", status );
-            elUnknownPropStat.close();
-        }
+        consumer.consumeProperties( knownProperties, unknownProperties, href, resource );
+        
     }
 
     private void process( String url, PropFindableResource pfr, int depth, Set<String> requestedFields, Response response ) {
@@ -235,9 +247,6 @@ public class PropFindHandler extends ExistingEntityHandler {
         return ( resource instanceof CollectionResource );
     }
 
-    private void appendField( PropertyConsumer consumer, PropertyWriter pw, PropFindableResource resource, String collectionHref ) {
-        consumer.writeProp( pw, resource, collectionHref );
-    }
 
     private Set<String> getRequestedFields( Request request ) throws IOException, SAXException, FileNotFoundException {
         final Set<String> set = new LinkedHashSet<String>();
@@ -264,15 +273,6 @@ public class PropFindHandler extends ExistingEntityHandler {
             set.add( "getetag" );
         }
         return set;
-    }
-
-    interface PropertyWriter<T> {
-
-        String fieldName();
-
-        void append( XmlWriter xmlWriter, PropFindableResource res, String href );
-
-        T getValue( PropFindableResource res );
     }
 
     class DisplayNamePropertyWriter implements PropertyWriter<String> {
@@ -516,6 +516,31 @@ public class PropFindHandler extends ExistingEntityHandler {
 
         public String fieldName() {
             return name;
+        }
+    }
+
+    class CustomPropertyWriter implements PropertyWriter<Object> {
+        final String fieldName;
+        final CustomProperty prop;
+
+        public CustomPropertyWriter( String fieldName, CustomProperty prop ) {
+            this.fieldName = fieldName;
+            this.prop = prop;
+        }
+
+        public String fieldName() {
+            return fieldName;
+        }
+
+        public void append( XmlWriter writer, PropFindableResource res, String href ) {
+            String s = prop.getFormattedValue();
+            s = Utils.escapeXml( s );
+            //s = Utils.percentEncode(s);
+            sendStringProp( writer, CUSTOM_NS_PREFIX + ":" + fieldName(), s );
+        }
+
+        public Object getValue( PropFindableResource res ) {
+            return prop.getTypedValue();
         }
     }
 }
