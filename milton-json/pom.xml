@@ -38,5 +38,11 @@ might be something to do with the -jdk15 after the verson number
             <artifactId>json-lib</artifactId>
             <version>2.2.3</version>
         </dependency>
+        <dependency>
+            <groupId>easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>2.4</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

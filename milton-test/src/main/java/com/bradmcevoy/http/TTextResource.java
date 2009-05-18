@@ -32,7 +32,7 @@ public class TTextResource extends TResource implements PostableResource, Replac
         return Response.ContentType.HTTP.toString();
     }
 
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
         PrintWriter printer = new PrintWriter(out,true);
         sendContentStart(printer);
         sendContentMiddle(printer);

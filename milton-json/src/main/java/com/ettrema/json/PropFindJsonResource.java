@@ -3,6 +3,7 @@ package com.ettrema.json;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.GetableResource;
+import com.bradmcevoy.http.PropFindHandler;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
@@ -15,8 +16,10 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.sf.json.JSON;
 import net.sf.json.JSONSerializer;
 import net.sf.json.JsonConfig;
@@ -25,23 +28,41 @@ import net.sf.json.util.CycleDetectionStrategy;
 public class PropFindJsonResource implements GetableResource {
 
     private final PropFindableResource wrappedResource;
+    private final PropFindHandler propFindHandler;
+    private final String encodedUrl;
 
-    public PropFindJsonResource(PropFindableResource wrappedResource) {
+    public PropFindJsonResource(PropFindableResource wrappedResource, PropFindHandler propFindHandler, String encodedUrl) {
         super();
         this.wrappedResource = wrappedResource;
+        this.propFindHandler = propFindHandler;
+        this.encodedUrl = encodedUrl;
     }
 
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException, NotAuthorizedException {
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException {
         JsonConfig cfg = new JsonConfig();
         cfg.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
 
         JSON json;
         Writer writer = new PrintWriter(out);
-        if (wrappedResource instanceof CollectionResource) {
-            List<? extends Resource> children = ((CollectionResource) wrappedResource).getChildren();
-            json = JSONSerializer.toJSON(toSimpleList(children), cfg);
+        String[] arr;
+        if( propFindHandler == null ) {
+            if (wrappedResource instanceof CollectionResource) {
+                List<? extends Resource> children = ((CollectionResource) wrappedResource).getChildren();
+                json = JSONSerializer.toJSON(toSimpleList(children), cfg);
+            } else {
+                json = JSONSerializer.toJSON(toSimple(wrappedResource), cfg);
+            }
         } else {
-            json = JSONSerializer.toJSON(toSimple(wrappedResource), cfg);
+            // use propfind handler
+            String sFields = params.get( "fields");
+            Set<String> fields = new HashSet<String>();
+            if( sFields != null && sFields.length() > 0 ) {
+                arr = sFields.split( ",");
+                for( String s : arr) fields.add( s.trim() );
+            }
+            MapBuildingPropertyConsumer consumer = new MapBuildingPropertyConsumer();
+            propFindHandler.appendResponses( consumer, wrappedResource, 1, fields, encodedUrl );
+            json = JSONSerializer.toJSON(consumer.getProperties(), cfg);
         }
         json.write(writer);
         writer.flush();
@@ -59,7 +80,7 @@ public class PropFindJsonResource implements GetableResource {
         return new SimpleResource(r); 
     }
 
-    public Long getMaxAgeSeconds() {
+    public Long getMaxAgeSeconds(Auth auth) {
         return 0L;
     }
 

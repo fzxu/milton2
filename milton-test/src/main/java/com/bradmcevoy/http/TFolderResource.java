@@ -9,13 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TFolderResource extends TTextResource implements PutableResource, MakeCollectionableResource { //, LockingCollectionResource {
+public class TFolderResource extends TTextResource implements PutableResource, MakeCollectionableResource, LockingCollectionResource {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     ArrayList<TResource> children = new ArrayList<TResource>();
     
     public TFolderResource(TFolderResource parent, String name) {
         super(parent,name,"");
+        log.debug( "created new folder: " + name);
     }
     
     @Override
@@ -50,16 +51,12 @@ public class TFolderResource extends TTextResource implements PutableResource, M
         printer.print("<ul>");
         for( TResource r : children ) {
             String href = Utils.escapeXml(r.getHref());
-            String name = Utils.escapeXml(r.getName());
-            print(printer, "<li><a href='" + href + "'>" + name + "</a>");
+            String n = Utils.escapeXml(r.getName());
+            print(printer, "<li><a href='" + href + "'>" + n + "</a>");
         }
         printer.print("</ul>");
     }
     
-    @Override
-    public Long getMaxAgeSeconds() {
-        return (long)10;
-    }
     
     @Override
     protected Object clone() throws CloneNotSupportedException {
@@ -77,6 +74,7 @@ public class TFolderResource extends TTextResource implements PutableResource, M
     }
     
     public CollectionResource createCollection(String newName) {
+        log.debug( "createCollection: " + newName);
         TFolderResource r = new TFolderResource(this,newName);
         return r;
     }
@@ -84,9 +82,8 @@ public class TFolderResource extends TTextResource implements PutableResource, M
     @Override
     public String processForm(Map<String, String> params, Map<String, com.bradmcevoy.http.FileItem> files) {
         super.processForm(params,files);
-        Object file = params.get("file1");
-        if( file != null ) {            
-            FileItem fitem = (FileItem)file;
+        log.debug( "folder processform");
+        for( FileItem fitem : files.values()) {
             log.debug("found file: " + fitem.getName());
             ByteArrayOutputStream bos;
             try {
@@ -102,8 +99,9 @@ public class TFolderResource extends TTextResource implements PutableResource, M
 
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
         ByteArrayOutputStream bos = readStream(inputStream);
-        log.debug("createNew: " + bos.size());
+        log.debug("createNew: " + bos.size() + " - name: " + newName + " current child count: " + this.children.size());
         TResource r = new TBinaryResource(this,newName, bos.toByteArray(), contentType);
+        log.debug("new child count: " + this.children.size());
         return r;
     }
 

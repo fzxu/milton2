@@ -1,5 +1,6 @@
 package com.ettrema.http.fs;
 
+import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.DeletableResource;
@@ -112,7 +113,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         }
     }
 
-    public void sendContent( OutputStream out, Range range, Map<String, String> params ) throws IOException, NotAuthorizedException {
+    public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
         XmlWriter w = new XmlWriter( out );
         w.open( "html" );
         w.open( "body" );
@@ -134,7 +135,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         w.flush();
     }
 
-    public Long getMaxAgeSeconds() {
+    public Long getMaxAgeSeconds(Auth auth) {
         return null;
     }
 

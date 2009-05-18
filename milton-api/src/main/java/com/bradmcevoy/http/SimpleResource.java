@@ -39,12 +39,12 @@ public class SimpleResource implements GetableResource{
 
 
 
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
         out.write(content);
     }
 
-    public Long getMaxAgeSeconds() {
-        return 60*60*24*52l; // 1 year
+    public Long getMaxAgeSeconds(Auth auth) {
+        return 60l;
     }
 
     public String getContentType(String accepts) {

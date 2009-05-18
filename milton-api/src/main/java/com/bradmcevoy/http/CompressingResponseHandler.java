@@ -55,10 +55,12 @@ public class CompressingResponseHandler implements ResponseHandler {
             if( canCompress( r, contentType, request.getAcceptEncodingHeader() ) ) {
                 response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
 
+                // get the zipped content before sending so we can determine its
+                // compressed size
                 BufferingOutputStream tempOut = new BufferingOutputStream(maxMemorySize);
                 try {
                     OutputStream gzipOut = new GZIPOutputStream( tempOut );
-                    r.sendContent(gzipOut,null,params);
+                    r.sendContent(gzipOut,null,params, contentType);
                     gzipOut.flush();
                     gzipOut.close();
                     tempOut.flush();

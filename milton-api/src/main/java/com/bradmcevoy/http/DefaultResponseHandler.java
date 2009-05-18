@@ -124,8 +124,13 @@ public class DefaultResponseHandler implements ResponseHandler {
         if (etag != null) {
             response.setEtag(etag);
         }
+        String acc = request.getAcceptHeader();
+        String ct = resource.getContentType(acc);
+        if( ct != null ) {
+            response.setContentTypeHeader(ct);
+        }
         try {
-            resource.sendContent(response.getOutputStream(), range, params);
+            resource.sendContent(response.getOutputStream(), range, params, ct);
         } catch (IOException ex) {
             log.warn("IOException writing to output, probably client terminated connection",ex);
         }
@@ -143,12 +148,11 @@ public class DefaultResponseHandler implements ResponseHandler {
             }
             String acc = request.getAcceptHeader();
             String ct = gr.getContentType(acc);
-            log.debug("getting content type..  " + ct);
             if( ct != null ) {
                 response.setContentTypeHeader(ct);
             }
             setCacheControl(gr, response, request.getAuthorization());
-            sendContent(request, response, (GetableResource)resource, params, null);
+            sendContent(request, response, (GetableResource)resource, params, null, ct);
         }
     }
 
@@ -193,7 +197,7 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
     public static void setCacheControl(final GetableResource resource, final Response response, Auth auth) {
-        Long delta = resource.getMaxAgeSeconds();
+        Long delta = resource.getMaxAgeSeconds(auth); 
         if (delta != null) {
             if( auth != null ) {
                 response.setCacheControlPrivateMaxAgeHeader(delta);
@@ -214,10 +218,10 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
 
-    protected void sendContent(Request request, Response response, GetableResource resource,Map<String,String> params, Range range) throws NotAuthorizedException{
+    protected void sendContent(Request request, Response response, GetableResource resource,Map<String,String> params, Range range, String contentType) throws NotAuthorizedException{
         OutputStream out = outputStreamForResponse(request, response, resource);
         try {
-            resource.sendContent(out,null,params);
+            resource.sendContent(out,null,params, contentType);
             out.flush();
         } catch (IOException ex) {
             log.warn("IOException sending content",ex);

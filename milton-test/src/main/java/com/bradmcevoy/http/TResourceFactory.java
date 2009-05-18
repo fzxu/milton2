@@ -42,15 +42,18 @@ public class TResourceFactory implements ResourceFactory {
     }
 
     private TResource find(Path path) {
-        log.debug("find:" + path);
-        if( path==null || path.getParent().isRoot() ) return ROOT;        
+        if( isRoot(path) ) return ROOT;
         TResource r = find(path.getParent());
         if( r == null ) return null;
         if( r instanceof TFolderResource ) {
             TFolderResource folder = (TFolderResource)r;
             for( Resource rChild : folder.getChildren() ) {
                 TResource r2 = (TResource) rChild;
-                if( r2.getName().equals(path.getName())) return r2;
+                if( r2.getName().equals(path.getName())) {
+                    return r2;
+                } else {
+//                    log.debug( "IS NOT: " + r2.getName() + " - " + path.getName());
+                }
             }
         }
         log.debug("not found: " + path);
@@ -59,6 +62,11 @@ public class TResourceFactory implements ResourceFactory {
 
     public String getSupportedLevels() {
         return "1,2";
+    }
+
+    private boolean isRoot( Path path ) {
+        if( path == null ) return true;
+        return ( path.getParent() == null || path.getParent().isRoot());
     }
 
 }

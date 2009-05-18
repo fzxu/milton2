@@ -1,6 +1,5 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.CustomProperty;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -54,7 +53,7 @@ public class PropFindHandler extends ExistingEntityHandler {
         add( new MSNamePropertyWriter() );
     }
 
-    PropFindHandler( HttpManager manager ) {
+    public PropFindHandler( HttpManager manager ) {
         super( manager );
     }
 
@@ -210,7 +209,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             appendResponses( consumer, pfr, depth, requestedFields, url );
             writer.close( "D:multistatus" );
             writer.flush();
-            log.debug( out.toString() );
+//            log.debug( out.toString() );
             response.getOutputStream().write( out.toByteArray() ); // note: this can and should write to the outputstream directory. but if it aint broke, dont fix it...
         } catch( IOException ex ) {
             log.warn( "ioexception sending output", ex );

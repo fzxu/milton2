@@ -9,7 +9,10 @@
     <groupId>com.ettrema</groupId>
     <artifactId>milton-filesystem-test</artifactId>
     <packaging>war</packaging>
-    <name>Webdav FileSystem Test WebApp</name>
+    <name>Milton FileSystem Demo</name>
+    <description>Configuration only (no java sources) web application which shows how to use milton's
+    file system implementation of the milton API. It also shows how to configure
+    milton using spring.</description>
     <build>
         <plugins>
             <plugin>

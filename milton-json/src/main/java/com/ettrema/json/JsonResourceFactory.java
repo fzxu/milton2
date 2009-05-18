@@ -2,6 +2,7 @@ package com.ettrema.json;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.HttpManager;
+import com.bradmcevoy.http.PropFindHandler;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
@@ -17,12 +18,18 @@ public class JsonResourceFactory implements ResourceFactory {
     private static final Logger log = LoggerFactory.getLogger(HttpManager.class);
 
     final ResourceFactory wrapped;
+    final PropFindHandler propFindHandler;
     private static final String DAV_FOLDER = "_DAV";
 
     public JsonResourceFactory(ResourceFactory wrapped) {
         this.wrapped = wrapped;
+        this.propFindHandler = null;
     }
 
+    public JsonResourceFactory(ResourceFactory wrapped, PropFindHandler propFindHandler) {
+        this.wrapped = wrapped;
+        this.propFindHandler = propFindHandler;
+    }
     
     public Resource getResource(String host, String sPath) {
         log.debug(host + " :: " + sPath);
@@ -34,7 +41,7 @@ public class JsonResourceFactory implements ResourceFactory {
                 String method = path.getName();
                 Resource wrappedResource = wrapped.getResource(host, resourcePath.toString());
                 if( wrappedResource != null ) {
-                    return wrapResource(wrappedResource, method);
+                    return wrapResource(wrappedResource, method, sPath);
                 }
             }
         } else {
@@ -47,10 +54,10 @@ public class JsonResourceFactory implements ResourceFactory {
         return wrapped.getSupportedLevels();
     }
 
-    private Resource wrapResource(Resource wrappedResource, String method) {
+    private Resource wrapResource(Resource wrappedResource, String method,String href) {
         if( Request.Method.PROPFIND.code.equals(method)) {
             if( wrappedResource instanceof PropFindableResource) {
-                return new PropFindJsonResource((PropFindableResource)wrappedResource);
+                return new PropFindJsonResource((PropFindableResource)wrappedResource, propFindHandler, href);
             }
         }
         return null;

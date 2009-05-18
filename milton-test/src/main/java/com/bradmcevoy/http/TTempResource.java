@@ -18,7 +18,7 @@ public class TTempResource extends TResource{
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
         // none
     }
 

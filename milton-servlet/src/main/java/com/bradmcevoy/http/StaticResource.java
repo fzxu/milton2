@@ -40,7 +40,7 @@ public class StaticResource implements GetableResource {
         return this.getName().compareTo(res.getName());
     }    
     
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         BufferedInputStream bin = new BufferedInputStream(fis);
         final byte[] buffer = new byte[ 1024 ];
@@ -98,7 +98,7 @@ public class StaticResource implements GetableResource {
         return null;
     }
 
-    public Long getMaxAgeSeconds() {
+    public Long getMaxAgeSeconds(Auth auth) {
         return (long)60*60*24*7;
     }
 

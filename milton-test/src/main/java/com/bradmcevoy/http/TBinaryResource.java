@@ -24,7 +24,7 @@ public class TBinaryResource extends TResource {
 
 
     @Override
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
         System.out.println("writing binary resource:");
         out.write( bytes );
         System.out.println("wrote bytes: " + bytes.length);

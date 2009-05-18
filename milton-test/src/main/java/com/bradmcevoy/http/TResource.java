@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, PropPatchableResource { //, LockableResource
+public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, PropPatchableResource, LockableResource{
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
     
     String name;
@@ -31,6 +31,7 @@ public abstract class TResource implements GetableResource, PropFindableResource
             checkAndRemove(parent,name);
             parent.children.add(this);
         }
+        props.put( "someField", "hash:" + this.hashCode() );
     }
 
     public void setSecure(String user, String password) {
@@ -61,7 +62,7 @@ public abstract class TResource implements GetableResource, PropFindableResource
     }
 
 
-    public Long getMaxAgeSeconds() {
+    public Long getMaxAgeSeconds(Auth auth) {
         return (long)10;
     }
 
@@ -132,6 +133,17 @@ public abstract class TResource implements GetableResource, PropFindableResource
         return this.hashCode()+"";
     }
 
+    public LockToken getCurrentLock() {
+        if( this.lock == null ) return null;
+        LockToken token = new LockToken();
+        token.info = this.lock.lockInfo;
+        token.timeout = new LockTimeout(this.lock.seconds);
+        token.tokenId = this.lock.lockId;
+        return token;
+    }
+
+
+
     public LockResult lock(LockTimeout timeout, LockInfo lockInfo) {
 //        if( lock != null ) {
 //            // todo
@@ -144,7 +156,7 @@ public abstract class TResource implements GetableResource, PropFindableResource
         LockToken token = new LockToken();
         token.info = lockInfo;
         token.timeout = new LockTimeout(lockedUntil.seconds);
-        token.tokenId = UUID.randomUUID().toString();
+        token.tokenId = this.lock.lockId;
                         
         return LockResult.success(token);
     }

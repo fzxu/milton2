@@ -20,7 +20,7 @@ public class GetHandler extends ExistingEntityHandler {
 
     @Override
     protected void process( HttpManager milton, Request request, Response response, Resource resource ) throws NotAuthorizedException {
-        log.debug( "process: " + request.getAbsolutePath() );
+//        log.debug( "process: " + request.getAbsolutePath() );
         GetableResource r = (GetableResource) resource;
         if( checkConditional( r, request ) ) {
             respondNotModified( r, response, request );

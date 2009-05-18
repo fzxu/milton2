@@ -1,6 +1,7 @@
 package com.ettrema.http.fs;
 
 import com.bradmcevoy.common.ContentTypeUtils;
+import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
@@ -8,13 +9,10 @@ import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
-import eu.medsea.mimeutil.MimeType;
-import eu.medsea.mimeutil.MimeUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collection;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -38,8 +36,6 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
 
     public String getContentType( String preferredList ) {
         String mime = ContentTypeUtils.findContentTypes( this.file );
-        log.debug( "mime types: " + mime + "   preferred: " + preferredList );
-
         return ContentTypeUtils.findAcceptableContentType( mime, preferredList );
     }
 
@@ -47,7 +43,7 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
         return null;
     }
 
-    public void sendContent( OutputStream out, Range range, Map<String, String> params ) throws IOException {
+    public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException {
         log.debug( "send content: " + file.getAbsolutePath() );
         FileInputStream in = null;
         try {
@@ -69,10 +65,12 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
         }
     }
 
-    public Long getMaxAgeSeconds() {
+    /** @{@inheritDoc} */
+    public Long getMaxAgeSeconds(Auth auth) {
         return factory.maxAgeSeconds( this );
     }
 
+    /** @{@inheritDoc} */
     @Override
     protected void doCopy( File dest ) {
         try {
