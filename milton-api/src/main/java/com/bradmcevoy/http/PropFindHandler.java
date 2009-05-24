@@ -115,7 +115,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             writer.writeProperty( null, elementName, value );
         }
 
-        public void consumeProperties( Set<PropertyWriter> knownProperties, Set<PropertyWriter> unknownProperties, String href, PropFindableResource resource ) {
+        public void consumeProperties( Set<PropertyWriter> knownProperties, Set<PropertyWriter> unknownProperties, String href, PropFindableResource resource, int depth ) {
             XmlWriter.Element el = writer.begin( "D:response" );
             if( resource instanceof CustomPropertyResource) {
                 CustomPropertyResource cpr = (CustomPropertyResource) resource;
@@ -142,31 +142,21 @@ public class PropFindHandler extends ExistingEntityHandler {
         }
     }
 
-    public void appendResponses( PropertyConsumer consumer, PropFindableResource resource, int depth, Set<String> requestedFields, String encodedCollectionUrl ) {
+    public void appendResponses( PropertyConsumer consumer, PropFindableResource resource, int requestedDepth, Set<String> requestedFields, String encodedCollectionUrl ) {
+        log.debug( "appendresponses: fields size: " + requestedFields.size());
         try {
             String collectionHref = suffixSlash( encodedCollectionUrl );
             URI parentUri = new URI( collectionHref );
 
             collectionHref = parentUri.toASCIIString();
-            log.debug( "new collectio href: " + collectionHref );
-            sendResponse( consumer, resource, requestedFields, collectionHref );
+            sendResponse( consumer, resource, requestedFields, collectionHref, requestedDepth, 0, collectionHref );
 
-            if( depth > 0 && resource instanceof CollectionResource ) {
-                CollectionResource col = (CollectionResource) resource;
-                List<Resource> list = new ArrayList<Resource>( col.getChildren() );
-                for( Resource child : list ) {
-                    if( child instanceof PropFindableResource ) {
-                        String childHref = collectionHref + Utils.percentEncode( child.getName() );
-                        sendResponse( consumer, (PropFindableResource) child, requestedFields, childHref );
-                    }
-                }
-            }
         } catch( URISyntaxException ex ) {
             throw new RuntimeException( ex );
         }
     }
 
-    void sendResponse( PropertyConsumer consumer, PropFindableResource resource, Set<String> requestedFields, String href ) {
+    void sendResponse( PropertyConsumer consumer, PropFindableResource resource, Set<String> requestedFields, String href, int requestedDepth, int currentDepth, String collectionHref ) {
 
         final Set<PropertyWriter> unknownProperties = new HashSet<PropertyWriter>();
         final Set<PropertyWriter> knownProperties = new HashSet<PropertyWriter>();
@@ -185,17 +175,30 @@ public class PropFindHandler extends ExistingEntityHandler {
             if( cpr != null ) customProp = cpr.getProperty( field);
             if( customProp == null ) pw = writersMap.get( field );
             if( customProp != null  ) {
+                log.debug( "..custom prop: " + field);
                 PropertyWriter customPw = new CustomPropertyWriter( field, customProp );
                 knownProperties.add( customPw);
             } else if( pw != null ) {
+                log.debug( "..standard prop: " + field);
                 knownProperties.add( pw );
             } else {
                 unknownProperties.add( new UnknownPropertyWriter( field ) );
             }
         }
 
-        consumer.consumeProperties( knownProperties, unknownProperties, href, resource );
-        
+        consumer.consumeProperties( knownProperties, unknownProperties, href, resource, currentDepth );
+
+        if( requestedDepth > currentDepth && resource instanceof CollectionResource ) {
+            CollectionResource col = (CollectionResource) resource;
+            List<Resource> list = new ArrayList<Resource>( col.getChildren() );
+            for( Resource child : list ) {
+                if( child instanceof PropFindableResource ) {
+                    String childHref = collectionHref + Utils.percentEncode( child.getName() );
+                    sendResponse( consumer, (PropFindableResource) child, requestedFields, childHref, requestedDepth, currentDepth+1, href+col.getName() );
+                }
+            }
+        }
+
     }
 
     private void process( String url, PropFindableResource pfr, int depth, Set<String> requestedFields, Response response ) {
@@ -277,10 +280,10 @@ public class PropFindHandler extends ExistingEntityHandler {
     class DisplayNamePropertyWriter implements PropertyWriter<String> {
 
         public void append( XmlWriter writer, PropFindableResource res, String href ) {
-            sendStringProp( writer, "D:" + fieldName(), nameEncode( getValue( res ) ) );
+            sendStringProp( writer, "D:" + fieldName(), nameEncode( getValue( res,href ) ) );
         }
 
-        public String getValue( PropFindableResource res ) {
+        public String getValue( PropFindableResource res, String href ) {
             return res.getName();
         }
 
@@ -307,7 +310,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             return "getlastmodified";
         }
 
-        public Date getValue( PropFindableResource res ) {
+        public Date getValue( PropFindableResource res, String href ) {
             return res.getModifiedDate();
         }
     }
@@ -315,10 +318,10 @@ public class PropFindHandler extends ExistingEntityHandler {
     class CreationDatePropertyWriter implements PropertyWriter<Date> {
 
         public void append( XmlWriter xmlWriter, PropFindableResource res, String href ) {
-            sendDateProp( xmlWriter, "D:" + fieldName(), getValue( res ) );
+            sendDateProp( xmlWriter, "D:" + fieldName(), getValue( res,href ) );
         }
 
-        public Date getValue( PropFindableResource res ) {
+        public Date getValue( PropFindableResource res, String href ) {
             return res.getCreateDate();
         }
 
@@ -330,11 +333,11 @@ public class PropFindHandler extends ExistingEntityHandler {
     class ResourceTypePropertyWriter implements PropertyWriter<Boolean> {
 
         public void append( XmlWriter writer, PropFindableResource resource, String href ) {
-            String rt = getValue( resource ) ? "<D:collection/>" : "";
+            String rt = getValue( resource,href ) ? "<D:collection/>" : "";
             sendStringProp( writer, "D:resourcetype", rt );
         }
 
-        public Boolean getValue( PropFindableResource res ) {
+        public Boolean getValue( PropFindableResource res, String href ) {
             return isFolder( res );
         }
 
@@ -346,11 +349,11 @@ public class PropFindHandler extends ExistingEntityHandler {
     class ContentTypePropertyWriter implements PropertyWriter<String> {
 
         public void append( XmlWriter xmlWriter, PropFindableResource res, String href ) {
-            String ct = getValue( res );
+            String ct = getValue( res,href );
             sendStringProp( xmlWriter, "D:" + fieldName(), ct );
         }
 
-        public String getValue( PropFindableResource res ) {
+        public String getValue( PropFindableResource res, String href ) {
             if( res instanceof GetableResource ) {
                 GetableResource getable = (GetableResource) res;
                 return getable.getContentType( null );
@@ -367,11 +370,11 @@ public class PropFindHandler extends ExistingEntityHandler {
     class ContentLengthPropertyWriter implements PropertyWriter<Long> {
 
         public void append( XmlWriter xmlWriter, PropFindableResource res, String href ) {
-            Long ll = getValue( res );
+            Long ll = getValue( res,href );
             sendStringProp( xmlWriter, "D:" + fieldName(), ll == null ? "" : ll.toString() );
         }
 
-        public Long getValue( PropFindableResource res ) {
+        public Long getValue( PropFindableResource res, String href ) {
             if( res instanceof GetableResource ) {
                 GetableResource getable = (GetableResource) res;
                 Long l = getable.getContentLength();
@@ -389,13 +392,13 @@ public class PropFindHandler extends ExistingEntityHandler {
     class EtagPropertyWriter implements PropertyWriter<String> {
 
         public void append( XmlWriter writer, PropFindableResource resource, String href ) {
-            String etag = getValue( resource );
+            String etag = getValue( resource,href );
             if( etag != null ) {
                 sendStringProp( writer, "D:getetag", etag );
             }
         }
 
-        public String getValue( PropFindableResource res ) {
+        public String getValue( PropFindableResource res, String href ) {
             return res.getUniqueId();
         }
 
@@ -408,7 +411,7 @@ public class PropFindHandler extends ExistingEntityHandler {
     class LockDiscoveryPropertyWriter implements PropertyWriter<LockToken> {
 
         public void append( XmlWriter writer, PropFindableResource resource, String href ) {
-            LockToken token = getValue( resource );
+            LockToken token = getValue( resource, href );
             if( token == null ) return;
             Element lockentry = writer.begin( "D:lockdiscovery" ).open();
             if( token != null ) {
@@ -427,7 +430,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             lockentry.close();
         }
 
-        public LockToken getValue( PropFindableResource res ) {
+        public LockToken getValue( PropFindableResource res, String href ) {
             if( !( res instanceof LockableResource ) ) return null;
             LockableResource lr = (LockableResource) res;
             LockToken token = lr.getCurrentLock();
@@ -450,7 +453,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             }
         }
 
-        public Object getValue( PropFindableResource res ) {
+        public Object getValue( PropFindableResource res, String href ) {
             return null;
         }
 
@@ -474,8 +477,8 @@ public class PropFindHandler extends ExistingEntityHandler {
             sendStringProp( writer, "D:" + fieldName(), href );
         }
 
-        public String getValue( PropFindableResource res ) {
-            return null;  // todo
+        public String getValue( PropFindableResource res, String href ) {
+            return href;
         }
 
         public String fieldName() {
@@ -483,11 +486,12 @@ public class PropFindHandler extends ExistingEntityHandler {
         }
     }
 
+
     class MSIsCollectionPropertyWriter extends ResourceTypePropertyWriter {
 
         @Override
         public void append( XmlWriter writer, PropFindableResource res, String href ) {
-            String s = getValue( res ) ? "true" : "false";
+            String s = getValue( res,href ) ? "true" : "false";
             sendStringProp( writer, "D:" + fieldName(), s );
         }
 
@@ -509,7 +513,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             sendStringProp( writer, "D:" + fieldName(), null );
         }
 
-        public String getValue( PropFindableResource res ) {
+        public String getValue( PropFindableResource res, String href ) {
             return null;
         }
 
@@ -538,7 +542,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             sendStringProp( writer, CUSTOM_NS_PREFIX + ":" + fieldName(), s );
         }
 
-        public Object getValue( PropFindableResource res ) {
+        public Object getValue( PropFindableResource res, String href ) {
             return prop.getTypedValue();
         }
     }

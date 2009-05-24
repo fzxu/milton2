@@ -16,8 +16,8 @@ public class HttpManager {
     final PostHandler postHandler;
     final PropFindHandler propFindHandler;
     final MkColHandler mkColHandler;
-    final MoveHandler moveFactory;
-    final PutHandler putFactory;
+    final MoveHandler moveHandler;
+    final PutHandler putHandler;
     final DeleteHandler deleteHandler;
     final PropPatchHandler propPatchHandler;    
     final CopyHandler copyHandler;
@@ -85,15 +85,15 @@ public class HttpManager {
         postHandler = add( createPostHandler() );
         propFindHandler = add( createPropFindHandler() );
         mkColHandler = add( createMkColHandler() );
-        moveFactory = add( createMoveFactory() );
-        putFactory = add( createPutFactory() );
+        moveHandler = add( createMoveFactory() );
+        putHandler = add( createPutFactory() );
         deleteHandler = add( createDeleteHandler() );
         copyHandler = add( createCopyHandler() );
         headHandler = add( createHeadHandler() );
         propPatchHandler = add( createPropPatchHandler() );
         lockHandler = add(createLockHandler());
         unlockHandler = add(createUnlockHandler());
-        allHandlers = new Handler[]{optionsHandler,getHandler,postHandler,propFindHandler,mkColHandler,moveFactory,putFactory,deleteHandler,propPatchHandler, lockHandler, unlockHandler};
+        allHandlers = new Handler[]{optionsHandler,getHandler,postHandler,propFindHandler,mkColHandler,moveHandler,putHandler,deleteHandler,propPatchHandler, lockHandler, unlockHandler};
 
         filters.add(createStandardFilter());
     }
@@ -260,4 +260,61 @@ public class HttpManager {
     public void setEventListeners(List<EventListener> eventListeners) {
         this.eventListeners = eventListeners;
     }
+
+    public CopyHandler getCopyHandler() {
+        return copyHandler;
+    }
+
+    public DeleteHandler getDeleteHandler() {
+        return deleteHandler;
+    }
+
+    public GetHandler getGetHandler() {
+        return getHandler;
+    }
+
+    public HeadHandler getHeadHandler() {
+        return headHandler;
+    }
+
+    public LockHandler getLockHandler() {
+        return lockHandler;
+    }
+
+    public MkColHandler getMkColHandler() {
+        return mkColHandler;
+    }
+
+    public MoveHandler getMoveHandler() {
+        return moveHandler;
+    }
+
+
+
+    public OptionsHandler getOptionsHandler() {
+        return optionsHandler;
+    }
+
+    public PostHandler getPostHandler() {
+        return postHandler;
+    }
+
+    public PropFindHandler getPropFindHandler() {
+        return propFindHandler;
+    }
+
+    public PropPatchHandler getPropPatchHandler() {
+        return propPatchHandler;
+    }
+
+    public UnlockHandler getUnlockHandler() {
+        return unlockHandler;
+    }
+
+    public PutHandler getPutHandler() {
+        return putHandler;
+    }
+
+
+
 }

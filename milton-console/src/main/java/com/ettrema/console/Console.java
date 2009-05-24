@@ -48,14 +48,14 @@ public class Console implements GetableResource, PostableResource {
         this.mapOfFactories = mapOfFactories;
     }
 
-    public void sendContent(OutputStream out, Range range, Map<String, String> params) throws IOException {
+    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
         JSON json = JSONSerializer.toJSON(result);
         PrintWriter writer = new PrintWriter(out);
         json.write(writer);
         writer.flush();
     }
 
-    public Long getMaxAgeSeconds() {
+    public Long getMaxAgeSeconds(Auth auth) {
         return null;
     }
 

@@ -24,67 +24,81 @@ import net.sf.json.JSON;
 import net.sf.json.JSONSerializer;
 import net.sf.json.JsonConfig;
 import net.sf.json.util.CycleDetectionStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PropFindJsonResource implements GetableResource {
 
+    private static final Logger log = LoggerFactory.getLogger( PropFindJsonResource.class );
     private final PropFindableResource wrappedResource;
     private final PropFindHandler propFindHandler;
     private final String encodedUrl;
 
-    public PropFindJsonResource(PropFindableResource wrappedResource, PropFindHandler propFindHandler, String encodedUrl) {
+    public PropFindJsonResource( PropFindableResource wrappedResource, PropFindHandler propFindHandler, String encodedUrl ) {
         super();
         this.wrappedResource = wrappedResource;
         this.propFindHandler = propFindHandler;
         this.encodedUrl = encodedUrl;
     }
 
-    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException {
+    public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
         JsonConfig cfg = new JsonConfig();
-        cfg.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+        cfg.setCycleDetectionStrategy( CycleDetectionStrategy.LENIENT );
 
         JSON json;
-        Writer writer = new PrintWriter(out);
+        Writer writer = new PrintWriter( out );
         String[] arr;
         if( propFindHandler == null ) {
-            if (wrappedResource instanceof CollectionResource) {
-                List<? extends Resource> children = ((CollectionResource) wrappedResource).getChildren();
-                json = JSONSerializer.toJSON(toSimpleList(children), cfg);
+            if( wrappedResource instanceof CollectionResource ) {
+                List<? extends Resource> children = ( (CollectionResource) wrappedResource ).getChildren();
+                json = JSONSerializer.toJSON( toSimpleList( children ), cfg );
             } else {
-                json = JSONSerializer.toJSON(toSimple(wrappedResource), cfg);
+                json = JSONSerializer.toJSON( toSimple( wrappedResource ), cfg );
             }
         } else {
             // use propfind handler
-            String sFields = params.get( "fields");
+            String sFields = params.get( "fields" );
             Set<String> fields = new HashSet<String>();
             if( sFields != null && sFields.length() > 0 ) {
-                arr = sFields.split( ",");
-                for( String s : arr) fields.add( s.trim() );
+                arr = sFields.split( "," );
+                for( String s : arr ) {
+                    fields.add( s.trim() );
+                }
             }
+
+            String sDepth = params.get( "depth" );
+            int depth = 1;
+            if( sDepth != null && sDepth.trim().length() > 0 ) {
+                depth = Integer.parseInt( sDepth );
+            }
+
             MapBuildingPropertyConsumer consumer = new MapBuildingPropertyConsumer();
-            propFindHandler.appendResponses( consumer, wrappedResource, 1, fields, encodedUrl );
-            json = JSONSerializer.toJSON(consumer.getProperties(), cfg);
+            String href = encodedUrl.replace( "/_DAV/PROPFIND", "");
+            log.debug( "href: " + href);
+            propFindHandler.appendResponses( consumer, wrappedResource, depth, fields, href );
+            json = JSONSerializer.toJSON( consumer.getProperties(), cfg );
         }
-        json.write(writer);
+        json.write( writer );
         writer.flush();
     }
 
-    private List<SimpleResource> toSimpleList(List<? extends Resource> list) {
-        List<SimpleResource> simpleList = new ArrayList<SimpleResource>(list.size());
+    private List<SimpleResource> toSimpleList( List<? extends Resource> list ) {
+        List<SimpleResource> simpleList = new ArrayList<SimpleResource>( list.size() );
         for( Resource r : list ) {
-            simpleList.add(toSimple(r));
+            simpleList.add( toSimple( r ) );
         }
         return simpleList;
     }
 
-    private SimpleResource toSimple(Resource r) {
-        return new SimpleResource(r); 
+    private SimpleResource toSimple( Resource r ) {
+        return new SimpleResource( r );
     }
 
-    public Long getMaxAgeSeconds(Auth auth) {
+    public Long getMaxAgeSeconds( Auth auth ) {
         return 0L;
     }
 
-    public String getContentType(String accepts) {
+    public String getContentType( String accepts ) {
         return "application/json";
     }
 
@@ -100,12 +114,12 @@ public class PropFindJsonResource implements GetableResource {
         return Request.Method.PROPFIND.code;
     }
 
-    public Object authenticate(String user, String password) {
-        return wrappedResource.authenticate(user, password);
+    public Object authenticate( String user, String password ) {
+        return wrappedResource.authenticate( user, password );
     }
 
-    public boolean authorise(Request request, Method method, Auth auth) {
-        return wrappedResource.authorise(request, Request.Method.PROPFIND, auth);
+    public boolean authorise( Request request, Method method, Auth auth ) {
+        return wrappedResource.authorise( request, Request.Method.PROPFIND, auth );
     }
 
     public String getRealm() {
@@ -116,18 +130,17 @@ public class PropFindJsonResource implements GetableResource {
         return null;
     }
 
-    public String checkRedirect(Request request) {
+    public String checkRedirect( Request request ) {
         return null;
     }
 
     public class SimpleResource {
+
         private final Resource r;
 
-        public SimpleResource(Resource r) {
+        public SimpleResource( Resource r ) {
             this.r = r;
         }
-
-
 
         public String getName() {
             return r.getName();
@@ -137,5 +150,4 @@ public class PropFindJsonResource implements GetableResource {
             return r.getModifiedDate();
         }
     }
-
 }

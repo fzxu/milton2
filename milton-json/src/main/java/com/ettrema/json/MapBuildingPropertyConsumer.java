@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -15,29 +17,32 @@ import java.util.Set;
  */
 public class MapBuildingPropertyConsumer implements PropertyConsumer{
 
-    Map<String,Object> properties = new HashMap<String, Object>();
-    boolean first = true;
+    private static final Logger log = LoggerFactory.getLogger(MapBuildingPropertyConsumer.class);
 
-    public void consumeProperties( Set<PropertyWriter> knownProperties, Set<PropertyWriter> unknownProperties, String href, PropFindableResource resource ) {
-        if( first ) {
-            first = false;
-            addProps(knownProperties, resource, href, properties);
+    Props properties = new Props(null,0);
+
+    Props lastProps;
+
+    public void consumeProperties( Set<PropertyWriter> knownProperties, Set<PropertyWriter> unknownProperties, String href, PropFindableResource resource, int depth ) {
+        log.debug( "consumeProperties");
+        if( lastProps == null ) {
+            lastProps = properties;
+        } else if( depth > lastProps.depth) {
+            lastProps = new Props( lastProps, depth);
+        } else if( depth < lastProps.depth ) {
+            lastProps = lastProps.parent; // go up a level
+            lastProps = new Props( lastProps.parent, depth);
         } else {
-            List<Map<String,Object>> list = (List<Map<String, Object>>) properties.get( "children");
-            if( list == null ) {
-                list = new ArrayList<Map<String, Object>>();
-                properties.put( "children", list);
-            }
-            Map<String,Object> childProps = new HashMap<String, Object>();
-            list.add( childProps);
-            addProps( knownProperties, resource, href, childProps);
+            lastProps = new Props( lastProps.parent, depth); // another resource at same level, add to same parent
         }
+        addProps(knownProperties, resource, href, lastProps);
+
     }
 
     private void addProps( Set<PropertyWriter> knownProperties, PropFindableResource resource, String href, Map<String, Object> properties ) {
         for( PropertyWriter pw : knownProperties) {
             String key = pw.fieldName();
-            Object value = pw.getValue( resource );
+            Object value = pw.getValue( resource,href );
             properties.put( key, value );
         }
     }
@@ -46,5 +51,25 @@ public class MapBuildingPropertyConsumer implements PropertyConsumer{
         return properties;
     }
 
-    
+
+    class Props extends HashMap<String, Object> {
+        final Props parent;
+        final int depth;
+
+        public Props( Props parent,int depth ) {
+            this.parent = parent;
+            this.depth = depth;
+
+            if( parent != null){
+                List<Map<String,Object>> list = (List<Map<String, Object>>) parent.get( "children");
+                if( list == null ) {
+                    list = new ArrayList<Map<String, Object>>();
+                    parent.put( "children", list);
+                }
+                list.add( this );
+            }
+        }
+
+        
+    }
 }

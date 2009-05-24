@@ -1,7 +1,6 @@
 package com.ettrema.json;
 
 import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.PropFindHandler;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Request;
@@ -15,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JsonResourceFactory implements ResourceFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(HttpManager.class);
+    private static final Logger log = LoggerFactory.getLogger(JsonResourceFactory.class);
 
     final ResourceFactory wrapped;
     final PropFindHandler propFindHandler;

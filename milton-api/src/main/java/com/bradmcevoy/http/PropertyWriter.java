@@ -6,5 +6,5 @@ public interface PropertyWriter<T> {
 
     void append( XmlWriter xmlWriter, PropFindableResource res, String href );
 
-    T getValue( PropFindableResource res );
+    T getValue( PropFindableResource res, String href );
 }
