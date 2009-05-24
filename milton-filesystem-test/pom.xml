@@ -57,11 +57,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.ettrema</groupId>
-            <artifactId>milton-ftp</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>1.1</version>
