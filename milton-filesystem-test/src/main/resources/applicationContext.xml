@@ -75,8 +75,4 @@
 
     <bean id="milton.debug.filter" class="com.bradmcevoy.http.DebugFilter" />
 
-    <bean id="milton.ftp.server" class="com.ettrema.ftp.MiltonFtpServer">
-        <constructor-arg value="localhost"/>
-        <constructor-arg ref="milton.resource.factory"/>
-    </bean>
 </beans>
