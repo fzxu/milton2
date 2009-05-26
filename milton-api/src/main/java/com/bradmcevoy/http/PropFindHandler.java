@@ -259,8 +259,14 @@ public class PropFindHandler extends ExistingEntityHandler {
             XMLReader reader = XMLReaderFactory.createXMLReader();
             PropFindSaxHandler handler = new PropFindSaxHandler();
             reader.setContentHandler( handler );
-            reader.parse( new InputSource( bin ) );
-            set.addAll( handler.getAttributes().keySet() );
+            try {
+                reader.parse( new InputSource( bin ) );
+                set.addAll( handler.getAttributes().keySet() );
+            } catch( IOException e ) {
+                log.warn( "exception reading requested fields", e);
+            } catch( SAXException e ) {
+                log.warn( "exception reading requested fields", e);
+            }
         }
 
         if( set.size() == 0 ) {
