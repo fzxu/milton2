@@ -11,6 +11,18 @@ public class HttpManager {
 
     private static final Logger log = LoggerFactory.getLogger(HttpManager.class);
 
+    private static final ThreadLocal<Request> tlRequest = new ThreadLocal<Request>();
+    private static final ThreadLocal<Response> tlResponse = new ThreadLocal<Response>();
+
+    public static Request request() {
+        return tlRequest.get();
+    }
+
+    public static Response response() {
+        return tlResponse.get();
+    }
+
+
     final OptionsHandler optionsHandler;
     final GetHandler getHandler;
     final PostHandler postHandler;
@@ -144,8 +156,15 @@ public class HttpManager {
     
     public void process(Request request, Response response) {
         log.debug(request.getMethod() + " :: " + request.getAbsoluteUrl());
-        FilterChain chain = new FilterChain(this);
-        chain.process(request,response);
+        tlRequest.set( request );
+        tlResponse.set( response );
+        try {
+            FilterChain chain = new FilterChain( this );
+            chain.process( request, response );
+        } finally {
+            tlRequest.remove();
+            tlResponse.remove();
+        }
     }
     
     

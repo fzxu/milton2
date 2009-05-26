@@ -175,11 +175,9 @@ public class PropFindHandler extends ExistingEntityHandler {
             if( cpr != null ) customProp = cpr.getProperty( field);
             if( customProp == null ) pw = writersMap.get( field );
             if( customProp != null  ) {
-                log.debug( "..custom prop: " + field);
                 PropertyWriter customPw = new CustomPropertyWriter( field, customProp );
                 knownProperties.add( customPw);
             } else if( pw != null ) {
-                log.debug( "..standard prop: " + field);
                 knownProperties.add( pw );
             } else {
                 unknownProperties.add( new UnknownPropertyWriter( field ) );
