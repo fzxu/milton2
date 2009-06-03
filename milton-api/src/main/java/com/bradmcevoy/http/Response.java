@@ -114,6 +114,13 @@ public interface Response {
         public String toString() {
             return "HTTP/1.1 " + code;
         }
+
+        public Status fromCode(int i) {
+            for( Status s : this.values() ) {
+                if( s.code == i) return s;
+            }
+            return null;
+        }
     }
 
     public Response.Status getStatus();

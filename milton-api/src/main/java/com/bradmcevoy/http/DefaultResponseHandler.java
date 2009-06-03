@@ -116,7 +116,7 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
     public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException{
-        log.debug("respondPartialContent");
+        log.debug("respondPartialContent: " + range.start + " - " + range.finish);
         response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
         response.setContentRangeHeader(range.start, range.finish, resource.getContentLength());
         response.setDateHeader(new Date());

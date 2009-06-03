@@ -188,7 +188,8 @@ public class PropFindHandler extends ExistingEntityHandler {
 
         if( requestedDepth > currentDepth && resource instanceof CollectionResource ) {
             CollectionResource col = (CollectionResource) resource;
-            List<Resource> list = new ArrayList<Resource>( col.getChildren() );
+            List<? extends Resource> list = col.getChildren();
+            list = new ArrayList<Resource>( list );
             for( Resource child : list ) {
                 if( child instanceof PropFindableResource ) {
                     String childHref = collectionHref + Utils.percentEncode( child.getName() );

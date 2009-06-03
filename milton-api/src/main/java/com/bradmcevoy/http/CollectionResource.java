@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * A type of Resource which can have children, ie it can act as a directory
  * 
- * This is only part of the normal behaviour of a directory though, yuou
+ * This is only part of the normal behaviour of a directory though, you
  * should have a look at FolderResource for a more complete interface
  * 
  * @author brad
