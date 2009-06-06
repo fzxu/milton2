@@ -38,8 +38,8 @@ public class Help extends AbstractConsoleCommand {
             sb.append("<br/>").append(f.getDescription());
             sb.append("<br/>").append("\n");
             sb.append("<br/>").append("\n");
-        }        
-        return new Result(this.lastPath.toString(), sb.toString());
+        }
+        return null; //new Result(this.lastPath.toString(), sb.toString());
     }
 
 }

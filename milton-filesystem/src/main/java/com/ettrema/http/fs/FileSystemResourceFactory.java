@@ -91,13 +91,10 @@ public class FileSystemResourceFactory implements ResourceFactory {
     
     public FsResource resolveFile(File file) {
         if( !file.exists() ) {
-            log.debug("  not found: " + file.getAbsolutePath());
             return null;
         } else if( file.isDirectory() ) {
-            log.debug(" found directory: " + file.getAbsolutePath());
             return new FsDirectoryResource(this, file);
         } else {
-            log.debug("  found file: " + file.getAbsolutePath());
             return new FsFileResource(this, file);
         }        
     }

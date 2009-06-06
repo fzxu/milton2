@@ -5,94 +5,114 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Cp extends AbstractConsoleCommand {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Cp.class);
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Cp.class );
 
-    Cp(List<String> args, String host, String currentDir, ResourceFactory resourceFactory) {
-        super(args, host, currentDir, resourceFactory);
+    Cp( List<String> args, String host, String currentDir, ResourceFactory resourceFactory ) {
+        super( args, host, currentDir, resourceFactory );
     }
-
 
     public Result execute() {
-        String srcPath = args.get(0);
-        String destPath = args.get(1);
-        log.debug("copy: " + srcPath + "->" + destPath);
-        CollectionResource cur = currentResource();
-        Path pSrc = Path.path(srcPath);
-        Path pDest = Path.path(destPath);
-        List<Resource> list = new ArrayList<Resource>();
-        Result resultSearch = findWithRegex(cur, pSrc, list);
-        if (resultSearch != null) {
-            return resultSearch;
-        }
-        if (list.size() == 0) {
-            return result("Source not found: " + srcPath);
-        } else {
+        String srcPath = args.get( 0 );
+        String destPath = args.get( 1 );
+        log.debug( "copy: " + srcPath + "->" + destPath );
 
-            Resource rDest = find(cur, Path.path(destPath));
-            // if dest exists, must be a folder. In this case keep name
-            if (rDest != null) {
-                if (rDest instanceof CollectionResource) {
-                    CollectionResource destFolder = (CollectionResource) rDest;
-                    return copyTo(list, destFolder);
+        Path pSrc = Path.path( srcPath );
+        Path pDest = Path.path( destPath );
+
+        Cursor sourceCursor = cursor.find( pSrc );
+        Cursor destCursor = cursor.find( pDest);
+        if( !sourceCursor.exists()) {
+            List<Resource> list = sourceCursor.getParent().childrenWithFilter( sourceCursor.getPath().getName());
+            if( list != null ) {
+                if( destCursor.isFolder()) {
+                    return copyTo( list, (CollectionResource)destCursor.getResource());
                 } else {
-                    return result("destination exists but is not a folder");
+                    return result("destination is not a folder: " + pDest);
                 }
             } else {
-                // dest does not exist, so should be a file. if the path has a sinlge element it is the name to copy to.
-                if (list.size() > 1) {
-                    return result("No folder: " + destPath);
-                }
-                Resource theRes = list.get(0);
-                return copySingle(cur, theRes, pDest);
+                return result("source is not found: " + pSrc);
             }
-        }
-    }
-
-
-    protected Result copyTo(List<Resource> list, CollectionResource destFolder) {
-        log.debug("copyTo: " + list.size() + " -> " + destFolder.getName());
-        for (Resource res : list) {
-            log.debug("copying: " + res.getName());
-            if( res instanceof CopyableResource ) {
-                CopyableResource cr = (CopyableResource) res;
-                cr.copyTo(destFolder, cr.getName());
-            }
-        }
-        return result("Copied to: " + destFolder.getName() );
-    }
-
-    
-    private Result copySingle(CollectionResource curFolder, Resource theRes, Path pDest) {
-        log.debug("copySingle: " + pDest);
-        if( theRes instanceof CopyableResource ) {
-            CopyableResource cr = (CopyableResource) theRes;
-            if (pDest.getLength() == 1) { // copying within the same parent folder
-                cr.copyTo(curFolder, pDest.getName());
-                return result("Copied to: " + pDest.getName());
-            } else { //copying to some other folder
-                // is a path ending with a name. Check the parent exists
-                Path pParent = pDest.getParent();
-                Resource rDest = find(curFolder, pParent);
-                if (rDest == null) {
-                    return result("The dest path does not exist, nor does its parent");
+        } else if( sourceCursor.isFolder() ) {
+            if( destCursor.exists() ) {
+                if( destCursor.isFolder()) {
+                    // copy folder to existing folder, so just copy contents of source
+                    return doCopyChildren(sourceCursor.getResource(), destCursor.getResource());
                 } else {
-                    if (rDest instanceof CollectionResource) {
-                        CollectionResource destFolder = (CollectionResource) rDest;
-                        cr.copyTo(destFolder, pDest.getName());
-                        return result("Copied to: " + pDest);
-                    } else {
-                        return result("The destination path does not exist, and its parent is not a folder");
-                    }
+                    // dest exists, but is not a folder, so can't overwrite
+                    return result("destination folder already exists: " + pDest);
                 }
+            } else {
+                Cursor destParent = destCursor.getParent();
+                if( !destParent.exists() ) {
+                    return result("The destination folder does not exist: " + destParent.getPath());
+                } else if(!destParent.isFolder()) {
+                    return result("The destination parent is not a folder (somehow)" + destParent.getPath());
+                } else {
+                    return doCopy(sourceCursor.getResource(), destParent.getResource(), destCursor.getPath().getName());
+                }
+
             }
         } else {
-            return result("The specified resource does not support copying");
+            log.debug( "is a single file copy. dest must not exist or be a folder");
+            if( destCursor.exists() ) {
+                if( destCursor.isFolder()) {
+                    return doCopy(sourceCursor.getResource(), destCursor.getResource());
+                } else {
+                    return result("destination already exists: " + pDest);
+                }
+            } else {
+                log.debug( "copying to parent..");
+                Cursor destParent = destCursor.getParent();
+                if( !destParent.exists() ) {
+                    return result("The destination folder does not exist: " + destParent.getPath());
+                } else if(!destParent.isFolder()) {
+                    return result("The destination parent is not a folder (somehow)" + destParent.getPath());
+                } else {
+                    return doCopy(sourceCursor.getResource(), destParent.getResource(), destCursor.getPath().getName());
+                }
+            }
         }
+    }
 
+    private Result doCopy( Resource src, Resource dest ) {
+        if( dest == null) throw new IllegalArgumentException( "dest is null");
+        return doCopy( src, dest, src.getName());
+    }
+
+    private Result doCopy( Resource src, Resource dest, String name ) {
+        if( src instanceof CopyableResource ) {
+            CopyableResource cr = (CopyableResource) src;
+            if( dest instanceof CollectionResource ) {
+                CollectionResource destFolder = (CollectionResource) dest;
+                cr.copyTo( destFolder, name );
+                return result("Copied to: " + dest.getName());
+            } else {
+                return result("The destination is not a folder: " + dest.getName());
+            }
+        } else {
+            return result("the source file is not copyable");
+        }
+    }
+
+    private Result doCopyChildren( Resource currentResource, Resource destResource ) {
+        CollectionResource src = (CollectionResource) currentResource;
+        CollectionResource dest = (CollectionResource) destResource;
+        return copyTo( src.getChildren(), dest );
+    }
+
+    protected Result copyTo( List<? extends Resource> list, CollectionResource destFolder ) {
+        log.debug( "copyTo: " + list.size() + " -> " + destFolder.getName() );
+        for( Resource res : list ) {
+            log.debug( "copying: " + res.getName() );
+            if( res instanceof CopyableResource ) {
+                CopyableResource cr = (CopyableResource) res;
+                cr.copyTo( destFolder, cr.getName() );
+            }
+        }
+        return result( "Copied to: " + destFolder.getName() );
     }
 }

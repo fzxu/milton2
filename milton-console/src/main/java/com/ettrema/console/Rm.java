@@ -24,9 +24,10 @@ public class Rm extends AbstractConsoleCommand {
         String sPath = args.get(0);
 
         Path path = Path.path(sPath);
+
         List<Resource> list = new ArrayList<Resource>();
         CollectionResource curFolder = currentResource();
-        Result resultSearch = findWithRegex(curFolder, path, list);
+        Result resultSearch = null; //findWithRegex(curFolder, path, list);
         if (resultSearch != null) {
             return resultSearch;
         }
