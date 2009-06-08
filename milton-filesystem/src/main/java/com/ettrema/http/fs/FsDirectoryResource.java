@@ -60,7 +60,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
     public List<? extends Resource> getChildren() {
         ArrayList<FsResource> list = new ArrayList<FsResource>();
         File[] files = this.file.listFiles();
-        if( file != null ) {
+        if( files != null ) {
             for( File fchild : files ) {
                 FsResource res = factory.resolveFile( fchild );
                 list.add( res );

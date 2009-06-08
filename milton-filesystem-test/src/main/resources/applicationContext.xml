@@ -6,7 +6,7 @@
     <bean id="milton.resource.factory" class="com.ettrema.console.ConsoleResourceFactory">
         <constructor-arg ref="filesystem.resource.factory" />
         <constructor-arg value="/webdav-fs/console" />
-        <constructor-arg value="/webdav-fs" /> <!-- secure resource = host root -->
+        <constructor-arg value="/webdav-fs" /> <!-- resource to test authentication against = host root -->
         <constructor-arg>
             <list>
                 <bean class="com.ettrema.console.LsFactory" />
@@ -14,14 +14,18 @@
                 <bean class="com.ettrema.console.RmFactory" />
                 <bean class="com.ettrema.console.HelpFactory" />
                 <bean class="com.ettrema.console.CpFactory" />
+                <bean class="com.ettrema.console.MkFactory" />
+                <bean class="com.ettrema.console.MkdirFactory" />
             </list>
         </constructor-arg>
+        <constructor-arg value="webdav-fs"/> <!-- the web context path -->
     </bean>
 
     <bean id="filesystem.resource.factory" class="com.ettrema.http.fs.FileSystemResourceFactory">
         <property name="securityManager" ref="milton.fs.security.manager" />
         <property name="lockManager" ref="milton.fs.lock.manager" />
         <property name="maxAgeSeconds" value="3600" />
+        <property name="contextPath" value="webdav-fs"/>
         <!-- the default root is System property user.home  -->
         <!-- enable the property below to set the root elsewhere -->
         <!--
@@ -72,7 +76,16 @@
 -->
     </bean>
 
-
     <bean id="milton.debug.filter" class="com.bradmcevoy.http.DebugFilter" />
+
+    <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter">
+        <constructor-arg value="localhost"/>
+        <constructor-arg ref="filesystem.resource.factory"/>
+        <!-- todo: very crude user management -->
+        <constructor-arg value="me" /> <!-- user name -->
+        <constructor-arg value="pwd"/> <!-- password -->
+        <constructor-arg value="/"/> <!-- home directory -->
+        
+    </bean>
 
 </beans>

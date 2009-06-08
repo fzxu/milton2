@@ -4,23 +4,19 @@ package com.ettrema.console;
 import com.bradmcevoy.http.Auth;
 import java.util.List;
 
-public class HelpFactory extends AbstractConsoleCommandFactory {
+public class MkFactory extends AbstractConsoleCommandFactory{
 
     @Override
     public ConsoleCommand create(List<String> args, String host, String currentDir, Auth auth) {
-        return new Help(args, host, currentDir, consoleResourceFactory);
+        return new Mk(args,host,currentDir,consoleResourceFactory);
     }
 
-    @Override
     public String[] getCommandNames() {
-        return new String[]{"help"};
+        return new String[] {"mk","make","new"};
     }
 
-    @Override
     public String getDescription() {
-        return "Help. Display all commands";
+        return "Create an item of a given type and name. Usage mk com.blah.File newname, or mk templatename newname";
     }
-
     
-
 }

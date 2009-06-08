@@ -114,8 +114,19 @@ public class Console implements GetableResource, PostableResource {
         String currentDir = parameters.get("currentDir");
         if( currentDir == null ) currentDir = "/";
         String[] arr = sCmd.split(" ");  // todo: this won't handle quoted arguments properly eg cp "a file" "another file"
-        result = doCmd(currentDir, arr, host);
-        return result.getRedirect();  // allow results to cause a redirect 
+        try {
+            result = doCmd( currentDir, arr, host );
+        } catch( Exception e ) {
+            String s = "";
+            for( StackTraceElement el : e.getStackTrace() ) {
+                s = s + el.getClassName() + "::" + el.getMethodName() + " (" + el.getLineNumber() + ") <br/>" ;
+            }
+            result = new Result( currentDir, "Exception prcessing command: " + e.getMessage() + "<br/>" + s);
+        }
+        if( result == null ) {
+            result = new Result( currentDir, "The command did not return a result");
+        }
+        return result.getRedirect();  // allow results to cause a redirect
     }
 
 
@@ -148,7 +159,7 @@ public class Console implements GetableResource, PostableResource {
             log.debug("no factory: " + sCmd);
             return null;
         }
-        return f.create(args, host, currentDir, auth, wrappedFactory);
+        return f.create(args, host, currentDir, auth);
     }
 
 }

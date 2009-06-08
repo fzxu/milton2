@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.*;
 public class CpTest extends TestCase {
 
     Cp cp;
+    ConsoleResourceFactory consoleResourceFactory;
     ResourceFactory resourceFactory;
     String host = "aHost";
     List<String> args;
@@ -33,6 +34,7 @@ public class CpTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         resourceFactory = createMock( ResourceFactory.class );
+        consoleResourceFactory = new ConsoleResourceFactory( resourceFactory, "/console", "/", new ArrayList<ConsoleCommandFactory>(), null);
         args = new ArrayList<String>();
         col = createMock( CollectionResource.class );
         sourceFile = createMock( CopyableResource.class );
@@ -60,7 +62,7 @@ public class CpTest extends TestCase {
 
         args.add( "a" );
         args.add( "b" );
-        cp = new Cp( args, host, "/", resourceFactory );
+        cp = new Cp( args, host, "/", consoleResourceFactory );
         cp.execute();
     }
 
@@ -76,7 +78,7 @@ public class CpTest extends TestCase {
 
         args.add( "a" );
         args.add( "b" );
-        cp = new Cp( args, host, "/", resourceFactory );
+        cp = new Cp( args, host, "/", consoleResourceFactory );
         cp.execute();
     }
 
@@ -92,7 +94,7 @@ public class CpTest extends TestCase {
 
         args.add( "a" );
         args.add( "b" );
-        cp = new Cp( args, host, "/", resourceFactory );
+        cp = new Cp( args, host, "/", consoleResourceFactory );
         cp.execute();
     }
 
@@ -113,7 +115,7 @@ public class CpTest extends TestCase {
 
         args.add( "a/x[12]" ); // on copy x1 and x2
         args.add( "b" );
-        cp = new Cp( args, host, "/", resourceFactory );
+        cp = new Cp( args, host, "/", consoleResourceFactory );
         cp.execute();
         verify( sourceFolder, destFolder, resourceFactory, col );
     }

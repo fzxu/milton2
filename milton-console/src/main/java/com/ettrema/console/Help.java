@@ -1,7 +1,6 @@
 
 package com.ettrema.console;
 
-import com.bradmcevoy.http.ResourceFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -9,18 +8,18 @@ import java.util.List;
 
 public class Help extends AbstractConsoleCommand {
 
-    private ConsoleResourceFactory consoleResourceFactory;
+    final List<ConsoleCommandFactory> factories;
 
-    Help(List<String> args, String host, String currentDir, ResourceFactory resourceFactory, ConsoleResourceFactory consoleResourceFactory) {
-        super(args, host, currentDir, resourceFactory);
-        this.consoleResourceFactory = consoleResourceFactory;
+    Help(List<String> args, String host, String currentDir, ConsoleResourceFactory consoleResourceFactory) {
+        super(args, host, currentDir, consoleResourceFactory);
+        this.factories = consoleResourceFactory.factories;
     }
     
     @Override
     public Result execute() {
         StringBuffer sb = new StringBuffer();
         List<ConsoleCommandFactory> list = new ArrayList<ConsoleCommandFactory>();
-        list.addAll(consoleResourceFactory.factories );
+        list.addAll(factories );
         Collections.sort(list, new Comparator() {
             public int compare(Object o1, Object o2) {
                 ConsoleCommandFactory f1 = (ConsoleCommandFactory)o1;
@@ -39,7 +38,7 @@ public class Help extends AbstractConsoleCommand {
             sb.append("<br/>").append("\n");
             sb.append("<br/>").append("\n");
         }
-        return null; //new Result(this.lastPath.toString(), sb.toString());
+        return new Result(this.cursor.getPath().toString(), sb.toString());
     }
 
 }

@@ -28,6 +28,7 @@ public class ConsoleResourceFactory implements ResourceFactory {
     final ResourceFactory wrappedFactory;
     final String consolePath;
     final String consoleName;
+    final String contextPath;
     final String secureResourcePath;
     final Date modDate;
     final Map<String,ConsoleCommandFactory> mapOfFactories;
@@ -35,15 +36,16 @@ public class ConsoleResourceFactory implements ResourceFactory {
     final String consolePageContent;
     final String dojoJsContent;
 
-    public ConsoleResourceFactory(ResourceFactory wrappedFactory, String consolePath, String secureResourcePath, List<ConsoleCommandFactory> factories) {
+    public ConsoleResourceFactory(ResourceFactory wrappedFactory, String consolePath, String secureResourcePath, List<ConsoleCommandFactory> factories,String contextPath) {
         this.factories = factories;
         this.wrappedFactory = wrappedFactory;
         this.consolePath = consolePath;
+        this.contextPath = contextPath;
         this.consoleName = consolePath.substring(consolePath.lastIndexOf("/"));
         this.secureResourcePath = secureResourcePath;
         this.modDate = new Date();
         mapOfFactories = new ConcurrentHashMap<String, ConsoleCommandFactory>();
-        for (ConsoleCommandFactory f : factories) {
+        for( ConsoleCommandFactory f : factories ) {
             for (String cmdName : f.getCommandNames()) {
                 log.debug("Console Command Factory: " + cmdName + " - " + f.getClass());
                 f.setConsoleResourceFactory(this);

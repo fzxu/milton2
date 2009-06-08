@@ -1,7 +1,6 @@
 
 package com.ettrema.console;
 
-import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
@@ -14,10 +13,12 @@ public abstract class AbstractConsoleCommand implements ConsoleCommand{
     
     protected final List<String> args;
     protected final Cursor cursor;
+    protected final ResourceFactory resourceFactory;
 
     AbstractConsoleCommand(List<String> args, String host, String currentDir, ResourceFactory resourceFactory) {
         this.args = args;
         cursor = new Cursor( resourceFactory, host, currentDir );
+        this.resourceFactory = resourceFactory;
     }    
     
     /**
@@ -36,5 +37,6 @@ public abstract class AbstractConsoleCommand implements ConsoleCommand{
     protected Resource host() {
         return cursor.host();
     }    
-    
+
+
 }

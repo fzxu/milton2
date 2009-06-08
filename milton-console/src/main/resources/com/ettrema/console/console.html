@@ -20,14 +20,15 @@
                 document.getElementById("curDir").innerHTML=result.dir;
                 document.getElementById("curDirHidden").value=result.dir;
                 document.getElementById("cmd").value="";
-                window.setTimeout('scrollCmd', 100);
+                scrollCmd();
+                //window.setTimeout('scrollCmd', 100);
             }
 
     /**
      * Comment
      */
     function scrollCmd() {
-        document.getElementById("cmd").scrollIntoView(alignWithTop);
+        document.getElementById("cmd").scrollIntoView(false);
         document.getElementById("cmd").focus();
     }
             

@@ -41,6 +41,7 @@
         <module>milton-test</module>
         <module>milton-filesystem</module>
         <module>milton-filesystem-test</module>
+		<module>milton-ftp</module>
     </modules>
     <build>
         <plugins>

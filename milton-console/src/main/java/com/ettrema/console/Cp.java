@@ -4,14 +4,13 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.ResourceFactory;
 import java.util.List;
 
 public class Cp extends AbstractConsoleCommand {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Cp.class );
 
-    Cp( List<String> args, String host, String currentDir, ResourceFactory resourceFactory ) {
+    Cp( List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory ) {
         super( args, host, currentDir, resourceFactory );
     }
 

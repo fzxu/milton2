@@ -57,6 +57,7 @@ public class ServletRequest extends AbstractRequest {
         String sMethod = r.getMethod();        
         method = Request.Method.valueOf(sMethod);
         url = r.getRequestURL().toString(); //MiltonUtils.stripContext(r);
+        log.debug( "url: " + url);
         tlRequest.set(r);        
     }
 

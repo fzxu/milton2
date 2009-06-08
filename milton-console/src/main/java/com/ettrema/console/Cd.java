@@ -3,14 +3,13 @@ package com.ettrema.console;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.ResourceFactory;
 import java.util.List;
 
 public class Cd extends AbstractConsoleCommand{
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Cd.class);
     
-    Cd(List<String> args, String host, String currentDir, ResourceFactory resourceFactory) {
+    Cd(List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory) {
         super(args, host, currentDir, resourceFactory);
     }
 

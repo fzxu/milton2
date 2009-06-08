@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 class Dest {
     
-    private Logger log = LoggerFactory.getLogger(Dest.class);
+    private static final Logger log = LoggerFactory.getLogger(Dest.class);
     
     public final String host;
     

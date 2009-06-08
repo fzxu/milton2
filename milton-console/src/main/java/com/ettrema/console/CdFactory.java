@@ -2,14 +2,15 @@
 package com.ettrema.console;
 
 import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.ResourceFactory;
 import java.util.List;
 
 public class CdFactory implements ConsoleCommandFactory {
 
+    ConsoleResourceFactory consoleResourceFactory;
+
     @Override
-    public ConsoleCommand create(List<String> args, String host, String currentDir, Auth auth,ResourceFactory resourceFactory) {
-        return new Cd(args, host, currentDir, resourceFactory);
+    public ConsoleCommand create(List<String> args, String host, String currentDir, Auth auth) {
+        return new Cd(args, host, currentDir, consoleResourceFactory);
     }
 
     @Override
@@ -23,6 +24,7 @@ public class CdFactory implements ConsoleCommandFactory {
     }
 
     public void setConsoleResourceFactory(ConsoleResourceFactory crf) {
+        this.consoleResourceFactory = crf;
     }
     
     

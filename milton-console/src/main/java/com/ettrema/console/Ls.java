@@ -3,13 +3,15 @@ package com.ettrema.console;
 
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.ResourceFactory;
 import java.util.List;
 
 public class Ls extends AbstractConsoleCommand{
 
-    Ls(List<String> args, String host, String currentDir, ResourceFactory resourceFactory) {
+    private final LinkGenerator linkGenerator;
+
+    Ls(List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory, LinkGenerator linkGenerator) {
         super(args, host, currentDir, resourceFactory);
+        this.linkGenerator = linkGenerator;
     }
 
     @Override
@@ -37,9 +39,5 @@ public class Ls extends AbstractConsoleCommand{
             sb.append("<a href='").append(href).append("'>").append(r1.getName()).append("</a>").append("<br/>");
         }
         return result(sb.toString());
-    }
-
-    private String getHref(String dir, Resource r) {
-        return dir + "/" + r.getName();
     }
 }

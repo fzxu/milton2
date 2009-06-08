@@ -18,6 +18,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     FsSecurityManager securityManager;
     FsLockManager lockManager;
     Long maxAgeSeconds;
+    String contextPath;
 
     /**
      * Creates and (optionally) initialises the factory. This looks for a 
@@ -59,6 +60,21 @@ public class FileSystemResourceFactory implements ResourceFactory {
         setSecurityManager(securityManager);
     }
 
+    /**
+     *
+     * @param root - the root folder of the filesystem to expose.
+     * called webdav-fs
+     * @param securityManager
+     * @param contextPath - this is the leading part of URL's to ignore. For example
+     * if you're application is deployed to http://localhost:8080/webdav-fs, the
+     * context path should be webdav-fs
+     */
+    public FileSystemResourceFactory(File root, FsSecurityManager securityManager, String contextPath) {
+        setRoot(root);
+        setSecurityManager(securityManager);
+        setContextPath(contextPath);
+    }
+
     public File getRoot() {
         return root;
     }
@@ -77,11 +93,8 @@ public class FileSystemResourceFactory implements ResourceFactory {
     
     public Resource getResource(String host, String url) {
         log.debug("getResource: host: " + host + " - url:" + url);
+        url = stripContext(url);
         File requested = resolvePath(root,url);
-        if( requested == null ) {
-            log.debug("file not found");
-            return null;
-        }
         return resolveFile(requested);
     }
 
@@ -91,6 +104,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     
     public FsResource resolveFile(File file) {
         if( !file.exists() ) {
+            log.debug("file not found: " + file.getAbsolutePath());
             return null;
         } else if( file.isDirectory() ) {
             return new FsDirectoryResource(this, file);
@@ -147,6 +161,24 @@ public class FileSystemResourceFactory implements ResourceFactory {
 
     public void setLockManager(FsLockManager lockManager) {
         this.lockManager = lockManager;
+    }
+
+    public void setContextPath( String contextPath ) {
+        this.contextPath = contextPath;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    private String stripContext( String url ) {
+        if( this.contextPath != null && contextPath.length() > 0 ) {
+            url = url.replaceFirst( '/' + contextPath, "");
+            log.debug( "stripped context: " + url);
+            return url;
+        } else {
+            return url;
+        }
     }
     
     
