@@ -23,6 +23,7 @@ public class BufferingOutputStream extends OutputStream{
     private FileOutputStream fout;
     private BufferedOutputStream bufOut;
 
+    private Runnable runnable;
     private long size;
     private boolean closed;
 
@@ -98,6 +99,9 @@ public class BufferingOutputStream extends OutputStream{
             fout.close();
         }
         closed = true;
+        if( runnable != null ) {
+            runnable.run();
+        }
     }
 
     public long getSize() {
@@ -112,7 +116,9 @@ public class BufferingOutputStream extends OutputStream{
         return tempMemoryBuffer;
     }
 
-
+    public void setOnClose(Runnable r) {
+        this.runnable = r;
+    }
 
 
 

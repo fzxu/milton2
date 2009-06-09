@@ -1,100 +1,79 @@
 package com.ettrema.ftp;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.ftpserver.ftplet.Authentication;
-import org.apache.ftpserver.ftplet.AuthenticationFailedException;
-import org.apache.ftpserver.ftplet.Authority;
-import org.apache.ftpserver.ftplet.AuthorizationRequest;
+import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Resource;
 import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.ftplet.UserManager;
 import com.bradmcevoy.http.SecurityManager;
+import org.apache.ftpserver.ftplet.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
- * TODO
+ * Wraps a UserManager from apache FTP to provide a SecurityManager for
+ * milton
  *
  *
  * @author brad
  */
-public class UserManagerAdapter implements UserManager{
-    SecurityManager securityManager;
+public class UserManagerAdapter implements SecurityManager{
 
-    public UserManagerAdapter( SecurityManager securityManager ) {
-        this.securityManager = securityManager;
+    private static final Logger log = LoggerFactory.getLogger( UserManagerAdapter.class );
+
+    private UserManager userManager;
+    private String realm;
+
+    public UserManagerAdapter() {
     }
 
-    public User getUserByName( String name ) throws FtpException {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    public UserManagerAdapter( UserManager userManager, String realm ) {
+        this.userManager = userManager;
     }
 
-    public String[] getAllUserNames() throws FtpException {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    public Object authenticate( String userName, String password ) {
+        User user;
+        try {
+            user = this.userManager.getUserByName( userName );
+        } catch( FtpException ex ) {
+            log.warn( "exception loading user: " + userName, ex);
+            return null;
+        }
+        if( user == null ) {
+            return null;
+        } else {
+            String actual = user.getPassword();
+            if( actual == null ) {
+                return password == null || password.length() == 0;
+            } else {
+                if( actual.equals( password)) {
+                    return user;
+                } else {
+                    return null;
+                }
+            }
+        }
     }
 
-    public void delete( String name ) throws FtpException {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
+        return (auth.getTag() instanceof User);
     }
 
-    public void save( User user ) throws FtpException {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    public String getRealm() {
+        return realm;
     }
 
-    public boolean doesExist( String name ) throws FtpException {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    public UserManager getUserManager() {
+        return userManager;
     }
 
-    public User authenticate( Authentication auth ) throws AuthenticationFailedException {
-        throw new UnsupportedOperationException( "Not supported yet." );
+    public void setUserManager( UserManager userManager ) {
+        this.userManager = userManager;
     }
 
-    public String getAdminName() throws FtpException {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
-
-    public boolean isAdmin( String name ) throws FtpException {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
-
-    class MiltonUser implements User {
-
-        final String name;
-
-        public MiltonUser( String name ) {
-            this.name = name;
-        }
-                
-        public String getName() {
-            return name;
-        }
-
-        public String getPassword() {
-            return "";
-        }
-
-        public List<Authority> getAuthorities() {
-            return new ArrayList<Authority>();
-        }
-
-        public List<Authority> getAuthorities( Class<? extends Authority> arg0 ) {
-            return new ArrayList<Authority>();
-        }
-
-        public AuthorizationRequest authorize( AuthorizationRequest req ) {
-            return null; // WTF???
-        }
-
-        public int getMaxIdleTime() {
-            return 3600;
-        }
-
-        public boolean getEnabled() {
-            return true;
-        }
-
-        public String getHomeDirectory() {
-            return "/";
-        }
+    public void setRealm(String s) {
+        this.realm = s;
     }
 }

@@ -22,6 +22,7 @@ public class MiltonFsView implements FileSystemView {
     public MiltonFsView( String host, Path homePath, CollectionResource current, ResourceFactory resourceFactory ) {
         super();
         this.host = host;
+        if( homePath.isRelative()) throw new IllegalArgumentException( "homePath must be absolute");
         this.homePath = homePath;
         this.currentPath = homePath;
         this.current = current;
@@ -47,7 +48,7 @@ public class MiltonFsView implements FileSystemView {
         } else
             if( rp.resource instanceof CollectionResource ) {
                 current = (CollectionResource) rp.resource;
-                currentPath = p;
+                currentPath = rp.path;
                 return true;
             } else {
                 log.debug( "not a collection: " + rp.resource.getName() );
