@@ -52,6 +52,17 @@ public class MiltonFtpAdapter implements FileSystemFactory {
         server.start();
     }
 
+    public MiltonFtpAdapter( String host, ResourceFactory wrapped, UserManager userManager ) throws FtpException {
+        this.host = host;
+        this.resourceFactory = wrapped;
+
+        serverFactory = new FtpServerFactory();
+        serverFactory.setFileSystem( this );
+        serverFactory.setUserManager( userManager);
+        server = serverFactory.createServer();
+        server.start();
+    }
+
     /**
      * Creates a user manager with one user, specified with these constructor arguments
      *
@@ -90,7 +101,7 @@ public class MiltonFtpAdapter implements FileSystemFactory {
 
     public FileSystemView createFileSystemView( User user ) throws FtpException {
         Resource root = resourceFactory.getResource( host, "/" );
-        return new MiltonFsView( host, Path.root, (CollectionResource) root ,resourceFactory);
+        return new MiltonFsView( host, Path.root, (CollectionResource) root ,resourceFactory, (SecurityManagerAdapter.MiltonUser)user);
     }
 
 }

@@ -78,14 +78,14 @@
 
     <bean id="milton.debug.filter" class="com.bradmcevoy.http.DebugFilter" />
 
+    <bean id="ftp.user.manager" class="com.ettrema.ftp.SecurityManagerAdapter">
+        <constructor-arg ref="milton.fs.security.manager"/>
+    </bean>
+
     <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter">
         <constructor-arg value="localhost"/>
         <constructor-arg ref="filesystem.resource.factory"/>
-        <!-- todo: very crude user management -->
-        <constructor-arg value="me" /> <!-- user name -->
-        <constructor-arg value="pwd"/> <!-- password -->
-        <constructor-arg value="/"/> <!-- home directory -->
-        
+        <constructor-arg ref="ftp.user.manager"/>
     </bean>
 
 </beans>

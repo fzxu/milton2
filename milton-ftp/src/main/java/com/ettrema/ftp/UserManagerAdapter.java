@@ -4,10 +4,14 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import org.apache.ftpserver.ftplet.AuthorizationRequest;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.UserManager;
 import com.bradmcevoy.http.SecurityManager;
+import org.apache.ftpserver.ftplet.Authentication;
 import org.apache.ftpserver.ftplet.User;
+import org.apache.ftpserver.usermanager.UsernamePasswordAuthentication;
+import org.apache.ftpserver.usermanager.impl.WriteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +40,8 @@ public class UserManagerAdapter implements SecurityManager{
     public Object authenticate( String userName, String password ) {
         User user;
         try {
-            user = this.userManager.getUserByName( userName );
+            Authentication auth = new UsernamePasswordAuthentication( userName, password );
+            user = this.userManager.authenticate( auth );
         } catch( FtpException ex ) {
             log.warn( "exception loading user: " + userName, ex);
             return null;
@@ -58,7 +63,13 @@ public class UserManagerAdapter implements SecurityManager{
     }
 
     public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
-        return (auth.getTag() instanceof User);
+        User user = (User) auth.getTag();
+        AuthorizationRequest authReq = new WriteRequest( request.getAbsolutePath());
+        if( user != null ) {
+            return user.authorize( authReq ) != null;
+        } else {
+            return false;
+        }
     }
 
     public String getRealm() {

@@ -44,6 +44,7 @@ public class Auth {
         this.scheme = Scheme.BASIC;
         this.user = user;
         this.password = null;
+        this.tag = userTag;
     }
 
     public String getUser() {

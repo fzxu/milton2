@@ -10,6 +10,7 @@
 package com.ettrema.ftp;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
@@ -17,16 +18,17 @@ import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.ReplaceableResource;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.BufferingOutputStream;
+import com.ettrema.ftp.SecurityManagerAdapter.MiltonUser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,19 +49,22 @@ public class MiltonFtpFile implements FtpFile {
     private CollectionResource parent;
     private final MiltonFsView ftpFactory;
     private Resource r;
+    private final MiltonUser user;
 
-    public MiltonFtpFile( MiltonFsView resourceFactory, Path path, Resource r ) {
+    public MiltonFtpFile( MiltonFsView resourceFactory, Path path, Resource r,MiltonUser user ) {
         this.path = path;
         this.r = r;
         this.parent = null;
         this.ftpFactory = resourceFactory;
+        this.user = user;
     }
 
-    public MiltonFtpFile( MiltonFsView resourceFactory, Path path, CollectionResource parent, Resource r ) {
+    public MiltonFtpFile( MiltonFsView resourceFactory, Path path, CollectionResource parent, Resource r ,MiltonUser user) {
         this.path = path;
         this.r = null;
         this.parent = parent;
         this.ftpFactory = resourceFactory;
+        this.user = user;
     }
 
     public String getAbsolutePath() {
@@ -87,15 +92,44 @@ public class MiltonFtpFile implements FtpFile {
     }
 
     public boolean isReadable() {
-        return true;
+        log.debug( "isReadble");
+        if( r == null || !(r instanceof GetableResource) ) return false;
+
+        Auth auth = new Auth( user.getName(), user.getUser());
+        FtpRequest request = new FtpRequest( Method.GET, auth, path.toString() );
+        return r.authorise( request, request.getMethod(), auth );
+
     }
 
+    /**
+     * Check file write permission.
+     */
     public boolean isWritable() {
-        return true;
+        log.debug("isWritable: " + getAbsolutePath());
+        if( path.isRoot() ) return false;
+        Auth auth = new Auth( user.getName(), user.getUser());
+        FtpRequest request = new FtpRequest( Method.DELETE, auth, path.toString() );
+        if( r != null ) {
+            if( r instanceof ReplaceableResource ) {
+                return r.authorise( request, Method.PUT, auth );
+            }
+        }
+        if( getParent() instanceof PutableResource ) {
+            return getParent().authorise( request, Method.PUT, auth );
+        } else {
+            return false;
+        }
     }
 
     public boolean isRemovable() {
-        return true;
+        log.debug("isRemovable: " + getAbsolutePath());
+        if( r == null ) return false;
+        if( path.isRoot() ) return false;
+        Auth auth = new Auth( user.getName(), user.getUser());
+        FtpRequest request = new FtpRequest( Method.DELETE, auth, path.toString() );
+        boolean b = r.authorise( request, Method.DELETE, auth );
+        log.debug( ".. = " + b);
+        return b;
     }
 
     public String getOwnerName() {
@@ -168,12 +202,7 @@ public class MiltonFtpFile implements FtpFile {
                 MoveableResource src = (MoveableResource) r;
                 MiltonFtpFile dest = (MiltonFtpFile) newFile;
                 CollectionResource crDest;
-                try {
-                    crDest = dest.getParent();
-                } catch( FtpException ex ) {
-                    log.error( "move", ex );
-                    return false;
-                }
+                crDest = dest.getParent();
                 String newName = dest.path.getName();
                 src.moveTo( crDest, newName );
                 return true;
@@ -210,11 +239,7 @@ public class MiltonFtpFile implements FtpFile {
             return out;
         } else {
             CollectionResource col;
-            try {
-                col = getParent();
-            } catch( FtpException ex ) {
-                throw new IOException( "failed to find parent", ex );
-            }
+            col = getParent();
             if( col == null ) {
                 throw new IOException( "parent not found" );
             } else if( col instanceof PutableResource ) {
@@ -256,9 +281,14 @@ public class MiltonFtpFile implements FtpFile {
         }
     }
 
-    private CollectionResource getParent() throws FtpException {
+    private CollectionResource getParent()  {
         if( parent == null ) {
-            parent = (CollectionResource) ftpFactory.getResource( path.getParent() );
+            MiltonFsView.ResourceAndPath rp = ftpFactory.getResource( path.getParent() );
+            if( rp.resource == null ) {
+                throw new RuntimeException( "couldnt find parent: " + path);
+            } else {
+                parent = (CollectionResource) rp.resource;
+            }
         }
         return parent;
     }

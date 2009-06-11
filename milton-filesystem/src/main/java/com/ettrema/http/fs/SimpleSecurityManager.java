@@ -29,6 +29,14 @@ public class SimpleSecurityManager implements FsSecurityManager{
         this.nameAndPasswords = nameAndPasswords;
     }
 
+    public Object getUserByName( String name ) {
+        String actualPassword = nameAndPasswords.get( name );
+        if( actualPassword != null ) return name;
+        return null;
+    }
+
+
+
     public Object authenticate( String user, String password ) {
         log.debug( "authenticate: " + user + " - " + password);
         String actualPassword = nameAndPasswords.get( user );

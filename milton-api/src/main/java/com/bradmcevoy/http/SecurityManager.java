@@ -32,4 +32,6 @@ public interface SecurityManager {
      * @return - the name of the security realm this is managing
      */
     String getRealm();
+
+    Object getUserByName(String name);
 }
