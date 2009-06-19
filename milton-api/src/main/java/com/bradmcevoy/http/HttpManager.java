@@ -155,7 +155,7 @@ public class HttpManager {
     }
     
     public void process(Request request, Response response) {
-        log.debug(request.getMethod() + " :: " + request.getAbsoluteUrl());
+        log.debug(request.getMethod() + " :: " + request.getAbsoluteUrl() + " - " + request.getAbsolutePath());
         tlRequest.set( request );
         tlResponse.set( response );
         try {

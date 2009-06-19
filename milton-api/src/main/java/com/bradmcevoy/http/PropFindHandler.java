@@ -404,7 +404,8 @@ public class PropFindHandler extends ExistingEntityHandler {
         }
 
         public String getValue( PropFindableResource res, String href ) {
-            return res.getUniqueId();
+            String etag = DefaultResponseHandler.generateEtag( res );
+            return etag;
         }
 
         public String fieldName() {

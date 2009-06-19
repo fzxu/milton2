@@ -1,5 +1,6 @@
 package com.ettrema.http.fs;
 
+import com.bradmcevoy.http.SecurityManager;
 import java.io.File;
 import junit.framework.TestCase;
 
@@ -15,7 +16,8 @@ public class FileSystemResourceFactoryTest extends TestCase{
     protected void setUp() throws Exception {
         super.setUp();
         root = new File(System.getProperty("java.home"));
-        factory = new FileSystemResourceFactory(root, null);
+        SecurityManager sm = null;
+        factory = new FileSystemResourceFactory( root, sm );
         System.out.println("testing with root: " + root.getAbsolutePath());
     }
     

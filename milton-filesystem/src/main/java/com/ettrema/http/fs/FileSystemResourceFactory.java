@@ -6,6 +6,7 @@ import com.bradmcevoy.http.ResourceFactory;
 import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.bradmcevoy.http.SecurityManager;
 
 /**
  *
@@ -15,7 +16,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     private static final Logger log = LoggerFactory.getLogger(FileSystemResourceFactory.class);
     
     File root;
-    FsSecurityManager securityManager;
+    SecurityManager securityManager;
     FsLockManager lockManager;
     Long maxAgeSeconds;
     String contextPath;
@@ -43,7 +44,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
         init(sRoot, sm);
     }
     
-    protected void init(String sRoot, FsSecurityManager securityManager) {
+    protected void init(String sRoot, SecurityManager securityManager) {
         setRoot( new File(sRoot));        
         setSecurityManager(securityManager);
     }
@@ -55,7 +56,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
      * called webdav-fs
      * @param securityManager
      */
-    public FileSystemResourceFactory(File root, FsSecurityManager securityManager) {
+    public FileSystemResourceFactory(File root, SecurityManager securityManager) {
         setRoot(root);
         setSecurityManager(securityManager);
     }
@@ -69,7 +70,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
      * if you're application is deployed to http://localhost:8080/webdav-fs, the
      * context path should be webdav-fs
      */
-    public FileSystemResourceFactory(File root, FsSecurityManager securityManager, String contextPath) {
+    public FileSystemResourceFactory(File root, SecurityManager securityManager, String contextPath) {
         setRoot(root);
         setSecurityManager(securityManager);
         setContextPath(contextPath);
@@ -134,7 +135,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
         return maxAgeSeconds;
     }
        
-    public void setSecurityManager(FsSecurityManager securityManager) {
+    public void setSecurityManager(SecurityManager securityManager) {
         if( securityManager != null ) {
             log.debug("securityManager: " + securityManager.getClass());        
         } else {
@@ -143,7 +144,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
         this.securityManager = securityManager;
     }
 
-    public FsSecurityManager getSecurityManager() {
+    public SecurityManager getSecurityManager() {
         return securityManager;
     }
 

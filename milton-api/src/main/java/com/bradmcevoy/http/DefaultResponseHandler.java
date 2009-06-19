@@ -26,6 +26,16 @@ public class DefaultResponseHandler implements ResponseHandler {
 
     private String supportedLevels;
 
+    public static String generateEtag(Resource r) {
+        String s = r.getUniqueId();
+        if( s == null ) return null;
+        Date dt = r.getModifiedDate();
+        if( dt != null ) {
+            s = s + "_" + dt.hashCode();
+        }
+        return s;
+    }
+
     public DefaultResponseHandler() {
         this("1");  // no locking
     }
@@ -120,7 +130,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
         response.setContentRangeHeader(range.start, range.finish, resource.getContentLength());
         response.setDateHeader(new Date());
-        String etag = resource.getUniqueId();
+        String etag = generateEtag( resource );
         if (etag != null) {
             response.setEtag(etag);
         }
@@ -158,15 +168,15 @@ public class DefaultResponseHandler implements ResponseHandler {
 
     public void respondNotModified(GetableResource resource, Response response, Request request) {
         log.debug("not modified");
+        response.setStatus(Response.Status.SC_NOT_MODIFIED);
         response.setDateHeader(new Date());
         String acc = request.getAcceptHeader();
-        String etag = resource.getUniqueId();
+        String etag = generateEtag( resource );
         if (etag != null) {
             response.setEtag(etag);
         }
         response.setLastModifiedHeader(resource.getModifiedDate());
         setCacheControl(resource, response, request.getAuthorization());
-        response.setStatus(Response.Status.SC_NOT_MODIFIED);
     }
 
     public void responseMultiStatus(Resource resource, Response response, Request request, List<HrefStatus> statii) {
@@ -197,10 +207,12 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
     public static void setCacheControl(final GetableResource resource, final Response response, Auth auth) {
-        Long delta = resource.getMaxAgeSeconds(auth); 
+        Long delta = resource.getMaxAgeSeconds(auth);
+        log.debug( "setCacheControl: " + delta + " - " + resource.getClass());
         if (delta != null) {
             if( auth != null ) {
                 response.setCacheControlPrivateMaxAgeHeader(delta);
+                //response.setCacheControlMaxAgeHeader(delta);
             } else {
                 response.setCacheControlMaxAgeHeader(delta);
             }
@@ -255,7 +267,7 @@ public class DefaultResponseHandler implements ResponseHandler {
     public static void setRespondContentCommonHeaders( Response response, Resource resource ) {
         response.setStatus( Response.Status.SC_OK );
         response.setDateHeader( new Date() );
-        String etag = resource.getUniqueId();
+        String etag = generateEtag( resource );
         if( etag != null ) {
             response.setEtag( etag );
         }

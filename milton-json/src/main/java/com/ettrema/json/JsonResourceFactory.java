@@ -22,7 +22,7 @@ public class JsonResourceFactory implements ResourceFactory {
 
     public JsonResourceFactory(ResourceFactory wrapped) {
         this.wrapped = wrapped;
-        this.propFindHandler = null;
+        this.propFindHandler = new PropFindHandler(null);
     }
 
     public JsonResourceFactory(ResourceFactory wrapped, PropFindHandler propFindHandler) {

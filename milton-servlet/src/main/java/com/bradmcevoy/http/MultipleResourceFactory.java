@@ -10,9 +10,19 @@ public class MultipleResourceFactory implements ResourceFactory, Initable {
     
     private Logger log = LoggerFactory.getLogger(MultipleResourceFactory.class);
     
-    private final List<ResourceFactory> factories = new ArrayList<ResourceFactory>();
-    
+    private final List<ResourceFactory> factories;
+
+    public MultipleResourceFactory() {
+        factories = new ArrayList<ResourceFactory>();
+    }
+
+    public MultipleResourceFactory( List<ResourceFactory> factories ) {
+        this.factories = factories;
+    }
+        
+
     public Resource getResource(String host, String url) {
+        log.debug( "getResource: " + url);
         for( ResourceFactory rf : factories ) {
             Resource r = rf.getResource(host,url);
             if( r != null ) {

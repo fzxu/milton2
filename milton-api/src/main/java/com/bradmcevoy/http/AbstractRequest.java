@@ -96,7 +96,7 @@ public abstract class AbstractRequest implements Request {
         return getHeaders().get( "range" );
     }
 
-    public final String getAbsolutePath() {
+    public String getAbsolutePath() {
         return stripToPath( getAbsoluteUrl() );
     }
 

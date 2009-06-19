@@ -1,17 +1,14 @@
 package com.ettrema.ftp;
 
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
-import org.apache.ftpserver.ftplet.AuthorizationRequest;
-import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.ftplet.UserManager;
-import com.bradmcevoy.http.SecurityManager;
+import com.bradmcevoy.http.ResourceFactory;
 import org.apache.ftpserver.ftplet.Authentication;
+import org.apache.ftpserver.ftplet.AuthenticationFailedException;
+import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.User;
+import org.apache.ftpserver.ftplet.UserManager;
+import org.apache.ftpserver.usermanager.AnonymousAuthentication;
 import org.apache.ftpserver.usermanager.UsernamePasswordAuthentication;
-import org.apache.ftpserver.usermanager.impl.WriteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,68 +20,82 @@ import org.slf4j.LoggerFactory;
  *
  * @author brad
  */
-public class UserManagerAdapter implements SecurityManager{
+public class UserManagerAdapter implements UserManager {
 
     private static final Logger log = LoggerFactory.getLogger( UserManagerAdapter.class );
+    private final ResourceFactory resourceFactory;
+    private final UserService userService;
 
-    private UserManager userManager;
-    private String realm;
-
-    public UserManagerAdapter() {
+    public UserManagerAdapter( ResourceFactory resourceFactory,UserService userLocator ) {
+        this.resourceFactory = resourceFactory;
+        this.userService = userLocator;
     }
 
-    public UserManagerAdapter( UserManager userManager, String realm ) {
-        this.userManager = userManager;
-    }
-
-    public Object authenticate( String userName, String password ) {
-        User user;
-        try {
-            Authentication auth = new UsernamePasswordAuthentication( userName, password );
-            user = this.userManager.authenticate( auth );
-        } catch( FtpException ex ) {
-            log.warn( "exception loading user: " + userName, ex);
+    public MiltonUser getUserByName( String fqn ) throws FtpException {
+        NameAndAuthority naa = NameAndAuthority.parse( fqn );
+        if( naa.domain == null ) {
+            log.warn( "invalid login. no domain specified. use form: user#domain" );
             return null;
         }
-        if( user == null ) {
-            return null;
-        } else {
-            String actual = user.getPassword();
-            if( actual == null ) {
-                return password == null || password.length() == 0;
-            } else {
-                if( actual.equals( password)) {
-                    return user;
-                } else {
-                    return null;
-                }
+
+        return userService.getUserByName(naa.toMilton(), naa.domain);
+    }
+
+    public String[] getAllUserNames() throws FtpException {
+        return userService.getAllUserNames();
+    }
+
+    public void delete( String name ) throws FtpException {
+        userService.delete(name);
+    }
+
+    public void save( User user ) throws FtpException {
+        userService.save((MiltonUser) user);
+    }
+
+    public boolean doesExist( String name ) throws FtpException {
+        return userService.doesExist(name);
+    }
+
+    public User authenticate( Authentication authentication ) throws AuthenticationFailedException {
+        if( authentication instanceof UsernamePasswordAuthentication ) {
+            UsernamePasswordAuthentication upa = (UsernamePasswordAuthentication) authentication;
+            String user = upa.getUsername();
+            String password = upa.getPassword();
+            log.debug( "authenticate: " + user );
+            NameAndAuthority naa = NameAndAuthority.parse( user );
+            if( naa.domain == null ) {
+                log.warn( "invalid login. no domain specified. use form: user#domain" );
+                return null;
             }
-        }
-    }
+            Resource hostRoot = resourceFactory.getResource( naa.domain, "/" );
+            if( hostRoot == null ) {
+                log.warn( "failed to find root for domain: " + naa.domain );
+                return null;
+            }
 
-    public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
-        User user = (User) auth.getTag();
-        AuthorizationRequest authReq = new WriteRequest( request.getAbsolutePath());
-        if( user != null ) {
-            return user.authorize( authReq ) != null;
+            Object oUser = hostRoot.authenticate( naa.toMilton(), password );
+            if( oUser != null ) {
+                return new MiltonUser(oUser, naa.toMilton(), naa.domain);
+            } else {
+                log.debug( "authentication failed: " + user );
+                return null;
+            }
+        } else if( authentication instanceof AnonymousAuthentication ) {
+            log.debug( "anonymous login not supported" );
+            return null;
         } else {
-            return false;
+            log.warn( "unknown authentication type: " + authentication.getClass() );
+            return null;
         }
     }
 
-    public String getRealm() {
-        return realm;
+    public String getAdminName() throws FtpException {
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
 
-    public UserManager getUserManager() {
-        return userManager;
-    }
-
-    public void setUserManager( UserManager userManager ) {
-        this.userManager = userManager;
-    }
-
-    public void setRealm(String s) {
-        this.realm = s;
+    public boolean isAdmin( String arg0 ) throws FtpException {
+        return false;
     }
 }
+

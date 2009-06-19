@@ -20,10 +20,8 @@ import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.User;
 import org.apache.ftpserver.ftplet.UserManager;
-import org.apache.ftpserver.usermanager.PropertiesUserManagerFactory;
-import org.apache.ftpserver.usermanager.SaltedPasswordEncryptor;
-import org.apache.ftpserver.usermanager.UserManagerFactory;
-import org.apache.ftpserver.usermanager.impl.BaseUser;
+import org.apache.ftpserver.impl.DefaultFtpHandler;
+import org.apache.ftpserver.listener.ListenerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,71 +35,31 @@ public class MiltonFtpAdapter implements FileSystemFactory {
     private FtpServerFactory serverFactory;
     private final ResourceFactory resourceFactory;
     private final FtpServer server;
-    private final String host;
 
-    public MiltonFtpAdapter( String host, ResourceFactory wrapped, UserManagerFactory userManagerFactory ) throws FtpException {
-        this.host = host;
-        this.resourceFactory = wrapped;
-
-        UserManager um = userManagerFactory.createUserManager();
-
-        serverFactory = new FtpServerFactory();
-        serverFactory.setFileSystem( this );
-        serverFactory.setUserManager( um );
-        server = serverFactory.createServer();
-        server.start();
-    }
-
-    public MiltonFtpAdapter( String host, ResourceFactory wrapped, UserManager userManager ) throws FtpException {
-        this.host = host;
+    public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager,FtpActionListener actionListener ) throws FtpException {
+        log.debug("creating MiltonFtpAdapter.2");
         this.resourceFactory = wrapped;
 
         serverFactory = new FtpServerFactory();
+        log.debug( "using customised milton listener factory");
+        MiltonFtpHandler ftpHandler = new MiltonFtpHandler(new DefaultFtpHandler(),actionListener);
+        ListenerFactory factory = new MiltonListenerFactory(ftpHandler);
+        serverFactory.addListener("default", factory.createListener());
+        
         serverFactory.setFileSystem( this );
         serverFactory.setUserManager( userManager);
         server = serverFactory.createServer();
         server.start();
     }
 
-    /**
-     * Creates a user manager with one user, specified with these constructor arguments
-     *
-     * @param host
-     * @param wrapped
-     * @param userName
-     * @param password
-     * @param homeDir
-     * @throws org.apache.ftpserver.ftplet.FtpException
-     */
-    public MiltonFtpAdapter( String host, ResourceFactory wrapped, String userName, String password, String homeDir ) throws FtpException {
-        this.host = host;
-        this.resourceFactory = wrapped;
-
-        PropertiesUserManagerFactory userManagerFactory = new PropertiesUserManagerFactory();
-//        userManagerFactory.setFile(new File("c:\\users.properties"));
-        userManagerFactory.setPasswordEncryptor( new SaltedPasswordEncryptor() );
-        UserManager um = userManagerFactory.createUserManager();
-
-        BaseUser user = new BaseUser();
-        user.setName( userName );
-        user.setPassword( password );
-        user.setHomeDirectory( homeDir );
-        um.save( user );
-
-        serverFactory = new FtpServerFactory();
-        serverFactory.setFileSystem( this );
-        serverFactory.setUserManager( um );
-        server = serverFactory.createServer();
-        server.start();
-    }
-
-    public Resource getResource( Path path ) {
+    public Resource getResource( Path path, String host ) {
         return resourceFactory.getResource( host, path.toString() );
     }
 
     public FileSystemView createFileSystemView( User user ) throws FtpException {
-        Resource root = resourceFactory.getResource( host, "/" );
-        return new MiltonFsView( host, Path.root, (CollectionResource) root ,resourceFactory, (SecurityManagerAdapter.MiltonUser)user);
+        MiltonUser mu = (MiltonUser)user;
+        Resource root = resourceFactory.getResource( mu.domain, "/" );
+        return new MiltonFsView( Path.root, (CollectionResource) root ,resourceFactory, (MiltonUser)user);
     }
 
 }

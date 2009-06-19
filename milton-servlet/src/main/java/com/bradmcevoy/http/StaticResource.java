@@ -99,7 +99,8 @@ public class StaticResource implements GetableResource {
     }
 
     public Long getMaxAgeSeconds(Auth auth) {
-        return (long)60*60*24*7;
+        Long ll = 315360000l; // immutable
+        return ll;
     }
 
 }

@@ -18,7 +18,7 @@ import java.util.Date;
 /**
  *
  */
-public abstract class  FsResource implements Resource, MoveableResource, CopyableResource, LockableResource {
+public abstract class FsResource implements Resource, MoveableResource, CopyableResource, LockableResource {
     File file;
     final FileSystemResourceFactory factory;
 
@@ -34,7 +34,8 @@ public abstract class  FsResource implements Resource, MoveableResource, Copyabl
     }
     
     public String getUniqueId() {
-        return null;
+        String s = file.lastModified() + "_" + file.length();
+        return s.hashCode() + "";
     }
 
     public String getName() {

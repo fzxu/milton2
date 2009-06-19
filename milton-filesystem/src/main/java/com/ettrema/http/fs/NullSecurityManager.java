@@ -12,7 +12,7 @@ public class NullSecurityManager implements FsSecurityManager{
 
     String realm;
     
-    public Object authenticate(String user, String password) {
+    public Object authenticate(String user, String password, Resource r) {
         return user;
     }
 
@@ -26,6 +26,10 @@ public class NullSecurityManager implements FsSecurityManager{
 
     public void setRealm(String realm) {
         this.realm = realm;
+    }
+
+    public Object getUserByName( String name ) {
+        return null;
     }
 
     

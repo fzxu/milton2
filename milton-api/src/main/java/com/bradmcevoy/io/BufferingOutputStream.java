@@ -120,6 +120,21 @@ public class BufferingOutputStream extends OutputStream{
         this.runnable = r;
     }
 
+    /**
+     * returns true if the data is completely held in memory
+     *
+     * @return
+     */
+    public boolean isCompleteInMemory() {
+        return tempFile == null;
+    }
 
-
+    /**
+     * Gets the data currently held in memory
+     * 
+     * @return
+     */
+    public byte[] getInMemoryData() {
+        return this.tempMemoryBuffer.toByteArray();
+    }
 }

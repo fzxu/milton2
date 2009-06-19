@@ -23,7 +23,6 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.BufferingOutputStream;
-import com.ettrema.ftp.SecurityManagerAdapter.MiltonUser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -155,7 +154,9 @@ public class MiltonFtpFile implements FtpFile {
     public long getSize() {
         if( r instanceof GetableResource ) {
             GetableResource gr = (GetableResource) r;
-            return gr.getContentLength();
+            Long ll =  gr.getContentLength();
+            if( ll == null ) return 0;
+            return ll.longValue();
         } else {
             return 0;
         }
@@ -213,6 +214,7 @@ public class MiltonFtpFile implements FtpFile {
     }
 
     public List<FtpFile> listFiles() {
+        log.debug( "listfiles");
         List<FtpFile> list = new ArrayList<FtpFile>();
         if( r instanceof CollectionResource ) {
             CollectionResource cr = (CollectionResource) r;

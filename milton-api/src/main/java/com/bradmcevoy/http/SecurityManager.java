@@ -33,5 +33,4 @@ public interface SecurityManager {
      */
     String getRealm();
 
-    Object getUserByName(String name);
 }

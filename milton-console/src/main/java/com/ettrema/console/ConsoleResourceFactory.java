@@ -61,15 +61,14 @@ public class ConsoleResourceFactory implements ResourceFactory {
     public Resource getResource(String host, String path) {
         log.debug("path: " + path + " ::::::::::: consolePath:" + consolePath);
         if( path.startsWith(consolePath)) {
-            path = path.replace(consolePath, "");
-            Resource r = wrappedFactory.getResource(host, secureResourcePath);
+            path = stripConsolePath(path, consolePath);
+            Resource secureResource = wrappedFactory.getResource(host, secureResourcePath);
             log.debug("checking: " + path);
             if( path.endsWith("index.html")) {
-                return new SimpleResource("index.html", modDate, consolePageContent.getBytes(), "text/html", "console", null);
+                return new SimpleResource("index.html", modDate, consolePageContent.getBytes(), "text/html", "console", null, secureResource);
             } else if( path.endsWith("dojo.js")) {
-                return new SimpleResource("dojo.js", modDate, dojoJsContent.getBytes(), "text/html", "console", null);
-            } else if(  path.endsWith("console.json")) {
-                Resource secureResource = wrappedFactory.getResource(host, secureResourcePath);
+                return new SimpleResource("dojo.js", modDate, dojoJsContent.getBytes(), "text/html", "console", null, secureResource);
+            } else if(  path.endsWith("console.json")) {                
                 return new Console(host, wrappedFactory, consoleName, secureResource, modDate, mapOfFactories);
             } else {
                 return null; // 4o4
@@ -95,5 +94,9 @@ public class ConsoleResourceFactory implements ResourceFactory {
             throw new RuntimeException(ex);
         }
         return  out.toString();
+    }
+
+    static String stripConsolePath( String path, String consolePath ) {
+        return path.substring( consolePath.length() );
     }
 }

@@ -25,16 +25,21 @@ public class SimpleResource implements GetableResource{
     final String contentType;
     final String uniqueId;
     final String realm;
+    final Resource secureResource;
 
+    public SimpleResource( String name, Date modDate, byte[] content, String contentType, String uniqueId, String realm) {
+        this(name, modDate, content, contentType, uniqueId, realm, null);
 
+    }
 
-    public SimpleResource( String name, Date modDate, byte[] content, String contentType, String uniqueId, String realm ) {
+    public SimpleResource( String name, Date modDate, byte[] content, String contentType, String uniqueId, String realm, Resource secureResource ) {
         this.name = name;
         this.modDate = modDate;
         this.content = content;
         this.contentType = contentType;
         this.uniqueId = uniqueId;
         this.realm = realm;
+        this.secureResource = secureResource;
     }
 
 
@@ -64,12 +69,20 @@ public class SimpleResource implements GetableResource{
     }
 
     public Object authenticate(String user, String password) {
-        return user;
+        if( secureResource != null) {
+            return secureResource.authenticate( user, password );
+        } else {
+            return user;
+        }
 
     }
 
     public boolean authorise(Request request, Method method, Auth auth) {
-        return true;
+        if( secureResource != null ) {
+            return secureResource.authorise( request, method, auth );
+        } else {
+            return true;
+        }
     }
 
     public String getRealm() {

@@ -53,7 +53,6 @@ public class CompressingResponseHandler implements ResponseHandler {
             String contentType = r.getContentType( acceptableContentTypes );
 
             if( canCompress( r, contentType, request.getAcceptEncodingHeader() ) ) {
-                response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
 
                 // get the zipped content before sending so we can determine its
                 // compressed size
@@ -72,6 +71,7 @@ public class CompressingResponseHandler implements ResponseHandler {
 
                 log.debug( "respondContent-compressed: " + resource.getClass() );
                 DefaultResponseHandler.setRespondContentCommonHeaders( response, resource );
+                response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
                 Long contentLength = tempOut.getSize();
                 response.setContentLengthHeader( contentLength );
                 response.setContentTypeHeader( contentType );
