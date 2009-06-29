@@ -162,6 +162,7 @@ public class StreamToStream {
     }
     
     public static void close(InputStream in) {
+        if( in == null ) return ;
         try {
             in.close();
         } catch (IOException ex) {
