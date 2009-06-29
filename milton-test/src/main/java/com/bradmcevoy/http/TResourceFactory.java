@@ -21,7 +21,7 @@ public class TResourceFactory implements ResourceFactory {
         TFolderResource fSpecial = new TFolderResource(ROOT,"special chars");
         TFolderResource fSpecialSub = new TFolderResource(ROOT,"folder with ampersand &");
         new TFolderResource(fSpecial,"folder with percentage %");
-        //new TFolderResource(fSpecial,"folder with speciæl chars"); // contains ae character
+        new TFolderResource(fSpecial,"folder with speciæl chars"); // contains ae character
         file = new TTextResource(folder,"index.html","i am a web page");
         file = new TTextResource(folder,"stuff.html","");
         folder = new TFolderResource(folder,"subfolder1");
