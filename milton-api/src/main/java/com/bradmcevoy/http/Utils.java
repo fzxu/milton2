@@ -92,6 +92,7 @@ public class Utils {
         s = s.replaceAll("'", "&apos;");
         s = s.replaceAll("<", "&lt;");
         s = s.replaceAll(">", "&gt;");
+//        s = s.replaceAll("æ", "ae");
         return s;
     }
 

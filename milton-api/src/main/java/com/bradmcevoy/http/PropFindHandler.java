@@ -211,8 +211,9 @@ public class PropFindHandler extends ExistingEntityHandler {
             appendResponses( consumer, pfr, depth, requestedFields, url );
             writer.close( "D:multistatus" );
             writer.flush();
-//            log.debug( out.toString() );
-            response.getOutputStream().write( out.toByteArray() ); // note: this can and should write to the outputstream directory. but if it aint broke, dont fix it...
+            log.debug( out.toString() );
+            String xml = out.toString( "UTF-8");
+            response.getOutputStream().write( xml.getBytes() ); // note: this can and should write to the outputstream directory. but if it aint broke, dont fix it...
         } catch( IOException ex ) {
             log.warn( "ioexception sending output", ex );
         }
@@ -285,7 +286,8 @@ public class PropFindHandler extends ExistingEntityHandler {
     class DisplayNamePropertyWriter implements PropertyWriter<String> {
 
         public void append( XmlWriter writer, PropFindableResource res, String href ) {
-            sendStringProp( writer, "D:" + fieldName(), nameEncode( getValue( res,href ) ) );
+            String s = nameEncode( getValue( res,href ) );
+            sendStringProp( writer, "D:" + fieldName(), s );
         }
 
         public String getValue( PropFindableResource res, String href ) {
