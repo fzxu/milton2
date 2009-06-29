@@ -116,12 +116,13 @@ public class Console implements GetableResource, PostableResource {
         String[] arr = sCmd.split(" ");  // todo: this won't handle quoted arguments properly eg cp "a file" "another file"
         try {
             result = doCmd( currentDir, arr, host );
-        } catch( Exception e ) {
+        } catch( Throwable e ) {
             String s = "";
             for( StackTraceElement el : e.getStackTrace() ) {
                 s = s + el.getClassName() + "::" + el.getMethodName() + " (" + el.getLineNumber() + ") <br/>" ;
             }
-            result = new Result( currentDir, "Exception prcessing command: " + e.getMessage() + "<br/>" + s);
+            result = new Result( currentDir, "Exception prcessing command: " + e.getClass() + " - " + e.getMessage() + "<br/>" + s);
+            log.error( sCmd,e);
         }
         if( result == null ) {
             result = new Result( currentDir, "The command did not return a result");
