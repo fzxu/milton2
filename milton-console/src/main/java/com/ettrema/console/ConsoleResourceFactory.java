@@ -52,7 +52,7 @@ public class ConsoleResourceFactory implements ResourceFactory {
                 mapOfFactories.put(cmdName, f);
             }
         }
-        String s = loadContent("console.html");
+        String s = loadContent("/com/ettrema/console/console.html");
         s = s.replace("CONSOLE_PATH", consolePath);
         this.consolePageContent = loadContent("console.html");
         this.dojoJsContent = loadContent("dojo.js");
@@ -86,6 +86,7 @@ public class ConsoleResourceFactory implements ResourceFactory {
     private String loadContent(String name) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         InputStream in = Console.class.getResourceAsStream(name);
+        if( in == null ) throw new RuntimeException("Couldnt find resource: " + name);
         try {
             StreamToStream.readTo(in, out);
         } catch (ReadingException ex) {

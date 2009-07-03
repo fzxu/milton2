@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class Rm extends AbstractConsoleCommand {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Cd.class );
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Rm.class );
 
     public Rm( List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory ) {
         super( args, host, currentDir, resourceFactory );
