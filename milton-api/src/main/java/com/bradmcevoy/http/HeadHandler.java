@@ -1,7 +1,7 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.Request.Method;
-import java.util.Map;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 public class HeadHandler extends GetHandler {
     public HeadHandler(HttpManager manager) {
@@ -14,9 +14,13 @@ public class HeadHandler extends GetHandler {
     }
 
     @Override
-    protected void sendContent(Request request, Response response, GetableResource resource, Map<String, String> params) {
-        // do nothing
+    protected void process( HttpManager milton, Request request, Response response, Resource resource ) throws NotAuthorizedException {
+//        log.debug( "process: " + request.getAbsolutePath() );
+        GetableResource r = (GetableResource) resource;
+
+        getResponseHandler().respondHead( resource, response, request );
     }
+
 
     
 }

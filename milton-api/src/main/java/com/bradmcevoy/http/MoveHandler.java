@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.ConflictException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +46,12 @@ public class MoveHandler extends ExistingEntityHandler {
             getResponseHandler().respondConflict(resource, response, request, "Destination exists but is not a collection: " + sDest);
         } else { 
             log.debug("process: moving resource to: " + rDest.getName());
-            r.moveTo( (CollectionResource)rDest, dest.name );
-            getResponseHandler().respondCreated(resource, response, request);
+            try {
+                r.moveTo( (CollectionResource) rDest, dest.name );
+                getResponseHandler().respondCreated(resource, response, request);
+            } catch( ConflictException ex ) {
+                getResponseHandler().respondConflict( resource, response, request, sDest );
+            }
         }
         log.debug("process: finished");
     }

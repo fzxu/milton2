@@ -42,4 +42,13 @@ public interface ResponseHandler {
     void respondNotFound(Response response, Request request);
     void respondWithOptions(Resource resource, Response response,Request request, List<Method> methodsAllowed);
 
+    /**
+     * Generate a HEAD response
+     *
+     * @param resource
+     * @param response
+     * @param request
+     */
+    void respondHead( Resource resource, Response response, Request request );
+
 }

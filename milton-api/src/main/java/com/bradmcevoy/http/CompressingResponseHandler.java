@@ -171,5 +171,9 @@ public class CompressingResponseHandler implements ResponseHandler {
         return maxMemorySize;
     }
 
+    public void respondHead( Resource resource, Response response, Request request ) {
+        wrapped.respondHead( resource, response, request );
+    }
+
 
 }

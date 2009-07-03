@@ -36,12 +36,25 @@ public class DefaultResponseHandler implements ResponseHandler {
         return s;
     }
 
+    /**
+     * Defaults supported-levels to '1' meaning that locking is not supported
+     *
+     * Note that this will prevent Mac OS from creating folders.
+     *
+     */
     public DefaultResponseHandler() {
         this("1");  // no locking
     }
 
 
 
+    /**
+     *
+     * Constructor where the supported-levels can be set. Supported-levels
+     * indicates to clients whether locking is supported (1,2) or not (1)
+     *
+     * @param supportedLevels = either '1' or '1,2'
+     */
     public DefaultResponseHandler(String supportedLevels) {
         this.supportedLevels = supportedLevels;
     }
@@ -143,6 +156,24 @@ public class DefaultResponseHandler implements ResponseHandler {
             resource.sendContent(response.getOutputStream(), range, params, ct);
         } catch (IOException ex) {
             log.warn("IOException writing to output, probably client terminated connection",ex);
+        }
+    }
+
+    public void respondHead( Resource resource, Response response, Request request ) {
+        setRespondContentCommonHeaders(response, resource);
+        if( resource instanceof GetableResource ) {
+            log.debug("..is getable");
+            GetableResource gr = (GetableResource)resource;
+            Long contentLength = gr.getContentLength();
+            if (contentLength != null) { // often won't know until rendered
+                response.setContentLengthHeader(contentLength);
+            }
+            String acc = request.getAcceptHeader();
+            String ct = gr.getContentType(acc);
+            if( ct != null ) {
+                response.setContentTypeHeader(ct);
+            }
+            setCacheControl(gr, response, request.getAuthorization());
         }
     }
 
@@ -273,5 +304,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         }
         response.setLastModifiedHeader( resource.getModifiedDate() );
     }
+
+
 
 }
