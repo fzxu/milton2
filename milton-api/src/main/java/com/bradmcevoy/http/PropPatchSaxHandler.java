@@ -19,8 +19,6 @@ public class PropPatchSaxHandler extends DefaultHandler {
 
     private StringBuilder sb = new StringBuilder();
 
-    private boolean inSet;
-    private boolean inRemove;
     private boolean inProp;
 
     @Override
@@ -53,7 +51,6 @@ public class PropPatchSaxHandler extends DefaultHandler {
                 if(sb!=null) {
                     String s = sb.toString().trim();
                     attributesCurrent.put(localName,s);
-                    System.out.println(localName + " = " + s);
                 }
                 sb = new StringBuilder();
             } else if( elementPath.peek().endsWith("set") ) {
@@ -76,6 +73,4 @@ public class PropPatchSaxHandler extends DefaultHandler {
         }
         return fields;
     }
-
-
 }

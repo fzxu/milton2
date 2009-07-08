@@ -41,7 +41,7 @@ public class BufferingOutputStreamTest extends TestCase {
 
         InputStream in = out.getInputStream();
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
-        StreamToStream.readTo( in, out2 );
+        StreamUtils.readTo( in, out2 );
         byte[] arr = out2.toByteArray();
         assertEquals( 9, arr.length);
 
@@ -56,7 +56,7 @@ public class BufferingOutputStreamTest extends TestCase {
         out.close();
         InputStream in = out.getInputStream();
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
-        StreamToStream.readTo( in, out2 );
+        StreamUtils.readTo( in, out2 );
         byte[] arr = out2.toByteArray();
         assertEquals( 10, arr.length);
     }

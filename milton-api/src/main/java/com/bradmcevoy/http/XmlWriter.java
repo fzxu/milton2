@@ -49,10 +49,14 @@ public class XmlWriter {
 
     }
 
-    public void writeProperty(String namespace, String name, String value) {
-        writeElement(namespace, name, Type.OPENING);
-        append(value);
-        writeElement(namespace, name, Type.CLOSING);
+    public void writeProperty(String namespace, String name, String value) {        
+        if( value == null ) {
+            writeProperty( namespace, name );
+        } else {
+            writeElement(namespace, name, Type.OPENING);
+            append(value);
+            writeElement(namespace, name, Type.CLOSING);
+        }
     }
 
 

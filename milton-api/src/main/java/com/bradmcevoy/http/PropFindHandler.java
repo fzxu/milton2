@@ -23,7 +23,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.XmlWriter.Element;
-import com.bradmcevoy.io.StreamToStream;
+import com.bradmcevoy.io.StreamUtils;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 
@@ -254,7 +254,7 @@ public class PropFindHandler extends ExistingEntityHandler {
         final Set<String> set = new LinkedHashSet<String>();
         InputStream in = request.getInputStream();
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        StreamToStream.readTo( in, bout, false, true );
+        StreamUtils.readTo( in, bout, false, true );
         byte[] arr = bout.toByteArray();
         if( arr.length > 1 ) {
             ByteArrayInputStream bin = new ByteArrayInputStream( arr );

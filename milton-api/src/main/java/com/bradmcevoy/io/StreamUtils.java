@@ -11,12 +11,12 @@ import java.io.OutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StreamToStream {
+public class StreamUtils {
     
-    private static Logger log = LoggerFactory.getLogger(StreamToStream.class);
+    private static Logger log = LoggerFactory.getLogger(StreamUtils.class);
 
     
-    private StreamToStream() {
+    private StreamUtils() {
     }
 
     private static void skip(InputStream in, Long start) {
@@ -116,6 +116,9 @@ public class StreamToStream {
                 s = in.read(buf);
             } catch (IOException ex) {
                 throw new ReadingException(ex);
+            } catch (NullPointerException e) {
+                log.debug( "nullpointer exception reading input stream. it happens for sun.nio.ch.ChannelInputStream.read(ChannelInputStream.java:48)");
+                return cnt;
             }
             long numBytes = 0;
             while( s > 0 ) {

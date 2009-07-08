@@ -5,7 +5,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.BufferingOutputStream;
 import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.ReadingException;
-import com.bradmcevoy.io.StreamToStream;
+import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
 import java.io.OutputStream;
 import java.util.List;
@@ -77,7 +77,7 @@ public class CompressingResponseHandler implements ResponseHandler {
                 response.setContentTypeHeader( contentType );
                 DefaultResponseHandler.setCacheControl( r, response, request.getAuthorization() );
                 try {
-                    StreamToStream.readTo( tempOut.getInputStream(), response.getOutputStream() );
+                    StreamUtils.readTo( tempOut.getInputStream(), response.getOutputStream() );
                 } catch( ReadingException ex ) {
                     throw new RuntimeException( ex );
                 } catch( WritingException ex ) {

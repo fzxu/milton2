@@ -39,7 +39,7 @@ public class FileUtils {
     
     public static ByteArrayOutputStream readIn(InputStream is) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        StreamToStream.readTo(is, os, true,true);
+        StreamUtils.readTo(is, os, true,true);
         return os;
     }
 

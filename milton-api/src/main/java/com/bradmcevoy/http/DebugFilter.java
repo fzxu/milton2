@@ -3,7 +3,7 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.Request.Header;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
-import com.bradmcevoy.io.StreamToStream;
+import com.bradmcevoy.io.StreamUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -132,7 +132,7 @@ public class DebugFilter implements Filter{
             this.r = r;
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             try {
-                StreamToStream.readTo(r.getInputStream(), out);
+                StreamUtils.readTo(r.getInputStream(), out);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
