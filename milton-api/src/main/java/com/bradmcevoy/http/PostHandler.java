@@ -3,6 +3,7 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.Request.Method;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -30,7 +31,8 @@ public class PostHandler extends ExistingEntityHandler {
     @Override
     protected void process(HttpManager milton, Request request, Response response, Resource resource) throws NotAuthorizedException {
         PostableResource r = (PostableResource) resource;
-        Map<String, String> params = new HashMap<String,String>();
+        // need a linked hash map to preserve ordering of params
+        Map<String, String> params = new LinkedHashMap<String, String>();
         Map<String, FileItem> files = new HashMap<String,FileItem>();
         try {
             request.parseRequestParameters(params,files);
