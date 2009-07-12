@@ -1,6 +1,6 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.io.StreamToStream;
+import com.bradmcevoy.io.StreamUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +69,7 @@ public class TFolderResource extends TTextResource implements PutableResource, M
     
     static ByteArrayOutputStream readStream(final InputStream in) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        StreamToStream.readTo(in, bos);
+        StreamUtils.readTo(in, bos);
         return bos;
     }
     
