@@ -5,7 +5,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.SimpleResource;
 import com.bradmcevoy.io.ReadingException;
-import com.bradmcevoy.io.StreamToStream;
+import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -88,7 +88,7 @@ public class ConsoleResourceFactory implements ResourceFactory {
         InputStream in = Console.class.getResourceAsStream(name);
         if( in == null ) throw new RuntimeException("Couldnt find resource: " + name);
         try {
-            StreamToStream.readTo(in, out);
+            StreamUtils.readTo(in, out);
         } catch (ReadingException ex) {
             throw new RuntimeException(ex);
         } catch (WritingException ex) {
