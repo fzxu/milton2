@@ -3,6 +3,7 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import java.util.regex.Matcher;
@@ -27,7 +28,9 @@ public class GetHandler extends ExistingEntityHandler {
             return;
         }
 
-        Map<String, String> params = new HashMap<String, String>();
+        // need a linked hash map to preserve ordering of params
+        Map<String, String> params = new LinkedHashMap<String, String>();
+
         Map<String, FileItem> files = new HashMap<String, FileItem>();
 
         try {
