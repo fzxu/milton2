@@ -30,6 +30,7 @@ public class MoveHandler extends ExistingEntityHandler {
     protected void process(HttpManager milton, Request request, Response response, Resource resource) {        
         MoveableResource r = (MoveableResource) resource;
         String sDest = request.getDestinationHeader();
+        sDest = HttpManager.decodeUrl(sDest);
         log.debug("dest header1: " + sDest);
         URI destUri = URI.create(sDest);
         sDest = destUri.getPath();

@@ -11,6 +11,13 @@ public class HttpManager {
 
     private static final Logger log = LoggerFactory.getLogger(HttpManager.class);
 
+    public static String decodeUrl(String s) {
+            return Utils.decodePath(s);
+    }
+
+
+    
+
     private static final ThreadLocal<Request> tlRequest = new ThreadLocal<Request>();
     private static final ThreadLocal<Response> tlResponse = new ThreadLocal<Response>();
 
@@ -225,11 +232,7 @@ public class HttpManager {
     protected UnlockHandler createUnlockHandler() {
         return new UnlockHandler(this);
     }
-    
-    public static String decodeUrl(String s) {
-            return Utils.decodePath(s);
-    }
-    
+        
     public void addFilter(int pos, Filter filter) {
         filters.add(pos,filter);
     }
