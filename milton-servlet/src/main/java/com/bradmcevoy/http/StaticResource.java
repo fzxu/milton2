@@ -103,4 +103,9 @@ public class StaticResource implements GetableResource {
         return ll;
     }
 
+	public LockToken getLockToken()
+	{
+		return null;
+	}
+
 }

@@ -1,11 +1,16 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.Request.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 
 public class DeleteHandler extends ExistingEntityHandler {
@@ -27,8 +32,42 @@ public class DeleteHandler extends ExistingEntityHandler {
     }        
 
     @Override
+    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
+        String host = request.getHostHeader();
+        String url = HttpManager.decodeUrl(request.getAbsolutePath());
+
+        Resource r = manager.getResourceFactory().getResource(host, url);
+        if (r != null) {
+            processResource(manager, request, response, r);
+        } else {            
+            //Might be a permission thing
+        	Path col = Path.path(url).getParent();
+        	Resource parent = manager.getResourceFactory().getResource(host, col.toPath());
+        	if( isLockedOut(request, parent))
+        	{
+        		response.setStatus(Status.SC_LOCKED);
+        		return;
+        	}
+        	log.error( "404: in delete" + url);
+        	respondNotFound(response, request);
+        }
+    }
+
+
+    @Override
     protected void process(HttpManager milton, Request request, Response response, Resource resource) {
         log.debug("DELETE: " + request.getAbsoluteUrl());
+
+        //check that no children are locked
+        //checkForLock(resource, request);
+        if( isLockedOut(request, resource))
+        {
+        	log.info("Could not delete. Is locked");
+            response.setStatus(Status.SC_LOCKED);
+            return;
+        }
+        
+        
         DeletableResource r = (DeletableResource) resource;
         try {
             delete( r );

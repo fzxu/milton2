@@ -1,9 +1,10 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.bradmcevoy.http.Request.Method;
 import java.util.List;
 import java.util.Map;
+
+import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 /**
  *  The ResponseHandler should handle all responses back to the client.

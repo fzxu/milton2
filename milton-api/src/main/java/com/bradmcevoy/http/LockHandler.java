@@ -1,16 +1,18 @@
 
 package com.bradmcevoy.http;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
+
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.LockInfo.LockScope;
 import com.bradmcevoy.http.LockInfo.LockType;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 /**
  * Note that this is both a new entity handler and an existing entity handler
@@ -101,7 +103,9 @@ public class LockHandler extends Handler {
             processCreateAndLock(request,response,r, name);
         } else {
             log.debug("couldnt find parent to execute lock-null, returning not found");
-            respondNotFound(response,request);
+            //respondNotFound(response,request);
+            response.setStatus(Status.SC_CONFLICT);
+
         }
     }
 
@@ -154,6 +158,12 @@ public class LockHandler extends Handler {
         } catch (IOException ex) {
             throw new RuntimeException("Exception reading request body", ex);
         }
+
+       	if( isLockedOut( request, r ))
+    	{
+    		response.setStatus(Status.SC_LOCKED);
+    		return;
+    	}
 
         // todo: check if already locked and return 423 locked or 412-precondition failed
         // also must support multi-status. when locking a collection and a DEPTH > 1, must lock all

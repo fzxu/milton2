@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,13 +54,25 @@ public abstract class AbstractResponse implements Response {
 
     public void setContentRangeHeader(long start, long finish, Long totalLength) {
         String l = totalLength == null ? "*" : totalLength.toString();
-        String s = "bytes " + start + "-" + finish + "/" + l;
+
+        String s = null;
+        if( finish > -1)
+        {
+        s = "bytes " + start + "-" + finish + "/" + l;
+        }
+        else
+        {
+        	long wrotetill = totalLength.longValue() - 1;
+        	//The end position starts counting at zero. So subtract 1
+            s = "bytes " + start + "-" + wrotetill + "/" + l;
+        }
+ 
+        
         setResponseHeader(Header.CONTENT_RANGE, s);
     }
 
     public void setContentLengthHeader(Long totalLength) {
         String s = totalLength == null ? "" : totalLength.toString();
-        log.debug("setting content length: " + s );
         setResponseHeader(Header.CONTENT_LENGTH, s);
         this.contentLength = totalLength;
         

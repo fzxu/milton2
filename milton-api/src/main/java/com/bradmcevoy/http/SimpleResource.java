@@ -1,12 +1,14 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.Request.Method;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bradmcevoy.http.Request.Method;
 
 /**
  * A very simple resource implementation, which simply takes parameters in the
@@ -96,4 +98,5 @@ public class SimpleResource implements GetableResource{
     public String checkRedirect(Request request) {
         return null;
     }
+    
 }

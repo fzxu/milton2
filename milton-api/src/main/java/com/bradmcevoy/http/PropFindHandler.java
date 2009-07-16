@@ -1,9 +1,11 @@
 package com.bradmcevoy.http;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -24,8 +26,6 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.XmlWriter.Element;
 import com.bradmcevoy.io.StreamUtils;
-import java.io.ByteArrayInputStream;
-import java.net.URI;
 
 public class PropFindHandler extends ExistingEntityHandler {
 

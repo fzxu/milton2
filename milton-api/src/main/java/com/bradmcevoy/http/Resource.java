@@ -84,5 +84,5 @@ public interface Resource {
      *  Return null for no redirect
      */
     abstract String checkRedirect(Request request);
-    
+
 }

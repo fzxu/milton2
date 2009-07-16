@@ -1,10 +1,5 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.XmlWriter.Element;
-import com.bradmcevoy.io.ReadingException;
-import com.bradmcevoy.io.StreamUtils;
-import com.bradmcevoy.io.WritingException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -15,12 +10,20 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
+
+import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.XmlWriter.Element;
+import com.bradmcevoy.io.ReadingException;
+import com.bradmcevoy.io.StreamUtils;
+import com.bradmcevoy.io.WritingException;
 
 /**
  * Example request (from ms office)
@@ -112,7 +115,13 @@ public class PropPatchHandler extends ExistingEntityHandler {
 
     protected void process( HttpManager milton, Request request, Response response, Resource resource ) {
         log.debug( "process" );
-        System.out.println( "process" );
+
+       	if( isLockedOut(request, resource))
+    	{
+    		response.setStatus(Status.SC_LOCKED);
+    		return;
+    	}
+ 
         PropPatchableResource patchable = (PropPatchableResource) resource;
         // todo: check if token header
         try {
@@ -173,7 +182,7 @@ public class PropPatchHandler extends ExistingEntityHandler {
 
     public static class Field {
 
-        final String name;
+        public final String name;
         String namespaceUri;
 
         public Field( String name ) {
@@ -191,7 +200,7 @@ public class PropPatchHandler extends ExistingEntityHandler {
 
     public static class SetField extends Field {
 
-        final String value;
+    	public final String value;
 
         public SetField( String name, String value ) {
             super( name );
@@ -204,11 +213,11 @@ public class PropPatchHandler extends ExistingEntityHandler {
         /**
          * fields to remove
          */
-        final List<Field> removeFields = new ArrayList<Field>();
+       public  final List<Field> removeFields = new ArrayList<Field>();
         /**
          * fields to set to a value
          */
-        final List<SetField> setFields = new ArrayList<PropPatchHandler.SetField>();
+        public final List<SetField> setFields = new ArrayList<PropPatchHandler.SetField>();
 
         private int size() {
             return removeFields.size() + setFields.size();

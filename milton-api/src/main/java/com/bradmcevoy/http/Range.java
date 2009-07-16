@@ -1,11 +1,15 @@
 package com.bradmcevoy.http;
-
+ 
 
 
 public class Range {
-    final long start;
-    final long finish;
+    long start;
+    long finish;
     
+    public Range()
+	{
+	}
+
     public Range(long start, long finish) {
         this.start = start;
         this.finish = finish;

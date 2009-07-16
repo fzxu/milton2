@@ -4,6 +4,7 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.ettrema.ftp.MiltonUser;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,10 @@ public class SimpleSecurityManager implements FsSecurityManager{
 
     public Object authenticate( String user, String password ) {
         log.debug( "authenticate: " + user + " - " + password);
+        // user name will include domain when coming form ftp. we just strip it off
+        if( user.contains( "@")) {
+            user = user.substring( 0, user.indexOf( "@"));
+        }
         String actualPassword = nameAndPasswords.get( user );
         if( actualPassword == null ) {
             log.debug( "user not found: " + user);
@@ -72,6 +77,29 @@ public class SimpleSecurityManager implements FsSecurityManager{
 
     public void setNameAndPasswords( Map<String, String> nameAndPasswords ) {
         this.nameAndPasswords = nameAndPasswords;
+    }
+
+    public void delete( String name ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
+    }
+
+    public boolean doesExist( String name ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
+    }
+
+    public String[] getAllUserNames() {
+        throw new UnsupportedOperationException( "Not supported yet." );
+    }
+
+    public MiltonUser getUserByName( String name, String domain ) {
+        log.debug( "getUserByName: " + name + " - " + domain);
+        String actualPassword = nameAndPasswords.get( name );
+        if( actualPassword == null ) return null;
+        return new MiltonUser( name, name, domain );
+    }
+
+    public void save( MiltonUser user ) {
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
     
 

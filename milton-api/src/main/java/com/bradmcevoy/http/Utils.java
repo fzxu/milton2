@@ -1,6 +1,5 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.common.Path;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
@@ -8,7 +7,10 @@ import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.util.Calendar;
 import java.util.Date;
+
 import sun.nio.cs.ThreadLocalCoders;
+
+import com.bradmcevoy.common.Path;
 
 public class Utils {
 

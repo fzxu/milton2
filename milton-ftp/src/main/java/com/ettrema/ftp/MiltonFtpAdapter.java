@@ -36,15 +36,21 @@ public class MiltonFtpAdapter implements FileSystemFactory {
     private final ResourceFactory resourceFactory;
     private final FtpServer server;
 
+    public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager ) throws FtpException {
+        this(wrapped, userManager, null );
+    }
+
     public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager,FtpActionListener actionListener ) throws FtpException {
         log.debug("creating MiltonFtpAdapter.2");
         this.resourceFactory = wrapped;
 
         serverFactory = new FtpServerFactory();
-        log.debug( "using customised milton listener factory");
-        MiltonFtpHandler ftpHandler = new MiltonFtpHandler(new DefaultFtpHandler(),actionListener);
-        ListenerFactory factory = new MiltonListenerFactory(ftpHandler);
-        serverFactory.addListener("default", factory.createListener());
+        if( actionListener != null ) {
+            log.debug( "using customised milton listener factory");
+            MiltonFtpHandler ftpHandler = new MiltonFtpHandler(new DefaultFtpHandler(),actionListener);
+            ListenerFactory factory = new MiltonListenerFactory(ftpHandler);
+            serverFactory.addListener("default", factory.createListener());
+        }
         
         serverFactory.setFileSystem( this );
         serverFactory.setUserManager( userManager);

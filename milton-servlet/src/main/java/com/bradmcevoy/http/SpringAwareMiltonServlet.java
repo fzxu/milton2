@@ -1,6 +1,7 @@
 package com.bradmcevoy.http;
 
 import java.io.IOException;
+
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;

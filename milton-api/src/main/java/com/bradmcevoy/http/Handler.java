@@ -1,11 +1,12 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.bradmcevoy.http.exceptions.ConflictException;
 import java.io.PrintWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 public abstract class Handler {
     
@@ -90,6 +91,36 @@ public abstract class Handler {
         pw.print(s);
         pw.flush();
     }
-        
+ 
+	protected boolean isLockedOut(Request inRequest, Resource inResource)
+	{
+		if( inResource == null || !(inResource instanceof LockableResource))
+		{
+			return false;
+		}
+		LockableResource lr = (LockableResource)inResource;
+		LockToken token = lr.getCurrentLock();
+		if( token != null)
+		{
+			Auth auth = inRequest.getAuthorization();
+			String owner = token.info.owner;
+			if( !owner.equals(auth.getUser()))
+			{
+	    	    log.info("fail: lock owned by: " + owner + " not by " + auth.getUser());
+	    	    String value = inRequest.getHeaders().get("If");
+	    	    if( value != null)
+	    	    {
+	    	    	if( value.contains("opaquelocktoken:" + token.tokenId + ">") )
+	    	    	{
+	    	    		log.info("Contained valid token. so is unlocked");
+	    	    		return false;
+	    	    	}
+	    	    }
+				return true;
+			}
+		}
+		return false;
+	}
+
     
 }

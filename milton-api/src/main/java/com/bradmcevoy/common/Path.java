@@ -160,13 +160,20 @@ public class Path implements Serializable {
         return ((parent==null)&&(name==null));
     }
     
-    @Override
-    public String toString() {
+    public String toPath()
+    {
         if( isRoot() ) return "";
         if( parent == null ) return name;
         return parent.toString() + '/' + name;
     }
+    
+    @Override
+    public String toString() 
+    {
+    	return toPath();
+    }
 
+    
     public String toString(String delimiter) {
         if( parent == null ) return "";
         if( parent == null ) return name;

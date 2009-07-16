@@ -1,9 +1,10 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 public interface GetableResource extends Resource {
     /**

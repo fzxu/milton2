@@ -1,5 +1,13 @@
 package com.bradmcevoy.http;
 
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.GZIPOutputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.BufferingOutputStream;
@@ -7,12 +15,6 @@ import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.GZIPOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Response Handler which wraps another, and compresses content if appropriate

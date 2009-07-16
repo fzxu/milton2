@@ -1,14 +1,16 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.common.ContentTypeUtils;
-import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.exceptions.ConflictException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bradmcevoy.common.ContentTypeUtils;
+import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 
 public class PutHandler extends Handler {
@@ -31,7 +33,8 @@ public class PutHandler extends Handler {
 
     @Override
     public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
-        String host = request.getHostHeader();
+
+    	String host = request.getHostHeader();
         String urlToCreateOrUpdate = HttpManager.decodeUrl(request.getAbsolutePath());
         log.debug("process request: host: " + host + " url: " + urlToCreateOrUpdate);
 
@@ -40,6 +43,17 @@ public class PutHandler extends Handler {
 
         Resource existingResource = manager.getResourceFactory().getResource(host, urlToCreateOrUpdate);
         ReplaceableResource replacee;
+        
+        if( existingResource != null)
+        {
+        	//Make sure the parent collection is not locked by someone else
+        	if( isLockedOut(request, existingResource))
+        	{
+        		response.setStatus(Status.SC_LOCKED); //423
+        		return;
+        	}
+
+        }
         if( existingResource != null && existingResource instanceof ReplaceableResource ) {
             replacee = (ReplaceableResource) existingResource;
         } else {
@@ -47,7 +61,8 @@ public class PutHandler extends Handler {
         }
 
         if( replacee != null ) {
-            processReplace(request,response,(ReplaceableResource)existingResource);
+        
+        	processReplace(request,response,(ReplaceableResource)existingResource);
         } else {
             // either no existing resource, or its not replaceable. check for folder
             String urlFolder = path.getParent().toString();
@@ -56,7 +71,15 @@ public class PutHandler extends Handler {
             if( folderResource != null ) {
                 log.debug("found folder: " + urlFolder);
                 if( folderResource instanceof PutableResource ) {
-                    PutableResource putableResource = (PutableResource) folderResource;
+
+                	//Make sure the parent collection is not locked by someone else
+                	if( isLockedOut(request, folderResource))
+                	{
+                		response.setStatus(Status.SC_LOCKED); //423
+                		return;
+                	}
+
+                	PutableResource putableResource = (PutableResource) folderResource;
                     processCreate(manager, request, response, (PutableResource)putableResource, nameToCreate);
                 } else {
                     manager.getResponseHandler().respondMethodNotImplemented(folderResource, response, request);
@@ -68,7 +91,9 @@ public class PutHandler extends Handler {
     }
 
     protected void processCreate(HttpManager milton, Request request, Response response, PutableResource folder, String newName) {
-        log.debug("processCreate: " + newName + " in " + folder.getName());
+
+    	
+    	log.debug("processCreate: " + newName + " in " + folder.getName());
         if( !checkAuthorisation(folder,request) ) {
             respondUnauthorised(folder,response,request);
             return ;

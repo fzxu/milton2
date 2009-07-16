@@ -86,14 +86,14 @@
     <bean id="milton.debug.filter" class="com.bradmcevoy.http.DebugFilter" />
 
     <!-- Adapts the specified milton security manager to the FTP server -->
-    <bean id="ftp.user.manager" class="com.ettrema.ftp.SecurityManagerAdapter">
+    <bean id="ftp.user.manager" class="com.ettrema.ftp.UserManagerAdapter">
+        <constructor-arg ref="filesystem.resource.factory"/>
         <constructor-arg ref="milton.fs.security.manager"/>
     </bean>
 
     <!-- This server will provide access to the same resources available on webdav
     via FTP -->
     <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter">
-        <constructor-arg value="localhost"/>
         <constructor-arg ref="filesystem.resource.factory"/>
         <constructor-arg ref="ftp.user.manager"/>
     </bean>

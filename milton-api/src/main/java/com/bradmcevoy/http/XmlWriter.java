@@ -1,6 +1,5 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.io.FileUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -11,6 +10,8 @@ import java.io.Writer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bradmcevoy.io.FileUtils;
 
 public class XmlWriter {
     private Logger log = LoggerFactory.getLogger(XmlWriter.class);
