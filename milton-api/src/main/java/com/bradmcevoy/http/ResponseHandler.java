@@ -52,4 +52,9 @@ public interface ResponseHandler {
      */
     void respondHead( Resource resource, Response response, Request request );
 
+    /**
+     * Response with a 417
+     */
+    void respondExpectationFailed(Response response, Request request);
+
 }

@@ -33,6 +33,9 @@ public class PutHandler extends Handler {
 
     @Override
     public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
+        if( !checkExpects( request, response )) {
+            return ;
+        }
 
     	String host = request.getHostHeader();
         String urlToCreateOrUpdate = HttpManager.decodeUrl(request.getAbsolutePath());
@@ -69,7 +72,9 @@ public class PutHandler extends Handler {
             String nameToCreate = path.getName();
             CollectionResource folderResource = findOrCreateFolders(host, path.getParent());
             if( folderResource != null ) {
-                log.debug("found folder: " + urlFolder);
+                if( log.isDebugEnabled() ) {
+                    log.debug("found folder: " + urlFolder + " - " + folderResource.getClass());
+                }
                 if( folderResource instanceof PutableResource ) {
 
                 	//Make sure the parent collection is not locked by someone else

@@ -24,6 +24,9 @@ public abstract class ExistingEntityHandler extends Handler {
 
     @Override
     public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
+        if( !checkExpects( request, response )) {
+            return ;
+        }
         String host = request.getHostHeader();
         String url = HttpManager.decodeUrl(request.getAbsolutePath());
         log.debug("find resource: " + url);

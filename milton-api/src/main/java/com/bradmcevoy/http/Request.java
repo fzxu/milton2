@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.Map;
 
 public interface Request {
+
     enum Depth {
         ZERO,
         ONE,
@@ -48,7 +49,8 @@ public interface Request {
         RANGE("Range"),
         ACCEPT_ENCODING("Accept-Encoding"),
         TIMEOUT("Timeout"),
-        LOCK_TOKEN("Lock-Token"),        
+        LOCK_TOKEN("Lock-Token"),
+        EXPECT("Expect"),
         AUTHORIZATION("Authorization");
         
             
@@ -121,6 +123,8 @@ public interface Request {
     String getHostHeader();
 
     String getDestinationHeader();
+
+    String getExpectHeader();
     
     InputStream getInputStream() throws IOException;
     

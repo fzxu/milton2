@@ -119,17 +119,15 @@ public class Utils {
 
         // First check whether we actually need to encode
         for (int i = 0;;) {
-            if (s.charAt(i) >= '\u0080' || s.charAt(i) <= (char)48) {
+            char b = s.charAt( i );
+            if (b >= '\u0080' || b <= (char)48 || isSquareBracket( b)) {
                 break;
             }
             if (++i >= n) {
                 return s;
             }
         }
-
         
-        // this normalizer thing is probably very important, but its not in jdk1.5
-        // and the tests work without it, so what the heck..
         String ns = normalize(s);
         ByteBuffer bb = null;
         try {
@@ -141,13 +139,17 @@ public class Utils {
         StringBuffer sb = new StringBuffer();
         while (bb.hasRemaining()) {
             int b = bb.get() & 0xff;
-            if (b >= 0x80 || b < (char)48 && b != '.' && b != '-') {
+            if ((b >= 0x80 || b < (char)48 || isSquareBracket(b)) && (b != '.' && b != '-')) {
                 appendEscape(sb, (byte) b);
             } else {
                 sb.append((char) b);
             }
         }
         return sb.toString();
+    }
+
+    private static boolean isSquareBracket(int b) {
+        return b == 0x5B || b == 0x5D;
     }
 
     private static void appendEscape(StringBuffer sb, byte b) {

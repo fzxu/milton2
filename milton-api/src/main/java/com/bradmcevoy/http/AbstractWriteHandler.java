@@ -2,7 +2,11 @@ package com.bradmcevoy.http;
 
 
 
-
+/**
+ * Not sure what this class is all about...
+ *
+ * @param <T>
+ */
 abstract class AbstractWriteHandler<T extends Resource> extends Handler {
     public AbstractWriteHandler(HttpManager manager) {
         super(manager);

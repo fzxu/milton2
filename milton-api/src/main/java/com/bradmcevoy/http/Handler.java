@@ -36,6 +36,24 @@ public abstract class Handler {
         return manager.getResponseHandler();
     }
 
+    /**
+     * Checks the expect header, and responds if necessary
+     * 
+     * @param resource
+     * @param request
+     * @param response
+     * @return - true if the expect header is ok
+     */
+    protected boolean checkExpects( Request request, Response response) {
+        String s = request.getExpectHeader(); 
+        if( s != null && s.length() > 0 ) {
+            getResponseHandler().respondExpectationFailed(response, request );
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     protected boolean checkAuthorisation(Resource handler, Request request) {
         Auth auth = request.getAuthorization();
         if( auth != null ) {

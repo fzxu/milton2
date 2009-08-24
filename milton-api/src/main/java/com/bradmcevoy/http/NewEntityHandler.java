@@ -10,7 +10,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 public abstract class NewEntityHandler extends Handler {
     
-    private Logger log = LoggerFactory.getLogger(NewEntityHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(NewEntityHandler.class);
     
     public NewEntityHandler(HttpManager manager) {
         super(manager);
@@ -25,6 +25,9 @@ public abstract class NewEntityHandler extends Handler {
     //Had to override this to get access to the parent resource for lock testing
     @Override
     public void process(HttpManager manager, Request request, Response response) throws ConflictException, NotAuthorizedException {
+        if( !checkExpects( request, response )) {
+            return ;
+        }
         String host = request.getHostHeader();
         String finalurl = HttpManager.decodeUrl(request.getAbsolutePath());
         String name;

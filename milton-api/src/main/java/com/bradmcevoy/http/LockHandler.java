@@ -29,6 +29,10 @@ public class LockHandler extends Handler {
     
     @Override
     public void process(HttpManager manager, Request request, Response response) {
+        if( !checkExpects( request, response )) {
+            return ;
+        }
+
         String host = request.getHostHeader();
         String url = HttpManager.decodeUrl(request.getAbsolutePath());
 

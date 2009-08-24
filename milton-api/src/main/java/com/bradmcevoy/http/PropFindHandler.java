@@ -157,7 +157,7 @@ public class PropFindHandler extends ExistingEntityHandler {
     }
 
     void sendResponse( PropertyConsumer consumer, PropFindableResource resource, Set<String> requestedFields, String href, int requestedDepth, int currentDepth, String collectionHref ) {
-
+        collectionHref = suffixSlash( collectionHref );
         final Set<PropertyWriter> unknownProperties = new HashSet<PropertyWriter>();
         final Set<PropertyWriter> knownProperties = new HashSet<PropertyWriter>();
         if( resource instanceof CollectionResource ) {

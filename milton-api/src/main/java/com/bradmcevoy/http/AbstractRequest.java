@@ -24,6 +24,10 @@ public abstract class AbstractRequest implements Request {
         }
     }
 
+    public String getExpectHeader() {
+        return getRequestHeader( Request.Header.EXPECT );
+    }
+
     public String getAcceptHeader() {
         return getRequestHeader( Request.Header.ACCEPT );
     }

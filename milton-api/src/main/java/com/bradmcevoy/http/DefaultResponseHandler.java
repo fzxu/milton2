@@ -16,7 +16,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 /**
  *
  */
-public class DefaultResponseHandler implements ResponseHandler {
+public class DefaultResponseHandler implements ResponseHandler { 
 
     private static final Logger log = LoggerFactory.getLogger(DefaultResponseHandler.class);
 
@@ -136,6 +136,12 @@ public class DefaultResponseHandler implements ResponseHandler {
         response.setLocationHeader(redirectUrl);
     }
 
+    public void respondExpectationFailed(Response response, Request request) {
+        response.setStatus( Response.Status.SC_EXPECTATION_FAILED );
+    }
+
+
+
     public void respondCreated(Resource resource, Response response, Request request) {
         log.debug("respondCreated");
         response.setStatus(Response.Status.SC_CREATED);
@@ -168,21 +174,7 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
     public void respondHead( Resource resource, Response response, Request request ) {
-        setRespondContentCommonHeaders(response, resource);
-        if( resource instanceof GetableResource ) {
-            log.debug("..is getable");
-            GetableResource gr = (GetableResource)resource;
-            Long contentLength = gr.getContentLength();
-            if (contentLength != null) { // often won't know until rendered
-                response.setContentLengthHeader(contentLength);
-            }
-            String acc = request.getAcceptHeader();
-            String ct = gr.getContentType(acc);
-            if( ct != null ) {
-                response.setContentTypeHeader(ct);
-            }
-            setCacheControl(gr, response, request.getAuthorization());
-        }
+        setRespondContentCommonHeaders(response, resource, Response.Status.SC_NO_CONTENT);
     }
 
     public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException{
@@ -295,7 +287,11 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
     public static void setRespondContentCommonHeaders( Response response, Resource resource ) {
-        response.setStatus( Response.Status.SC_OK );
+        setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK );
+    }
+
+    public static void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status ) {
+        response.setStatus( status );
         response.setDateHeader( new Date() );
         String etag = generateEtag( resource );
         if( etag != null ) {

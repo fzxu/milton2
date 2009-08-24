@@ -80,6 +80,7 @@ public interface Response {
         SC_CREATED( ResponseStatus.SC_CREATED ),
         SC_ACCEPTED( ResponseStatus.SC_ACCEPTED),
         SC_NO_CONTENT( ResponseStatus.SC_NO_CONTENT),
+        SC_MULTI_STATUS(207),
         SC_MOVED_PERMANENTLY( ResponseStatus.SC_MOVED_PERMANENTLY),
         SC_MOVED_TEMPORARILY( ResponseStatus.SC_MOVED_TEMPORARILY),
         SC_NOT_MODIFIED( ResponseStatus.SC_NOT_MODIFIED),
@@ -98,7 +99,7 @@ public interface Response {
         SC_PRECONDITION_FAILED( 412),
         SC_REQUEST_TOO_LONG( 413),
         SC_UNSUPPORTED_MEDIA_TYPE( 415),
-        SC_MULTI_STATUS(207),
+        SC_EXPECTATION_FAILED(ResponseStatus.SC_EXPECTATION_FAILED), // 417
         SC_UNPROCESSABLE_ENTITY( 418),
         SC_INSUFFICIENT_SPACE_ON_RESOURCE( 419),
         SC_METHOD_FAILURE( 420),
