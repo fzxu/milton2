@@ -1,7 +1,7 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.PropPatchHandler.Fields;
-import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Request.Method; 
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
