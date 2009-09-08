@@ -33,6 +33,7 @@ public class Utils {
      * @return
      */
     public static String decodePath(String href) {
+        href = href.replace( "[", "%5B").replace( "]", "%5D");
         try {
             if( href.startsWith("/")) {
                 URI uri = new URI("http://anything.com" + href);

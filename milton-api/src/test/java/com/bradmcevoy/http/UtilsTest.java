@@ -54,4 +54,12 @@ public class UtilsTest extends TestCase {
         assertEquals( "/with space", result );
 
     }
+
+    public void testDecodeHref_WithSquareBrackets() {
+        String href = "/a[b]";
+        String result = Utils.decodePath( href );
+        assertEquals( "/a[b]", result );
+
+    }
+
 }
