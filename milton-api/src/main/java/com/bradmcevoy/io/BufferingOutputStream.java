@@ -34,9 +34,9 @@ public class BufferingOutputStream extends OutputStream{
     public InputStream getInputStream() {
         if( !closed ) throw new IllegalStateException( "this output stream is not yet closed");
         if( tempMemoryBuffer == null ) {
-            FileInputStream fin;
+            FileDeletingInputStream fin;
             try {
-                fin = new FileInputStream( tempFile );
+                fin = new FileDeletingInputStream( tempFile );
             } catch( FileNotFoundException ex ) {
                 throw new RuntimeException( tempFile.getAbsolutePath(), ex );
             }

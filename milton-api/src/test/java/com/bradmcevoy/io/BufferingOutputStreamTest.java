@@ -1,6 +1,7 @@
 package com.bradmcevoy.io;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import junit.framework.TestCase;
 
@@ -52,13 +53,17 @@ public class BufferingOutputStreamTest extends TestCase {
         out.write( new byte[10]);
         assertNull( out.getTempMemoryBuffer());
         assertNotNull( out.getTempFile());
+        File f = out.getTempFile();
+        assertTrue( f.exists());
 
         out.close();
         InputStream in = out.getInputStream();
         ByteArrayOutputStream out2 = new ByteArrayOutputStream();
         StreamUtils.readTo( in, out2 );
         byte[] arr = out2.toByteArray();
+        in.close();
         assertEquals( 10, arr.length);
+        assertFalse( f.exists());
     }
 
 }
