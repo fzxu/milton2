@@ -211,7 +211,7 @@ public class PropFindHandler extends ExistingEntityHandler {
             appendResponses( consumer, pfr, depth, requestedFields, url );
             writer.close( "D:multistatus" );
             writer.flush();
-            log.debug( out.toString() );
+//            log.debug( out.toString() );
             String xml = out.toString( "UTF-8");
             response.getOutputStream().write( xml.getBytes() ); // note: this can and should write to the outputstream directory. but if it aint broke, dont fix it...
         } catch( IOException ex ) {
