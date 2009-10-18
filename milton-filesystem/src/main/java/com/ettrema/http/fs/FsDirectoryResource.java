@@ -126,7 +126,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
             w.open( "tr" );
 
             w.open( "td" );
-            w.begin( "a" ).writeAtt( "href", r.getName() ).open().writeText( r.getName() ).close();
+            w.begin( "a" ).writeAtt( "href", r.getName() + "/" ).open().writeText( r.getName() ).close();
             w.close( "td" );
 
             w.begin( "td" ).open().writeText( r.getModifiedDate() + "" ).close();
@@ -138,7 +138,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         w.flush();
     }
 
-    public Long getMaxAgeSeconds(Auth auth) {
+    public Long getMaxAgeSeconds( Auth auth ) {
         return null;
     }
 
