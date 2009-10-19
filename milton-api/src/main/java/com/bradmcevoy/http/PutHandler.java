@@ -52,6 +52,7 @@ public class PutHandler extends Handler {
         	//Make sure the parent collection is not locked by someone else
         	if( isLockedOut(request, existingResource))
         	{
+                log.warn("resource is locked, but not by the current user");
         		response.setStatus(Status.SC_LOCKED); //423
         		return;
         	}
