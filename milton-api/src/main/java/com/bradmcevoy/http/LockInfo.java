@@ -40,6 +40,7 @@ public class LockInfo {
         reader.parse(new InputSource(in));
         LockInfo info = handler.getInfo();
         info.depth = LockDepth.INFINITY; // todo
+        info.lockedByUser = request.getAuthorization().getUser();
         log.debug("parsed lock info: " + info);
         return info;
         
@@ -48,7 +49,17 @@ public class LockInfo {
 
     public LockScope scope;
     public LockType type;
+
+    /**
+     * Contact details for the lock owner. Eg phone number, website address, or
+     * email address. Generally not used. Can be ignored.
+     */
     public String owner;
+
+    /**
+     * The name of the user who has locked this resource.
+     */
+    public String lockedByUser;
     public LockDepth depth;
     
     public LockInfo(LockScope scope, LockType type, String owner, LockDepth depth) {

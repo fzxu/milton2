@@ -121,10 +121,10 @@ public abstract class Handler {
 		if( token != null)
 		{
 			Auth auth = inRequest.getAuthorization();
-			String owner = token.info.owner;
-			if( !owner.equals(auth.getUser()))
+			String lockedByUser = token.info.lockedByUser;
+			if( !lockedByUser.equals(auth.getUser()))
 			{
-	    	    log.info("fail: lock owned by: " + owner + " not by " + auth.getUser());
+	    	    log.info("fail: lock owned by: " + lockedByUser + " not by " + auth.getUser());
 	    	    String value = inRequest.getHeaders().get("If");
 	    	    if( value != null)
 	    	    {
