@@ -12,57 +12,59 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 public class LockInfo {
-    
-    private static Logger log = LoggerFactory.getLogger(LockInfo.class);
+
+    private static Logger log = LoggerFactory.getLogger( LockInfo.class );
 
     public enum LockScope {
+
         NONE,
         SHARED,
         EXCLUSIVE
     }
 
     public enum LockType {
+
         READ,
         WRITE
     }
 
     public enum LockDepth {
+
         ZERO,
         INFINITY
     }
-    
-    public static LockInfo parseLockInfo(Request request) throws IOException, FileNotFoundException, SAXException  {
+
+    public static LockInfo parseLockInfo( Request request ) throws IOException, FileNotFoundException, SAXException {
         InputStream in = request.getInputStream();
-        
+
         XMLReader reader = XMLReaderFactory.createXMLReader();
         LockInfoSaxHandler handler = new LockInfoSaxHandler();
-        reader.setContentHandler(handler);
-        reader.parse(new InputSource(in));
+        reader.setContentHandler( handler );
+        reader.parse( new InputSource( in ) );
         LockInfo info = handler.getInfo();
         info.depth = LockDepth.INFINITY; // todo
         info.lockedByUser = request.getAuthorization().getUser();
-        log.debug("parsed lock info: " + info);
+        if( info.lockedByUser == null ) {
+            log.warn( "resource is being locked with a null user. This won't really be locked at all..." );
+        }
+        log.debug( "parsed lock info: " + info );
         return info;
-        
-    }
-    
 
+    }
     public LockScope scope;
     public LockType type;
-
     /**
      * Contact details for the lock owner. Eg phone number, website address, or
      * email address. Generally not used. Can be ignored.
      */
     public String owner;
-
     /**
      * The name of the user who has locked this resource.
      */
     public String lockedByUser;
     public LockDepth depth;
-    
-    public LockInfo(LockScope scope, LockType type, String owner, LockDepth depth) {
+
+    public LockInfo( LockScope scope, LockType type, String owner, LockDepth depth ) {
         this.scope = scope;
         this.type = type;
         this.owner = owner;
@@ -71,12 +73,9 @@ public class LockInfo {
 
     public LockInfo() {
     }
-    
-        
+
     @Override
     public String toString() {
         return "scope: " + scope.name() + ", type: " + type.name() + ", owner: " + owner + ", depth:" + depth;
     }
-    
-    
 }

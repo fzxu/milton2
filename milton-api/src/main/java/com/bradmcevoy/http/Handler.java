@@ -114,7 +114,10 @@ public abstract class Handler {
         if( token != null ) {
             Auth auth = inRequest.getAuthorization();
             String lockedByUser = token.info.lockedByUser;
-            if( lockedByUser != null && !lockedByUser.equals( auth.getUser() ) ) {
+            if( lockedByUser == null ) {
+                log.warn( "Resource is locked with a null user. Ignoring the lock" );
+                return false;
+            } else if( !lockedByUser.equals( auth.getUser() ) ) {
                 log.info( "fail: lock owned by: " + lockedByUser + " not by " + auth.getUser() );
                 String value = inRequest.getHeaders().get( "If" );
                 if( value != null ) {
