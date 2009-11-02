@@ -49,7 +49,15 @@ public class FileUtils {
         ByteArrayOutputStream out = readIn(in);
         return out.toString();
     }
-    
+
+    public static void close(InputStream in) {
+        try {
+            if( in == null ) return;
+            in.close();
+        } catch( IOException ex ) {
+        }
+    }
+
     public static void close(Object o) {
         if( o == null ) return ;
 //        debug("Closing: " + o);
