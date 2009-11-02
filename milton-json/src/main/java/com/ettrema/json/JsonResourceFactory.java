@@ -3,6 +3,7 @@ package com.ettrema.json;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.PropFindHandler;
 import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
@@ -57,6 +58,11 @@ public class JsonResourceFactory implements ResourceFactory {
         if( Request.Method.PROPFIND.code.equals(method)) {
             if( wrappedResource instanceof PropFindableResource) {
                 return new PropFindJsonResource((PropFindableResource)wrappedResource, propFindHandler, href);
+            }
+        }
+        if( Request.Method.PUT.code.equals(method)) {
+            if( wrappedResource instanceof PutableResource) {
+                return new PutJsonResource((PutableResource)wrappedResource, href);
             }
         }
         return null;
