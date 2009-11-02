@@ -41,6 +41,7 @@
         <module>milton-filesystem</module>
         <module>milton-filesystem-test</module>
 		<module>milton-ftp</module>
+        <module>milton-ajax-demo</module>
     </modules>
     <build>
         <plugins>
