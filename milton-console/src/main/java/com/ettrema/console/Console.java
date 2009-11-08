@@ -46,6 +46,9 @@ public class Console implements GetableResource, PostableResource {
         this.secureResource = secureResource;
         this.modDate = modDate;
         this.mapOfFactories = mapOfFactories;
+        if( this.secureResource == null ) {
+            throw new IllegalArgumentException( "SecureResource may not be null");
+        }
     }
 
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
@@ -86,6 +89,9 @@ public class Console implements GetableResource, PostableResource {
 
     public boolean authorise(Request request, Method method, Auth auth) {
         this.auth = auth;
+        if( secureResource == null ) {
+            throw new IllegalStateException( "secureResource may not be null. Can't authorise");
+        }
         return secureResource.authorise(request, method, auth);
     }
 
