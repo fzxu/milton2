@@ -10,12 +10,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author brad
  */
 public class BufferingOutputStream extends OutputStream{
+
+    private static Logger log = LoggerFactory.getLogger(BufferingOutputStream.class);
+
     private ByteArrayOutputStream tempMemoryBuffer = new ByteArrayOutputStream();
     private int maxMemorySize;
     private File tempFile;
@@ -50,21 +55,35 @@ public class BufferingOutputStream extends OutputStream{
 
     @Override
     public void write( byte[] b ) throws IOException {
-        size = size + b.length;
-        tempMemoryBuffer.write( b );
+        size += b.length;
+        if( tempMemoryBuffer != null ) {
+            tempMemoryBuffer.write( b );
+        } else {
+            bufOut.write( b );
+        }
         checkSize();
     }
 
     @Override
     public void write( int b ) throws IOException {
         size++;
-        tempMemoryBuffer.write( b );
+        if( tempMemoryBuffer != null ) {
+            tempMemoryBuffer.write( b );
+        } else {
+            bufOut.write( b );
+        }
+        checkSize();
     }
 
     @Override
     public void write( byte[] b, int off, int len ) throws IOException {
         size+=len;
-        tempMemoryBuffer.write( b,off, len );
+        if( tempMemoryBuffer != null ) {
+            tempMemoryBuffer.write( b,off, len );
+        } else {
+            bufOut.write( b, off, len );
+        }
+        checkSize();
     }
 
     private void checkSize() throws IOException {
@@ -91,6 +110,7 @@ public class BufferingOutputStream extends OutputStream{
 
     @Override
     public void close() throws IOException {
+        log.debug("close");
         if( tempMemoryBuffer != null ) {
             tempMemoryBuffer.close();
         } else {

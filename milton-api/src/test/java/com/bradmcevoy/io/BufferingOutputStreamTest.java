@@ -53,6 +53,10 @@ public class BufferingOutputStreamTest extends TestCase {
         out.write( new byte[10]);
         assertNull( out.getTempMemoryBuffer());
         assertNotNull( out.getTempFile());
+        // check we can still write to the stream
+        out.write( new byte[10]);
+
+        // now get the file and ensure it exists
         File f = out.getTempFile();
         assertTrue( f.exists());
 
@@ -62,7 +66,7 @@ public class BufferingOutputStreamTest extends TestCase {
         StreamUtils.readTo( in, out2 );
         byte[] arr = out2.toByteArray();
         in.close();
-        assertEquals( 10, arr.length);
+        assertEquals( 20, arr.length);
         assertFalse( f.exists());
     }
 
