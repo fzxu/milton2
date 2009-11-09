@@ -11,6 +11,7 @@
         <SCRIPT TYPE="text/javascript" SRC="dojo.js"></SCRIPT>
         <script>
             var currentDir = "/";
+            var replayId=0;
 
             function onMessage(result) {
                 currentDir = result.dir;
@@ -24,18 +25,24 @@
                 //window.setTimeout('scrollCmd', 100);
             }
 
-    /**
-     * Comment
-     */
-    function scrollCmd() {
-        document.getElementById("cmd").scrollIntoView(false);
-        document.getElementById("cmd").focus();
-    }
+            function replay(id) {
+                var atag = document.getElementById("replay" + id);
+                var s = atag.innerHTML;
+                document.getElementById("cmd").value = s;
+                document.getElementById("cmd").focus();
+            }
+
+            function scrollCmd() {
+                document.getElementById("cmd").scrollIntoView(false);
+                document.getElementById("cmd").focus();
+            }
             
             function doCmd() {
                 var s = document.getElementById("cmd").value;
                 output = document.getElementById("output");
-                output.innerHTML = output.innerHTML + "<br/>&gt;" + s;
+                replayId++;
+                var replay = "<a id='replay" + replayId + "' href='javascript:replay(" + replayId + ")'>" + s + "</a>";
+                output.innerHTML = output.innerHTML + "<br/>&gt;" + replay;
                 submitForm();
             }
 
