@@ -110,7 +110,6 @@ public class BufferingOutputStream extends OutputStream{
 
     @Override
     public void close() throws IOException {
-        log.debug("close");
         if( tempMemoryBuffer != null ) {
             tempMemoryBuffer.close();
         } else {
