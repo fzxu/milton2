@@ -43,8 +43,8 @@ public class DeleteHandler extends ExistingEntityHandler {
             //Might be a permission thing
         	Path col = Path.path(url).getParent();
         	Resource parent = manager.getResourceFactory().getResource(host, col.toPath());
-        	if( isLockedOut(request, parent))
-        	{
+        	if( isLockedOut(request, parent)) {
+                log.debug( "locked out, can't delete");
         		response.setStatus(Status.SC_LOCKED);
         		return;
         	}
