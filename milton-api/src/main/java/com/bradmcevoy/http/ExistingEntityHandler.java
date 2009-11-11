@@ -49,6 +49,7 @@ public abstract class ExistingEntityHandler extends Handler {
             }
 
             if (!isCompatible(resource)) {
+                log.debug( "method not implemented");
                 respondMethodNotImplemented(resource, response, request);
                 return;
             }
