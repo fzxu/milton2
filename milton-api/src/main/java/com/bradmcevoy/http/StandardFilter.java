@@ -28,8 +28,10 @@ public class StandardFilter implements Filter {
             handler.process(manager,request,response);
 
         } catch (ConflictException ex) {
+            log.warn( "conflictException");
             manager.getResponseHandler().respondConflict(ex.getResource(), response, request, INTERNAL_SERVER_ERROR_HTML);
         } catch (NotAuthorizedException ex) {
+            log.warn( "not auth ex");
             manager.getResponseHandler().respondUnauthorised(ex.getResource(), response, request);
         } catch(Throwable e) {
             log.error("process", e);
