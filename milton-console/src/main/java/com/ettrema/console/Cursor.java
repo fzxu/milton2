@@ -94,7 +94,11 @@ public class Cursor {
         for( String p : newPath.getParts() ) {
             if( p.equals( ".." ) ) {
                 lastPath = lastPath.getParent();
-                child = resourceFactory.getResource( host, lastPath.toString() );
+                if( lastPath != null ) {
+                    child = resourceFactory.getResource( host, lastPath.toString() );
+                } else {
+                    child = null;
+                }
             } else if( p.equals( "." ) ) {
                 // do nothing
             } else {                
