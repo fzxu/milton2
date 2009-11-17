@@ -7,6 +7,7 @@ import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.FileUtils;
 import java.io.IOException;
@@ -45,6 +46,8 @@ public class PutJsonResource implements PostableResource {
             in = file.getInputStream();
             wrapped.createNew( newName, in, file.getSize(), file.getContentType() );
             return null;
+        } catch( ConflictException ex ) {
+            throw new RuntimeException( ex );
         } catch( IOException ex ) {
             throw new RuntimeException( "Exception creating resource", ex );
         } finally {

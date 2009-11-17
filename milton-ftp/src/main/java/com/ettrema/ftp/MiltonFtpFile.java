@@ -257,6 +257,8 @@ public class MiltonFtpFile implements FtpFile {
                         public void run() {
                             try {
                                 putableResource.createNew( newName, out.getInputStream(), out.getSize(), null );
+                            } catch( ConflictException ex ) {
+                                throw new RuntimeException( ex );
                             } catch( IOException ex ) {
                                 throw new RuntimeException( ex );
                             }
