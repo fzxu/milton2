@@ -30,6 +30,7 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
     
     private static final ThreadLocal<HttpServletRequest> originalRequest = new ThreadLocal<HttpServletRequest>();
     private static final ThreadLocal<HttpServletResponse> originalResponse = new ThreadLocal<HttpServletResponse>();
+    private static final ThreadLocal<ServletConfig> tlServletConfig = new ThreadLocal<ServletConfig>();
 
     public static HttpServletRequest request() {
         return originalRequest.get();
@@ -37,6 +38,15 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
     
     public static HttpServletResponse response() {
         return originalResponse.get();
+    }
+
+    /**
+     * Make the servlet config available to any code on this thread.
+     *
+     * @return
+     */
+    public static ServletConfig servletConfig() {
+        return tlServletConfig.get();
     }
     
     public static void forward(String url) {
@@ -77,12 +87,14 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
         try {
             originalRequest.set(req);
             originalResponse.set(resp);
+            tlServletConfig.set( config );
             Request request = new ServletRequest(req);
             Response response = new ServletResponse(resp);
             httpManager.process(request, response);
         } finally {
             originalRequest.remove();
             originalResponse.remove();
+            tlServletConfig.remove();
             servletResponse.getOutputStream().flush();            
             servletResponse.flushBuffer();
         }
@@ -92,7 +104,7 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
         return "MiltonServlet";
     }
 
-    public ServletConfig getServletConfig() {
+    public ServletConfig getServletConfig() { 
         return config;
     }    
 }
