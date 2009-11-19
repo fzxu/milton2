@@ -2,9 +2,29 @@ package com.bradmcevoy.http;
 import org.apache.commons.codec.binary.Base64;
 
 
-
+/**
+ * Holds authentication information for a request
+ *
+ * There are two sets of information:
+ *   - that which is present in the request
+ *   - that which is determined as part of performing authentication
+ *
+ * Note that even if authentication fails, this object will still be available
+ * in the request - DO NOT USE THE PRESENCE OF THIS OBJECT TO CHECK FOR A VALID LOGIN!!!
+ *
+ * Instead use the tag property. This will ONLY be not null after a successful
+ * authentication
+ *
+ * @author brad
+ */
 public class Auth {
-    
+
+    /**
+     * Holds application specific user data, as returned from the authenticate
+     * method on Resource
+     *
+     * This should be used to test for a valid login.
+     */
     private Object tag;
     
     public enum Scheme {
@@ -47,14 +67,30 @@ public class Auth {
         this.tag = userTag;
     }
 
+    /**
+     *
+     * @return - the user property in the request. This MIGHT NOT be an
+     * actual user
+     */
     public String getUser() {
         return user;
     }
 
+    /**
+     * Set after a successful authenticate method with a not-null value
+     *
+     * The actual value will be application dependent
+     */
     void setTag(Object authTag) {
         tag = authTag;
     }
 
+    /**
+     * Holds application specific user data, as returned from the authenticate
+     * method on Resource
+     *
+     * This should be used to test for a valid login.
+     */
     public Object getTag() {
         return tag;
     }           
