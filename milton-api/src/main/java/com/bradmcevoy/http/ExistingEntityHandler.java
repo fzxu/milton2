@@ -1,6 +1,7 @@
 package com.bradmcevoy.http;
 
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +21,11 @@ public abstract class ExistingEntityHandler extends Handler {
      *  the appropriate method specific interface if isCompatible has been implemented
      *  correctly
      */
-    protected abstract void process(HttpManager milton, Request request, Response response, Resource resource) throws NotAuthorizedException, ConflictException;
+    protected abstract void process(HttpManager milton, Request request, Response response, Resource resource) throws NotAuthorizedException, ConflictException, BadRequestException;
 
+    
     @Override
-    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
+    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException, BadRequestException {
         if( !checkExpects( request, response )) {
             return ;
         }
@@ -38,7 +40,7 @@ public abstract class ExistingEntityHandler extends Handler {
         }
     }
 
-    protected void processResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, ConflictException {
+    protected void processResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, ConflictException, BadRequestException {
         long t = System.currentTimeMillis();
         try {
             

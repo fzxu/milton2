@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -37,7 +38,7 @@ public interface GetableResource extends Resource {
      * @throws java.io.IOException
      * @throws com.bradmcevoy.http.exceptions.NotAuthorizedException
      */
-    public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType ) throws IOException, NotAuthorizedException;
+    public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException;
 
     /** How many seconds to allow the content to be cached for, or null if caching is not allowed
      *

@@ -8,6 +8,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Milton's main class. All the servlets and stuff is just fluff, this is where stuff really starts to happen
+ *
+ *
+ * @author brad
+ */
 public class HttpManager {
 
     private static final Logger log = LoggerFactory.getLogger(HttpManager.class);

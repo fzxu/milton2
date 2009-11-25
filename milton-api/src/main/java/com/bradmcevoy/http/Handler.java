@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.io.PrintWriter;
 
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ public abstract class Handler {
     public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
     protected final HttpManager manager;
 
-    public abstract void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException;
+    public abstract void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException;
 
     protected abstract boolean isCompatible( Resource r );
 

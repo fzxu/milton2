@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.Request.Method;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ public class PostHandler extends ExistingEntityHandler {
     }
 
     @Override
-    protected void process(HttpManager milton, Request request, Response response, Resource resource) throws NotAuthorizedException {
+    protected void process(HttpManager milton, Request request, Response response, Resource resource) throws NotAuthorizedException, BadRequestException {
         PostableResource r = (PostableResource) resource;
         // need a linked hash map to preserve ordering of params
         Map<String, String> params = new LinkedHashMap<String, String>();
@@ -51,7 +52,7 @@ public class PostHandler extends ExistingEntityHandler {
 
     /** Return a URL to perform a redirect. Return null to render the current resource
      */
-    protected String processForm(PostableResource r, Map<String,String> parameters, Map<String,FileItem> files) {
+    protected String processForm(PostableResource r, Map<String,String> parameters, Map<String,FileItem> files) throws BadRequestException, NotAuthorizedException {
         return r.processForm(parameters, files);
     }
         

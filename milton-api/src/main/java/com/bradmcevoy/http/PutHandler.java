@@ -86,7 +86,7 @@ public class PutHandler extends Handler {
                 	}
 
                 	PutableResource putableResource = (PutableResource) folderResource;
-                    processCreate(manager, request, response, (PutableResource)putableResource, nameToCreate);
+                    processCreate(manager, request, response, putableResource, nameToCreate);
                 } else {
                     manager.getResponseHandler().respondMethodNotImplemented(folderResource, response, request);
                 }
@@ -96,7 +96,7 @@ public class PutHandler extends Handler {
         }
     }
 
-    protected void processCreate(HttpManager milton, Request request, Response response, PutableResource folder, String newName) {
+    protected void processCreate(HttpManager milton, Request request, Response response, PutableResource folder, String newName) throws ConflictException {
 
     	
     	log.debug("processCreate: " + newName + " in " + folder.getName());

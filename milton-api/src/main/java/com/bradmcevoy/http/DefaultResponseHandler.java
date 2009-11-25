@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -143,7 +144,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         response.setStatus( Response.Status.SC_OK );
     }
 
-    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException {
+    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException {
         log.debug( "respondPartialContent: " + range.start + " - " + range.finish );
         response.setStatus( Response.Status.SC_PARTIAL_CONTENT );
         response.setContentRangeHeader( range.start, range.finish, resource.getContentLength() );
@@ -168,7 +169,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         setRespondContentCommonHeaders( response, resource, Response.Status.SC_NO_CONTENT );
     }
 
-    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException {
+    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
         log.debug( "respondContent: " + resource.getClass() );
         setRespondContentCommonHeaders( response, resource );
         if( resource instanceof GetableResource ) {
@@ -251,7 +252,7 @@ public class DefaultResponseHandler implements ResponseHandler {
         return new Date( expiresAt );
     }
 
-    protected void sendContent( Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType ) throws NotAuthorizedException {
+    protected void sendContent( Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType ) throws NotAuthorizedException, BadRequestException {
         OutputStream out = outputStreamForResponse( request, response, resource );
         try {
             resource.sendContent( out, null, params, contentType );
@@ -290,5 +291,9 @@ public class DefaultResponseHandler implements ResponseHandler {
         if( resource.getModifiedDate() != null ) {
             response.setLastModifiedHeader( resource.getModifiedDate() );
         }
+    }
+
+    public void respondBadRequest( Resource resource, Response response, Request request ) {
+        response.setStatus( Response.Status.SC_BAD_REQUEST );
     }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 /**
@@ -30,8 +31,8 @@ public interface ResponseHandler {
      * @param request
      */
     void respondNoContent(Resource resource, Response response,Request request);
-    void respondContent(Resource resource, Response response, Request request, Map<String,String> params) throws NotAuthorizedException;
-    void respondPartialContent(GetableResource resource, Response response, Request request, Map<String,String> params, Range range) throws NotAuthorizedException;
+    void respondContent(Resource resource, Response response, Request request, Map<String,String> params) throws NotAuthorizedException, BadRequestException;
+    void respondPartialContent(GetableResource resource, Response response, Request request, Map<String,String> params, Range range) throws NotAuthorizedException, BadRequestException;
     void respondCreated(Resource resource, Response response, Request request);
     void respondUnauthorised(Resource resource, Response response, Request request);
     void respondMethodNotImplemented(Resource resource, Response response, Request request);
@@ -56,5 +57,15 @@ public interface ResponseHandler {
      * Response with a 417
      */
     void respondExpectationFailed(Response response, Request request);
+
+    /**
+     * Respond with a 400 status
+     *
+     * @param resource
+     * @param response
+     * @param request
+     * @param params
+     */
+    void respondBadRequest( Resource resource, Response response, Request request);
 
 }

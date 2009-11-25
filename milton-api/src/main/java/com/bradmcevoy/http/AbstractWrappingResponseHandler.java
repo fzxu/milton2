@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public abstract class AbstractWrappingResponseHandler implements ResponseHandler
     }
 
 
-    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException {
+    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
         wrapped.respondContent( resource, response, request, params );
     }
 
@@ -50,7 +51,7 @@ public abstract class AbstractWrappingResponseHandler implements ResponseHandler
         wrapped.respondNoContent( resource, response, request );
     }
 
-    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException {
+    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException {
         wrapped.respondPartialContent( resource, response, request, params, range );
     }
 
@@ -100,6 +101,10 @@ public abstract class AbstractWrappingResponseHandler implements ResponseHandler
 
     public void respondExpectationFailed( Response response, Request request ) {
         wrapped.respondExpectationFailed( response, request );
+    }
+
+    public void respondBadRequest( Resource resource, Response response, Request request ) {
+        wrapped.respondBadRequest( resource, response, request );
     }
 
 

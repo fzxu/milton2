@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
@@ -40,7 +41,7 @@ public class CompressingResponseHandler extends  AbstractWrappingResponseHandler
 
 
     @Override
-    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException {
+    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
         if( resource instanceof GetableResource ) {
             GetableResource r = (GetableResource) resource;
 

@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class DeleteHandler extends ExistingEntityHandler {
     }        
 
     @Override
-    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException {
+    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException, BadRequestException {
         String host = request.getHostHeader();
         String url = HttpManager.decodeUrl(request.getAbsolutePath());
 

@@ -12,6 +12,7 @@ import com.bradmcevoy.http.Resource;
  * only be determined during processing
  */
 public class NotAuthorizedException extends MiltonException{
+    private static final long serialVersionUID = 1L;
 
     public NotAuthorizedException(Resource r) {
         super(r);

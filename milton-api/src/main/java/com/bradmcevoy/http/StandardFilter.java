@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -27,6 +28,9 @@ public class StandardFilter implements Filter {
             
             handler.process(manager,request,response);
 
+        } catch(BadRequestException ex) {
+            log.warn( "BadRequestException");
+            manager.getResponseHandler().respondBadRequest(ex.getResource(), response, request);
         } catch (ConflictException ex) {
             log.warn( "conflictException");
             manager.getResponseHandler().respondConflict(ex.getResource(), response, request, INTERNAL_SERVER_ERROR_HTML);
