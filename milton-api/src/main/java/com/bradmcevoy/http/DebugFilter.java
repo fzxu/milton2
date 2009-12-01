@@ -25,6 +25,20 @@ public class DebugFilter implements Filter{
 
     private static int counter = 0;
 
+    private File logDir;
+
+    public DebugFilter() {
+        logDir = new File(System.getProperty("user.home"));
+        log.debug( "logging to: " + logDir.getAbsolutePath());
+    }
+
+    public DebugFilter( File logDir ) {
+        this.logDir = logDir;
+        log.debug( "logging to: " + logDir.getAbsolutePath());
+    }
+
+
+
     public void process(FilterChain chain, Request request, Response response) {
         try {
             DebugRequest req2 = new DebugRequest(request);
@@ -38,12 +52,11 @@ public class DebugFilter implements Filter{
         }
     }
 
-    private static synchronized void record(DebugRequest req2, DebugResponse resp2) {
+    private synchronized void record(DebugRequest req2, DebugResponse resp2) {
         counter++;
         FileOutputStream fout = null;
         try {
-            File f = new File(System.getProperty("user.home"));
-            f = new File(f, counter + "_" + req2.getMethod() + "_.req");
+            File f = new File(logDir, counter + "_" + req2.getMethod() + "_.req");
             fout = new FileOutputStream(f);
             req2.record(fout);
         } catch (FileNotFoundException ex) {
@@ -56,8 +69,7 @@ public class DebugFilter implements Filter{
         }
 
         try {
-            File f = new File(System.getProperty("user.home"));
-            f = new File(f, counter + "_" + req2.getMethod() + "_.resp");
+            File f = new File(logDir, counter + "_" + req2.getMethod() + "_.resp");
             fout = new FileOutputStream(f);
             resp2.record(fout);
         } catch (FileNotFoundException ex) {

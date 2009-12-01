@@ -72,18 +72,24 @@
     <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">
         <constructor-arg ref="milton.resource.factory" />
         <constructor-arg ref="milton.response.handler.compressing" />
-<!--
+
         <property name="filters">
             <list>
                 <ref bean="milton.debug.filter" />
             </list>
         </property>
--->
+
     </bean>
 
     <!-- If added to the http manager, this filter will output request and responses
     to the logger -->
-    <bean id="milton.debug.filter" class="com.bradmcevoy.http.DebugFilter" />
+    <bean id="milton.debug.filter" class="com.bradmcevoy.http.DebugFilter" >
+        <!-- By default the debugfilter will log to the current user's home directory -->
+        <!-- To change this behaviour uncomment the following line and set the path you want to log to-->
+        <!--
+        <constructor-arg value="/test"/>
+        -->
+    </bean>
 
     <!-- Adapts the specified milton security manager to the FTP server -->
     <bean id="ftp.user.manager" class="com.ettrema.ftp.UserManagerAdapter">
