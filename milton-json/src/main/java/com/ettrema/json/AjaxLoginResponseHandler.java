@@ -5,6 +5,8 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.ResponseHandler;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * To enable ajax authentication we MUST NOT return 401 unauthorised, because
@@ -17,12 +19,25 @@ import com.bradmcevoy.http.ResponseHandler;
  *
  * @author brad
  */
-public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler{
+public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
 
-    public AjaxLoginResponseHandler(ResponseHandler responseHandler) {
-        super(responseHandler);
+    private final List<ResourceMatcher> resourceMatchers;
+
+    public AjaxLoginResponseHandler( ResponseHandler responseHandler, List<ResourceMatcher> resourceMatchers ) {
+        super( responseHandler );
+        this.resourceMatchers = resourceMatchers;
     }
 
+    /**
+     * Create with a single resource matcher, which matches on AjaxLoginResource's
+     *
+     * @param responseHandler
+     */
+    public AjaxLoginResponseHandler( ResponseHandler responseHandler) {
+        super( responseHandler );
+        this.resourceMatchers = new ArrayList<ResourceMatcher>();
+        this.resourceMatchers.add( new TypeResourceMatcher( AjaxLoginResource.class ) );
+    }
 
     /**
      * if the resource is a AjaxLoginResource then return a 400
@@ -35,11 +50,17 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler{
      */
     @Override
     public void respondUnauthorised( Resource resource, Response response, Request request ) {
-        if( resource instanceof AjaxLoginResource) {
+        if( matches(resource) ) {
             wrapped.respondBadRequest( resource, response, request );
         } else {
             wrapped.respondUnauthorised( resource, response, request );
         }
     }
 
+    private boolean matches(Resource r) {
+        for( ResourceMatcher rm : resourceMatchers ) {
+            if( rm.matches( r )) return true;
+        }
+        return false;
+    }
 }
