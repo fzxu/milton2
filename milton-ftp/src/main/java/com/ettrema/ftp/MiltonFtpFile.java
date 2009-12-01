@@ -20,6 +20,7 @@ import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.ReplaceableResource;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.BufferingOutputStream;
@@ -28,6 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,6 +283,9 @@ public class MiltonFtpFile implements FtpFile {
                 gr.sendContent( out, null, null, ct );
                 out.close();
                 return out.getInputStream();
+            } catch( BadRequestException ex ) {
+                log.warn( "bad request", ex );
+                return null;
             } catch( NotAuthorizedException ex ) {
                 log.warn( "not authorising", ex );
                 return null;
