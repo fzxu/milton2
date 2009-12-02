@@ -37,7 +37,7 @@ public class StandardFilter implements Filter {
         } catch (NotAuthorizedException ex) {
             log.warn( "not auth ex");
             manager.getResponseHandler().respondUnauthorised(ex.getResource(), response, request);
-        } catch(Throwable e) {
+        } catch(Exception e) {
             log.error("process", e);
             try {
                 response.setStatus(Response.Status.SC_INTERNAL_SERVER_ERROR);

@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.io.FileUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -62,10 +63,7 @@ public class DebugFilter implements Filter{
         } catch (FileNotFoundException ex) {
             throw new RuntimeException(ex);
         } finally {
-            try {
-                fout.close();
-            } catch (IOException ex) {
-            }
+            StreamUtils.close( fout );
         }
 
         try {
@@ -75,10 +73,7 @@ public class DebugFilter implements Filter{
         } catch (FileNotFoundException ex) {
             throw new RuntimeException(ex);
         } finally {
-            try {
-                fout.close();
-            } catch (IOException ex) {
-            }
+            StreamUtils.close( fout );
         }
 
     }
