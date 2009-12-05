@@ -1,3 +1,4 @@
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ettrema</groupId>
@@ -40,7 +41,7 @@
         <module>milton-test</module>
         <module>milton-filesystem</module>
         <module>milton-filesystem-test</module>
-		<module>milton-ftp</module>
+        <module>milton-ftp</module>
         <module>milton-ajax-demo</module>
     </modules>
     <build>
@@ -120,6 +121,15 @@
             </extension>
         </extensions>
     </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
+
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
