@@ -179,7 +179,7 @@ public interface Response {
 
     String getNonStandardHeader(String code);
     
-    void setAllowHeader(List<Request.Method> methodsAllowed);
+    void setAllowHeader(List<String> methodsAllowed);
 
     OutputStream getOutputStream();    
 

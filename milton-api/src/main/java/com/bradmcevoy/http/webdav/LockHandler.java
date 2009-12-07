@@ -1,6 +1,10 @@
 
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -13,23 +17,39 @@ import com.bradmcevoy.http.LockInfo.LockScope;
 import com.bradmcevoy.http.LockInfo.LockType;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.http11.Http11ResponseHandler;
 
 /**
  * Note that this is both a new entity handler and an existing entity handler
  * 
  * @author brad
  */
-public class LockHandler extends Handler {
+public class LockHandler implements ResourceHandler {
 
     private Logger log = LoggerFactory.getLogger(LockHandler.class);
 
-    public LockHandler(HttpManager manager) {
-        super(manager);
+    private final Http11ResponseHandler responseHandler;
+    private final HandlerHelper handlerHelper;
+
+    public LockHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
+        this.responseHandler = responseHandler;
+        this.handlerHelper = handlerHelper;
     }
-    
+
+
+
+    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        throw new UnsupportedOperationException( "Not supported yet." );
+    }
+
+    public String[] getMethods() {
+        return new String[]{Method.LOCK.code};
+    }
+
+
     @Override
     public void process(HttpManager manager, Request request, Response response) {
-        if( !checkExpects( request, response )) {
+        if( !handlerHelper.checkExpects( responseHandler, request, response )) {
             return ;
         }
 
@@ -48,9 +68,9 @@ public class LockHandler extends Handler {
     }
     
     
-    protected void processExistingResource(HttpManager milton, Request request, Response response, Resource resource) {
+    protected void processExistingResource(HttpManager manager, Request request, Response response, Resource resource) {
         if (!isCompatible(resource)) {
-            respondMethodNotImplemented(resource, response, request);
+            responseHandler.respondMethodNotImplemented( resource, response, request );
             return;
         }
 
@@ -59,9 +79,9 @@ public class LockHandler extends Handler {
         String ifHeader = request.getIfHeader();
         response.setContentTypeHeader( Response.XML );
         if( ifHeader == null || ifHeader.length() == 0  ) {
-            processNewLock(milton,request,response,r,timeout);
+            processNewLock(manager,request,response,r,timeout);
         } else {
-            processRefresh(milton,request,response,r,timeout,ifHeader);
+            processRefresh(manager,request,response,r,timeout,ifHeader);
         }        
     }
 
@@ -104,7 +124,7 @@ public class LockHandler extends Handler {
         
         Resource r = manager.getResourceFactory().getResource(host, url);
         if( r != null ) {
-            processCreateAndLock(request,response,r, name);
+            processCreateAndLock(manager, request,response,r, name);
         } else {
             log.debug("couldnt find parent to execute lock-null, returning not found");
             //respondNotFound(response,request);
@@ -113,7 +133,7 @@ public class LockHandler extends Handler {
         }
     }
 
-    private void processCreateAndLock(Request request, Response response, Resource parentResource, String name) {
+    private void processCreateAndLock(HttpManager manager, Request request, Response response, Resource parentResource, String name) {
         if( parentResource instanceof LockingCollectionResource ) {
             log.debug("parent supports lock-null. doing createAndLock");
             response.setStatus(Status.SC_CREATED);
@@ -139,17 +159,13 @@ public class LockHandler extends Handler {
             
         } else {
             log.debug("parent does not support lock-null, respondong method not allowed");
-            respondMethodNotImplemented(parentResource, response, request);
+            responseHandler.respondMethodNotImplemented( parentResource, response, request );
         }
     }
     
-    @Override
-    public Request.Method method() {
-        return Method.LOCK;
-    }   
     
     @Override
-    protected boolean isCompatible(Resource handler) {
+    public boolean isCompatible(Resource handler) {
         return handler instanceof LockableResource;
     }
 
@@ -163,8 +179,7 @@ public class LockHandler extends Handler {
             throw new RuntimeException("Exception reading request body", ex);
         }
 
-       	if( isLockedOut( request, r ))
-    	{
+       	if( handlerHelper.isLockedOut( request, r )) {
     		response.setStatus(Status.SC_LOCKED);
     		return;
     	}
@@ -175,7 +190,7 @@ public class LockHandler extends Handler {
         log.debug("locking: " + r.getName());
         LockResult result = r.lock(timeout, lockInfo);
         if( result.isSuccessful()) {
-            LockToken tok = result.lockToken;
+            LockToken tok = result.getLockToken();
             log.debug("..locked: " + tok.tokenId);
             response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
             respondWithToken(tok, request, response);
@@ -189,7 +204,7 @@ public class LockHandler extends Handler {
         log.debug("refreshing lock: " + token);
         LockResult result = r.refreshLock(token);
         if( result.isSuccessful()) {
-            LockToken tok = result.lockToken;
+            LockToken tok = result.getLockToken();
             respondWithToken(tok, request, response);
         } else {
             responseWithLockFailure(result, request, response);
@@ -211,7 +226,7 @@ public class LockHandler extends Handler {
         appendScope(writer, tok.info.scope);
         appendDepth(writer, tok.info.depth);
         appendOwner(writer, tok.info.owner);
-        appendTimeout(writer, tok.timeout.seconds);
+        appendTimeout(writer, tok.timeout.getSeconds());
         appendTokenId(writer, tok.tokenId);
         appendRoot(writer, request.getAbsoluteUrl());
         writer.close("D:activelock");
@@ -289,7 +304,8 @@ public class LockHandler extends Handler {
 
 
     private void responseWithLockFailure(LockResult result, Request request, Response response) {
-        response.setStatus( result.failureReason.status);
+        response.setStatus( result.getFailureReason().status);
         
     }
+
 }

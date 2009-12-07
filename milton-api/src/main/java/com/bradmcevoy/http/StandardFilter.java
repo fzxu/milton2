@@ -15,6 +15,7 @@ public class StandardFilter implements Filter {
     
     public static final String INTERNAL_SERVER_ERROR_HTML = "<html><body><h1>Internal Server Error (500)</h1></body></html>";
     
+
     public StandardFilter() {
     }
     
@@ -23,7 +24,7 @@ public class StandardFilter implements Filter {
         try {
             Request.Method method = request.getMethod();
             
-            Handler handler = manager.methodFactoryMap.get(method);
+            Handler handler = manager.getMethodHandler( method );
             if( handler == null ) throw new RuntimeException("No handler for method: " + method.code);        
             
             handler.process(manager,request,response);

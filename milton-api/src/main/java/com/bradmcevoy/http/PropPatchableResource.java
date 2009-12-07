@@ -1,6 +1,7 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.PropPatchHandler.Fields;
+import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 
 /**
  *

@@ -16,11 +16,14 @@ import java.util.Date;
 public interface Resource {
 
     /**
+     * Returning a null value is allowed, and disables the ETag field
+     *
+     * If a unique id is returned it will be combined with the modified date (if available)
+     * to produce an etag which identifies this version of this resource.
      * 
      * @return - a string which uniquely identifies this resource. This will be
      * used in the ETag header field, and affects caching of resources. 
      * 
-     * Returning a null value is allowed, and disables the ETag field
      */
     String getUniqueId();
     

@@ -1,10 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+package com.bradmcevoy.http.webdav;
 
-package com.bradmcevoy.http;
-
+import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -59,7 +56,7 @@ public class PropFindHandlerTest extends TestCase {
         replay(pfr);
         ByteArrayOutputStream out = prepareResponse();
 
-        handler.process( null, request, response, pfr);
+        handler.processExistingResource( null, request, response, pfr);
 
         System.out.println( "----- response ----" );
         System.out.println( out.toString() );
@@ -83,7 +80,7 @@ public class PropFindHandlerTest extends TestCase {
         expect(prop.getFormattedValue()).andReturn( "abcä<"); // include awkward characters for encoding
         replay(prop);
 
-        handler.process( null, request, response, cpr);
+        handler.processExistingResource( null, request, response, cpr);
 
         System.out.println( out.toString() );
 

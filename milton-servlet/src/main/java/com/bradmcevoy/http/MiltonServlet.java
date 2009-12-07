@@ -1,5 +1,7 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import java.io.IOException;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -22,12 +24,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author brad
  */
-public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
+public class MiltonServlet implements Servlet{
     
     private Logger log = LoggerFactory.getLogger(MiltonServlet.class);
-    
-    private ServletConfig config;
-    
+        
     private static final ThreadLocal<HttpServletRequest> originalRequest = new ThreadLocal<HttpServletRequest>();
     private static final ThreadLocal<HttpServletResponse> originalResponse = new ThreadLocal<HttpServletResponse>();
     private static final ThreadLocal<ServletConfig> tlServletConfig = new ThreadLocal<ServletConfig>();
@@ -58,18 +58,22 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
             throw new RuntimeException(ex);
         }
     }
-    
+
+    private ServletConfig config;
+
+    protected ServletHttpManager httpManager;
+
+
     public void init(ServletConfig config) throws ServletException {
         try {
             this.config = config;
-            String notFoundPath = config.getInitParameter("not.found.path");
             String resourceFactoryFactoryClassName = config.getInitParameter("resource.factory.factory.class");
             if( resourceFactoryFactoryClassName != null && resourceFactoryFactoryClassName.length() > 0 ) {
-                initFromFactoryFactory(resourceFactoryFactoryClassName, notFoundPath);
+                initFromFactoryFactory(resourceFactoryFactoryClassName);
             } else {
                 String resourceFactoryClassName = config.getInitParameter("resource.factory.class");
                 String responseHandlerClassName = config.getInitParameter("response.handler.class");
-                init(resourceFactoryClassName, notFoundPath, responseHandlerClassName);
+                init(resourceFactoryClassName, responseHandlerClassName);
             }
             httpManager.init(new ApplicationConfig(config),httpManager); 
         } catch( ServletException ex )  {
@@ -80,7 +84,49 @@ public class MiltonServlet extends AbstractMiltonEndPoint implements Servlet{
             throw new RuntimeException(ex);
         }        
     }
-    
+
+    protected void init(String resourceFactoryClassName, String responseHandlerClassName) throws ServletException {
+        log.debug("resourceFactoryClassName: " + resourceFactoryClassName);
+        ResourceFactory rf = instantiate(resourceFactoryClassName);
+        WebDavResponseHandler responseHandler;
+        if( responseHandlerClassName == null ) {
+            responseHandler = new DefaultWebDavResponseHandler();
+        } else {
+            responseHandler = instantiate(responseHandlerClassName);
+        }
+        init(rf, responseHandler);
+    }
+
+    protected void initFromFactoryFactory(String resourceFactoryFactoryClassName) throws ServletException {
+        log.debug("resourceFactoryFactoryClassName: " + resourceFactoryFactoryClassName);
+        ResourceFactoryFactory rff = instantiate(resourceFactoryFactoryClassName);
+        rff.init();
+        ResourceFactory rf = rff.createResourceFactory();
+        WebDavResponseHandler responseHandler = rff.createResponseHandler();
+        init(rf, responseHandler);
+    }
+
+    protected void init(ResourceFactory rf, WebDavResponseHandler responseHandler) {
+        httpManager = new ServletHttpManager(rf, responseHandler);
+    }
+
+    protected <T> T instantiate(String className) throws ServletException {
+        try {
+            Class c = Class.forName(className);
+            T rf = (T) c.newInstance();
+            return rf;
+        } catch (Throwable ex) {
+            throw new ServletException("Failed to instantiate: " + className, ex);
+        }
+    }
+
+    public void destroy() {
+        log.debug("destroy");
+        if( httpManager == null ) return ;
+        httpManager.destroy(httpManager);
+    }
+
+
     public void service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         HttpServletResponse resp = (HttpServletResponse) servletResponse;

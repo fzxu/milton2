@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import com.bradmcevoy.io.BufferingOutputStream;
 import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.ReadingException;
@@ -23,7 +25,7 @@ import com.bradmcevoy.io.WritingException;
  *
  * @author brad
  */
-public class CompressingResponseHandler extends  AbstractWrappingResponseHandler {
+public class CompressingResponseHandler extends AbstractWrappingResponseHandler {
 
     private static final Logger log = LoggerFactory.getLogger( CompressingResponseHandler.class );
 
@@ -35,7 +37,7 @@ public class CompressingResponseHandler extends  AbstractWrappingResponseHandler
     public CompressingResponseHandler() {
     }
 
-    public CompressingResponseHandler( ResponseHandler wrapped ) {
+    public CompressingResponseHandler( WebDavResponseHandler wrapped ) {
         super(wrapped);
     }
 
@@ -66,12 +68,12 @@ public class CompressingResponseHandler extends  AbstractWrappingResponseHandler
                 }
 
                 log.debug( "respondContent-compressed: " + resource.getClass() );
-                DefaultResponseHandler.setRespondContentCommonHeaders( response, resource );
+                DefaultHttp11ResponseHandler.setRespondContentCommonHeaders( response, resource );
                 response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
                 Long contentLength = tempOut.getSize();
                 response.setContentLengthHeader( contentLength );
                 response.setContentTypeHeader( contentType );
-                DefaultResponseHandler.setCacheControl( r, response, request.getAuthorization() );
+                DefaultHttp11ResponseHandler.setCacheControl( r, response, request.getAuthorization() );
                 try {
                     StreamUtils.readTo( tempOut.getInputStream(), response.getOutputStream() );
                 } catch( ReadingException ex ) {

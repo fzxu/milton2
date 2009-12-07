@@ -1,5 +1,11 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
+import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -27,7 +33,7 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.XmlWriter.Element;
 import com.bradmcevoy.io.StreamUtils;
 
-public class PropFindHandler extends ExistingEntityHandler {
+public class PropFindHandler implements ExistingEntityHandler {
 
     private Logger log = LoggerFactory.getLogger( PropFindHandler.class );
 
@@ -35,6 +41,7 @@ public class PropFindHandler extends ExistingEntityHandler {
 //    private Namespace nsWebDav = new Namespace();
     final Map<String, PropertyWriter> writersMap = new HashMap<String,PropertyWriter>();
 
+    private final ResourceHandlerHelper resourceHandlerHelper;
 
     {
         add( new ContentLengthPropertyWriter() );
@@ -53,26 +60,35 @@ public class PropFindHandler extends ExistingEntityHandler {
         add( new MSNamePropertyWriter() );
     }
 
-    public PropFindHandler( HttpManager manager ) {
-        super( manager );
+    public PropFindHandler( ResourceHandlerHelper resourceHandlerHelper ) {
+        this.resourceHandlerHelper = resourceHandlerHelper;
     }
+
+
 
     private void add( PropertyWriter pw ) {
         writersMap.put( pw.fieldName(), pw );
     }
 
-    @Override
-    public Request.Method method() {
-        return Method.PROPFIND;
+    public String[] getMethods() {
+        return new String[]{Method.PROPFIND.code};
     }
 
+
     @Override
-    protected boolean isCompatible( Resource handler ) {
+    public boolean isCompatible( Resource handler ) {
         return ( handler instanceof PropFindableResource );
     }
 
-    @Override
-    protected void process( HttpManager milton, Request request, Response response, Resource resource ) {
+    public void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException {
+        resourceHandlerHelper.process( httpManager, request, response, this );
+    }
+
+    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        resourceHandlerHelper.processResource( manager, request, response, r, this );
+    }
+
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         PropFindableResource pfr = (PropFindableResource) resource;
         int depth = request.getDepthHeader();
         response.setStatus( Response.Status.SC_MULTI_STATUS );
@@ -89,10 +105,33 @@ public class PropFindHandler extends ExistingEntityHandler {
         process( url, pfr, depth, requestedFields, response );
     }
 
+    void process( String url, PropFindableResource pfr, int depth, Set<String> requestedFields, Response response ) {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            XmlWriter writer = new XmlWriter( out );
+            PropertyConsumer consumer = new XmlWriterPropertyConsumer( writer );
+            writer.writeXMLHeader();
+            writer.open( "D:multistatus" + generateNamespaceDeclarations() );
+            writer.newLine();
+            appendResponses( consumer, pfr, depth, requestedFields, url );
+            writer.close( "D:multistatus" );
+            writer.flush();
+//            log.debug( out.toString() );
+            String xml = out.toString( "UTF-8");
+            response.getOutputStream().write( xml.getBytes() ); // note: this can and should write to the outputstream directory. but if it aint broke, dont fix it...
+        } catch( IOException ex ) {
+            log.warn( "ioexception sending output", ex );
+        }
+    }
+
+
     protected String generateNamespaceDeclarations() {
 //            return " xmlns:" + nsWebDav.abbrev + "=\"" + nsWebDav.url + "\"";
         return " xmlns:D" + "=\"DAV:\"";
     }
+
+
+
 
 
     class XmlWriterPropertyConsumer implements PropertyConsumer {
@@ -200,24 +239,6 @@ public class PropFindHandler extends ExistingEntityHandler {
 
     }
 
-    private void process( String url, PropFindableResource pfr, int depth, Set<String> requestedFields, Response response ) {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            XmlWriter writer = new XmlWriter( out );
-            PropertyConsumer consumer = new XmlWriterPropertyConsumer( writer );
-            writer.writeXMLHeader();
-            writer.open( "D:multistatus" + generateNamespaceDeclarations() );
-            writer.newLine();
-            appendResponses( consumer, pfr, depth, requestedFields, url );
-            writer.close( "D:multistatus" );
-            writer.flush();
-//            log.debug( out.toString() );
-            String xml = out.toString( "UTF-8");
-            response.getOutputStream().write( xml.getBytes() ); // note: this can and should write to the outputstream directory. but if it aint broke, dont fix it...
-        } catch( IOException ex ) {
-            log.warn( "ioexception sending output", ex );
-        }
-    }
 
     private String suffixSlash( String s ) {
         if( !s.endsWith( "/" ) ) {
@@ -406,7 +427,7 @@ public class PropFindHandler extends ExistingEntityHandler {
         }
 
         public String getValue( PropFindableResource res, String href ) {
-            String etag = DefaultResponseHandler.generateEtag( res );
+            String etag = DefaultHttp11ResponseHandler.generateEtag( res );
             return etag;
         }
 

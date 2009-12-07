@@ -1,6 +1,9 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.http11;
 
+import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,20 +15,40 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GetHandler extends ExistingEntityHandler {
+public class GetHandler implements ExistingEntityHandler {
 
     private static final Logger log = LoggerFactory.getLogger( GetHandler.class );
+    private final Http11ResponseHandler responseHandler;
+    private final HandlerHelper handlerHelper;
+    private final ResourceHandlerHelper resourceHandlerHelper;
 
-    public GetHandler( HttpManager manager ) {
-        super( manager );
+    public GetHandler( Http11ResponseHandler responseHandler ) {
+        this.responseHandler = responseHandler;
+        handlerHelper = new HandlerHelper();
+        this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
+    }
+
+    public GetHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
+        this.responseHandler = responseHandler;
+        this.handlerHelper = handlerHelper;
+        this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
     }
 
     @Override
-    protected void process( HttpManager milton, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException {
+    public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        this.resourceHandlerHelper.process( manager, request, response, this );
+    }
+
+    @Override
+    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        resourceHandlerHelper.processResource( manager, request, response, r, this );
+    }
+
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
 //        log.debug( "process: " + request.getAbsolutePath() );
         GetableResource r = (GetableResource) resource;
         if( checkConditional( r, request ) ) {
-            respondNotModified( r, response, request );
+            responseHandler.respondNotModified( r, response, request );
             return;
         }
 
@@ -41,7 +64,7 @@ public class GetHandler extends ExistingEntityHandler {
             return;
         }
         manager.onGet( request, response, resource, params );
-        sendContent( request, response, r, params );
+        sendContent( manager, request, response, r, params );
     }
 
     public Range getRange( Request requestInfo ) {
@@ -57,7 +80,7 @@ public class GetHandler extends ExistingEntityHandler {
 
     /** Return true if the resource has not been modified
      */
-    protected boolean checkConditional( GetableResource resource, Request request ) {
+    private boolean checkConditional( GetableResource resource, Request request ) {
         if( checkIfMatch( resource, request ) ) {
             return true;
         }
@@ -70,11 +93,8 @@ public class GetHandler extends ExistingEntityHandler {
         return false;
     }
 
-    protected void respondNotModified( GetableResource resource, Response response, Request request ) {
-        getResponseHandler().respondNotModified( resource, response, request );
-    }
 
-    protected boolean checkIfMatch( GetableResource handler, Request requestInfo ) {
+    private boolean checkIfMatch( GetableResource handler, Request requestInfo ) {
         return false;   // TODO: not implemented
     }
 
@@ -84,7 +104,7 @@ public class GetHandler extends ExistingEntityHandler {
      * @param requestInfo
      * @return - true if the resource has NOT been modified since that date in the request
      */
-    protected boolean checkIfModifiedSince( GetableResource handler, Request requestInfo ) {
+    private boolean checkIfModifiedSince( GetableResource handler, Request requestInfo ) {
         Date dtRequest = requestInfo.getIfModifiedHeader();
         if( dtRequest == null ) return false;
         Date dtCurrent = handler.getModifiedDate();
@@ -97,37 +117,30 @@ public class GetHandler extends ExistingEntityHandler {
         return unchangedSince;
     }
 
-    protected boolean checkIfNoneMatch( GetableResource handler, Request requestInfo ) {
+    private boolean checkIfNoneMatch( GetableResource handler, Request requestInfo ) {
         return false;   // TODO: not implemented
     }
 
     @Override
-    protected Request.Method method() {
-        return Request.Method.GET;
+    public String[] getMethods() {
+        return new String[]{Request.Method.GET.code, Request.Method.HEAD.code};
     }
 
     @Override
-    protected boolean isCompatible( Resource handler ) {
+    public boolean isCompatible( Resource handler ) {
         return ( handler instanceof GetableResource );
     }
 
-    protected void sendContent( Request request, Response response, GetableResource resource, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
-        Range range = getRange( request );
-        if( range != null ) {
-            getResponseHandler().respondPartialContent( resource, response, request, params, range );
+    private void sendContent( HttpManager manager, Request request, Response response, GetableResource resource, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
+        if( request.getMethod().equals( Method.HEAD)) {
+            responseHandler.respondHead( resource, response, request );
         } else {
-            getResponseHandler().respondContent( resource, response, request, params );
-        }
-    }
-
-    @Override
-    protected boolean doCheckRedirect( Request request, Response response, Resource resource ) {
-        String redirectUrl = resource.checkRedirect( request );
-        if( redirectUrl != null ) {
-            respondRedirect( response, request, redirectUrl );
-            return true;
-        } else {
-            return false;
+            Range range = getRange( request );
+            if( range != null ) {
+                responseHandler.respondPartialContent( resource, response, request, params, range );
+            } else {
+                responseHandler.respondContent( resource, response, request, params );
+            }
         }
     }
 }

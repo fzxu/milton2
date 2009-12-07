@@ -1,6 +1,5 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.io.FileUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

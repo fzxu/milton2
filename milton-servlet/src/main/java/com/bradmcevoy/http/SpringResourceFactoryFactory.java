@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -54,8 +55,8 @@ public class SpringResourceFactoryFactory implements ResourceFactoryFactory{
         return rf;
     }
 
-    public ResponseHandler createResponseHandler() {
-        return  (ResponseHandler) context.getBean("milton.response.handler");
+    public WebDavResponseHandler createResponseHandler() {
+        return  (WebDavResponseHandler) context.getBean("milton.response.handler");
     }
 
 

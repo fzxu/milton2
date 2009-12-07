@@ -128,17 +128,17 @@ public abstract class AbstractResponse implements Response {
         setResponseHeader(Header.LOCATION, redirectUrl);
     }
 
-    public void setAllowHeader(List<Request.Method> methodsAllowed) {
+    public void setAllowHeader(List<String> methodsAllowed) {
         if (methodsAllowed == null || methodsAllowed.size() == 0)
             return;
         StringBuffer sb = null;
-        for (Request.Method m : methodsAllowed) {
+        for (String m : methodsAllowed) {
             if (sb == null) {
                 sb = new StringBuffer();
             } else {
                 sb.append(",");
             }
-            sb.append(m.code);
+            sb.append(m);
         }
         setResponseHeader(Header.ALLOW, sb.toString());
     }

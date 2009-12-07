@@ -1,7 +1,7 @@
 package com.ettrema.json;
 
 import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.PropertyWriter;
+import com.bradmcevoy.http.webdav.PropertyWriter;
 import com.ettrema.json.MapBuildingPropertyConsumer.Props;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +31,7 @@ public class MapBuildingPropertyConsumerTest extends TestCase {
         set = new HashSet<PropertyWriter>();
     }
 
+    
     public void testConsumeProperties() {
         PropFindableResource pfr = createMock( PropFindableResource.class );
         consumer.consumeProperties( set, set, href, pfr, 0 );

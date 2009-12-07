@@ -1,4 +1,4 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

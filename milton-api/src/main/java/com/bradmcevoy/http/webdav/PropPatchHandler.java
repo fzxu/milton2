@@ -1,5 +1,10 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.PropPatchableResource;
+import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,7 +24,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.XmlWriter.Element;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
@@ -96,31 +100,36 @@ Content-Length: xxxx
  *
  * @author brad
  */
-public class PropPatchHandler extends ExistingEntityHandler {
+public class PropPatchHandler implements ExistingEntityHandler {
 
     private final static Logger log = LoggerFactory.getLogger( PropPatchHandler.class );
     private static final String CUSTOM_NS_PREFIX = "R";
 
-    PropPatchHandler( HttpManager manager ) {
-        super( manager );
+    private final ResourceHandlerHelper resourceHandlerHelper;
+
+    public PropPatchHandler( ResourceHandlerHelper resourceHandlerHelper ) {
+        this.resourceHandlerHelper = resourceHandlerHelper;
     }
 
-    public Request.Method method() {
-        return Method.PROPPATCH;
+
+    public String[] getMethods() {
+        return new String[]{Method.PROPPATCH.code};
     }
 
-    protected boolean isCompatible( Resource handler ) {
+    public boolean isCompatible( Resource handler ) {
         return ( handler instanceof PropPatchableResource );
     }
 
-    protected void process( HttpManager milton, Request request, Response response, Resource resource ) {
-        log.debug( "process" );
+    public void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException {
+        resourceHandlerHelper.process( httpManager, request, response, this );
+    }
 
-       	if( isLockedOut(request, resource))
-    	{
-    		response.setStatus(Status.SC_LOCKED);
-    		return;
-    	}
+    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        resourceHandlerHelper.processResource( manager, request, response, r, this );
+    }
+
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
+        log.debug( "process" );
  
         PropPatchableResource patchable = (PropPatchableResource) resource;
         // todo: check if token header

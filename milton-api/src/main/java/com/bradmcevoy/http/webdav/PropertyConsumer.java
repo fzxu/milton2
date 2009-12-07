@@ -1,5 +1,6 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.PropFindableResource;
 import java.util.Set;
 
 /**

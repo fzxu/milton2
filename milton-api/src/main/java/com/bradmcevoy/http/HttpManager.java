@@ -1,6 +1,9 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.http11.Http11ResponseHandler;
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,10 +24,7 @@ public class HttpManager {
     public static String decodeUrl(String s) {
             return Utils.decodePath(s);
     }
-
-
-    
-
+   
     private static final ThreadLocal<Request> tlRequest = new ThreadLocal<Request>();
     private static final ThreadLocal<Response> tlResponse = new ThreadLocal<Response>();
 
@@ -37,48 +37,18 @@ public class HttpManager {
     }
 
 
-    final OptionsHandler optionsHandler;
-    final GetHandler getHandler;
-    final PostHandler postHandler;
-    final PropFindHandler propFindHandler;
-    final MkColHandler mkColHandler;
-    final MoveHandler moveHandler;
-    final PutHandler putHandler;
-    final DeleteHandler deleteHandler;
-    final PropPatchHandler propPatchHandler;    
-    final CopyHandler copyHandler;
-    final HeadHandler headHandler;
-    final LockHandler lockHandler;
-    final UnlockHandler unlockHandler;
-    
-    public final Handler[] allHandlers;
-    
-    Map<Request.Method, Handler> methodFactoryMap = new ConcurrentHashMap<Request.Method, Handler>();
+    private final ProtocolHandlers handlers;
+
+    private Map<String, Handler> methodHandlers = new ConcurrentHashMap<String, Handler>();
     
     List<Filter> filters = new ArrayList<Filter>();
     List<EventListener> eventListeners = new ArrayList<EventListener>();
     
-    final ResourceFactory resourceFactory;
-    final ResponseHandler responseHandler;
-    final String notFoundPath;
+    protected final ResourceFactory resourceFactory;
+
+    protected final Http11ResponseHandler responseHandler;
     
     private SessionAuthenticationHandler sessionAuthenticationHandler;
-
-    /**
-     * @deprecated
-     *
-     * Creates the manager with a DefaultResponseHandler. Method handlers are
-     * instantiated with createXXXHandler methods
-     *
-     * The notFoundPath property is deprecated. Instead, you should use an appropriate
-     * ResponseHandler
-     *
-     * @param resourceFactory
-     * @param notFoundPath
-     */
-    public HttpManager(ResourceFactory resourceFactory, String notFoundPath) {
-        this(resourceFactory, notFoundPath, new DefaultResponseHandler()); 
-    }
 
     /**
      * Creates the manager with a DefaultResponseHandler
@@ -86,51 +56,32 @@ public class HttpManager {
      * @param resourceFactory
      */
     public HttpManager(ResourceFactory resourceFactory) {
-        this(resourceFactory, null, null);
+        this(resourceFactory, null);
     }
 
-    public HttpManager(ResourceFactory resourceFactory, ResponseHandler responseHandler) {
-        this(resourceFactory, null, responseHandler);
-    }
-
-    /**
-     * @deprecated - instead of notFoundPath, use an appropriate ResponseHandler
-     *
-     * @param resourceFactory
-     * @param notFoundPath
-     * @param responseHandler
-     */
-    public HttpManager(ResourceFactory resourceFactory, String notFoundPath, ResponseHandler responseHandler) {
+    public HttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler) {
         if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
         this.resourceFactory = resourceFactory;
         this.responseHandler = responseHandler;
 
-        this.notFoundPath = notFoundPath;
-        optionsHandler = add( createOptionsHandler() );
-        getHandler = add( createGetHandler() );
-        postHandler = add( createPostHandler() );
-        propFindHandler = add( createPropFindHandler() );
-        mkColHandler = add( createMkColHandler() );
-        moveHandler = add( createMoveFactory() );
-        putHandler = add( createPutFactory() );
-        deleteHandler = add( createDeleteHandler() );
-        copyHandler = add( createCopyHandler() );
-        headHandler = add( createHeadHandler() );
-        propPatchHandler = add( createPropPatchHandler() );
-        lockHandler = add(createLockHandler());
-        unlockHandler = add(createUnlockHandler());
-        allHandlers = new Handler[]{optionsHandler,getHandler,postHandler,propFindHandler,mkColHandler,moveHandler,putHandler,deleteHandler,propPatchHandler, lockHandler, unlockHandler};
+        this.handlers = new ProtocolHandlers(responseHandler);
+
+        for( HttpExtension ext : handlers ) {
+            for( Handler h : ext.getHandlers() ) {
+                for( String m : h.getMethods() ) {
+                    this.methodHandlers.put( m, h);
+                }
+            }
+        }
 
         filters.add(createStandardFilter());
-    }
-    
 
-    /**
-     * @deprecated - instead, use an appropriate ResponseHandler
-     * @return
-     */
-    public String getNotFoundPath() {
-        return notFoundPath;
+    }
+
+
+
+    public Handler getMethodHandler(Request.Method m) {
+        return methodHandlers.get( m.code );
     }
     
     public ResourceFactory getResourceFactory() {
@@ -157,17 +108,7 @@ public class HttpManager {
         if( this.sessionAuthenticationHandler == null ) return null;
         return this.sessionAuthenticationHandler.getSessionAuthentication(request);
     }
-
-    public ResponseHandler getResponseHandler() {
-        return responseHandler;
-    }
-
-    
-    private <T extends Handler> T add(T h) {
-        methodFactoryMap.put(h.method(),h);
-        return h;
-    }
-    
+       
     public void process(Request request, Response response) {
         log.debug(request.getMethod() + " :: " + request.getAbsoluteUrl() + " - " + request.getAbsoluteUrl());
         tlRequest.set( request );
@@ -187,59 +128,7 @@ public class HttpManager {
         return new StandardFilter();
     }
     
-    
-    protected OptionsHandler createOptionsHandler() {
-        return new OptionsHandler(this);
-    }
-    
-    protected GetHandler createGetHandler() {
-        return new GetHandler(this);
-    }
-    
-    protected PostHandler createPostHandler() {
-        return new PostHandler(this);
-    }
-    
-    protected DeleteHandler createDeleteHandler() {
-        return new DeleteHandler(this);
-    }
-    
-    protected PutHandler createPutFactory() {
-        return new PutHandler(this);
-    }
-    
-    protected MoveHandler createMoveFactory() {
-        return new MoveHandler(this);
-    }
-    
-    protected MkColHandler createMkColHandler() {
-        return new MkColHandler(this);
-    }
-    
-    protected PropFindHandler createPropFindHandler() {
-        return new PropFindHandler(this);
-    }
-    
-    protected CopyHandler createCopyHandler() {
-        return new CopyHandler(this);
-    }
-    
-    protected HeadHandler createHeadHandler() {
-        return new HeadHandler(this);
-    }
-
-    protected PropPatchHandler createPropPatchHandler() {
-        return new PropPatchHandler(this);
-    }
-    
-    protected LockHandler createLockHandler() {
-        return new LockHandler(this);
-    }
-    
-    protected UnlockHandler createUnlockHandler() {
-        return new UnlockHandler(this);
-    }
-        
+            
     public void addFilter(int pos, Filter filter) {
         filters.add(pos,filter);
     }
@@ -252,25 +141,25 @@ public class HttpManager {
         eventListeners.remove(l);
     }
     
-    void onProcessResourceFinish(Request request, Response response, Resource resource, long duration) {
+    public void onProcessResourceFinish(Request request, Response response, Resource resource, long duration) {
         for( EventListener l : eventListeners ) {
             l.onProcessResourceFinish(request, response, resource,duration);
         }
     }
 
-    void onProcessResourceStart(Request request, Response response, Resource resource) {
+    public void onProcessResourceStart(Request request, Response response, Resource resource) {
         for( EventListener l : eventListeners ) {
             l.onProcessResourceStart(request, response, resource);
         }        
     }
 
-    void onPost(Request request, Response response, Resource resource, Map<String, String> params, Map<String, FileItem> files) {
+    public void onPost(Request request, Response response, Resource resource, Map<String, String> params, Map<String, FileItem> files) {
         for( EventListener l : eventListeners ) {
             l.onPost(request, response, resource, params, files);
         }   
     }
 
-    void onGet(Request request, Response response, Resource resource, Map<String, String> params) {
+    public void onGet(Request request, Response response, Resource resource, Map<String, String> params) {
         for( EventListener l : eventListeners ) {
             l.onGet(request, response, resource, params);
         }   
@@ -290,60 +179,11 @@ public class HttpManager {
         this.eventListeners = eventListeners;
     }
 
-    public CopyHandler getCopyHandler() {
-        return copyHandler;
+    public Collection<Handler> getAllHandlers() {
+        return this.methodHandlers.values();
     }
 
-    public DeleteHandler getDeleteHandler() {
-        return deleteHandler;
+    public Http11ResponseHandler getResponseHandler() {
+        return responseHandler;
     }
-
-    public GetHandler getGetHandler() {
-        return getHandler;
-    }
-
-    public HeadHandler getHeadHandler() {
-        return headHandler;
-    }
-
-    public LockHandler getLockHandler() {
-        return lockHandler;
-    }
-
-    public MkColHandler getMkColHandler() {
-        return mkColHandler;
-    }
-
-    public MoveHandler getMoveHandler() {
-        return moveHandler;
-    }
-
-
-
-    public OptionsHandler getOptionsHandler() {
-        return optionsHandler;
-    }
-
-    public PostHandler getPostHandler() {
-        return postHandler;
-    }
-
-    public PropFindHandler getPropFindHandler() {
-        return propFindHandler;
-    }
-
-    public PropPatchHandler getPropPatchHandler() {
-        return propPatchHandler;
-    }
-
-    public UnlockHandler getUnlockHandler() {
-        return unlockHandler;
-    }
-
-    public PutHandler getPutHandler() {
-        return putHandler;
-    }
-
-
-
 }

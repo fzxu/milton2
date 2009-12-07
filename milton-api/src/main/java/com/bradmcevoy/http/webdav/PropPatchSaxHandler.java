@@ -1,5 +1,6 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.webdav.PropPatchHandler;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;

@@ -2,7 +2,7 @@ package com.ettrema.json;
 
 import com.bradmcevoy.http.CustomProperty;
 import com.bradmcevoy.http.CustomPropertyResource;
-import com.bradmcevoy.http.PropFindHandler;
+import com.bradmcevoy.http.webdav.PropFindHandler;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;

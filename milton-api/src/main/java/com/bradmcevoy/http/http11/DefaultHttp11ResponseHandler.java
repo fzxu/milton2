@@ -1,5 +1,7 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.http11;
 
+import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,20 +13,18 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 /**
  *
  */
-public class DefaultResponseHandler implements ResponseHandler {
+public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
-    private static final Logger log = LoggerFactory.getLogger( DefaultResponseHandler.class );
+    private static final Logger log = LoggerFactory.getLogger( DefaultHttp11ResponseHandler.class );
     public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
     public static final String NOT_FOUND_HTML = "<html><body><h1>${url} Not Found (404)</h1></body></html>";
     public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
     public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
-    private String supportedLevels;
 
     public static String generateEtag( Resource r ) {
         String s = r.getUniqueId();
@@ -36,32 +36,10 @@ public class DefaultResponseHandler implements ResponseHandler {
         return s;
     }
 
-    /**
-     * Defaults supported-levels to '1' meaning that locking is not supported
-     *
-     * Note that this will prevent Mac OS from creating folders.
-     *
-     */
-    public DefaultResponseHandler() {
-        this( "1" );  // no locking
-    }
 
-    /**
-     *
-     * Constructor where the supported-levels can be set. Supported-levels
-     * indicates to clients whether locking is supported (1,2) or not (1)
-     *
-     * @param supportedLevels = either '1' or '1,2'
-     */
-    public DefaultResponseHandler( String supportedLevels ) {
-        this.supportedLevels = supportedLevels;
-    }
-
-    public void respondWithOptions( Resource resource, Response response, Request request, List<Method> methodsAllowed ) {
-        response.setStatus( Response.Status.SC_OK );
-        response.setDavHeader( getSupportedLevels() );
-        response.setAllowHeader( methodsAllowed );
-        response.setNonStandardHeader( "MS-Author-Via", "DAV" );
+    public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
+        response.setStatus( Response.Status.SC_OK );        
+        response.setAllowHeader( methodsAllowed );        
         response.setContentLengthHeader( (long) 0 );
     }
 
@@ -145,9 +123,9 @@ public class DefaultResponseHandler implements ResponseHandler {
     }
 
     public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException {
-        log.debug( "respondPartialContent: " + range.start + " - " + range.finish );
+        log.debug( "respondPartialContent: " + range.getStart() + " - " + range.getFinish() );
         response.setStatus( Response.Status.SC_PARTIAL_CONTENT );
-        response.setContentRangeHeader( range.start, range.finish, resource.getContentLength() );
+        response.setContentRangeHeader( range.getStart(), range.getFinish(), resource.getContentLength() );
         response.setDateHeader( new Date() );
         String etag = generateEtag( resource );
         if( etag != null ) {
@@ -173,7 +151,6 @@ public class DefaultResponseHandler implements ResponseHandler {
         log.debug( "respondContent: " + resource.getClass() );
         setRespondContentCommonHeaders( response, resource );
         if( resource instanceof GetableResource ) {
-            log.debug( "..is getable" );
             GetableResource gr = (GetableResource) resource;
             Long contentLength = gr.getContentLength();
             if( contentLength != null ) { // often won't know until rendered
@@ -200,33 +177,6 @@ public class DefaultResponseHandler implements ResponseHandler {
         }
         response.setLastModifiedHeader( resource.getModifiedDate() );
         setCacheControl( resource, response, request.getAuthorization() );
-    }
-
-    public void responseMultiStatus( Resource resource, Response response, Request request, List<HrefStatus> statii ) {
-        response.setStatus( Response.Status.SC_MULTI_STATUS );
-        response.setContentTypeHeader( Response.XML );
-        //response.setContentTypeHeader(Response.ContentType.XML.toString());
-
-        String href = request.getAbsoluteUrl();
-
-        XmlWriter writer = new XmlWriter( response.getOutputStream() );
-        writer.writeXMLHeader();
-        writer.open( "multistatus" + generateNamespaceDeclarations() );
-        writer.newLine();
-        for( HrefStatus status : statii ) {
-            XmlWriter.Element elResponse = writer.begin( "response" ).open();
-            writer.writeProperty( "", "href", status.href );
-            writer.writeProperty( "", "status", status.status.code + "" );
-            elResponse.close();
-        }
-        writer.close( "multistatus" );
-        writer.flush();
-
-    }
-
-    protected String generateNamespaceDeclarations() {
-//            return " xmlns:" + nsWebDav.abbrev + "=\"" + nsWebDav.url + "\"";
-        return " xmlns:D" + "=\"DAV:\"";
     }
 
     public static void setCacheControl( final GetableResource resource, final Response response, Auth auth ) {
@@ -267,10 +217,6 @@ public class DefaultResponseHandler implements ResponseHandler {
         return outToUse;
     }
 
-    public String getSupportedLevels() {
-        return supportedLevels;
-    }
-
     protected void output( final Response response, final String s ) {
         PrintWriter pw = new PrintWriter( response.getOutputStream(), true );
         pw.print( s );
@@ -295,5 +241,9 @@ public class DefaultResponseHandler implements ResponseHandler {
 
     public void respondBadRequest( Resource resource, Response response, Request request ) {
         response.setStatus( Response.Status.SC_BAD_REQUEST );
+    }
+
+    public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
+        response.setStatus( status );
     }
 }

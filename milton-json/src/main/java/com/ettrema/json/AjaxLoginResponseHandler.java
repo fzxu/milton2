@@ -4,7 +4,7 @@ import com.bradmcevoy.http.AbstractWrappingResponseHandler;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Response;
-import com.bradmcevoy.http.ResponseHandler;
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
 
     private final List<ResourceMatcher> resourceMatchers;
 
-    public AjaxLoginResponseHandler( ResponseHandler responseHandler, List<ResourceMatcher> resourceMatchers ) {
+    public AjaxLoginResponseHandler( WebDavResponseHandler responseHandler, List<ResourceMatcher> resourceMatchers ) {
         super( responseHandler );
         this.resourceMatchers = resourceMatchers;
     }
@@ -33,7 +33,7 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
      *
      * @param responseHandler
      */
-    public AjaxLoginResponseHandler( ResponseHandler responseHandler) {
+    public AjaxLoginResponseHandler( WebDavResponseHandler responseHandler) {
         super( responseHandler );
         this.resourceMatchers = new ArrayList<ResourceMatcher>();
         this.resourceMatchers.add( new TypeResourceMatcher( AjaxLoginResource.class ) );

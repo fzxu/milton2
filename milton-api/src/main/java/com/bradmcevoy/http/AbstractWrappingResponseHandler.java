@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.util.List;
 import java.util.Map;
@@ -7,15 +8,15 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 
 /**
  * Response Handler which wraps another
  *
  * @author brad
  */
-public abstract class AbstractWrappingResponseHandler implements ResponseHandler {
+public abstract class AbstractWrappingResponseHandler implements WebDavResponseHandler {
 
     private static final Logger log = LoggerFactory.getLogger( AbstractWrappingResponseHandler.class );
 
@@ -23,13 +24,13 @@ public abstract class AbstractWrappingResponseHandler implements ResponseHandler
      * The underlying respond handler which takes care of actually generating
      * content
      */
-    protected ResponseHandler wrapped;
+    protected WebDavResponseHandler wrapped;
 
     public AbstractWrappingResponseHandler() {
     }
 
 
-    public AbstractWrappingResponseHandler( ResponseHandler wrapped ) {
+    public AbstractWrappingResponseHandler( WebDavResponseHandler wrapped ) {
         this.wrapped = wrapped;
     }
 
@@ -39,11 +40,11 @@ public abstract class AbstractWrappingResponseHandler implements ResponseHandler
     }
 
 
-    public void setWrapped( ResponseHandler wrapped ) {
+    public void setWrapped( WebDavResponseHandler wrapped ) {
         this.wrapped = wrapped;
     }
 
-    public ResponseHandler getWrapped() {
+    public WebDavResponseHandler getWrapped() {
         return wrapped;
     }
 
@@ -91,7 +92,7 @@ public abstract class AbstractWrappingResponseHandler implements ResponseHandler
         wrapped.respondNotFound( response, request );
     }
 
-    public void respondWithOptions( Resource resource, Response response, Request request, List<Method> methodsAllowed ) {
+    public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
         wrapped.respondWithOptions( resource, response, request, methodsAllowed );
     }
 
@@ -107,6 +108,7 @@ public abstract class AbstractWrappingResponseHandler implements ResponseHandler
         wrapped.respondBadRequest( resource, response, request );
     }
 
-
-
+    public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
+        wrapped.respondDeleteFailed( request, response, resource, status );
+    }
 }

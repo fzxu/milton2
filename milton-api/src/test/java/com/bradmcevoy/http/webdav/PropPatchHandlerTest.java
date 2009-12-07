@@ -1,6 +1,11 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
-import com.bradmcevoy.http.PropPatchHandler.Fields;
+import com.bradmcevoy.http.PropPatchableResource;
+import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +45,7 @@ public class PropPatchHandlerTest extends TestCase {
         assertEquals(1, fields.removeFields.size());
     }
 
-    public void testProcess() throws IOException {
+    public void testProcess() throws IOException, NotAuthorizedException, BadRequestException, ConflictException {
         System.out.println( "start testProcess" );
         InputStream in = this.getClass().getResourceAsStream("proppatch_request_vista.http");
         assertNotNull( in );
@@ -61,7 +66,7 @@ public class PropPatchHandlerTest extends TestCase {
 
         replay(res, request, response);
         
-        handler.process(null, request, response, res);
+        handler.processExistingResource(null, request, response, res);
 
         System.out.println( out.toString() );
 

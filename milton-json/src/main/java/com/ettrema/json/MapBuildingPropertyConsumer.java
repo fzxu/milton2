@@ -1,8 +1,8 @@
 package com.ettrema.json;
 
 import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.PropertyConsumer;
-import com.bradmcevoy.http.PropertyWriter;
+import com.bradmcevoy.http.webdav.PropertyConsumer;
+import com.bradmcevoy.http.webdav.PropertyWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +53,7 @@ public class MapBuildingPropertyConsumer implements PropertyConsumer{
 
 
     class Props extends HashMap<String, Object> {
+        private static final long serialVersionUID = 1L;
         final Props parent;
         final int depth;
 

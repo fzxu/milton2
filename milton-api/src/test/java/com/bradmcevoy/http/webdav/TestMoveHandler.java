@@ -1,5 +1,6 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.webdav.Dest;
 import junit.framework.TestCase;
 
 public class TestMoveHandler extends TestCase {

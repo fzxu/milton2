@@ -3,13 +3,9 @@ package com.bradmcevoy.http;
 
 
 public class Range {
-    long start;
-    long finish;
+    private final long start;
+    private final long finish;
     
-    public Range()
-	{
-	}
-
     public Range(long start, long finish) {
         this.start = start;
         this.finish = finish;

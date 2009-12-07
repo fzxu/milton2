@@ -1,7 +1,7 @@
 package com.bradmcevoy.http;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
+import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,9 +10,10 @@ import org.slf4j.LoggerFactory;
  * Disables locking, as required for MS office support
  *
  */
-public class MsOfficeResponseHandler extends DefaultResponseHandler{
+public class MsOfficeResponseHandler extends DefaultWebDavResponseHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultResponseHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultHttp11ResponseHandler.class);
+
 
     /**
      * Overrides the default behaviour to set the status to Response.Status.SC_NOT_IMPLEMENTED
@@ -25,13 +26,6 @@ public class MsOfficeResponseHandler extends DefaultResponseHandler{
      */
     @Override
     public void respondMethodNotAllowed(Resource res, Response response, Request request) {
-        log.debug("method not allowed. handler: " + this.getClass().getName() + " resource: " + res.getClass().getName());
-        try {
-            response.setStatus(Response.Status.SC_NOT_IMPLEMENTED);
-            OutputStream out = response.getOutputStream();
-            out.write(METHOD_NOT_ALLOWED_HTML.getBytes());
-        } catch (IOException ex) {
-            log.warn("exception writing content");
-        }
+        wrapped.respondMethodNotImplemented( res, response, request );
     }
 }

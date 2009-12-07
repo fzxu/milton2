@@ -1,5 +1,7 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
+
 /**
  *  Implement this interface to configure the ResourceFactory instance
  * 
@@ -25,7 +27,7 @@ public interface ResourceFactoryFactory {
      *
      * @return
      */
-    public ResponseHandler createResponseHandler();
+    public WebDavResponseHandler createResponseHandler();
 
     /**
      * Called immediaely after construction

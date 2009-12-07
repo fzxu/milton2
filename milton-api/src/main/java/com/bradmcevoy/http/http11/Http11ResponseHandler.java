@@ -1,11 +1,15 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.http11;
 
-import java.util.List;
-import java.util.Map;
-
-import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.GetableResource;
+import com.bradmcevoy.http.Range;
+import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.Response;
+import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import java.util.List;
+import java.util.Map;
 
 /**
  *  The ResponseHandler should handle all responses back to the client.
@@ -19,7 +23,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
  *  In other words, hacks to support particular client programs should be implemented
  *  here
  */
-public interface ResponseHandler {
+public interface Http11ResponseHandler {
     /**
      * Invoked when an operation is successful, but there is no content, and
      * there is nothing more specific to return (Eg created)
@@ -39,10 +43,9 @@ public interface ResponseHandler {
     void respondMethodNotAllowed(Resource res, Response response, Request request);
     void respondConflict(Resource resource, Response response, Request request, String message);
     void respondRedirect(Response response, Request request, String redirectUrl);
-    void responseMultiStatus(Resource resource, Response response, Request request, List<HrefStatus> statii);
     void respondNotModified(GetableResource resource, Response response, Request request);
     void respondNotFound(Response response, Request request);
-    void respondWithOptions(Resource resource, Response response,Request request, List<Method> methodsAllowed);
+    void respondWithOptions(Resource resource, Response response,Request request, List<String> methodsAllowed);
 
     /**
      * Generate a HEAD response
@@ -67,5 +70,18 @@ public interface ResponseHandler {
      * @param params
      */
     void respondBadRequest( Resource resource, Response response, Request request);
+
+    /**
+     * Called when a delete has failed, including the failure status.
+     *
+     * Note that webdav implementations will respond with a multisttus, while
+     * http 1.1 implementations will simply set the response status
+     *
+     * @param request
+     * @param response
+     * @param resource - the resource which could not be deleted
+     * @param status - the status which has caused the delete to fail.
+     */
+    void respondDeleteFailed( Request request, Response response, Resource resource, Status status );
 
 }

@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,13 +8,13 @@ public class ServletHttpManager extends HttpManager implements Initable {
     
     private static final Logger log = LoggerFactory.getLogger(ServletHttpManager.class);
     
-    public ServletHttpManager(ResourceFactory resourceFactory, String notFoundPath, ResponseHandler responseHandler) {
-        super(resourceFactory, notFoundPath, responseHandler);
+    public ServletHttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler) {
+        super(resourceFactory, responseHandler);
     }
     
     public void init(ApplicationConfig config,HttpManager manager) {
         log.debug("init");
-        if( resourceFactory != null ) {
+        if( resourceFactory != null ) { 
             if( resourceFactory instanceof Initable ) {
                 Initable i = (Initable)resourceFactory;
                 i.init(config,manager);

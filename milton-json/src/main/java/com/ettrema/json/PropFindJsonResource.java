@@ -3,7 +3,7 @@ package com.ettrema.json;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.GetableResource;
-import com.bradmcevoy.http.PropFindHandler;
+import com.bradmcevoy.http.webdav.PropFindHandler;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;

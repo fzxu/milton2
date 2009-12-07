@@ -1,7 +1,7 @@
 package com.ettrema.json;
 
 import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.PropFindHandler;
+import com.bradmcevoy.http.webdav.PropFindHandler;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Request;

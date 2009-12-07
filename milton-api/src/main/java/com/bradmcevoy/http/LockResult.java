@@ -17,7 +17,7 @@ public class LockResult {
         ALREADY_LOCKED(Response.Status.SC_CONFLICT),
         PRECONDITION_FAILED(Response.Status.SC_LOCKED);
 
-        Response.Status status;
+        public Response.Status status;
 
         FailureReason(Response.Status status) {
             this.status = status;

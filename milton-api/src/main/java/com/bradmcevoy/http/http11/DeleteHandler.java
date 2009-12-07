@@ -1,5 +1,6 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.http11;
 
+import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,62 +8,56 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 
-public class DeleteHandler extends ExistingEntityHandler {
+public class DeleteHandler implements ExistingEntityHandler {
     
     private Logger log = LoggerFactory.getLogger(DeleteHandler.class);
-    
-    public DeleteHandler(HttpManager manager) {
-        super(manager);
+
+    private final Http11ResponseHandler responseHandler;
+    private final HandlerHelper handlerHelper;
+    private final ResourceHandlerHelper resourceHandlerHelper;
+
+    public DeleteHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
+        this.responseHandler = responseHandler;
+        this.handlerHelper = handlerHelper;
+        this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
+    }
+
+    public DeleteHandler( Http11ResponseHandler responseHandler ) {
+        this.responseHandler = responseHandler;
+        this.handlerHelper = new HandlerHelper();
+        this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
+    }
+
+    public String[] getMethods() {
+        return new String[]{Method.DELETE.code};
     }
     
     @Override
-    protected Request.Method method() {
-        return Method.DELETE;
-    }    
-    
-    @Override
-    protected boolean isCompatible(Resource handler) {
+    public boolean isCompatible(Resource handler) {
         return (handler instanceof DeletableResource);
     }        
 
     @Override
     public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException, BadRequestException {
-        String host = request.getHostHeader();
-        String url = HttpManager.decodeUrl(request.getAbsolutePath());
-
-        Resource r = manager.getResourceFactory().getResource(host, url);
-        if (r != null) {
-            processResource(manager, request, response, r);
-        } else {            
-            //Might be a permission thing
-        	Path col = Path.path(url).getParent();
-        	Resource parent = manager.getResourceFactory().getResource(host, col.toPath());
-        	if( isLockedOut(request, parent)) {
-                log.debug( "locked out, can't delete");
-        		response.setStatus(Status.SC_LOCKED);
-        		return;
-        	}
-        	log.error( "404: in delete" + url);
-        	respondNotFound(response, request);
-        }
+        resourceHandlerHelper.process( manager, request, response, this );
     }
 
+    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        resourceHandlerHelper.processResource( manager, request, response, r, this );
+    }
 
-    @Override
-    protected void process(HttpManager milton, Request request, Response response, Resource resource) {
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         log.debug("DELETE: " + request.getAbsoluteUrl());
 
         //check that no children are locked
         //checkForLock(resource, request);
-        if( isLockedOut(request, resource))
-        {
+        if( handlerHelper.isLockedOut(request, resource)) {
         	log.info("Could not delete. Is locked");
             response.setStatus(Status.SC_LOCKED);
             return;
@@ -76,9 +71,7 @@ public class DeleteHandler extends ExistingEntityHandler {
             log.debug("deleted ok");
         } catch(CantDeleteException e) {
             log.error("failed to delete: " + request.getAbsoluteUrl(),e);
-            List<HrefStatus> statii = new ArrayList<HrefStatus>();
-            statii.add( new HrefStatus(request.getAbsoluteUrl(), e.status));
-            manager.getResponseHandler().responseMultiStatus(resource, response, request, statii);
+            responseHandler.respondDeleteFailed(request, response, e.resource, e.status);
         }
         
     }
@@ -99,6 +92,8 @@ public class DeleteHandler extends ExistingEntityHandler {
         }
         r.delete();
     }
+
+
     
     public static class CantDeleteException extends Exception {
         

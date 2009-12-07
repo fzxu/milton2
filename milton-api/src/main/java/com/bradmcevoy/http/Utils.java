@@ -9,6 +9,8 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 public class Utils {
 
@@ -177,5 +179,21 @@ public class Utils {
     private static String normalize( String s ) {
         //return Normalizer.normalize(s, Normalizer.Form.NFC);
         return s;
+    }
+
+    /**
+     * Convert the list of strings to a comma seperated string
+     *
+     * @param list
+     * @return
+     */
+    public static String toCsv(List<String> list) {
+        String res = "";
+        Iterator<String> it = list.iterator();
+        while(it.hasNext()) {
+            res += it.next();
+            if( it.hasNext() ) res += ", ";
+        }
+        return res;
     }
 }

@@ -1,4 +1,7 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
+
+import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.*;
 
 public interface PropertyWriter<T> {
 

@@ -1,4 +1,4 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.http.webdav;
 
 import java.util.HashMap;
 import java.util.Map;
