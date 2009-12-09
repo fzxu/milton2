@@ -18,15 +18,10 @@ public class JsonResourceFactory implements ResourceFactory {
     private static final Logger log = LoggerFactory.getLogger(JsonResourceFactory.class);
 
     final ResourceFactory wrapped;
-    final PropFindHandler propFindHandler;
+    final JsonPropFindHandler propFindHandler;
     private static final String DAV_FOLDER = "_DAV";
 
-    public JsonResourceFactory(ResourceFactory wrapped) {
-        this.wrapped = wrapped;
-        this.propFindHandler = new PropFindHandler(null);
-    }
-
-    public JsonResourceFactory(ResourceFactory wrapped, PropFindHandler propFindHandler) {
+    public JsonResourceFactory(ResourceFactory wrapped, JsonPropFindHandler propFindHandler) {
         this.wrapped = wrapped;
         this.propFindHandler = propFindHandler;
     }

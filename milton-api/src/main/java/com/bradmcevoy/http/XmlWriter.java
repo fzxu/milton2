@@ -87,13 +87,22 @@ public class XmlWriter {
     }
 
     public class Element {
-
+        private final String nsPrefix;
         private final String name;
         private boolean openEnded;
 
         Element( String name ) {
+            this(null, name);
+        }
+
+        Element( String nsPrefix, String name ) {
             this.name = name;
+            this.nsPrefix = nsPrefix;
             append( "<" );
+            if( nsPrefix != null ) {
+                append(nsPrefix);
+                append(":");
+            }
             append( name );
         }
 
@@ -123,7 +132,11 @@ public class XmlWriter {
 
         public Element close() {
             if( openEnded ) {
-                append( "</" + name + ">\n" );
+                if( nsPrefix != null ) {
+                     append( "</" + nsPrefix + ":" + name + ">\n" );
+                } else {
+                    append( "</" + name + ">\n" );
+                }
             } else {
                 noContent();
             }
@@ -136,9 +149,13 @@ public class XmlWriter {
         }
 
         public Element begin( String name ) {
+            return begin(null, name);
+        }
+
+        public Element begin( String prefix, String name ) {
             if( !openEnded ) open();
             
-            Element el = new Element( name );
+            Element el = new Element( prefix, name );
             return el;
         }
     }
@@ -147,6 +164,12 @@ public class XmlWriter {
         Element el = new Element( name );
         return el;
     }
+
+    public Element begin( String nsPrefix, String name ) {
+        Element el = new Element( nsPrefix, name );
+        return el;
+    }
+
 
     public void writeElement( String namespace, String namespaceInfo, String name, Type type ) {
         if( ( namespace != null ) && ( namespace.length() > 0 ) ) {

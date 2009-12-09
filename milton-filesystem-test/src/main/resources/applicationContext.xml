@@ -55,10 +55,7 @@
     <bean id="milton.response.handler" class="com.bradmcevoy.http.MsOfficeResponseHandler"/>
 -->
 
-    <!-- Note that supported levels of 1,2 is required for mac os write operations,
-    but might interfere with MS office editing operations -->
-    <bean id="milton.response.handler" class="com.bradmcevoy.http.DefaultResponseHandler">
-        <constructor-arg value="1,2" />  
+    <bean id="milton.response.handler" class="com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler">
     </bean>
 
     <!-- The compressing response handler wraps the default response handler and compresses

@@ -27,5 +27,5 @@ public interface PropertyConsumer {
      * @param depth - zero indexed current depth. this will be zero for the first resource, ie the one
      * identified in the request url.
      */
-    public void consumeProperties( Set<PropertyWriter> knownProperties, Set<PropertyWriter> unknownProperties, String collectionHref, PropFindableResource resource, int depth );
+    public void consumeProperties( Set<PropertyAccessor> knownProperties, Set<PropertyAccessor> unknownProperties, String collectionHref, PropFindableResource resource, int depth );
 }

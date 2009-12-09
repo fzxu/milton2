@@ -1,13 +1,14 @@
 package com.bradmcevoy.http.webdav;
 
-import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.XmlWriter;
+import javax.xml.namespace.QName;
 
-public interface PropertyWriter<T> {
+/**
+ *
+ * @author brad
+ */
+public interface PropertyWriter {
+    boolean supports(QName name, Class valueType);
 
-    String fieldName();
-
-    void append( XmlWriter xmlWriter, PropFindableResource res, String href );
-
-    T getValue( PropFindableResource res, String href );
+    void write(XmlWriter xmlWriter, QName name, Object val);
 }

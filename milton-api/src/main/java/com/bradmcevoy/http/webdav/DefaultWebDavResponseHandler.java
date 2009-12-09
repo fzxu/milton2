@@ -2,6 +2,7 @@ package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.HrefStatus;
+import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
@@ -27,15 +28,20 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler{
 
     protected final ResourceTypeHelper resourceTypeHelper;
 
+    protected final PropFindXmlGenerator propFindXmlGenerator;
+
     public DefaultWebDavResponseHandler() {
         wrapped = new DefaultHttp11ResponseHandler();
         resourceTypeHelper = new WebDavResourceTypeHelper();
+        propFindXmlGenerator = new PropFindXmlGenerator();
     }
 
-    public DefaultWebDavResponseHandler( Http11ResponseHandler wrapped, ResourceTypeHelper resourceTypeHelper ) {
+    public DefaultWebDavResponseHandler( Http11ResponseHandler wrapped, ResourceTypeHelper resourceTypeHelper, PropFindXmlGenerator propFindXmlGenerator ) {
         this.wrapped = wrapped;
         this.resourceTypeHelper = resourceTypeHelper;
+        this.propFindXmlGenerator = propFindXmlGenerator;
     }
+
 
 
 
@@ -130,6 +136,10 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler{
         statii.add( new HrefStatus(request.getAbsoluteUrl(), status));
         responseMultiStatus(resource, response, request, statii);
 
+    }
+
+    public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, PropFindableResource pfr ) {
+        propFindXmlGenerator.generate(propFindResponses, response.getOutputStream());
     }
 
 }

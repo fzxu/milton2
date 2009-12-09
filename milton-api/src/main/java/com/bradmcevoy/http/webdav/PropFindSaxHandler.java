@@ -4,52 +4,51 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+import javax.xml.namespace.QName;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-
 public class PropFindSaxHandler extends DefaultHandler {
 
-    private Stack<String> elementPath = new Stack<String>();
-    
-    private Map<String,String> attributes = new HashMap<String,String>();
-
+    private Stack<QName> elementPath = new Stack<QName>();
+    private Map<QName, String> attributes = new HashMap<QName, String>();
     private StringBuilder sb = new StringBuilder();
-
     private boolean inProp;
-    
+
     @Override
-    public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
-        if(elementPath.size() > 0 && elementPath.peek().endsWith("prop")){
+    public void startElement( String uri, String localName, String name, Attributes attributes ) throws SAXException {
+        if( elementPath.size() > 0 && elementPath.peek().getLocalPart().endsWith( "prop" ) ) {
             inProp = true;
         }
-        elementPath.push(localName);
-        super.startElement(uri, localName, name, attributes);
+        QName qname = new QName( uri, localName );
+        elementPath.push( qname );
+        super.startElement( uri, localName, name, attributes );
     }
 
     @Override
-    public void characters(char[] ch, int start, int length) throws SAXException {
-        if(inProp){
-            sb.append(ch,start,length);
+    public void characters( char[] ch, int start, int length ) throws SAXException {
+        if( inProp ) {
+            sb.append( ch, start, length );
         }
     }
 
     @Override
-    public void endElement(String uri, String localName, String name) throws SAXException {
+    public void endElement( String uri, String localName, String name ) throws SAXException {
         elementPath.pop();
-        if(elementPath.size()>0 && elementPath.peek().endsWith("prop")){
-            if(sb!=null)
-                getAttributes().put(localName,sb.toString().trim());
-            sb.delete(0, sb.length());
+        if( elementPath.size() > 0 && elementPath.peek().getLocalPart().endsWith( "prop" ) ) {
+            if( sb != null ) {
+//                uri = uri.substring( 0, uri.length()-1); // need to strip trailing :
+                QName qname = new QName( uri, localName );
+                getAttributes().put( qname, sb.toString().trim() );
+            }
+            sb.delete( 0, sb.length() );
         }
-            
-        super.endElement(uri, localName, name);
+
+        super.endElement( uri, localName, name );
     }
 
-    public Map<String,String> getAttributes() {
+    public Map<QName, String> getAttributes() {
         return attributes;
     }
-
-
 }

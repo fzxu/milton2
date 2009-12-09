@@ -63,4 +63,5 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
         }
         return false;
     }
+
 }

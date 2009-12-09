@@ -12,6 +12,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.bradmcevoy.http.LockInfo.LockScope;
 import com.bradmcevoy.http.LockInfo.LockType;
+import javax.xml.namespace.QName;
 
 public class TestSaxHandler extends TestCase {
     public void testPropFind() throws Exception{
@@ -19,11 +20,11 @@ public class TestSaxHandler extends TestCase {
         PropFindSaxHandler handler = new PropFindSaxHandler();
         reader.setContentHandler(handler);
         reader.parse(new InputSource(PropFindSaxHandler.class.getResourceAsStream("/sample_prop_find.xml")));
-        Map<String,String> result = handler.getAttributes();
-        assertEquals(result.get("getcontenttype"),"httpd/unix-directory");
-        assertEquals(result.get("resourcetype"),"");
-        assertEquals(result.get("getlastmodified"),"Thu, 01 Jan 1970 00:00:00 GMT");
-        assertEquals(result.get("creationdate"),"1970-01-01T00:00:00Z");
+        Map<QName,String> result = handler.getAttributes();
+        assertEquals("httpd/unix-directory", result.get(new QName( "DAV:", "getcontenttype")));
+        assertEquals("", result.get(new QName( "DAV:", "resourcetype")));
+        assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", result.get(new QName( "DAV:", "getlastmodified")));
+        assertEquals("1970-01-01T00:00:00Z", result.get(new QName( "DAV:", "creationdate")));
     }
     public void testLockInfo() throws Exception{
         XMLReader reader = XMLReaderFactory.createXMLReader();

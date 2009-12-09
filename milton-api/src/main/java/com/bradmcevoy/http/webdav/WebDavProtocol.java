@@ -3,7 +3,6 @@ package com.bradmcevoy.http.webdav;
 import com.bradmcevoy.http.Handler;
 import com.bradmcevoy.http.HandlerHelper;
 import com.bradmcevoy.http.HttpExtension;
-import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceHandlerHelper;
 import java.util.Collections;
 import java.util.HashSet;
@@ -15,7 +14,7 @@ import java.util.Set;
  */
 public class WebDavProtocol implements HttpExtension {
 
-    public static final String NS_DAV = "DAV";
+    public static final String NS_DAV = "DAV:";
 
     private final Set<Handler> handlers;
 
@@ -27,7 +26,8 @@ public class WebDavProtocol implements HttpExtension {
         handlers = new HashSet<Handler>();
         HandlerHelper handlerHelper = new HandlerHelper();
         ResourceHandlerHelper resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler);
-        handlers.add( new PropFindHandler(resourceHandlerHelper) );
+        ResourceTypeHelper resourceTypeHelper = new WebDavResourceTypeHelper();
+        handlers.add( new PropFindHandler(resourceHandlerHelper, resourceTypeHelper, responseHandler) );
         handlers.add( new MkColHandler(responseHandler, handlerHelper ) );
         handlers.add( new PropPatchHandler(resourceHandlerHelper ) );
         handlers.add( new CopyHandler(responseHandler, handlerHelper, resourceHandlerHelper ) );
@@ -36,11 +36,10 @@ public class WebDavProtocol implements HttpExtension {
         handlers.add( new MoveHandler(responseHandler, handlerHelper, resourceHandlerHelper ) );
     }
 
-    public void appendSupportedLevels( Resource r, Set<String> supportedLevels ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
-
     public Set<Handler> getHandlers() {
         return Collections.unmodifiableSet( handlers );
+    }
+
+    public static class SupportedLocks {
     }
 }

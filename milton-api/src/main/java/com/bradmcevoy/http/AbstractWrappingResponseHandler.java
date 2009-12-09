@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 
 /**
@@ -111,4 +112,9 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
     public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
         wrapped.respondDeleteFailed( request, response, resource, status );
     }
+
+    public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, PropFindableResource pfr ) {
+        wrapped.respondPropFind( propFindResponses, response, request, pfr );
+    }
+
 }
