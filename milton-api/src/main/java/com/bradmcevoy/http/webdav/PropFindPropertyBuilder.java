@@ -31,7 +31,8 @@ public class PropFindPropertyBuilder {
 
     public PropFindPropertyBuilder(ResourceTypeHelper resourceTypeHelper) {
         WebDavPropertySource propertySource = new DefaultWebDavPropertySource(resourceTypeHelper);
-        this.propertySources = Arrays.asList( propertySource );
+        CustomPropertySource customPropertySource = new CustomPropertySource();
+        this.propertySources = Arrays.asList( customPropertySource, propertySource );
     }
 
 

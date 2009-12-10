@@ -38,7 +38,5 @@ public class TBinaryResource extends TResource {
     @Override
     public String getContentType(String accept) {
         return contentType;
-    }
-
-    
+    }    
 }
