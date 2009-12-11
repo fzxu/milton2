@@ -1,6 +1,5 @@
 package com.bradmcevoy.http.webdav;
 
-import com.bradmcevoy.http.Request;
 import com.bradmcevoy.io.StreamUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,7 +28,11 @@ public class DefaultPropFindRequestFieldParser implements PropFindRequestFieldPa
 
     private static final Logger log = LoggerFactory.getLogger( DefaultPropFindRequestFieldParser.class );
 
-    public Set<QName> getRequestedFields( InputStream in ) {
+    public DefaultPropFindRequestFieldParser() {
+    }
+
+    public ParseResult getRequestedFields( InputStream in ) {
+        log.debug( "parse" );
         try {
             final Set<QName> set = new LinkedHashSet<QName>();
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -42,7 +45,13 @@ public class DefaultPropFindRequestFieldParser implements PropFindRequestFieldPa
                 reader.setContentHandler( handler );
                 try {
                     reader.parse( new InputSource( bin ) );
-                    set.addAll( handler.getAttributes().keySet() );
+                    if( handler.isAllProp() ) {
+                        log.debug( "allprop request" );
+                        return new ParseResult( true, set );
+                    } else {
+                        log.debug( "not allprop" );
+                        set.addAll( handler.getAttributes().keySet() );
+                    }
                 } catch( IOException e ) {
                     log.warn( "exception parsing request body", e );
                     // ignore
@@ -51,7 +60,7 @@ public class DefaultPropFindRequestFieldParser implements PropFindRequestFieldPa
                     // ignore
                 }
             }
-            return set;
+            return new ParseResult( false, set );
         } catch( Exception ex ) {
             throw new RuntimeException( ex );
         }

@@ -5,22 +5,36 @@ import java.util.Map;
 import java.util.Stack;
 
 import javax.xml.namespace.QName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class PropFindSaxHandler extends DefaultHandler {
 
+    private static final Logger log = LoggerFactory.getLogger( PropFindSaxHandler.class );
+
     private Stack<QName> elementPath = new Stack<QName>();
     private Map<QName, String> attributes = new HashMap<QName, String>();
     private StringBuilder sb = new StringBuilder();
     private boolean inProp;
+    private boolean allProp;
 
     @Override
     public void startElement( String uri, String localName, String name, Attributes attributes ) throws SAXException {
-        if( elementPath.size() > 0 && elementPath.peek().getLocalPart().endsWith( "prop" ) ) {
-            inProp = true;
+        log.debug( "start: " + localName);
+        if( elementPath.size() > 0 ) {
+            String elname = elementPath.peek().getLocalPart();
+            log.debug( "element: " + elname);
+            if( elname.equals( "prop" ) ) {
+                inProp = true;
+            }
         }
+        if( localName.equals( "allprop" ) ) {
+            allProp = true;
+        }
+
         QName qname = new QName( uri, localName );
         elementPath.push( qname );
         super.startElement( uri, localName, name, attributes );
@@ -50,5 +64,9 @@ public class PropFindSaxHandler extends DefaultHandler {
 
     public Map<QName, String> getAttributes() {
         return attributes;
+    }
+
+    public boolean isAllProp() {
+        return allProp;
     }
 }

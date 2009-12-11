@@ -25,23 +25,21 @@ public class MsPropFindRequestFieldParser implements PropFindRequestFieldParser{
         this.wrapped = wrapped;
     }
 
-    public MsPropFindRequestFieldParser() {
-        wrapped = new DefaultPropFindRequestFieldParser();
-    }
 
-
-    public Set<QName> getRequestedFields( InputStream in ) {
-        Set<QName> set = wrapped.getRequestedFields( in );
-        if( set.size() == 0 ) {
-            add( set, "creationdate" );
-            add( set,"getlastmodified" );
-            add( set,"displayname" );
-            add( set,"resourcetype" );
-            add( set,"getcontenttype" );
-            add( set,"getcontentlength" );
-            add( set,"getetag" );
+    public ParseResult getRequestedFields( InputStream in ) {
+        ParseResult result = wrapped.getRequestedFields( in );
+        if( result.isAllProp() ) return result;
+        
+        if( result.getNames().size() == 0 ) {
+            add( result.getNames(), "creationdate" );
+            add( result.getNames(),"getlastmodified" );
+            add( result.getNames(),"displayname" );
+            add( result.getNames(),"resourcetype" );
+            add( result.getNames(),"getcontenttype" );
+            add( result.getNames(),"getcontentlength" );
+            add( result.getNames(),"getetag" );
         }
-        return set;
+        return result;
     }
 
     private void add( Set<QName> set, String name ) {

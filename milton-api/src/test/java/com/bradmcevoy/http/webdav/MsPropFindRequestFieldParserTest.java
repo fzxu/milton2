@@ -15,41 +15,36 @@ import static org.easymock.classextension.EasyMock.*;
 public class MsPropFindRequestFieldParserTest extends TestCase {
 
     MsPropFindRequestFieldParser fieldParser;
-
     PropFindRequestFieldParser wrapped;
-
     InputStream request;
-
     Set<QName> set;
 
     @Override
     protected void setUp() throws Exception {
-        request = createMock( InputStream.class);
-        wrapped = createMock( PropFindRequestFieldParser.class);
+        request = createMock( InputStream.class );
+        wrapped = createMock( PropFindRequestFieldParser.class );
         fieldParser = new MsPropFindRequestFieldParser( wrapped );
         set = new HashSet<QName>();
     }
 
-
-
     public void testGetRequestedFields_WrappedReturnsFields() {
-        set.add( new QName( "a"));
-        expect(wrapped.getRequestedFields( request)).andReturn( set );
-        replay(wrapped);
-        Set<QName> actual = fieldParser.getRequestedFields( request );
+        set.add( new QName( "a" ) );
+        PropFindRequestFieldParser.ParseResult res = new PropFindRequestFieldParser.ParseResult( false, set );
+        expect( wrapped.getRequestedFields( request ) ).andReturn( res );
+        replay( wrapped );
+        PropFindRequestFieldParser.ParseResult actual = fieldParser.getRequestedFields( request );
 
-        verify(wrapped);
-        assertSame( set, actual);
-        assertEquals( 1, actual.size());
+        verify( wrapped );
+        assertSame( res, actual );
     }
 
     public void testGetRequestedFields_WrappedReturnsNothing() {
-        expect(wrapped.getRequestedFields( request)).andReturn( set );
-        replay(wrapped);
-        Set<QName> actual = fieldParser.getRequestedFields( request );
+        PropFindRequestFieldParser.ParseResult res = new PropFindRequestFieldParser.ParseResult( false, set );
+        expect( wrapped.getRequestedFields( request ) ).andReturn( res );
+        replay( wrapped );
+        PropFindRequestFieldParser.ParseResult actual = fieldParser.getRequestedFields( request );
 
-        verify(wrapped);
-        assertEquals( 7, actual.size());
+        verify( wrapped );
+        assertEquals( 7, actual.getNames().size() );
     }
-
 }

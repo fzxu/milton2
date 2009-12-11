@@ -83,7 +83,6 @@ public class PropFindXmlGenerator {
                 for( QName p : r.getKnownProperties().keySet() ) {
                     String uri = p.getNamespaceURI();
 //                    if( uri.endsWith( ":" ) ) uri = uri.substring( 0, uri.length() - 1 ); // strip trailing :
-                    log.debug( "uri: " + uri);
                     if( !map.containsKey( uri ) ) {
                         if( uri.equals( WebDavProtocol.NS_DAV ) ) {
                             map.put( uri, "D" );

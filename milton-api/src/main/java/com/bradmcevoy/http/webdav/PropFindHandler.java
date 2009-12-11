@@ -6,13 +6,12 @@ import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.Request.Method;
-import javax.xml.namespace.QName;
+import java.util.Arrays;
 
 public class PropFindHandler implements ExistingEntityHandler {
 
@@ -26,9 +25,16 @@ public class PropFindHandler implements ExistingEntityHandler {
     
     public PropFindHandler( ResourceHandlerHelper resourceHandlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler ) {
         this.resourceHandlerHelper = resourceHandlerHelper;
-        this.requestFieldParser = new MsPropFindRequestFieldParser(); // use MS decorator for windows support
+
+        WebDavPropertySource propertySource = new DefaultWebDavPropertySource(resourceTypeHelper);
+        CustomPropertySource customPropertySource = new CustomPropertySource();
+        List<WebDavPropertySource> propertySources = Arrays.asList( customPropertySource, propertySource );
+
+        DefaultPropFindRequestFieldParser defaultFieldParse = new DefaultPropFindRequestFieldParser();
+        this.requestFieldParser = new MsPropFindRequestFieldParser(defaultFieldParse); // use MS decorator for windows support
         this.responseHandler = responseHandler;
-        this.propertyBuilder = new PropFindPropertyBuilder(resourceTypeHelper);
+
+        this.propertyBuilder = new PropFindPropertyBuilder(propertySources);
     }
 
     public PropFindHandler( ResourceHandlerHelper resourceHandlerHelper, PropFindRequestFieldParser requestFieldParser, WebDavResponseHandler responseHandler, PropFindPropertyBuilder propertyBuilder ) {
@@ -59,19 +65,20 @@ public class PropFindHandler implements ExistingEntityHandler {
     }
 
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
+        log.debug( "propfind");
         PropFindableResource pfr = (PropFindableResource) resource;
         int depth = request.getDepthHeader();
         response.setStatus( Response.Status.SC_MULTI_STATUS );
         response.setContentTypeHeader( Response.XML );
-        Set<QName> requestedFields;
+        PropFindRequestFieldParser.ParseResult parseResult;
         try {
-            requestedFields = requestFieldParser.getRequestedFields( request.getInputStream() );
+            parseResult = requestFieldParser.getRequestedFields( request.getInputStream() );
         } catch( IOException ex ) {
             throw new RuntimeException( ex );
         }
         String url = request.getAbsoluteUrl();
 
-        List<PropFindResponse> propFindResponses = propertyBuilder.buildProperties(pfr, depth, requestedFields, url);
+        List<PropFindResponse> propFindResponses = propertyBuilder.buildProperties(pfr, depth, parseResult, url);
         responseHandler.respondPropFind(propFindResponses, response, request, pfr);
     }
 

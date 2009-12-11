@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, PropPatchableResource, LockableResource, CustomPropertyResource {
@@ -21,6 +22,7 @@ public abstract class TResource implements GetableResource, PropFindableResource
     private String password;
     private Map<String, String> props = new HashMap<String, String>();
 
+    
     protected abstract Object clone( TFolderResource newParent );
 
     public TResource( TFolderResource parent, String name ) {
@@ -211,6 +213,12 @@ public abstract class TResource implements GetableResource, PropFindableResource
     public String getNameSpaceURI() {
         return "http://milton.ettrema.com/demo";
     }
+
+    public Set<String> getAllPropertyNames() {
+        return this.props.keySet();
+    }
+
+
 
     public class TResCustomProperty implements CustomProperty {
 

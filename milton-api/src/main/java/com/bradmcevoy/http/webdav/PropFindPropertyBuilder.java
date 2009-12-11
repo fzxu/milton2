@@ -7,8 +7,8 @@ import com.bradmcevoy.http.Utils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -29,36 +29,30 @@ public class PropFindPropertyBuilder {
         this.propertySources = propertySources;
     }
 
-    public PropFindPropertyBuilder(ResourceTypeHelper resourceTypeHelper) {
-        WebDavPropertySource propertySource = new DefaultWebDavPropertySource(resourceTypeHelper);
-        CustomPropertySource customPropertySource = new CustomPropertySource();
-        this.propertySources = Arrays.asList( customPropertySource, propertySource );
-    }
-
 
     
 
-    public List<PropFindResponse> buildProperties( PropFindableResource pfr, int depth, Set<QName> requestedFields, String url ) {
+    public List<PropFindResponse> buildProperties( PropFindableResource pfr, int depth, PropFindRequestFieldParser.ParseResult parseResult, String url ) {
         List<PropFindResponse> propFindResponses = new ArrayList<PropFindResponse>();
-        appendResponses( propFindResponses, pfr, depth, requestedFields, url );
+        appendResponses( propFindResponses, pfr, depth, parseResult, url );
         return propFindResponses;
     }
 
-    private void appendResponses( List<PropFindResponse> responses, PropFindableResource resource, int requestedDepth, Set<QName> requestedFields, String encodedCollectionUrl ) {
-        log.debug( "appendresponses: fields size: " + requestedFields.size() );
+    private void appendResponses( List<PropFindResponse> responses, PropFindableResource resource, int requestedDepth, PropFindRequestFieldParser.ParseResult parseResult, String encodedCollectionUrl ) {
+        log.debug( "appendresponses" );
         try {
             String collectionHref = suffixSlash( encodedCollectionUrl );
             URI parentUri = new URI( collectionHref );
 
             collectionHref = parentUri.toASCIIString();
-            processResource( responses, resource, requestedFields, collectionHref, requestedDepth, 0, collectionHref );
+            processResource( responses, resource, parseResult, collectionHref, requestedDepth, 0, collectionHref );
 
         } catch( URISyntaxException ex ) {
             throw new RuntimeException( ex );
         }
     }
 
-    private void processResource( List<PropFindResponse> responses, PropFindableResource resource, Set<QName> requestedFields, String href, int requestedDepth, int currentDepth, String collectionHref ) {
+    private void processResource( List<PropFindResponse> responses, PropFindableResource resource, PropFindRequestFieldParser.ParseResult parseResult, String href, int requestedDepth, int currentDepth, String collectionHref ) {
         collectionHref = suffixSlash( collectionHref );
         final LinkedHashMap<QName,Object> knownProperties = new LinkedHashMap<QName, Object>();
         final ArrayList<QName> unknownProperties = new ArrayList<QName>();
@@ -67,6 +61,13 @@ public class PropFindPropertyBuilder {
             if( !href.endsWith( "/" ) ) {
                 href = href + "/";
             }
+        }
+        Set<QName> requestedFields;
+        if( parseResult.isAllProp() ) {
+            log.debug( "is allprop");
+            requestedFields = findAllProps(resource);
+        } else {
+            requestedFields = parseResult.getNames();
         }
         for( QName field : requestedFields ) {
             if(field.getLocalPart().equals( "href")) {
@@ -97,7 +98,7 @@ public class PropFindPropertyBuilder {
             for( Resource child : list ) {
                 if( child instanceof PropFindableResource ) {
                     String childHref = collectionHref + Utils.percentEncode( child.getName() );
-                    processResource( responses, (PropFindableResource) child, requestedFields, childHref, requestedDepth, currentDepth + 1, href + col.getName() );
+                    processResource( responses, (PropFindableResource) child, parseResult, childHref, requestedDepth, currentDepth + 1, href + col.getName() );
                 }
             }
         }
@@ -109,6 +110,15 @@ public class PropFindPropertyBuilder {
             s = s + "/";
         }
         return s;
+    }
+
+    private Set<QName> findAllProps( PropFindableResource resource ) {
+        Set<QName> names = new LinkedHashSet<QName>();
+        for( WebDavPropertySource source : this.propertySources ) {
+            log.debug( "get all props from: " + source.getClass());
+            names.addAll( source.getAllPropertyNames(resource));
+        }
+        return names;
     }
 
 }

@@ -3,6 +3,8 @@ package com.bradmcevoy.http.webdav;
 import com.bradmcevoy.http.CustomProperty;
 import com.bradmcevoy.http.CustomPropertyResource;
 import com.bradmcevoy.http.Resource;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 /**
@@ -52,4 +54,17 @@ public class CustomPropertySource implements WebDavPropertySource {
         }
 
     }
+
+    public List<QName> getAllPropertyNames( Resource r ) {
+        List<QName> list = new ArrayList<QName>();
+        if( r instanceof CustomPropertyResource ) {
+            CustomPropertyResource cpr = (CustomPropertyResource) r;
+            for( String n : cpr.getAllPropertyNames() ) {
+                QName qname = new QName( cpr.getNameSpaceURI(), n);
+                list.add( qname );
+            }
+        }
+        return list;
+    }
+    
 }

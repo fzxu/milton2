@@ -12,6 +12,7 @@ import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
 import com.bradmcevoy.http.webdav.WebDavProtocol.SupportedLocks;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -77,6 +78,15 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
 
     public void clearProperty( QName name, Resource r ) {
         throw new UnsupportedOperationException( "Not supported yet." );
+    }
+
+    public List<QName> getAllPropertyNames( Resource r ) {
+        List<QName> list = new ArrayList<QName>();
+        for( String nm : this.writersMap.keySet() ) {
+            QName qname = new QName( WebDavProtocol.NS_DAV, nm);
+            list.add( qname );
+        }
+        return list;
     }
 
 
