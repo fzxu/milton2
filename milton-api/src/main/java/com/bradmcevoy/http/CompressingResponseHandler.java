@@ -115,7 +115,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
         return maxMemorySize;
     }
 
-    public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, PropFindableResource pfr ) {
+    public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, Resource pfr ) {
         wrapped.respondPropFind( propFindResponses, response, request, pfr );
     }
 }

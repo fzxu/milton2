@@ -1,11 +1,10 @@
 package com.bradmcevoy.http.webdav;
 
-import com.bradmcevoy.http.PropPatchableResource;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import java.io.ByteArrayInputStream;
+import com.bradmcevoy.http.webdav.PropPatchRequestParser.ParseResult;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,10 +17,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.XmlWriter.Element;
@@ -107,9 +102,29 @@ public class PropPatchHandler implements ExistingEntityHandler {
 
     private final ResourceHandlerHelper resourceHandlerHelper;
 
-    public PropPatchHandler( ResourceHandlerHelper resourceHandlerHelper ) {
+    private final PropPatchRequestParser requestParser;
+
+    private final PropPatchSetter patchSetter;
+
+    private final WebDavResponseHandler responseHandler;
+
+    public PropPatchHandler( ResourceHandlerHelper resourceHandlerHelper, WebDavResponseHandler responseHandler ) {
         this.resourceHandlerHelper = resourceHandlerHelper;
+        this.requestParser = new DefaultPropPatchParser();
+        patchSetter = null;
+        this.responseHandler = responseHandler;
     }
+
+    public PropPatchHandler( ResourceHandlerHelper resourceHandlerHelper, PropPatchRequestParser requestParser, PropPatchSetter patchSetter, WebDavResponseHandler responseHandler ) {
+        this.resourceHandlerHelper = resourceHandlerHelper;
+        this.requestParser = requestParser;
+        this.patchSetter = patchSetter;
+        this.responseHandler = responseHandler;
+    }
+
+
+
+
 
 
     public String[] getMethods() {
@@ -137,14 +152,10 @@ public class PropPatchHandler implements ExistingEntityHandler {
             InputStream in = request.getInputStream();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             StreamUtils.readTo( in, out );
-            System.out.println( "PropPatch: " + out.toString() );
-            Fields fields = parseContent( out.toByteArray() );
-            if( fields.size() > 0 ) {
-                patchable.setProperties( fields );
-            }
-            respondOk( request, response, fields, patchable );
-        } catch( SAXException ex ) {
-            throw new RuntimeException( ex );
+            ParseResult parseResult = requestParser.getRequestedFields( in );
+            String href = request.getAbsoluteUrl();
+            List<PropFindResponse> responses = patchSetter.setProperties( href, parseResult, patchable );
+            responseHandler.respondPropFind( responses, response, request, patchable);
         } catch( WritingException ex ) {
             throw new RuntimeException( ex );
         } catch( ReadingException ex ) {
@@ -154,34 +165,6 @@ public class PropPatchHandler implements ExistingEntityHandler {
         }
     }
 
-    static Fields parseRequest( Request request ) throws IOException, SAXException {
-        InputStream in = request.getInputStream();
-        return parseContent( in );
-    }
-
-    static Fields parseContent( InputStream in ) throws IOException, SAXException {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        StreamUtils.readTo( in, bout, false, true );
-        byte[] arr = bout.toByteArray();
-        return parseContent( arr );
-    }
-
-    static Fields parseContent( byte[] arr ) throws IOException, SAXException {
-        if( arr.length == 0 ) {
-            System.out.println( "no content for proppatch fields" );
-            return new Fields();
-        } else {
-            ByteArrayInputStream bin = new ByteArrayInputStream( arr );
-            XMLReader reader = XMLReaderFactory.createXMLReader();
-            PropPatchSaxHandler handler = new PropPatchSaxHandler();
-            reader.setContentHandler( handler );
-            reader.parse( new InputSource( bin ) );
-            Fields fields = handler.getFields();
-            if( fields == null ) fields = new Fields();
-            return fields;
-        }
-
-    }
 
     private void sendResponse( XmlWriterFieldConsumer consumer, Fields fields, String href, PropPatchableResource resource ) {
         consumer.consumeProperties( fields, href, resource );

@@ -51,6 +51,7 @@ public interface Request {
         TIMEOUT("Timeout"),
         LOCK_TOKEN("Lock-Token"),
         EXPECT("Expect"),
+        OVERWRITE("Overwrite"),
         AUTHORIZATION("Authorization");
         
             
@@ -143,4 +144,14 @@ public interface Request {
      * @return a range header, for partial gets
      */
     String getRangeHeader();
+
+
+    /**
+     * Used for MOVE method. If true it indicates that any existing resource
+     * should be deleted before the move.
+     *
+     * @return - null if no value, true indicates that any existing resource
+     * should be deleted
+     */
+    Boolean getOverwriteHeader();
 }

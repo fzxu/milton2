@@ -63,6 +63,27 @@ public class MoveHandler implements ExistingEntityHandler {
             log.debug("process: destination exists but is not a collection");
             responseHandler.respondConflict(resource, response, request, "Destination exists but is not a collection: " + sDest);
         } else { 
+            CollectionResource colDest = (CollectionResource) rDest;
+            // check if the dest exists
+            Resource rExisting = colDest.child( dest.name);
+            if( rExisting != null ) {
+                // check for overwrite header
+                if( !request.getOverwriteHeader() ) {
+                    log.debug( "destination resource exists, and overwrite header is not set");
+                    responseHandler.respondConflict( resource, response, request, "A resource exists at the destination");
+                    return ;
+                } else {
+                    if( rExisting instanceof DeletableResource) {
+                        log.debug( "deleting existing resource");
+                        DeletableResource drExisting = (DeletableResource) rExisting;
+                        drExisting.delete();
+                    } else {
+                        log.warn( "destination exists, and overwrite header is set, but destination is not a DeletableResource");
+                        responseHandler.respondConflict( resource, response, request, "A resource exists at the destination, and it cannot be deleted");
+                        return ;
+                    }
+                }
+            }
             log.debug("process: moving resource to: " + rDest.getName());
             try {
                 r.moveTo( (CollectionResource) rDest, dest.name );

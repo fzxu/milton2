@@ -117,4 +117,10 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
         wrapped.respondPropFind( propFindResponses, response, request, pfr );
     }
 
+    public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, Resource r ) {
+        wrapped.respondPropFind( propFindResponses, response, request, r );
+    }
+
+
+
 }

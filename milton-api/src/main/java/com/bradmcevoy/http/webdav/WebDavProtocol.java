@@ -29,7 +29,7 @@ public class WebDavProtocol implements HttpExtension {
         ResourceTypeHelper resourceTypeHelper = new WebDavResourceTypeHelper();
         handlers.add( new PropFindHandler(resourceHandlerHelper, resourceTypeHelper, responseHandler) );
         handlers.add( new MkColHandler(responseHandler, handlerHelper ) );
-        handlers.add( new PropPatchHandler(resourceHandlerHelper ) );
+        handlers.add( new PropPatchHandler(resourceHandlerHelper, responseHandler ) );
         handlers.add( new CopyHandler(responseHandler, handlerHelper, resourceHandlerHelper ) );
         handlers.add( new LockHandler(responseHandler, handlerHelper ) );
         handlers.add( new UnlockHandler(resourceHandlerHelper ) );

@@ -2,7 +2,6 @@ package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.HrefStatus;
-import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
@@ -138,7 +137,7 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler{
 
     }
 
-    public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, PropFindableResource pfr ) {
+    public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, Resource r ) {
         propFindXmlGenerator.generate(propFindResponses, response.getOutputStream());
     }
 

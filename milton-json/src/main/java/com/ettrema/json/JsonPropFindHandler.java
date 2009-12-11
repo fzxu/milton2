@@ -6,6 +6,7 @@ import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
+import com.bradmcevoy.http.webdav.PropFindRequestFieldParser.ParseResult;
 import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import java.io.IOException;
@@ -98,7 +99,8 @@ public class JsonPropFindHandler {
 
             String href = encodedUrl.replace( "/_DAV/PROPFIND", "");
             log.debug( "href: " + href);
-            List<PropFindResponse> props = propertyBuilder.buildProperties( wrappedResource, depth, fields, href );
+            ParseResult parseResult = new ParseResult( false, fields);
+            List<PropFindResponse> props = propertyBuilder.buildProperties( wrappedResource, depth, parseResult, href );
             List<Map<String, Object>> list = helper.toMap( props );
             json = JSONSerializer.toJSON( list, cfg );
         }

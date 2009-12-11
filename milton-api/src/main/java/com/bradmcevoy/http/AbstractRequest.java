@@ -52,13 +52,13 @@ public abstract class AbstractRequest implements Request {
             if( depthStr.equals( "0" ) ) {
                 return 0;
             } else if( depthStr.equals( "1" ) ) {
-                    return 1;
-                } else if( depthStr.equals( "infinity" ) ) {
-                        return INFINITY;
-                    } else {
-                        log.warn( "Unknown depth value: " + depthStr );
-                        return INFINITY;
-                    }
+                return 1;
+            } else if( depthStr.equals( "infinity" ) ) {
+                return INFINITY;
+            } else {
+                log.warn( "Unknown depth value: " + depthStr );
+                return INFINITY;
+            }
         }
     }
 
@@ -95,9 +95,13 @@ public abstract class AbstractRequest implements Request {
     }
 
     public String getRangeHeader() {
-        String s = getRequestHeader( Header.RANGE );
-        if( s != null ) return s;
-        return getHeaders().get( "range" );
+        return getRequestHeader( Header.RANGE );
+    }
+
+    public Boolean getOverwriteHeader() {
+        String s = getRequestHeader( Header.OVERWRITE );
+        if( s == null || s.length() == 0 ) return null;
+        return "T".equals( s );
     }
 
     public String getAbsolutePath() {

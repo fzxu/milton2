@@ -8,6 +8,7 @@ import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * To enable ajax authentication we MUST NOT return 401 unauthorised, because
  * this will prompt for a browser login box
@@ -63,5 +64,6 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
         }
         return false;
     }
+
 
 }

@@ -23,10 +23,8 @@ public class PropFindSaxHandler extends DefaultHandler {
 
     @Override
     public void startElement( String uri, String localName, String name, Attributes attributes ) throws SAXException {
-        log.debug( "start: " + localName);
         if( elementPath.size() > 0 ) {
             String elname = elementPath.peek().getLocalPart();
-            log.debug( "element: " + elname);
             if( elname.equals( "prop" ) ) {
                 inProp = true;
             }

@@ -13,6 +13,10 @@ import org.slf4j.LoggerFactory;
 import com.bradmcevoy.http.Request.Method;
 import java.util.Arrays;
 
+/**
+ *
+ * @author brad
+ */
 public class PropFindHandler implements ExistingEntityHandler {
 
     private static final Logger log = LoggerFactory.getLogger( PropFindHandler.class );
@@ -22,7 +26,12 @@ public class PropFindHandler implements ExistingEntityHandler {
     private final WebDavResponseHandler responseHandler;
     private final PropFindPropertyBuilder propertyBuilder;
 
-    
+    /**
+     * 
+     * @param resourceHandlerHelper
+     * @param resourceTypeHelper
+     * @param responseHandler
+     */
     public PropFindHandler( ResourceHandlerHelper resourceHandlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler ) {
         this.resourceHandlerHelper = resourceHandlerHelper;
 
@@ -37,6 +46,13 @@ public class PropFindHandler implements ExistingEntityHandler {
         this.propertyBuilder = new PropFindPropertyBuilder(propertySources);
     }
 
+    /**
+     *
+     * @param resourceHandlerHelper
+     * @param requestFieldParser
+     * @param responseHandler
+     * @param propertyBuilder
+     */
     public PropFindHandler( ResourceHandlerHelper resourceHandlerHelper, PropFindRequestFieldParser requestFieldParser, WebDavResponseHandler responseHandler, PropFindPropertyBuilder propertyBuilder ) {
         this.resourceHandlerHelper = resourceHandlerHelper;
         this.requestFieldParser = requestFieldParser;
