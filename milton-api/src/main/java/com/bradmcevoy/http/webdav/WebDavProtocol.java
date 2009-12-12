@@ -3,6 +3,7 @@ package com.bradmcevoy.http.webdav;
 import com.bradmcevoy.http.Handler;
 import com.bradmcevoy.http.HandlerHelper;
 import com.bradmcevoy.http.HttpExtension;
+import com.bradmcevoy.http.MultiNamespaceCustomPropertySource;
 import com.bradmcevoy.http.ResourceHandlerHelper;
 import com.bradmcevoy.http.values.ValueWriters;
 import java.util.Arrays;
@@ -33,7 +34,8 @@ public class WebDavProtocol implements HttpExtension {
         ResourceTypeHelper resourceTypeHelper = new WebDavResourceTypeHelper();
         PropertySource propertySource = new DefaultWebDavPropertySource(resourceTypeHelper);
         CustomPropertySource customPropertySource = new CustomPropertySource();
-        List<PropertySource> propertySources = Arrays.asList( customPropertySource, propertySource );
+        MultiNamespaceCustomPropertySource mncps = new MultiNamespaceCustomPropertySource();
+        List<PropertySource> propertySources = Arrays.asList( customPropertySource, propertySource, mncps );
 
         // note valuewriters is also used in DefaultWebDavResponseHandler
         // if using non-default configuration you should inject the same instance into there

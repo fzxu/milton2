@@ -2,17 +2,29 @@ package com.bradmcevoy.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-public class TBinaryResource extends TResource {
-    
+/**
+ * Holds binary files like PDFs, jpeg, etc
+ *
+ * Demonstrates implementing CustomPropertyResource
+ *
+ * @author brad
+ */
+public class TBinaryResource extends TResource implements CustomPropertyResource{
+
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TBinaryResource.class );
+
     byte[] bytes;
     String contentType;
+    private Map<String, String> props = new HashMap<String, String>();
     
     public TBinaryResource(TFolderResource parent, String name, byte[] bytes, String contentType) {
         super(parent,name);
         this.bytes = bytes;
-        System.out.println("created resource of size: " + bytes.length);
+        props.put( "someField", "hash:" + this.hashCode() );
     }
 
     @Override
@@ -38,5 +50,51 @@ public class TBinaryResource extends TResource {
     @Override
     public String getContentType(String accept) {
         return contentType;
-    }    
+    }
+
+
+    public CustomProperty getProperty( String name ) {
+        if( props.containsKey( name ) ) {
+            return new TResCustomProperty( name );
+        } else {
+            return null;
+        }
+    }
+
+    public String getNameSpaceURI() {
+        return "http://milton.ettrema.com/demo";
+    }
+
+    public Set<String> getAllPropertyNames() {
+        return this.props.keySet();
+    }
+
+
+
+    public class TResCustomProperty implements CustomProperty {
+
+        private final String key;
+
+        public TResCustomProperty( String key ) {
+            this.key = key;
+        }
+
+        public Object getTypedValue() {
+            return props.get( key );
+        }
+
+        public String getFormattedValue() {
+            return props.get( key );
+        }
+
+        public void setFormattedValue( String s ) {
+            log.debug( "set value: " + key + " to: " + s);
+            props.put( key, s );
+        }
+
+        public Class getValueClass() {
+            return String.class;
+        }
+    }
+
 }

@@ -44,7 +44,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter{
             boolean found = false;
             for(PropertySource source : propertySources ) {
                 meta = source.getPropertyMetaData( entry.getKey(), r );
-                if( meta.isWritable() ) {
+                if( meta != null && meta.isWritable() ) {
                     log.debug( "setting: " + entry.getKey().getLocalPart() + " to: " + entry.getValue());
                     found = true;
                     Object val = parse(entry.getKey(), entry.getValue(), meta.getValueType());

@@ -4,12 +4,9 @@ import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import com.bradmcevoy.http.Request.Method;
 import java.io.PrintWriter;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, PropPatchableResource, LockableResource, CustomPropertyResource {
+public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource, CopyableResource, PropPatchableResource, LockableResource {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TResource.class );
     String name;
@@ -19,7 +16,6 @@ public abstract class TResource implements GetableResource, PropFindableResource
     TLock lock;
     private String user;
     private String password;
-    private Map<String, String> props = new HashMap<String, String>();
 
     
     protected abstract Object clone( TFolderResource newParent );
@@ -33,7 +29,6 @@ public abstract class TResource implements GetableResource, PropFindableResource
             checkAndRemove( parent, name );
             parent.children.add( this );
         }
-        props.put( "someField", "hash:" + this.hashCode() );
     }
 
     public void setSecure( String user, String password ) {
@@ -192,52 +187,17 @@ public abstract class TResource implements GetableResource, PropFindableResource
         if( r != null ) parent.children.remove( r );
     }
 
+    /**
+     * This is required for the PropPatchableResource interface, but should
+     * not be implemented.
+     *
+     * Implement CustomPropertyResource or MultiNamespaceCustomPropertyResource instead
+     *
+     * @param fields
+     */
     public void setProperties( Fields fields ) {
     }
 
-    public CustomProperty getProperty( String name ) {
-        if( props.containsKey( name ) ) {
-            return new TResCustomProperty( name );
-        } else {
-            return null;
-        }
-    }
-
-    public String getNameSpaceURI() {
-        return "http://milton.ettrema.com/demo";
-    }
-
-    public Set<String> getAllPropertyNames() {
-        return this.props.keySet();
-    }
-
-
-
-    public class TResCustomProperty implements CustomProperty {
-
-        private final String key;
-
-        public TResCustomProperty( String key ) {
-            this.key = key;
-        }
-
-        public Object getTypedValue() {
-            return props.get( key );
-        }
-
-        public String getFormattedValue() {
-            return props.get( key );
-        }
-
-        public void setFormattedValue( String s ) {
-            log.debug( "set value: " + key + " to: " + s);
-            props.put( key, s );
-        }
-
-        public Class getValueClass() {
-            return String.class;
-        }
-    }
 
     protected void print( PrintWriter printer, String s ) {
         printer.print( s );

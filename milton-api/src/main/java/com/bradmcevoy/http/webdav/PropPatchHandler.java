@@ -5,12 +5,8 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.PropPatchRequestParser.ParseResult;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,9 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.XmlWriter.Element;
 import com.bradmcevoy.io.ReadingException;
-import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
 
 /**
@@ -98,7 +92,6 @@ Content-Length: xxxx
 public class PropPatchHandler implements ExistingEntityHandler {
 
     private final static Logger log = LoggerFactory.getLogger( PropPatchHandler.class );
-    private static final String CUSTOM_NS_PREFIX = "R";
 
     private final ResourceHandlerHelper resourceHandlerHelper;
 
@@ -163,12 +156,6 @@ public class PropPatchHandler implements ExistingEntityHandler {
     }
 
 
-    private void sendResponse( XmlWriterFieldConsumer consumer, Fields fields, String href, PropPatchableResource resource ) {
-        consumer.consumeProperties( fields, href, resource );
-
-
-    }
-
     public static class Field {
 
         public final String name;
@@ -216,115 +203,6 @@ public class PropPatchHandler implements ExistingEntityHandler {
             List<Field> list = new ArrayList<Field>( removeFields );
             list.addAll( setFields );
             return list.iterator();
-        }
-
-        private boolean isEmpty() {
-            return size() == 0;
-        }
-    }
-
-    private void respondOk( Request request, Response response, Fields fields, PropPatchableResource resource ) {
-        log.debug( "respondOk" );
-        response.setStatus( Response.Status.SC_OK );
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        XmlWriter writer = new XmlWriter( out );
-        XmlWriterFieldConsumer consumer = new XmlWriterFieldConsumer( writer );
-        writer.writeXMLHeader();
-        writer.open( "D:multistatus" + generateNamespaceDeclarations() );
-        writer.newLine();
-        String url = request.getAbsoluteUrl();
-        appendResponses( consumer, fields, url, resource );
-        writer.close( "D:multistatus" );
-        writer.flush();
-        log.debug( out.toString() );
-        String xml = toString( out );
-        writeXml( response, xml );
-
-    }
-
-    private void appendResponses( XmlWriterFieldConsumer consumer, Fields fields, String url, PropPatchableResource resource ) {
-        log.debug( "appendresponses: fields size: " + fields.size() );
-        try {
-            String collectionHref = url;
-            URI parentUri = new URI( collectionHref );
-
-            collectionHref = parentUri.toASCIIString();
-            sendResponse( consumer, fields, collectionHref, resource );
-
-        } catch( URISyntaxException ex ) {
-            throw new RuntimeException( ex );
-        }
-    }
-
-    protected String generateNamespaceDeclarations() {
-//            return " xmlns:" + nsWebDav.abbrev + "=\"" + nsWebDav.url + "\"";
-        return " xmlns:D" + "=\"DAV:\"";
-    }
-
-    private String toString( ByteArrayOutputStream out ) {
-        try {
-            return out.toString( "UTF-8" );
-        } catch( UnsupportedEncodingException ex ) {
-            throw new RuntimeException( ex );
-        }
-    }
-
-    private void writeXml( Response response, String xml ) {
-        try {
-            response.getOutputStream().write( xml.getBytes() );
-        } catch( IOException ex ) {
-            log.warn( "exception writing response. " + ex );
-        }
-    }
-
-    /**
-     * Copied from PropFindHandler. TODO: extract and make common
-     */
-    class XmlWriterFieldConsumer {
-
-        final XmlWriter writer;
-
-        public XmlWriterFieldConsumer( XmlWriter writer ) {
-            this.writer = writer;
-        }
-
-        public void startResource( String href ) {
-            writeProp( "D:href", href );
-        }
-
-        public Element open( String elementName ) {
-            return writer.begin( elementName ).open();
-        }
-
-        void writeProp( String elementName, String value ) {
-            writer.writeProperty( null, elementName, value );
-        }
-
-        public void consumeProperties( Fields fields, String href, PropPatchableResource resource ) {
-            XmlWriter.Element el = writer.begin( "D:response" );
-            if( resource instanceof CustomPropertyResource ) {
-                CustomPropertyResource cpr = (CustomPropertyResource) resource;
-                el.writeAtt( "xmlns:" + CUSTOM_NS_PREFIX, cpr.getNameSpaceURI() );
-            }
-            el.open();
-            startResource( href );
-            sendResponseProperties( resource, fields, href, "HTTP/1.1 200 Ok" );
-            el.close();
-        }
-
-        void sendResponseProperties( PropPatchableResource resource, Fields fields, String href, String status ) {
-            if( !fields.isEmpty() ) {
-                XmlWriter.Element elPropStat = writer.begin( "D:propstat" ).open();
-                XmlWriter.Element elProp = writer.begin( "D:prop" ).open();
-                for( final Field field : fields ) {
-                    String fieldName = "Z:" + field.name;
-                    writeProp( fieldName, null );
-                }
-                elProp.close();
-                writeProp( "D:status", status );
-                elPropStat.close();
-            }
         }
     }
 }

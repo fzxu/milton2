@@ -47,6 +47,7 @@ public interface PropertySource {
         }
     }
 
+
     Object getProperty( QName name, Resource r );
 
     void setProperty( QName name, Object value, Resource r );
