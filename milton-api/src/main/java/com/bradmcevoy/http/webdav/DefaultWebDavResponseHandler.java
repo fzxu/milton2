@@ -13,6 +13,9 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
+import com.bradmcevoy.http.values.ValueWriters;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,18 +24,23 @@ import java.util.Map;
  *
  * @author brad
  */
-public class DefaultWebDavResponseHandler implements WebDavResponseHandler{
+public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
 
     protected final Http11ResponseHandler wrapped;
-
     protected final ResourceTypeHelper resourceTypeHelper;
-
     protected final PropFindXmlGenerator propFindXmlGenerator;
 
     public DefaultWebDavResponseHandler() {
+        ValueWriters valueWriters = new ValueWriters();
         wrapped = new DefaultHttp11ResponseHandler();
         resourceTypeHelper = new WebDavResourceTypeHelper();
-        propFindXmlGenerator = new PropFindXmlGenerator();
+        propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
+    }
+
+    public DefaultWebDavResponseHandler( ValueWriters valueWriters ) {
+        wrapped = new DefaultHttp11ResponseHandler();
+        resourceTypeHelper = new WebDavResourceTypeHelper();
+        propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
     }
 
     public DefaultWebDavResponseHandler( Http11ResponseHandler wrapped, ResourceTypeHelper resourceTypeHelper, PropFindXmlGenerator propFindXmlGenerator ) {
@@ -41,9 +49,6 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler{
         this.propFindXmlGenerator = propFindXmlGenerator;
     }
 
-
-
-
     public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
         wrapped.respondWithOptions( resource, response, request, methodsAllowed );
         List<String> supportedLevels = resourceTypeHelper.getSupportedLevels( resource );
@@ -51,9 +56,6 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler{
         response.setDavHeader( s );
         response.setNonStandardHeader( "MS-Author-Via", "DAV" );
     }
-
-
-
 
     public void responseMultiStatus( Resource resource, Response response, Request request, List<HrefStatus> statii ) {
         response.setStatus( Response.Status.SC_MULTI_STATUS );
@@ -75,7 +77,7 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler{
     }
 
     public void respondNoContent( Resource resource, Response response, Request request ) {
-       wrapped.respondNoContent( resource, response, request );
+        wrapped.respondNoContent( resource, response, request );
     }
 
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
@@ -132,13 +134,26 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler{
 
     public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
         List<HrefStatus> statii = new ArrayList<HrefStatus>();
-        statii.add( new HrefStatus(request.getAbsoluteUrl(), status));
-        responseMultiStatus(resource, response, request, statii);
+        statii.add( new HrefStatus( request.getAbsoluteUrl(), status ) );
+        responseMultiStatus( resource, response, request, statii );
 
     }
 
     public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, Resource r ) {
-        propFindXmlGenerator.generate(propFindResponses, response.getOutputStream());
+        response.setStatus( Status.SC_MULTI_STATUS );
+        response.setContentTypeHeader( Response.XML );
+        String xml = propFindXmlGenerator.generate( propFindResponses );
+        byte[] arr;
+        try {
+            arr = xml.getBytes( "UTF-8" );
+        } catch( UnsupportedEncodingException ex ) {
+            throw new RuntimeException( ex );
+        }
+        response.setContentLengthHeader( (long)arr.length );
+        try {
+            response.getOutputStream().write( arr );
+        } catch( IOException ex ) {
+            throw new RuntimeException( ex );
+        }
     }
-
 }

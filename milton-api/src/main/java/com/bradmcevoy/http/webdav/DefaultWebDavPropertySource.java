@@ -23,13 +23,12 @@ import javax.xml.namespace.QName;
  *
  * @author brad
  */
-public class DefaultWebDavPropertySource implements WebDavPropertySource{
+public class DefaultWebDavPropertySource implements PropertySource {
 
-    private final Map<String, PropertyAccessor> writersMap = new HashMap<String,PropertyAccessor>();
-
+    private final Map<String, StandardProperty> writersMap = new HashMap<String, StandardProperty>();
     private final ResourceTypeHelper resourceTypeHelper;
 
-    public DefaultWebDavPropertySource(ResourceTypeHelper resourceTypeHelper) {
+    public DefaultWebDavPropertySource( ResourceTypeHelper resourceTypeHelper ) {
         this.resourceTypeHelper = resourceTypeHelper;
         add( new ContentLengthPropertyWriter() );
         add( new ContentTypePropertyWriter() );
@@ -47,14 +46,13 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         add( new MSNamePropertyWriter() );
     }
 
-    
-
     public Object getProperty( QName name, Resource r ) {
-        if(!name.getNamespaceURI().equals( WebDavProtocol.NS_DAV)) return null;
-        PropertyAccessor pa = writersMap.get( name.getLocalPart());
+        if( !name.getNamespaceURI().equals( WebDavProtocol.NS_DAV ) )
+            return null;
+        StandardProperty pa = writersMap.get( name.getLocalPart() );
         if( pa == null ) return null;
         if( r instanceof PropFindableResource ) {
-            return pa.getValue( (PropFindableResource) r);
+            return pa.getValue( (PropFindableResource) r );
         } else {
             return null;
         }
@@ -64,18 +62,6 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         throw new UnsupportedOperationException( "Not supported yet." );
     }
 
-    public boolean hasProperty( QName name, Resource r ) {
-        if(!name.getNamespaceURI().equals( WebDavProtocol.NS_DAV)) return false;
-        PropertyAccessor pa = writersMap.get( name.getLocalPart());
-        if( pa == null ) return false;
-        if( r instanceof PropFindableResource ) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
-
     public void clearProperty( QName name, Resource r ) {
         throw new UnsupportedOperationException( "Not supported yet." );
     }
@@ -83,14 +69,37 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
     public List<QName> getAllPropertyNames( Resource r ) {
         List<QName> list = new ArrayList<QName>();
         for( String nm : this.writersMap.keySet() ) {
-            QName qname = new QName( WebDavProtocol.NS_DAV, nm);
+            QName qname = new QName( WebDavProtocol.NS_DAV, nm );
             list.add( qname );
         }
         return list;
     }
 
+    public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
+        if( !name.getNamespaceURI().equals( WebDavProtocol.NS_DAV ) )
+            return PropertyMetaData.UNKNOWN;
+        StandardProperty pa = writersMap.get( name.getLocalPart() );
+        if( pa == null ) {
+            return PropertyMetaData.UNKNOWN;
+        } else {
+            if( r instanceof PropFindableResource ) {
+                return new PropertyMetaData( PropertyAccessibility.READ_ONLY, pa.getValueClass() );
+            } else {
+                return PropertyMetaData.UNKNOWN;
+            }
+        }
+    }
 
-    class DisplayNamePropertyWriter implements PropertyAccessor<String> {
+    public interface StandardProperty<T> {
+
+        String fieldName();
+
+        T getValue( PropFindableResource res );
+
+        Class getValueClass();
+    }
+
+    class DisplayNamePropertyWriter implements StandardProperty<String> {
 
         public void append( XmlWriter writer, PropFindableResource res, String href ) {
             String s = nameEncode( getValue( res ) );
@@ -104,9 +113,13 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         public String fieldName() {
             return "displayname";
         }
+
+        public Class<String> getValueClass() {
+            return String.class;
+        }        
     }
 
-    class LastModifiedDatePropertyWriter implements PropertyAccessor<Date> {
+    class LastModifiedDatePropertyWriter implements StandardProperty<Date> {
 
         public String fieldName() {
             return "getlastmodified";
@@ -115,9 +128,13 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         public Date getValue( PropFindableResource res ) {
             return res.getModifiedDate();
         }
+
+        public Class<Date> getValueClass() {
+            return Date.class;
+        }
     }
 
-    class CreationDatePropertyWriter implements PropertyAccessor<Date> {
+    class CreationDatePropertyWriter implements StandardProperty<Date> {
 
         public void append( XmlWriter xmlWriter, PropFindableResource res, String href ) {
             sendDateProp( xmlWriter, "D:" + fieldName(), getValue( res ) );
@@ -130,9 +147,13 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         public String fieldName() {
             return "creationdate";
         }
+
+        public Class<Date> getValueClass() {
+            return Date.class;
+        }
     }
 
-    class ResourceTypePropertyWriter implements PropertyAccessor<List<QName>> {
+    class ResourceTypePropertyWriter implements StandardProperty<List<QName>> {
 
         public List<QName> getValue( PropFindableResource res ) {
             return resourceTypeHelper.getResourceTypes( res );
@@ -141,9 +162,15 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         public String fieldName() {
             return "resourcetype";
         }
+
+        public Class getValueClass() {
+            return List.class;
+        }
+
+
     }
 
-    class ContentTypePropertyWriter implements PropertyAccessor<String> {
+    class ContentTypePropertyWriter implements StandardProperty<String> {
 
         public void append( XmlWriter xmlWriter, PropFindableResource res, String href ) {
             String ct = getValue( res );
@@ -162,9 +189,13 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         public String fieldName() {
             return "getcontenttype";
         }
+
+        public Class getValueClass() {
+            return String.class;
+        }
     }
 
-    class ContentLengthPropertyWriter implements PropertyAccessor<Long> {
+    class ContentLengthPropertyWriter implements StandardProperty<Long> {
 
         public void append( XmlWriter xmlWriter, PropFindableResource res, String href ) {
             Long ll = getValue( res );
@@ -184,9 +215,13 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         public String fieldName() {
             return "getcontentlength";
         }
+
+        public Class getValueClass() {
+            return Long.class;
+        }
     }
 
-    class EtagPropertyWriter implements PropertyAccessor<String> {
+    class EtagPropertyWriter implements StandardProperty<String> {
 
         public void append( XmlWriter writer, PropFindableResource resource, String href ) {
             String etag = getValue( resource );
@@ -203,10 +238,15 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         public String fieldName() {
             return "getetag";
         }
+
+        public Class getValueClass() {
+            return String.class;
+        }
     }
 
 //    <D:supportedlock/><D:lockdiscovery/>
-    class LockDiscoveryPropertyWriter implements PropertyAccessor<LockToken> {
+    class LockDiscoveryPropertyWriter implements StandardProperty<LockToken> {
+
         public LockToken getValue( PropFindableResource res ) {
             if( !( res instanceof LockableResource ) ) return null;
             LockableResource lr = (LockableResource) res;
@@ -217,11 +257,15 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         public String fieldName() {
             return "supportedlock";
         }
+
+        public Class getValueClass() {
+            return LockToken.class;
+        }
     }
 
-    class SupportedLockPropertyWriter implements PropertyAccessor<Object> {
+    class SupportedLockPropertyWriter implements StandardProperty<SupportedLocks> {
 
-        public Object getValue( PropFindableResource res ) {
+        public SupportedLocks getValue( PropFindableResource res ) {
             if( res instanceof LockableResource ) {
                 return new SupportedLocks();
             } else {
@@ -231,6 +275,10 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
 
         public String fieldName() {
             return "supportedlock";
+        }
+
+        public Class getValueClass() {
+            return SupportedLocks.class;
         }
     }
 
@@ -243,8 +291,7 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         }
     }
 
-
-    class MSIsCollectionPropertyWriter implements PropertyAccessor<Boolean> {
+    class MSIsCollectionPropertyWriter implements StandardProperty<Boolean> {
 
         @Override
         public String fieldName() {
@@ -252,11 +299,17 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         }
 
         public Boolean getValue( PropFindableResource res ) {
-            return (res instanceof CollectionResource);
+            return ( res instanceof CollectionResource );
         }
+
+        public Class getValueClass() {
+            return Boolean.class;
+        }
+
+
     }
 
-    class MSIsReadOnlyPropertyWriter implements PropertyAccessor<Boolean> {
+    class MSIsReadOnlyPropertyWriter implements StandardProperty<Boolean> {
 
         @Override
         public String fieldName() {
@@ -264,15 +317,19 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         }
 
         public Boolean getValue( PropFindableResource res ) {
-            return !(res instanceof PutableResource);
+            return !( res instanceof PutableResource );
         }
-    }
 
+        public Class getValueClass() {
+            return Boolean.class;
+        }
+
+    }
 
     private String nameEncode( String s ) {
         //return Utils.encode(href, false); // see MIL-31
         return Utils.escapeXml( s );
-    //return href.replaceAll("&", "&amp;");  // http://www.ettrema.com:8080/browse/MIL-24
+        //return href.replaceAll("&", "&amp;");  // http://www.ettrema.com:8080/browse/MIL-24
     }
 
     protected void sendStringProp( XmlWriter writer, String name, String value ) {
@@ -288,8 +345,7 @@ public class DefaultWebDavPropertySource implements WebDavPropertySource{
         sendStringProp( writer, name, ( date == null ? null : DateUtils.formatDate( date ) ) );
     }
 
-    private void add( PropertyAccessor pw ) {
+    private void add( StandardProperty pw ) {
         writersMap.put( pw.fieldName(), pw );
     }
-
 }

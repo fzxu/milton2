@@ -4,9 +4,13 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Utils;
+import com.bradmcevoy.http.values.ValueAndType;
+import com.bradmcevoy.http.webdav.PropertySource.PropertyMetaData;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -16,22 +20,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * This class performs the main part of PROPFIND processing, which is given
+ * a field request (either named fields or an allprop request) and a target
+ * resource, iterate over that resource and its children (depending on the
+ * depth header) and list a list of PropFindResponse objects.
+ *
+ * These PropFindResponse objects contain typed values for all of the known
+ * fields, and a set of unknown fields. These will be used to build the xml
+ * which is ultimately sent back to the client.
+ *
+ * This class uses a list of PropertySource's, where each PropertySource represents
+ * some mechanism to read properties from a resource.
  *
  * @author brad
  */
 public class PropFindPropertyBuilder {
 
     private static final Logger log = LoggerFactory.getLogger( PropFindPropertyBuilder.class );
+    private final List<PropertySource> propertySources;
 
-    private final List<WebDavPropertySource> propertySources;
-
-    public PropFindPropertyBuilder( List<WebDavPropertySource> propertySources ) {
+    /**
+     *
+     * @param propertySources - the list of property sources used to read properties
+     * from resources
+     */
+    public PropFindPropertyBuilder( List<PropertySource> propertySources ) {
         this.propertySources = propertySources;
     }
 
+    /**
+     * Convenience contructor which initialised this class with a list
+     * of property sources containing only the given source.
+     *
+     * @param propertySource
+     */
+    public PropFindPropertyBuilder( PropertySource propertySource ) {
+        this.propertySources = Arrays.asList( propertySource );
+    }
 
-    
-
+    /**
+     * Construct a list of PropFindResponse for the given resource, using
+     * the PropertySource's injected into this class.
+     *
+     *
+     * @param pfr - the resource to interrogate
+     * @param depth - the depth header. 0 means only look at the given resource. 1 is to include children
+     * @param parseResult - contains the list of fields, or a true boolean indicating all properties
+     * @param url - the URL of the given resource
+     * @return
+     */
     public List<PropFindResponse> buildProperties( PropFindableResource pfr, int depth, PropFindRequestFieldParser.ParseResult parseResult, String url ) {
         List<PropFindResponse> propFindResponses = new ArrayList<PropFindResponse>();
         appendResponses( propFindResponses, pfr, depth, parseResult, url );
@@ -39,7 +76,6 @@ public class PropFindPropertyBuilder {
     }
 
     private void appendResponses( List<PropFindResponse> responses, PropFindableResource resource, int requestedDepth, PropFindRequestFieldParser.ParseResult parseResult, String encodedCollectionUrl ) {
-        log.debug( "appendresponses" );
         try {
             String collectionHref = suffixSlash( encodedCollectionUrl );
             URI parentUri = new URI( collectionHref );
@@ -54,7 +90,7 @@ public class PropFindPropertyBuilder {
 
     private void processResource( List<PropFindResponse> responses, PropFindableResource resource, PropFindRequestFieldParser.ParseResult parseResult, String href, int requestedDepth, int currentDepth, String collectionHref ) {
         collectionHref = suffixSlash( collectionHref );
-        final LinkedHashMap<QName,Object> knownProperties = new LinkedHashMap<QName, Object>();
+        final LinkedHashMap<QName, ValueAndType> knownProperties = new LinkedHashMap<QName, ValueAndType>();
         final ArrayList<QName> unknownProperties = new ArrayList<QName>();
 
         if( resource instanceof CollectionResource ) {
@@ -64,27 +100,31 @@ public class PropFindPropertyBuilder {
         }
         Set<QName> requestedFields;
         if( parseResult.isAllProp() ) {
-            log.debug( "is allprop");
-            requestedFields = findAllProps(resource);
+            requestedFields = findAllProps( resource );
         } else {
             requestedFields = parseResult.getNames();
         }
-        for( QName field : requestedFields ) {
-            if(field.getLocalPart().equals( "href")) {
-                knownProperties.put(field, href);
+        Iterator<QName> it = requestedFields.iterator();
+        while( it.hasNext() ) {
+            QName field = it.next();
+            if( field.getLocalPart().equals( "href" ) ) {
+                knownProperties.put( field, new ValueAndType( href, String.class ) );
             } else {
-                for( WebDavPropertySource source : propertySources ) {
-                    boolean found = false;
-                    if( source.hasProperty( field, resource ) ) {
+                boolean found = false;
+                for( PropertySource source : propertySources ) {
+                    PropertyMetaData meta = source.getPropertyMetaData( field, resource );
+                    if( !meta.isUnknown() ) {
                         Object val = source.getProperty( field, resource );
-                        knownProperties.put(field, val);
+                        knownProperties.put( field, new ValueAndType( val, meta.getValueType() ) );
                         found = true;
                         break;
                     }
-                    if( !found ) {
-                        unknownProperties.add( field );
-                    }
                 }
+                if( !found ) {
+                    log.debug( "unknown: " + field.toString());
+                    unknownProperties.add( field );
+                }
+
             }
         }
 
@@ -114,11 +154,9 @@ public class PropFindPropertyBuilder {
 
     private Set<QName> findAllProps( PropFindableResource resource ) {
         Set<QName> names = new LinkedHashSet<QName>();
-        for( WebDavPropertySource source : this.propertySources ) {
-            log.debug( "get all props from: " + source.getClass());
-            names.addAll( source.getAllPropertyNames(resource));
+        for( PropertySource source : this.propertySources ) {
+            names.addAll( source.getAllPropertyNames( resource ) );
         }
         return names;
     }
-
 }

@@ -5,12 +5,16 @@ import java.util.Map;
 import java.util.Stack;
 
 import javax.xml.namespace.QName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 
 public class PropPatchSaxHandler extends DefaultHandler {
+
+    private final static Logger log = LoggerFactory.getLogger( PropPatchHandler.class );
 
     private Stack<String> elementPath = new Stack<String>();
 
@@ -24,12 +28,19 @@ public class PropPatchSaxHandler extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
+        log.debug( "start: " + localName);
         if(elementPath.size() > 0 ){
             if( attributesCurrent != null ) {
                 if( elementPath.peek().endsWith("prop") ) inProp = true;
             } else {
-                if( elementPath.peek().endsWith("set") ) attributesCurrent = attributesSet;
-                if( elementPath.peek().endsWith("remove") ) attributesCurrent = attributesRemove;
+                if( elementPath.peek().endsWith("set") ) {
+                    log.debug( "is set");
+                    attributesCurrent = attributesSet;
+                }
+                if( elementPath.peek().endsWith("remove") ) {
+                    log.debug( "is remove");
+                    attributesCurrent = attributesRemove;
+                }
             }
 
         }
@@ -46,12 +57,14 @@ public class PropPatchSaxHandler extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String name) throws SAXException {
+        log.debug( "end: " + localName);
         elementPath.pop();
         if( elementPath.size()>0 ) {
             if( elementPath.peek().endsWith("prop")){
                 if(sb!=null) {
                     String s = sb.toString().trim();
                     QName qname = new QName( uri, localName );
+                    log.debug( "push: " + localName);
                     attributesCurrent.put(qname,s);
                 }
                 sb = new StringBuilder();

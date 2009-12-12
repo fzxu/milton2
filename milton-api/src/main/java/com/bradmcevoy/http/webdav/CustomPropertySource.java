@@ -11,7 +11,7 @@ import javax.xml.namespace.QName;
  *
  * @author brad
  */
-public class CustomPropertySource implements WebDavPropertySource {
+public class CustomPropertySource implements PropertySource {
 
     public Object getProperty( QName name, Resource r ) {
         CustomProperty prop = lookupProperty( name, r );
@@ -21,6 +21,17 @@ public class CustomPropertySource implements WebDavPropertySource {
             return null;
         }
     }
+
+    public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
+        CustomProperty prop = lookupProperty( name, r );
+        if( prop != null ) {
+            return new PropertyMetaData( PropertyAccessibility.WRITABLE, prop.getValueClass());
+        } else {
+            return PropertyMetaData.UNKNOWN;
+        }
+
+    }
+
 
     public void setProperty( QName name, Object value, Resource r ) {
         CustomProperty prop = lookupProperty( name, r );
@@ -42,8 +53,10 @@ public class CustomPropertySource implements WebDavPropertySource {
     }
 
     private CustomProperty lookupProperty( QName name, Resource r ) {
+        if( name == null) throw new IllegalArgumentException( "name is null");
         if( r instanceof CustomPropertyResource ) {
             CustomPropertyResource cpr = (CustomPropertyResource) r;
+            if( cpr.getNameSpaceURI() == null ) throw new IllegalArgumentException( "namespace uri is null on CPR");
             if( cpr.getNameSpaceURI().equals( name.getNamespaceURI() ) ) {
                 return cpr.getProperty( name.getLocalPart() );
             } else {

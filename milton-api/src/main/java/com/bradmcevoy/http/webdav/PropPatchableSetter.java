@@ -2,6 +2,7 @@ package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.http.PropPatchableResource;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Field;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import com.bradmcevoy.http.webdav.PropPatchRequestParser.ParseResult;
@@ -57,7 +58,7 @@ public class PropPatchableSetter implements PropPatchSetter {
         }
 
         private List<PropFindResponse> buildResult( String href, ParseResult parseResult ) {
-            LinkedHashMap<QName,Object> knownProps = new LinkedHashMap<QName, Object>();
+            LinkedHashMap<QName,ValueAndType> knownProps = new LinkedHashMap<QName, ValueAndType>();
             for( QName p : parseResult.getFieldsToRemove()) {
                 knownProps.put( p, null);
             }

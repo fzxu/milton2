@@ -2,7 +2,6 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.webdav.PropPatchHandler;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
@@ -189,17 +188,11 @@ public abstract class TResource implements GetableResource, PropFindableResource
     }
 
     private void checkAndRemove( TFolderResource parent, String name ) {
-        Resource r = parent.child( name );
+        TResource r = (TResource) parent.child( name );
         if( r != null ) parent.children.remove( r );
     }
 
     public void setProperties( Fields fields ) {
-        for( PropPatchHandler.SetField f : fields.setFields ) {
-            props.put( f.name, f.value );
-        }
-        for( PropPatchHandler.Field f : fields.removeFields ) {
-            props.remove( f.name );
-        }
     }
 
     public CustomProperty getProperty( String name ) {
@@ -237,7 +230,12 @@ public abstract class TResource implements GetableResource, PropFindableResource
         }
 
         public void setFormattedValue( String s ) {
+            log.debug( "set value: " + key + " to: " + s);
             props.put( key, s );
+        }
+
+        public Class getValueClass() {
+            return String.class;
         }
     }
 

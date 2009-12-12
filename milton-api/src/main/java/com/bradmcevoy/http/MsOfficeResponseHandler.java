@@ -1,8 +1,9 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
-import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 
+import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,9 +11,20 @@ import org.slf4j.LoggerFactory;
  * Disables locking, as required for MS office support
  *
  */
-public class MsOfficeResponseHandler extends DefaultWebDavResponseHandler {
+public class MsOfficeResponseHandler extends AbstractWrappingResponseHandler {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultHttp11ResponseHandler.class);
+
+    public MsOfficeResponseHandler(WebDavResponseHandler wrapped) {
+        super(wrapped );
+    }
+
+    public MsOfficeResponseHandler() {
+        super( new DefaultWebDavResponseHandler());
+    }
+
+
+
 
 
     /**

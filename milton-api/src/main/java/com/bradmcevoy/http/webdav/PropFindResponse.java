@@ -1,16 +1,17 @@
 package com.bradmcevoy.http.webdav;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import com.bradmcevoy.http.values.ValueAndType;
+import java.util.List;
+import java.util.Map;
 import javax.xml.namespace.QName;
 
 public class PropFindResponse {
 
     private final String href;
-    private LinkedHashMap<QName, Object> knownProperties;
-    private final ArrayList<QName> unknownProperties;
+    private Map<QName, ValueAndType> knownProperties;
+    private final List<QName> unknownProperties;
 
-    public PropFindResponse( String href, LinkedHashMap<QName, Object> knownProperties, ArrayList<QName> unknownProperties ) {
+    public PropFindResponse( String href, Map<QName, ValueAndType> knownProperties, List<QName> unknownProperties ) {
         super();
         this.href = href;
         this.knownProperties = knownProperties;
@@ -21,11 +22,11 @@ public class PropFindResponse {
         return href;
     }
 
-    public LinkedHashMap<QName, Object> getKnownProperties() {
+    public Map<QName, ValueAndType> getKnownProperties() {
         return knownProperties;
     }
 
-    public ArrayList<QName> getUnknownProperties() {
+    public List<QName> getUnknownProperties() {
         return unknownProperties;
     }
 }

@@ -8,6 +8,15 @@ package com.bradmcevoy.http;
 public interface CustomProperty {
 
     /**
+     * Returns a class which is assignable from any value which can be stored
+     * in this property. This should be sufficient to determine a ValueWriter
+     * to parse a PROPPATCH value.
+     * 
+     * @return
+     */
+    Class getValueClass();
+
+    /**
      * Returns the typed value. It should be assumed that this value could
      * be serialised, although it doesnt require the Serializable interface
      *

@@ -5,6 +5,7 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindRequestFieldParser.ParseResult;
 import com.bradmcevoy.http.webdav.PropFindResponse;
@@ -144,8 +145,8 @@ public class JsonPropFindHandler {
             for( PropFindResponse prop : props) {
                 Map<String, Object> map = new HashMap<String, Object>();
                 list.add( map );
-                for( Entry<QName, Object> p : prop.getKnownProperties().entrySet()) {
-                    map.put( p.getKey().getLocalPart(), p.getValue());
+                for( Entry<QName, ValueAndType> p : prop.getKnownProperties().entrySet()) {
+                    map.put( p.getKey().getLocalPart(), p.getValue().getValue());
                 }
             }
             return list;

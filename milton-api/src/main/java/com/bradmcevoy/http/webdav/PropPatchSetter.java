@@ -6,9 +6,17 @@ import java.util.List;
 /**
  * Applies a proppatch result to a resource
  *
+ * This interface is only really needed to support updating properties via the
+ * old PropPatchableResource.setFields() method. The more modern way of doing
+ * things is through the PropertySource interface, which is symmetrical for
+ * reading and writing properties.
+ *
+ *
  * @author brad
  */
 public interface PropPatchSetter {
+
+
     /**
      * Update the given resource with the properties specified in the parseResult
      * and return appropriate responses

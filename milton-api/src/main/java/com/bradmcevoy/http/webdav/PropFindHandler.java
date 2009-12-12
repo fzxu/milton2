@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.Request.Method;
-import java.util.Arrays;
 
 /**
  *
@@ -32,12 +31,8 @@ public class PropFindHandler implements ExistingEntityHandler {
      * @param resourceTypeHelper
      * @param responseHandler
      */
-    public PropFindHandler( ResourceHandlerHelper resourceHandlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler ) {
+    public PropFindHandler( ResourceHandlerHelper resourceHandlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> propertySources ) {
         this.resourceHandlerHelper = resourceHandlerHelper;
-
-        WebDavPropertySource propertySource = new DefaultWebDavPropertySource(resourceTypeHelper);
-        CustomPropertySource customPropertySource = new CustomPropertySource();
-        List<WebDavPropertySource> propertySources = Arrays.asList( customPropertySource, propertySource );
 
         DefaultPropFindRequestFieldParser defaultFieldParse = new DefaultPropFindRequestFieldParser();
         this.requestFieldParser = new MsPropFindRequestFieldParser(defaultFieldParse); // use MS decorator for windows support

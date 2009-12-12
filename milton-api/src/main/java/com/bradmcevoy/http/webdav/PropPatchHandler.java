@@ -108,10 +108,10 @@ public class PropPatchHandler implements ExistingEntityHandler {
 
     private final WebDavResponseHandler responseHandler;
 
-    public PropPatchHandler( ResourceHandlerHelper resourceHandlerHelper, WebDavResponseHandler responseHandler ) {
+    public PropPatchHandler( ResourceHandlerHelper resourceHandlerHelper, WebDavResponseHandler responseHandler, PropPatchSetter propPatchSetter ) {
         this.resourceHandlerHelper = resourceHandlerHelper;
         this.requestParser = new DefaultPropPatchParser();
-        patchSetter = null;
+        patchSetter = propPatchSetter;
         this.responseHandler = responseHandler;
     }
 
@@ -121,7 +121,6 @@ public class PropPatchHandler implements ExistingEntityHandler {
         this.patchSetter = patchSetter;
         this.responseHandler = responseHandler;
     }
-
 
 
 
@@ -150,8 +149,6 @@ public class PropPatchHandler implements ExistingEntityHandler {
         // todo: check if token header
         try {
             InputStream in = request.getInputStream();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            StreamUtils.readTo( in, out );
             ParseResult parseResult = requestParser.getRequestedFields( in );
             String href = request.getAbsoluteUrl();
             List<PropFindResponse> responses = patchSetter.setProperties( href, parseResult, patchable );
