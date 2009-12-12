@@ -1,4 +1,4 @@
-package com.bradmcevoy.http.webdav;
+package com.bradmcevoy.property;
 
 import com.bradmcevoy.http.CustomProperty;
 import com.bradmcevoy.http.CustomPropertyResource;

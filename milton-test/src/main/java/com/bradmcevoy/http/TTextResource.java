@@ -1,7 +1,9 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.webdav.PropertySource.PropertyAccessibility;
-import com.bradmcevoy.http.webdav.PropertySource.PropertyMetaData;
+import com.bradmcevoy.property.BeanPropertyResource;
+import com.bradmcevoy.property.MultiNamespaceCustomPropertyResource;
+import com.bradmcevoy.property.PropertySource.PropertyAccessibility;
+import com.bradmcevoy.property.PropertySource.PropertyMetaData;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,13 +15,17 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+
 /**
  * Demonstrates implementing:
  *   - MultiNamespaceCustomPropertyResource - for getting and setting custom properties
+ *   - BeanPropertyResource - showing how to edit bean properties
  *   - ReplaceableResource - for replacing content on PUTs to existing resources
  *   - PostableResource - for form processing
  *
  */
+// This annotation allows us to edit the text property
+@BeanPropertyResource("http://milton.ettrema.com/demo/beanprop") 
 public class TTextResource extends TResource implements PostableResource, ReplaceableResource, MultiNamespaceCustomPropertyResource {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TTextResource.class );
@@ -151,4 +157,13 @@ public class TTextResource extends TResource implements PostableResource, Replac
         }
         return list;
     }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText( String text ) {
+        this.text = text;
+    }
+    
 }

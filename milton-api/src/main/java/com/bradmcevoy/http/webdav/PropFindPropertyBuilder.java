@@ -5,7 +5,8 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.values.ValueAndType;
-import com.bradmcevoy.http.webdav.PropertySource.PropertyMetaData;
+import com.bradmcevoy.property.PropertySource;
+import com.bradmcevoy.property.PropertySource.PropertyMetaData;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -113,7 +114,7 @@ public class PropFindPropertyBuilder {
                 boolean found = false;
                 for( PropertySource source : propertySources ) {
                     PropertyMetaData meta = source.getPropertyMetaData( field, resource );
-                    if( !meta.isUnknown() ) {
+                    if( meta != null && !meta.isUnknown() ) {
                         Object val = source.getProperty( field, resource );
                         knownProperties.put( field, new ValueAndType( val, meta.getValueType() ) );
                         found = true;
@@ -155,7 +156,10 @@ public class PropFindPropertyBuilder {
     private Set<QName> findAllProps( PropFindableResource resource ) {
         Set<QName> names = new LinkedHashSet<QName>();
         for( PropertySource source : this.propertySources ) {
-            names.addAll( source.getAllPropertyNames( resource ) );
+            List<QName> allprops = source.getAllPropertyNames( resource );
+            if( allprops != null ) {
+                names.addAll( allprops );
+            }
         }
         return names;
     }

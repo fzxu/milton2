@@ -1,6 +1,6 @@
-package com.bradmcevoy.http;
+package com.bradmcevoy.property;
 
-import com.bradmcevoy.http.webdav.PropertySource.PropertyMetaData;
+import com.bradmcevoy.property.PropertySource.PropertyMetaData;
 import java.util.List;
 import javax.xml.namespace.QName;
 

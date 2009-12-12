@@ -1,4 +1,4 @@
-package com.bradmcevoy.http.webdav;
+package com.bradmcevoy.property;
 
 import com.bradmcevoy.http.Resource;
 import java.util.List;
@@ -42,7 +42,7 @@ public interface PropertySource {
             return accessibility.equals( PropertyAccessibility.UNKNOWN );
         }
 
-        boolean isWritable() {
+        public boolean isWritable() {
             return accessibility.equals( PropertyAccessibility.WRITABLE );
         }
     }

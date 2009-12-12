@@ -1,5 +1,6 @@
 package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.property.PropertySource;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.DateUtils;
 import com.bradmcevoy.http.GetableResource;
