@@ -1,5 +1,7 @@
 package com.bradmcevoy.http;
 
+import java.util.Set;
+
 /**
  * Extension to PropFindableResource which allows custom
  * properties to be returned.
@@ -7,6 +9,13 @@ package com.bradmcevoy.http;
  * @author brad
  */
 public interface CustomPropertyResource extends PropFindableResource {
+
+    /**
+     * 
+     * @return - a list of all the properties of this namespace which exist
+     * on this resource
+     */
+    public Set<String> getAllPropertyNames();
 
     /**
      * Return an accessor for the given property if it is supported or known. Note
@@ -24,4 +33,7 @@ public interface CustomPropertyResource extends PropFindableResource {
      * @return
      */
     public String getNameSpaceURI();
+
+
+
 }
