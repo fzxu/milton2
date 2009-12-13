@@ -1,7 +1,6 @@
 package com.bradmcevoy.property;
 
 import com.bradmcevoy.http.*;
-import com.bradmcevoy.property.PropertySource;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
