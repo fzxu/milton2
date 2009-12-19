@@ -37,6 +37,14 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
 
+    private final AuthenticationService authenticationService;
+
+    public DefaultHttp11ResponseHandler( AuthenticationService authenticationService ) {
+        this.authenticationService = authenticationService;
+    }
+
+
+
     public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
         response.setStatus( Response.Status.SC_OK );        
         response.setAllowHeader( methodsAllowed );        
@@ -59,7 +67,8 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public void respondUnauthorised( Resource resource, Response response, Request request ) {
         log.debug( "requesting authorisation" );
         response.setStatus( Response.Status.SC_UNAUTHORIZED );
-        response.setAuthenticateHeader( resource.getRealm() );
+        List<String> challenges = authenticationService.getChallenges(resource, request);
+        response.setAuthenticateHeader( challenges );
     }
 
     public void respondMethodNotImplemented( Resource resource, Response response, Request request ) {

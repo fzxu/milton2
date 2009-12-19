@@ -12,6 +12,14 @@ public class HandlerHelper {
 
     private Logger log = LoggerFactory.getLogger(HandlerHelper.class);
 
+    private AuthenticationService authenticationService;
+
+    public HandlerHelper( AuthenticationService authenticationService ) {
+        this.authenticationService = authenticationService;
+    }
+
+
+
 
     /**
      * Checks the expect header, and responds if necessary
@@ -32,14 +40,15 @@ public class HandlerHelper {
     }
 
 
-    public boolean checkAuthorisation( HttpManager manager, Resource handler, Request request ) {
+    public boolean checkAuthorisation( HttpManager manager, Resource resource, Request request ) {
         Auth auth = request.getAuthorization();
         if( auth != null ) {
-            Object authTag = handler.authenticate( auth.user, auth.password );
+            Object authTag = authenticationService.authenticate(resource, request); //handler.authenticate( auth.user, auth.password );
             if( authTag == null ) {
                 log.warn( "failed to authenticate" );
-                auth = null;
+                return false;
             } else {
+                log.debug( "got authenticated tag: " + authTag.getClass());
                 auth.setTag( authTag );
             }
         } else {
@@ -47,7 +56,7 @@ public class HandlerHelper {
         }
 
 
-        boolean authorised = handler.authorise( request, request.getMethod(), auth );
+        boolean authorised = resource.authorise( request, request.getMethod(), auth );
         if( !authorised ) {
             log.warn( "Not authorised, requesting basic authentication" );
             return false;

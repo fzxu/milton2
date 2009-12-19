@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -80,6 +81,7 @@ public class DebugFilter implements Filter{
     public class DebugResponse extends AbstractResponse {
         final Response r;
         final ByteArrayOutputStream out;
+        List<String> challenges;
 
         public DebugResponse(Response r) {
             this.r = r;
@@ -117,12 +119,22 @@ public class DebugFilter implements Filter{
                 for (Map.Entry<String, String> header : this.getHeaders().entrySet()) {
                     writer.println(header.getKey() + ": " + header.getValue());
                 }
+                if( challenges != null ) {
+                    for( String ch : challenges) {
+                        writer.println(Response.Header.WWW_AUTHENTICATE + ": " + ch);
+                    }
+                }
                 writer.flush();
                 fout.write(out.toByteArray());
                 fout.flush();
             } catch (IOException ex) {
                 log.error("",ex);
             }
+        }
+
+        public void setAuthenticateHeader( List<String> challenges ) {
+            this.challenges = challenges;
+            r.setAuthenticateHeader( challenges );
         }
 
 

@@ -82,9 +82,6 @@ public class ConsoleResourceFactory implements ResourceFactory {
         }
     }
 
-    public String getSupportedLevels() {
-        return wrappedFactory.getSupportedLevels();
-    }
 
     private String loadContent(String name) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();

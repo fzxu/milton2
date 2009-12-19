@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -116,6 +117,12 @@ public class ServletResponse extends AbstractResponse {
 
     public Map<String, String> getHeaders() {
         return Collections.unmodifiableMap(headers);
+    }
+
+    public void setAuthenticateHeader( List<String> challenges ) {
+        for( String ch : challenges ) {
+            r.addHeader( Response.Header.WWW_AUTHENTICATE.code, ch);
+        }
     }
 
 }

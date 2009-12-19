@@ -19,8 +19,8 @@ public class MsOfficeResponseHandler extends AbstractWrappingResponseHandler {
         super(wrapped );
     }
 
-    public MsOfficeResponseHandler() {
-        super( new DefaultWebDavResponseHandler());
+    public MsOfficeResponseHandler(AuthenticationService authenticationService) {
+        super( new DefaultWebDavResponseHandler(authenticationService));
     }
 
 

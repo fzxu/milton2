@@ -27,9 +27,14 @@ public class TResourceFactory implements ResourceFactory {
         folder = new TFolderResource(folder,"subfolder1");
         file = new TTextResource(folder,"index.html","");
         folder = new TFolderResource(ROOT,"secure");
-        folder.setSecure("test","pwd");
+
+        String user = "Mufasa";
+        //String password = "Circle Of Life";
+        String password = "pwd";
+
+        folder.setSecure(user,password);
         file = new TTextResource(folder,"index.html","");
-        file.setSecure("test","pwd");
+        file.setSecure(user,password);
     }
     
     

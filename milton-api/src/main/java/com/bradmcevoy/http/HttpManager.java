@@ -63,8 +63,11 @@ public class HttpManager {
         if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
         this.resourceFactory = resourceFactory;
         this.responseHandler = responseHandler;
-
-        this.handlers = new ProtocolHandlers(responseHandler);
+        if( responseHandler == null ) {
+            this.handlers = new ProtocolHandlers();
+        } else {
+            this.handlers = new ProtocolHandlers(responseHandler);
+        }
 
         for( HttpExtension ext : handlers ) {
             for( Handler h : ext.getHandlers() ) {

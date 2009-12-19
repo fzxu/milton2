@@ -1,5 +1,6 @@
 package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.AuthenticationService;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.HrefStatus;
 import com.bradmcevoy.http.Range;
@@ -30,15 +31,15 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
     protected final ResourceTypeHelper resourceTypeHelper;
     protected final PropFindXmlGenerator propFindXmlGenerator;
 
-    public DefaultWebDavResponseHandler() {
+    public DefaultWebDavResponseHandler(AuthenticationService authenticationService) {
         ValueWriters valueWriters = new ValueWriters();
-        wrapped = new DefaultHttp11ResponseHandler();
+        wrapped = new DefaultHttp11ResponseHandler(authenticationService);
         resourceTypeHelper = new WebDavResourceTypeHelper();
         propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
     }
 
-    public DefaultWebDavResponseHandler( ValueWriters valueWriters ) {
-        wrapped = new DefaultHttp11ResponseHandler();
+    public DefaultWebDavResponseHandler( ValueWriters valueWriters, AuthenticationService authenticationService ) {
+        wrapped = new DefaultHttp11ResponseHandler(authenticationService);
         resourceTypeHelper = new WebDavResourceTypeHelper();
         propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
     }

@@ -1,6 +1,5 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import java.io.IOException;
 import javax.servlet.Servlet;
@@ -90,7 +89,7 @@ public class MiltonServlet implements Servlet{
         ResourceFactory rf = instantiate(resourceFactoryClassName);
         WebDavResponseHandler responseHandler;
         if( responseHandlerClassName == null ) {
-            responseHandler = new DefaultWebDavResponseHandler();
+            responseHandler = null; // allow default to be created
         } else {
             responseHandler = instantiate(responseHandlerClassName);
         }
@@ -107,7 +106,11 @@ public class MiltonServlet implements Servlet{
     }
 
     protected void init(ResourceFactory rf, WebDavResponseHandler responseHandler) {
-        httpManager = new ServletHttpManager(rf, responseHandler);
+        if( responseHandler == null ) {
+            httpManager = new ServletHttpManager(rf);
+        } else {
+            httpManager = new ServletHttpManager(rf, responseHandler);
+        }
     }
 
     protected <T> T instantiate(String className) throws ServletException {

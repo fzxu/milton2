@@ -19,6 +19,8 @@ public class ResourceHandlerHelper {
     private final Http11ResponseHandler responseHandler;
 
     public ResourceHandlerHelper( HandlerHelper handlerHelper, Http11ResponseHandler responseHandler ) {
+        if( responseHandler == null ) throw new IllegalArgumentException( "responseHandler may not be null");
+        if( handlerHelper == null ) throw new IllegalArgumentException( "handlerHelper may not be null");
         this.handlerHelper = handlerHelper;
         this.responseHandler = responseHandler;
     }

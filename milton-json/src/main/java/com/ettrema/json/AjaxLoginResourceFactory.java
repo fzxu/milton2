@@ -35,11 +35,4 @@ public class AjaxLoginResourceFactory implements ResourceFactory{
         }
         return wrapped.getResource( host, path );
     }
-
-    public String getSupportedLevels() {
-        return wrapped.getSupportedLevels();
-    }
-
-
-
 }

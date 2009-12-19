@@ -9,7 +9,11 @@ import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindRequestFieldParser.ParseResult;
 import com.bradmcevoy.http.webdav.PropFindResponse;
+import com.bradmcevoy.http.webdav.PropertySourceUtil;
+import com.bradmcevoy.http.webdav.ResourceTypeHelper;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
+import com.bradmcevoy.http.webdav.WebDavResourceTypeHelper;
+import com.bradmcevoy.property.PropertySource;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -48,7 +52,10 @@ public class JsonPropFindHandler {
     }
 
     public JsonPropFindHandler() {
-        this.propertyBuilder = null;
+        ResourceTypeHelper resourceTypeHelper = new WebDavResourceTypeHelper();
+        List<PropertySource> propertySources = PropertySourceUtil.createDefaultSources( resourceTypeHelper );
+
+        this.propertyBuilder = new PropFindPropertyBuilder( propertySources);
         helper = new Helper();
     }
 

@@ -48,9 +48,10 @@ public abstract class AbstractResponse implements Response {
         setAnyDateHeader(Header.DATE, date);
     }
 
-    public void setAuthenticateHeader(String realm) {
-        setResponseHeader(Header.WWW_AUTHENTICATE, "Basic realm=\"" + realm + "\"");
-    }
+    // must now set multiple headers, which is dependent on the http connector
+//    public void setAuthenticateHeader(String realm) {
+//        setResponseHeader(Header.WWW_AUTHENTICATE, "Basic realm=\"" + realm + "\"");
+//    }
 
     public void setContentRangeHeader(long start, long finish, Long totalLength) {
         String l = totalLength == null ? "*" : totalLength.toString();

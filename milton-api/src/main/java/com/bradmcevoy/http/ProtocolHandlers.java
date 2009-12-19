@@ -21,15 +21,19 @@ public class ProtocolHandlers implements Iterable<HttpExtension>{
 
     public ProtocolHandlers(WebDavResponseHandler responseHandler) {
         this.handlers = new ArrayList<HttpExtension>();
-        this.handlers.add( new Http11Protocol(responseHandler));
-        this.handlers.add( new WebDavProtocol(responseHandler));
+        AuthenticationService authenticationService = new AuthenticationService();
+        HandlerHelper handlerHelper = new HandlerHelper( authenticationService );
+        this.handlers.add( new Http11Protocol(responseHandler, handlerHelper));
+        this.handlers.add( new WebDavProtocol(responseHandler, handlerHelper));
     }
 
     public ProtocolHandlers() {
         this.handlers = new ArrayList<HttpExtension>();
-        WebDavResponseHandler responseHandler = new DefaultWebDavResponseHandler();
-        this.handlers.add( new Http11Protocol(responseHandler));
-        this.handlers.add( new WebDavProtocol(responseHandler));
+        AuthenticationService authenticationService = new AuthenticationService();
+        WebDavResponseHandler responseHandler = new DefaultWebDavResponseHandler(authenticationService);
+        HandlerHelper handlerHelper = new HandlerHelper( authenticationService );
+        this.handlers.add( new Http11Protocol(responseHandler, handlerHelper));
+        this.handlers.add( new WebDavProtocol(responseHandler, handlerHelper));
     }
 
     public Iterator<HttpExtension> iterator() {

@@ -23,10 +23,6 @@
             <param-value>com.bradmcevoy.http.TResourceFactory</param-value>
         </init-param>
         <init-param>
-            <param-name>response.handler.class</param-name>
-            <param-value>com.bradmcevoy.http.MsOfficeResponseHandler</param-value>
-        </init-param>
-        <init-param>
             <param-name>not.found.url</param-name>
             <param-value>/404.jsp</param-value>
         </init-param>    

@@ -11,6 +11,10 @@ public class ServletHttpManager extends HttpManager implements Initable {
     public ServletHttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler) {
         super(resourceFactory, responseHandler);
     }
+
+    public ServletHttpManager(ResourceFactory resourceFactory) {
+        super(resourceFactory);
+    }
     
     public void init(ApplicationConfig config,HttpManager manager) {
         log.debug("init");

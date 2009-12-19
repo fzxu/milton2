@@ -22,11 +22,6 @@ public class GetHandler implements ExistingEntityHandler {
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
 
-    public GetHandler( Http11ResponseHandler responseHandler ) {
-        this.responseHandler = responseHandler;
-        handlerHelper = new HandlerHelper();
-        this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
-    }
 
     public GetHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;

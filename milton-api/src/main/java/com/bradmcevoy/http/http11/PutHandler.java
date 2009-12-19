@@ -26,10 +26,6 @@ public class PutHandler implements Handler {
 
     }
 
-    public PutHandler( Http11ResponseHandler responseHandler ) {
-        this.responseHandler = responseHandler;
-        this.handlerHelper = new HandlerHelper();
-    }
 
     public String[] getMethods() {
         return new String[]{Method.PUT.code};

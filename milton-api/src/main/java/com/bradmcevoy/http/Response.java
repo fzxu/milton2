@@ -13,7 +13,6 @@ public interface Response {
     public final static String XML = "text/xml; charset=UTF-8";
 
     
-    
     public enum ContentType {
         HTTP,
         MULTIPART,
@@ -141,7 +140,17 @@ public interface Response {
 
     public void setLockTokenHeader(String tokenId);
 
-    void setAuthenticateHeader( String realm );
+    /**
+     * Must set multiple Authenticate headers, one for each challenge
+     *
+     * This will usually be one each for basic, digest, ntlm, etc
+     *
+     * Note that order might be significant to some clients, so should be
+     * preserved. ie list item zero should be first.
+     *
+     * @param challenges - a list of http authentication challenges
+     */
+    void setAuthenticateHeader( List<String> challenges );
     
     void setStatus(Status status);
     

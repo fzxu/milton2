@@ -1,6 +1,10 @@
 package com.bradmcevoy.http;
-import org.apache.commons.codec.binary.Base64;
 
+import com.bradmcevoy.common.StringSplitUtils;
+import java.util.Map;
+import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Holds authentication information for a request
@@ -19,6 +23,8 @@ import org.apache.commons.codec.binary.Base64;
  */
 public class Auth {
 
+    private static final Logger log = LoggerFactory.getLogger( Auth.class );
+
     /**
      * Holds application specific user data, as returned from the authenticate
      * method on Resource
@@ -26,41 +32,48 @@ public class Auth {
      * This should be used to test for a valid login.
      */
     private Object tag;
-    
+
     public enum Scheme {
-        BASIC
+
+        BASIC,
+        DIGEST
     };
-    
-    public final Scheme scheme;
-    public final String user;
-    public final String password;
-    
-    public Auth(String sAuth) {
-        int pos = sAuth.indexOf(" ");
+    private Scheme scheme;
+    private String user;
+    private String password;
+
+    private String realm;
+    private String nonce;
+    private String uri;
+    private String responseDigest;
+    private String qop;
+    private String nc;
+    private String cnonce;
+    private boolean nonceStale; // set by digest auth handler
+
+
+    public Auth( String sAuth ) {
+        log.debug( "parse: " + sAuth);
+        int pos = sAuth.indexOf( " " );
         String schemeCode;
         String enc;
         if( pos >= 0 ) {
-            schemeCode = sAuth.substring(0,pos);
-            scheme = Scheme.valueOf(schemeCode.toUpperCase());
-            enc = sAuth.substring(pos+1);
+            schemeCode = sAuth.substring( 0, pos );
+            scheme = Scheme.valueOf( schemeCode.toUpperCase() );
+            enc = sAuth.substring( pos + 1 );
         } else {
             // assume basic
             scheme = Scheme.BASIC;
             enc = sAuth;
         }
-        byte[] bytes = Base64.decodeBase64( enc.getBytes() );
-        String s = new String(bytes);
-        pos = s.indexOf(":");
-        if( pos >= 0 ) {
-            user = s.substring(0,pos);
-            password = s.substring(pos+1);
-        } else {
-            user = s;
-            password = null;
+        if( scheme.equals( Scheme.BASIC ) ) {
+            parseBasic( enc );
+        } else if( scheme.equals( Scheme.DIGEST ) ) {
+            parseDigest( enc );
         }
     }
-    
-    public Auth(String user, Object userTag) {
+
+    public Auth( String user, Object userTag ) {
         this.scheme = Scheme.BASIC;
         this.user = user;
         this.password = null;
@@ -81,7 +94,7 @@ public class Auth {
      *
      * The actual value will be application dependent
      */
-    void setTag(Object authTag) {
+    void setTag( Object authTag ) {
         tag = authTag;
     }
 
@@ -93,5 +106,93 @@ public class Auth {
      */
     public Object getTag() {
         return tag;
-    }           
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public Scheme getScheme() {
+        return scheme;
+    }
+
+    public String getCnonce() {
+        return cnonce;
+    }
+
+    public String getNc() {
+        return nc;
+    }
+
+    public String getNonce() {
+        return nonce;
+    }
+
+    public String getQop() {
+        return qop;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public String getResponseDigest() {
+        return responseDigest;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public boolean isNonceStale() {
+        return nonceStale;
+    }
+
+    /**
+     * set by digest auth processing. Used to add stale nonce flag to challenge
+     * 
+     * @param nonceStale
+     */
+    public void setNonceStale( boolean nonceStale ) {
+        this.nonceStale = nonceStale;
+    }
+
+
+    
+
+
+
+
+    private void parseBasic( String enc ) {
+        byte[] bytes = Base64.decodeBase64( enc.getBytes() );
+        String s = new String( bytes );
+        int pos = s.indexOf( ":" );
+        if( pos >= 0 ) {
+            user = s.substring( 0, pos );
+            password = s.substring( pos + 1 );
+        } else {
+            user = s;
+            password = null;
+        }
+    }
+
+    private void parseDigest( String s ) {
+        log.debug( "parseDigest: " + s);
+
+        String[] headerEntries = StringSplitUtils.splitIgnoringQuotes( s, ',' );
+        Map headerMap = StringSplitUtils.splitEachArrayElementAndCreateMap( headerEntries, "=", "\"" );
+
+        log.debug( "headerMap: " + headerMap);
+
+        user = (String) headerMap.get( "username" );
+        realm = (String) headerMap.get( "realm" );
+        nonce = (String) headerMap.get( "nonce" );
+        uri = (String) headerMap.get( "uri" );
+        responseDigest = (String) headerMap.get( "response" );
+        qop = (String) headerMap.get( "qop" ); // RFC 2617 extension
+        nc = (String) headerMap.get( "nc" ); // RFC 2617 extension
+        cnonce = (String) headerMap.get( "cnonce" ); // RFC 2617 extension
+
+    }
+
 }

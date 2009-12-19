@@ -18,9 +18,9 @@ public class OptionsHandler implements ExistingEntityHandler {
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
 
-    public OptionsHandler( Http11ResponseHandler responseHandler ) {
+    public OptionsHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
-        this.handlerHelper = new HandlerHelper();
+        this.handlerHelper = handlerHelper;
         this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
     }
 

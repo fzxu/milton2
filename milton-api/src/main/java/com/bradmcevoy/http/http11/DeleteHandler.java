@@ -28,12 +28,6 @@ public class DeleteHandler implements ExistingEntityHandler {
         this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
     }
 
-    public DeleteHandler( Http11ResponseHandler responseHandler ) {
-        this.responseHandler = responseHandler;
-        this.handlerHelper = new HandlerHelper();
-        this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
-    }
-
     public String[] getMethods() {
         return new String[]{Method.DELETE.code};
     }

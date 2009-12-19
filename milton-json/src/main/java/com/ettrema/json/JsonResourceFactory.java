@@ -1,7 +1,6 @@
 package com.ettrema.json;
 
 import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.webdav.PropFindHandler;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Request;
@@ -25,6 +24,11 @@ public class JsonResourceFactory implements ResourceFactory {
         this.wrapped = wrapped;
         this.propFindHandler = propFindHandler;
     }
+
+    public JsonResourceFactory(ResourceFactory wrapped) {
+        this.wrapped = wrapped;
+        this.propFindHandler = new JsonPropFindHandler();
+    }
     
     public Resource getResource(String host, String sPath) {
         log.debug(host + " :: " + sPath);
@@ -43,10 +47,6 @@ public class JsonResourceFactory implements ResourceFactory {
             return wrapped.getResource(host, sPath);
         }
         return null;
-    }
-
-    public String getSupportedLevels() {
-        return wrapped.getSupportedLevels();
     }
 
     private Resource wrapResource(Resource wrappedResource, String method,String href) {

@@ -1,6 +1,7 @@
 package com.bradmcevoy.http.http11;
 
 import com.bradmcevoy.http.Handler;
+import com.bradmcevoy.http.HandlerHelper;
 import com.bradmcevoy.http.HttpExtension;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,13 +19,13 @@ public class Http11Protocol implements HttpExtension{
         this.handlers = handlers;
     }
 
-    public Http11Protocol(Http11ResponseHandler responseHandler) {
+    public Http11Protocol(Http11ResponseHandler responseHandler, HandlerHelper handlerHelper) {
         this.handlers = new HashSet<Handler>();
-        handlers.add(new OptionsHandler(responseHandler));
-        handlers.add(new GetHandler(responseHandler));
-        handlers.add(new PostHandler(responseHandler));
-        handlers.add(new DeleteHandler(responseHandler));
-        handlers.add(new PutHandler(responseHandler));
+        handlers.add(new OptionsHandler(responseHandler, handlerHelper));
+        handlers.add(new GetHandler(responseHandler, handlerHelper));
+        handlers.add(new PostHandler(responseHandler, handlerHelper));
+        handlers.add(new DeleteHandler(responseHandler, handlerHelper));
+        handlers.add(new PutHandler(responseHandler, handlerHelper));
     }
 
     public Set<Handler> getHandlers() {
