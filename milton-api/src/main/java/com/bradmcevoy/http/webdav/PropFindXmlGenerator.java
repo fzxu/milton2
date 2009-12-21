@@ -45,7 +45,7 @@ public class PropFindXmlGenerator {
         helper.appendResponses( writer, propFindResponses, mapOfNamespaces );
         writer.close( "D:multistatus" );
         writer.flush();
-        log.debug( generatedXml.toString() );
+//        log.debug( generatedXml.toString() );
         helper.write( generatedXml, responseOutput );
         try {
             return responseOutput.toString( "UTF-8" );
@@ -90,7 +90,7 @@ public class PropFindXmlGenerator {
         }
 
         void appendResponses( XmlWriter writer, List<PropFindResponse> propFindResponses, Map<String, String> mapOfNamespaces ) {
-            log.debug( "appendResponses: " + propFindResponses.size() );
+//            log.debug( "appendResponses: " + propFindResponses.size() );
             for( PropFindResponse r : propFindResponses ) {
                 XmlWriter.Element el = writer.begin( "D:response" );
                 el.open();
@@ -102,7 +102,7 @@ public class PropFindXmlGenerator {
         }
 
         private void sendKnownProperties( XmlWriter writer, Map<String, String> mapOfNamespaces, Map<QName, ValueAndType> properties, String href ) {
-            log.debug( "sendKnownProperties: " + properties.size() );
+//            log.debug( "sendKnownProperties: " + properties.size() );
             if( !properties.isEmpty() ) {
                 XmlWriter.Element elPropStat = writer.begin( "D:propstat" ).open();
                 XmlWriter.Element elProp = writer.begin( "D:prop" ).open();
@@ -118,7 +118,7 @@ public class PropFindXmlGenerator {
         }
 
         private void sendUnknownProperties( XmlWriter writer, Map<String, String> mapOfNamespaces, List<QName> properties ) {
-            log.debug( "sendUnknownProperties: " + properties.size() );
+//            log.debug( "sendUnknownProperties: " + properties.size() );
             if( !properties.isEmpty() ) {
                 XmlWriter.Element elPropStat = writer.begin( "D:propstat" ).open();
                 XmlWriter.Element elProp = writer.begin( "D:prop" ).open();

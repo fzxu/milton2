@@ -58,7 +58,7 @@ public class HandlerHelper {
 
         boolean authorised = resource.authorise( request, request.getMethod(), auth );
         if( !authorised ) {
-            log.warn( "Not authorised, requesting basic authentication" );
+            log.warn( "Not authorised, requesting authentication" );
             return false;
         } else {
             return true;

@@ -1,5 +1,6 @@
 package com.bradmcevoy.http.http11;
 
+import com.bradmcevoy.http.AuthenticationService;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;

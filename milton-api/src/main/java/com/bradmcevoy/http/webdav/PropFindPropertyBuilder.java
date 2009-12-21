@@ -122,7 +122,7 @@ public class PropFindPropertyBuilder {
                     }
                 }
                 if( !found ) {
-                    log.debug( "unknown: " + field.toString());
+//                    log.debug( "unknown: " + field.toString());
                     unknownProperties.add( field );
                 }
 

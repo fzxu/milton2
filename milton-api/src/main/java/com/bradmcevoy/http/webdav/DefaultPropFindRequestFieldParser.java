@@ -32,7 +32,6 @@ public class DefaultPropFindRequestFieldParser implements PropFindRequestFieldPa
     }
 
     public ParseResult getRequestedFields( InputStream in ) {
-        log.debug( "parse" );
         try {
             final Set<QName> set = new LinkedHashSet<QName>();
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -46,10 +45,8 @@ public class DefaultPropFindRequestFieldParser implements PropFindRequestFieldPa
                 try {
                     reader.parse( new InputSource( bin ) );
                     if( handler.isAllProp() ) {
-                        log.debug( "allprop request" );
                         return new ParseResult( true, set );
                     } else {
-                        log.debug( "not allprop" );
                         set.addAll( handler.getAttributes().keySet() );
                     }
                 } catch( IOException e ) {

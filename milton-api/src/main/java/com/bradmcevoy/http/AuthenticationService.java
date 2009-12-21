@@ -50,8 +50,11 @@ public class AuthenticationService {
         List<String> challenges = new ArrayList<String>();
         for( AuthenticationHandler h : authenticationHandlers ) {
             if( h.isCompatible(resource)) {
+                log.debug( "challenge for auth: " + h.getClass());
                 String ch = h.getChallenge(resource, request);
                 challenges.add( ch );
+            } else {
+                log.debug( "not challenging for auth: " + h.getClass() + " for resource type: " + resource.getClass());
             }
         }
         return challenges;

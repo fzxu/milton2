@@ -255,4 +255,9 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
         response.setStatus( status );
     }
+
+    public AuthenticationService getAuthenticationService() {
+        return authenticationService;
+    }
+
 }

@@ -72,6 +72,15 @@ public class DigestResponse {
         return uri;
     }
 
+    /**
+     * This is the response to the challenge. It is effectively The Answer
+     * from the user agent.
+     *
+     * Note the overloaded meanings of the word "response". This class is a response to a challenge, but is sent in a request from
+     * the user agent.
+     *
+     * @return
+     */
     public String getResponseDigest() {
         return responseDigest;
     }

@@ -36,7 +36,7 @@ public class GetHandler implements ExistingEntityHandler {
 
     @Override
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        resourceHandlerHelper.processResource( manager, request, response, r, this );
+        resourceHandlerHelper.processResource( manager, request, response, r, this, true );
     }
 
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {

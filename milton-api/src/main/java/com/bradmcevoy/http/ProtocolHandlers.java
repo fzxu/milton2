@@ -19,9 +19,8 @@ public class ProtocolHandlers implements Iterable<HttpExtension>{
         this.handlers = handlers;
     }
 
-    public ProtocolHandlers(WebDavResponseHandler responseHandler) {
+    public ProtocolHandlers(WebDavResponseHandler responseHandler, AuthenticationService authenticationService) {
         this.handlers = new ArrayList<HttpExtension>();
-        AuthenticationService authenticationService = new AuthenticationService();
         HandlerHelper handlerHelper = new HandlerHelper( authenticationService );
         this.handlers.add( new Http11Protocol(responseHandler, handlerHelper));
         this.handlers.add( new WebDavProtocol(responseHandler, handlerHelper));

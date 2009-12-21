@@ -19,6 +19,7 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
     private static final Logger log = LoggerFactory.getLogger( DigestAuthenticationHandler.class );
     private final NonceProvider nonceProvider;
 
+
     public DigestAuthenticationHandler( NonceProvider nonceProvider ) {
         this.nonceProvider = nonceProvider;
     }
@@ -35,60 +36,55 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
             log.debug( "resource is not an instanceof " + DigestResource.class );
             b = false;
         }
-        log.debug( "supports: " + auth.getScheme() + " = " + b );
         return b;
     }
 
     public Object authenticate( Resource r, Request request ) {
-        log.debug( "authenticate: " + request.getAuthorization().getUser() );
         DigestResource digestResource = (DigestResource) r;
         Auth auth = request.getAuthorization();
         // Check all required parameters were supplied (ie RFC 2069)
         if( ( auth.getUser() == null ) || ( auth.getRealm() == null ) || ( auth.getNonce() == null ) || ( auth.getUri() == null ) ) {
-            log.debug( "missing params");
+            log.debug( "missing params" );
             return null;
         }
 
         // Check all required parameters for an "auth" qop were supplied (ie RFC 2617)
         if( "auth".equals( auth.getQop() ) ) {
             if( ( auth.getNc() == null ) || ( auth.getCnonce() == null ) ) {
-                log.debug( "missing params2");
+                log.debug( "missing params2" );
                 return false;
             }
         }
 
         // Check realm name equals what we expected
         if( !r.getRealm().equals( auth.getRealm() ) ) {
-            log.debug( "incorrect realm: resource: " + r.getRealm() + " given: " + auth.getRealm());
+            log.debug( "incorrect realm: resource: " + r.getRealm() + " given: " + auth.getRealm() );
             return false;
         }
 
         // Check nonce was a Base64 encoded (as sent by DigestProcessingFilterEntryPoint)
         if( !Base64.isArrayByteBase64( auth.getNonce().getBytes() ) ) {
-            log.debug( "nonce not base64 encoded");
+            log.debug( "nonce not base64 encoded" );
             return false;
         }
 
         // Decode nonce from Base64
         // format of nonce is
         //   base64(expirationTime + "" + md5Hex(expirationTime + "" + key))
-        String nonceAsPlainText = new String( Base64.decodeBase64( auth.getNonce().getBytes() ) );
-        log.debug( "plain text nonce: " + nonceAsPlainText);
-        NonceValidity validity = nonceProvider.getNonceValidity( nonceAsPlainText );
+        String plainTextNonce = new String( Base64.decodeBase64( auth.getNonce().getBytes() ) );
+        NonceValidity validity = nonceProvider.getNonceValidity( plainTextNonce );
         if( NonceValidity.INVALID.equals( validity ) ) {
-            log.debug( "invalid nonce");
+            log.debug( "invalid nonce: " + plainTextNonce );
             return null;
         } else if( NonceValidity.EXPIRED.equals( validity ) ) {
-            log.debug( "expired nonce");
+            log.debug( "expired nonce: " + plainTextNonce );
             // make this known so that we can add stale field to challenge
             auth.setNonceStale( true );
             return null;
         }
 
-        log.debug( "request ok, not authenticate");
-        DigestResponse resp = new DigestResponse( auth, request );
+        DigestResponse resp = toDigestResponse( auth, request );
         Object o = digestResource.authenticate( resp );
-        log.debug( "authentication result: " + o);
         return o;
     }
 
@@ -116,6 +112,21 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
 
     public boolean isCompatible( Resource resource ) {
         return ( resource instanceof DigestResource );
+    }
+
+    private DigestResponse toDigestResponse( Auth auth, Request request ) {
+        DigestResponse dr = new DigestResponse(
+            request.getMethod(),
+            auth.getUser(),
+            auth.getRealm(),
+            auth.getNonce(),
+            auth.getUri(),
+            auth.getResponseDigest(),
+            auth.getQop(),
+            auth.getNc(),
+            auth.getCnonce() );
+        return dr;
+
     }
 }
 

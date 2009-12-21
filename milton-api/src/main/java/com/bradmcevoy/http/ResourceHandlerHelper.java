@@ -31,7 +31,7 @@ public class ResourceHandlerHelper {
         }
         String host = request.getHostHeader();
         String url = HttpManager.decodeUrl( request.getAbsolutePath() );
-        log.debug( "find resource: " + url );
+        log.debug( "find resource: path: " + url + " host: " + host );
         Resource r = manager.getResourceFactory().getResource( host, url );
         if( r == null ) {
             responseHandler.respondNotFound( response, request );
@@ -41,13 +41,19 @@ public class ResourceHandlerHelper {
     }
 
     public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        processResource( manager, request, response, resource, handler, false );
+    }
+
+    public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler, boolean allowRedirect ) throws NotAuthorizedException, ConflictException, BadRequestException {
         long t = System.currentTimeMillis();
         try {
 
             manager.onProcessResourceStart( request, response, resource );
 
-            if( handlerHelper.doCheckRedirect( responseHandler, request, response, resource ) ) {
-                return;
+            if( allowRedirect ) {
+                if( handlerHelper.doCheckRedirect( responseHandler, request, response, resource ) ) {
+                    return;
+                }
             }
 
             if( !handler.isCompatible( resource ) ) {

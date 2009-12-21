@@ -84,8 +84,8 @@ public class Console implements GetableResource, PostableResource {
 
     public Object authenticate(String user, String password) {
         return secureResource.authenticate(user, password);
-
     }
+
 
     public boolean authorise(Request request, Method method, Auth auth) {
         this.auth = auth;
@@ -168,5 +168,7 @@ public class Console implements GetableResource, PostableResource {
         }
         return f.create(args, host, currentDir, auth);
     }
+
+
 
 }

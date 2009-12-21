@@ -1,6 +1,7 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
+import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,29 +57,35 @@ public class HttpManager {
      * @param resourceFactory
      */
     public HttpManager(ResourceFactory resourceFactory) {
-        this(resourceFactory, null);
+        if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
+        this.resourceFactory = resourceFactory;
+        AuthenticationService authenticationService = new AuthenticationService();
+        DefaultWebDavResponseHandler webdavResponseHandler = new DefaultWebDavResponseHandler(authenticationService);
+        this.responseHandler = webdavResponseHandler;
+        this.handlers = new ProtocolHandlers(webdavResponseHandler, authenticationService);
+        
+        initHandlers();
     }
 
-    public HttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler) {
+    public HttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler, AuthenticationService authenticationService) {
         if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
         this.resourceFactory = resourceFactory;
         this.responseHandler = responseHandler;
-        if( responseHandler == null ) {
-            this.handlers = new ProtocolHandlers();
-        } else {
-            this.handlers = new ProtocolHandlers(responseHandler);
-        }
+        this.handlers = new ProtocolHandlers(responseHandler, authenticationService);
 
+        initHandlers();
+
+    }
+
+    private void initHandlers() {
         for( HttpExtension ext : handlers ) {
             for( Handler h : ext.getHandlers() ) {
                 for( String m : h.getMethods() ) {
-                    this.methodHandlers.put( m, h);
+                    this.methodHandlers.put( m, h );
                 }
             }
         }
-
-        filters.add(createStandardFilter());
-
+        filters.add( createStandardFilter() );
     }
 
 

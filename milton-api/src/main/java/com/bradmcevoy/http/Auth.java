@@ -53,7 +53,7 @@ public class Auth {
 
 
     public Auth( String sAuth ) {
-        log.debug( "parse: " + sAuth);
+//        log.debug( "parse: " + sAuth);
         int pos = sAuth.indexOf( " " );
         String schemeCode;
         String enc;
@@ -177,12 +177,10 @@ public class Auth {
     }
 
     private void parseDigest( String s ) {
-        log.debug( "parseDigest: " + s);
-
         String[] headerEntries = StringSplitUtils.splitIgnoringQuotes( s, ',' );
         Map headerMap = StringSplitUtils.splitEachArrayElementAndCreateMap( headerEntries, "=", "\"" );
 
-        log.debug( "headerMap: " + headerMap);
+//        log.debug( "headerMap: " + headerMap);
 
         user = (String) headerMap.get( "username" );
         realm = (String) headerMap.get( "realm" );

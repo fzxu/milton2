@@ -42,7 +42,7 @@ public class PostHandler implements ExistingEntityHandler {
 
     @Override
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        resourceHandlerHelper.processResource( manager, request, response, r, this );
+        resourceHandlerHelper.processResource( manager, request, response, r, this, true );
     }
 
     @Override

@@ -17,20 +17,29 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
     private static final Logger log = LoggerFactory.getLogger( SimpleMemoryNonceProvider.class );
     private final int nonceValiditySeconds;
     private Map<UUID, Nonce> nonces = new ConcurrentHashMap<UUID, Nonce>();
+    private final ExpiredNonceRemover remover;
 
     public SimpleMemoryNonceProvider( int nonceValiditySeconds ) {
         this.nonceValiditySeconds = nonceValiditySeconds;
+        this.remover = new ExpiredNonceRemover( nonces, nonceValiditySeconds );
         log.debug( "created");
     }
+
+    public SimpleMemoryNonceProvider( int nonceValiditySeconds, ExpiredNonceRemover remover ) {
+        this.nonceValiditySeconds = nonceValiditySeconds;
+        this.remover = remover;
+    }
+
+
 
     public String createNonce( Resource resource, Request request ) {
         UUID id = UUID.randomUUID();
         Date now = new Date();
         Nonce n = new Nonce( id, now );
-        nonces.put( n.value, n );
-        log.debug( "created nonce: " + n.value);
+        nonces.put( n.getValue(), n );
+        log.debug( "created nonce: " + n.getValue());
         log.debug( "map size: " + nonces.size());
-        return n.value.toString();
+        return n.getValue().toString();
     }
 
     public NonceValidity getNonceValidity( String nonce ) {
@@ -47,7 +56,7 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
             log.debug( "not found in map of size: " + nonces.size());
             return NonceValidity.INVALID;
         } else {
-            if( isExpired(n.issued)) {
+            if( isExpired(n.getIssued())) {
                 log.debug( "nonce has expired");
                 return NonceValidity.EXPIRED;
             } else {
@@ -60,16 +69,5 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
     private boolean isExpired( Date issued ) {
         long dif = (System.currentTimeMillis() - issued.getTime()) / 1000;
         return dif > nonceValiditySeconds;
-    }
-
-    private class Nonce {
-
-        final UUID value;
-        final Date issued;
-
-        public Nonce( UUID value, Date issued ) {
-            this.value = value;
-            this.issued = issued;
-        }
     }
 }
