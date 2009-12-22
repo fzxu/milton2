@@ -49,11 +49,15 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         }
 
         // Check all required parameters for an "auth" qop were supplied (ie RFC 2617)
+        Long nc;
         if( "auth".equals( auth.getQop() ) ) {
             if( ( auth.getNc() == null ) || ( auth.getCnonce() == null ) ) {
                 log.debug( "missing params2" );
                 return null;
             }
+            nc = Long.parseLong( auth.getNc(), 16); // the nonce-count. hex value, must always increase
+        } else {
+            nc = null;
         }
 
         // Check realm name equals what we expected
@@ -68,11 +72,14 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
             return null;
         }
 
+        log.debug( "nc: " + auth.getNc());
+
+
         // Decode nonce from Base64
         // format of nonce is
         //   base64(expirationTime + "" + md5Hex(expirationTime + "" + key))
         String plainTextNonce = new String( Base64.decodeBase64( auth.getNonce().getBytes() ) );
-        NonceValidity validity = nonceProvider.getNonceValidity( plainTextNonce );
+        NonceValidity validity = nonceProvider.getNonceValidity( plainTextNonce, nc ); 
         if( NonceValidity.INVALID.equals( validity ) ) {
             log.debug( "invalid nonce: " + plainTextNonce );
             return null;
