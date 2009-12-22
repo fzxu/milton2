@@ -2,9 +2,6 @@ package com.bradmcevoy.http;
 
 import java.util.Date;
 
-//need to move some methods out of here and into the respective interfaces
-        
-//prolly need inheritance hierarchy of methodhandlers to match those in Milton        
 
 /**
  * 
@@ -63,7 +60,10 @@ public interface Resource {
      */
     boolean authorise(Request request, Request.Method method,Auth auth);
 
-    /** Return the security realm for this resource. Just any string identifier
+    /** Return the security realm for this resource. Just any string identifier.
+     *
+     * This will be used to contruct authorization challenges and will be used
+     * on Digest authentication to construct the expected response.
      */
     String getRealm();
 
@@ -71,7 +71,15 @@ public interface Resource {
      *  modified. For dynamic rendered resources this should consider everything
      *  which will influence its output.
      *
-     *  Resources for which no such date can be calculated should return null  
+     *  Resources for which no such date can be calculated should return null.
+     *
+     *  This field, if not null, is used to reply to conditional GETs (ie GET with
+     * if-modified-since). If the modified-since argument is later then the modified
+     * date then we return a 304 - Not Modified.
+     *
+     * Although nulls are explicitly allowed by milton, certain client applications
+     * might require modified dates for file browsing. For example, the command line
+     * client on Vista doesnt work properly if this is null.
      *
      */
     Date getModifiedDate();
