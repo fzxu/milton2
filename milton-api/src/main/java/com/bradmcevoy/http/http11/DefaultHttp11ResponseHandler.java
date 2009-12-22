@@ -35,24 +35,19 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         }
         return s;
     }
-
-
     private final AuthenticationService authenticationService;
 
     public DefaultHttp11ResponseHandler( AuthenticationService authenticationService ) {
         this.authenticationService = authenticationService;
     }
 
-
-
     public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
-        response.setStatus( Response.Status.SC_OK );        
-        response.setAllowHeader( methodsAllowed );        
+        response.setStatus( Response.Status.SC_OK );
+        response.setAllowHeader( methodsAllowed );
         response.setContentLengthHeader( (long) 0 );
     }
 
     public void respondNotFound( Response response, Request request ) {
-        log.debug( "responding not found" );
         response.setStatus( Response.Status.SC_NOT_FOUND );
         response.setContentTypeHeader( "text/html" );
         response.setStatus( Response.Status.SC_NOT_FOUND );
@@ -65,14 +60,13 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     public void respondUnauthorised( Resource resource, Response response, Request request ) {
-        log.debug( "requesting authorisation" );
         response.setStatus( Response.Status.SC_UNAUTHORIZED );
-        List<String> challenges = authenticationService.getChallenges(resource, request);
+        List<String> challenges = authenticationService.getChallenges( resource, request );
         response.setAuthenticateHeader( challenges );
     }
 
     public void respondMethodNotImplemented( Resource resource, Response response, Request request ) {
-        log.debug( "method not implemented. resource: " + resource.getClass().getName() + " - method " + request.getMethod() );
+//        log.debug( "method not implemented. resource: " + resource.getClass().getName() + " - method " + request.getMethod() );
         try {
             response.setStatus( Response.Status.SC_NOT_IMPLEMENTED );
             OutputStream out = response.getOutputStream();
@@ -100,6 +94,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
      * @param message - optional message to output in the body content
      */
     public void respondConflict( Resource resource, Response response, Request request, String message ) {
+        log.debug( "respondConflict" );
         try {
             response.setStatus( Response.Status.SC_CONFLICT );
             OutputStream out = response.getOutputStream();
@@ -122,12 +117,12 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     public void respondCreated( Resource resource, Response response, Request request ) {
-        log.debug( "respondCreated" );
+//        log.debug( "respondCreated" );
         response.setStatus( Response.Status.SC_CREATED );
     }
 
     public void respondNoContent( Resource resource, Response response, Request request ) {
-        log.debug( "respondNoContent" );
+//        log.debug( "respondNoContent" );
         response.setStatus( Response.Status.SC_OK );
     }
 
@@ -157,7 +152,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
-        log.debug( "respondContent: " + resource.getClass() );
+//        log.debug( "respondContent: " + resource.getClass() );
         setRespondContentCommonHeaders( response, resource );
         if( resource instanceof GetableResource ) {
             GetableResource gr = (GetableResource) resource;
@@ -176,7 +171,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     public void respondNotModified( GetableResource resource, Response response, Request request ) {
-        log.debug( "not modified" );
+//        log.debug( "not modified" );
         response.setStatus( Response.Status.SC_NOT_MODIFIED );
         response.setDateHeader( new Date() );
         String acc = request.getAcceptHeader();
@@ -190,7 +185,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
     public static void setCacheControl( final GetableResource resource, final Response response, Auth auth ) {
         Long delta = resource.getMaxAgeSeconds( auth );
-        log.debug( "setCacheControl: " + delta + " - " + resource.getClass() );
+//        log.debug( "setCacheControl: " + delta + " - " + resource.getClass() );
         if( delta != null ) {
             if( auth != null ) {
                 response.setCacheControlPrivateMaxAgeHeader( delta );
@@ -259,5 +254,4 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public AuthenticationService getAuthenticationService() {
         return authenticationService;
     }
-
 }

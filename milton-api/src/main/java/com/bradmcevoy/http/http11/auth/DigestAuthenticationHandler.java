@@ -52,20 +52,20 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         if( "auth".equals( auth.getQop() ) ) {
             if( ( auth.getNc() == null ) || ( auth.getCnonce() == null ) ) {
                 log.debug( "missing params2" );
-                return false;
+                return null;
             }
         }
 
         // Check realm name equals what we expected
         if( !r.getRealm().equals( auth.getRealm() ) ) {
             log.debug( "incorrect realm: resource: " + r.getRealm() + " given: " + auth.getRealm() );
-            return false;
+            return null;
         }
 
         // Check nonce was a Base64 encoded (as sent by DigestProcessingFilterEntryPoint)
         if( !Base64.isArrayByteBase64( auth.getNonce().getBytes() ) ) {
             log.debug( "nonce not base64 encoded" );
-            return false;
+            return null;
         }
 
         // Decode nonce from Base64
