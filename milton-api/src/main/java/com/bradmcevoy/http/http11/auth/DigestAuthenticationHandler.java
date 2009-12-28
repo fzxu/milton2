@@ -61,6 +61,8 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         }
 
         // Check realm name equals what we expected
+        String expectedRealm = r.getRealm();
+        if( expectedRealm == null ) throw new IllegalStateException( "realm is null on resource of class: " + r.getClass());
         if( !r.getRealm().equals( auth.getRealm() ) ) {
             log.debug( "incorrect realm: resource: " + r.getRealm() + " given: " + auth.getRealm() );
             return null;

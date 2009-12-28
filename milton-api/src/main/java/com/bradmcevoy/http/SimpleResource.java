@@ -30,17 +30,22 @@ public class SimpleResource implements GetableResource{
     final Resource secureResource;
 
     public SimpleResource( String name, Date modDate, byte[] content, String contentType, String uniqueId, String realm) {
-        this(name, modDate, content, contentType, uniqueId, realm, null);
-
-    }
-
-    public SimpleResource( String name, Date modDate, byte[] content, String contentType, String uniqueId, String realm, Resource secureResource ) {
         this.name = name;
         this.modDate = modDate;
         this.content = content;
         this.contentType = contentType;
         this.uniqueId = uniqueId;
         this.realm = realm;
+        this.secureResource = null;
+    }
+
+    public SimpleResource( String name, Date modDate, byte[] content, String contentType, String uniqueId, Resource secureResource ) {
+        this.name = name;
+        this.modDate = modDate;
+        this.content = content;
+        this.contentType = contentType;
+        this.uniqueId = uniqueId;
+        this.realm = secureResource.getRealm();
         this.secureResource = secureResource;
     }
 

@@ -16,8 +16,8 @@ public class SimpleDigestResource extends SimpleResource implements DigestResour
         this.digestResource = null;
     }
 
-    public SimpleDigestResource( String name, Date modDate, byte[] content, String contentType, String uniqueId, String realm, DigestResource secureResource ) {
-        super(name, modDate, content, contentType, uniqueId, realm, secureResource );
+    public SimpleDigestResource( String name, Date modDate, byte[] content, String contentType, String uniqueId, DigestResource secureResource ) {
+        super(name, modDate, content, contentType, uniqueId, secureResource );
         this.digestResource = secureResource;
     }
 

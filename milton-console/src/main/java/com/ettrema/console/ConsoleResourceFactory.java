@@ -64,18 +64,18 @@ public class ConsoleResourceFactory implements ResourceFactory {
             if( secureResource == null ) {
                 throw new IllegalArgumentException( "Could not locate a resource to authorise against. path: " + secureResourcePath + " - resourceFactory: " + wrappedFactory.getClass() );
             }
-            log.debug( "checking: " + path );
+            
             if( path.endsWith( "index.html" ) ) {
                 if( secureResource instanceof DigestResource ) {
-                    return new SimpleDigestResource( "index.html", modDate, consolePageContent.getBytes(), "text/html", "console", null, (DigestResource) secureResource);
+                    return new SimpleDigestResource( "index.html", modDate, consolePageContent.getBytes(), "text/html", "console", (DigestResource) secureResource);
                 } else {
-                    return new SimpleResource( "index.html", modDate, consolePageContent.getBytes(), "text/html", "console", null, secureResource );
+                    return new SimpleResource( "index.html", modDate, consolePageContent.getBytes(), "text/html", "console", secureResource );
                 }
             } else if( path.endsWith( "dojo.js" ) ) {
                 if( secureResource instanceof DigestResource ) {
-                    return new SimpleDigestResource( "dojo.js", modDate, dojoJsContent.getBytes(), "text/html", "console", null, (DigestResource) secureResource);
+                    return new SimpleDigestResource( "dojo.js", modDate, dojoJsContent.getBytes(), "text/html", "console", (DigestResource) secureResource);
                 } else {
-                    return new SimpleResource( "dojo.js", modDate, dojoJsContent.getBytes(), "text/html", "console", null, secureResource );
+                    return new SimpleResource( "dojo.js", modDate, dojoJsContent.getBytes(), "text/html", "console", secureResource );
                 }
             } else if( path.endsWith( "console.json" ) ) {
                 if( secureResource instanceof DigestResource ) {
