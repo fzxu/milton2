@@ -52,6 +52,10 @@ public interface Request {
         LOCK_TOKEN("Lock-Token"),
         EXPECT("Expect"),
         OVERWRITE("Overwrite"),
+        /**
+         * For compatibility with macOS finder from 10.5.3
+         */
+        X_EXPECTED_ENTITY_LENGTH("X-Expected-Entity-Length"),
         AUTHORIZATION("Authorization");
         
             

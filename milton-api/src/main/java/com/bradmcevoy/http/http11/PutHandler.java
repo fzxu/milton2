@@ -115,7 +115,7 @@ public class PutHandler implements Handler {
 
         log.debug( "process: putting to: " + folder.getName() );
         try {
-            Long l = request.getContentLengthHeader();
+            Long l = getContentLength(request);
             String ct = findContentTypes( request, newName );
             log.debug( "PutHandler: creating resource of type: " + ct );
             folder.createNew( newName, request.getInputStream(), l, ct );
@@ -127,6 +127,22 @@ public class PutHandler implements Handler {
         manager.getResponseHandler().respondCreated( folder, response, request );
 
         log.debug( "process: finished" );
+    }
+
+    private Long getContentLength( Request request ) {
+        Long l = request.getContentLengthHeader();
+        if( l == null ) {
+            String s = request.getRequestHeader( Request.Header.X_EXPECTED_ENTITY_LENGTH );
+            if( s != null && s.length() > 0 ) {
+                log.debug( "no content-length given, but founhd non-standard length header: " + s);
+                try {
+                    l = Long.parseLong( s );
+                } catch( NumberFormatException e) {
+                    throw new RuntimeException("invalid length for header: " + Request.Header.X_EXPECTED_ENTITY_LENGTH.code + ". value is: " + s);
+                }
+            }
+        }
+        return l;
     }
 
     /**
