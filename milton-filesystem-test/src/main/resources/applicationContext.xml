@@ -51,11 +51,14 @@
     </bean>
 
     <bean id="milton.fs.lock.manager" class="com.ettrema.http.fs.MemoryLockManager" />
+
+    <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService"/>
 <!--
     <bean id="milton.response.handler" class="com.bradmcevoy.http.MsOfficeResponseHandler"/>
 -->
 
     <bean id="milton.response.handler" class="com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler">
+        <constructor-arg ref="auth.service"/>
     </bean>
 
     <!-- The compressing response handler wraps the default response handler and compresses
@@ -69,6 +72,7 @@
     <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">
         <constructor-arg ref="milton.resource.factory" />
         <constructor-arg ref="milton.response.handler.compressing" />
+        <constructor-arg ref="auth.service" />
 
         <property name="filters">
             <list>
@@ -95,10 +99,13 @@
     </bean>
 
     <!-- This server will provide access to the same resources available on webdav
-    via FTP -->
+    via FTP
+    The FTP server will auto start on port 2121
+    -->
     <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter">
         <constructor-arg ref="filesystem.resource.factory"/>
         <constructor-arg ref="ftp.user.manager"/>
+        <constructor-arg value="2121" />
     </bean>
 
 </beans>
