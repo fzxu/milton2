@@ -46,10 +46,8 @@ public class MiltonFtpAdapter implements FileSystemFactory {
         this.server = server;
     }
 
-
-
     public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager ) throws FtpException {
-        this(wrapped, userManager, null );
+        this( wrapped, userManager, null );
     }
 
     /**
@@ -60,8 +58,8 @@ public class MiltonFtpAdapter implements FileSystemFactory {
      * @param actionListener
      * @throws FtpException
      */
-    public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager,FtpActionListener actionListener ) throws FtpException {
-        this(wrapped, userManager, actionListener, 21, true);
+    public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager, FtpActionListener actionListener ) throws FtpException {
+        this( wrapped, userManager, actionListener, 21, true );
     }
 
     /**
@@ -73,9 +71,8 @@ public class MiltonFtpAdapter implements FileSystemFactory {
      * @throws FtpException
      */
     public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager, int port ) throws FtpException {
-        this(wrapped, userManager, null, port, true );
+        this( wrapped, userManager, null, port, true );
     }
-
 
     /**
      * Creates and optionally starts the server
@@ -87,27 +84,29 @@ public class MiltonFtpAdapter implements FileSystemFactory {
      * @param autoStart - whether or not to start the server
      * @throws FtpException
      */
-    public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager,FtpActionListener actionListener, int port, boolean autoStart ) throws FtpException {
-        log.debug("creating MiltonFtpAdapter.2");
+    public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager, FtpActionListener actionListener, int port, boolean autoStart ) throws FtpException {
+        log.debug( "creating MiltonFtpAdapter.2" );
         this.resourceFactory = wrapped;
         FtpServerFactory serverFactory = new FtpServerFactory();
         ListenerFactory factory;
         if( actionListener != null ) {
-            log.debug( "using customised milton listener factory");
-            MiltonFtpHandler ftpHandler = new MiltonFtpHandler(new DefaultFtpHandler(),actionListener);
-            factory = new MiltonListenerFactory(ftpHandler);
+            log.debug( "using customised milton listener factory" );
+            MiltonFtpHandler ftpHandler = new MiltonFtpHandler( new DefaultFtpHandler(), actionListener );
+            factory = new MiltonListenerFactory( ftpHandler );
         } else {
             factory = new ListenerFactory();
         }
         factory.setPort( port );
-        serverFactory.addListener("default", factory.createListener());
+        serverFactory.addListener( "default", factory.createListener() );
 
-        
+        // VERY IMPORTANT
         serverFactory.setFileSystem( this );
-        serverFactory.setUserManager( userManager);
+
+
+        serverFactory.setUserManager( userManager );
         server = serverFactory.createServer();
-        if( autoStart) {
-            log.debug( "starting the FTP server on port: " + port);
+        if( autoStart ) {
+            log.debug( "starting the FTP server on port: " + port );
             server.start();
         }
     }
@@ -117,9 +116,8 @@ public class MiltonFtpAdapter implements FileSystemFactory {
     }
 
     public FileSystemView createFileSystemView( User user ) throws FtpException {
-        MiltonUser mu = (MiltonUser)user;
+        MiltonUser mu = (MiltonUser) user;
         Resource root = resourceFactory.getResource( mu.domain, "/" );
-        return new MiltonFsView( Path.root, (CollectionResource) root ,resourceFactory, (MiltonUser)user);
+        return new MiltonFsView( Path.root, (CollectionResource) root, resourceFactory, (MiltonUser) user );
     }
-
 }
