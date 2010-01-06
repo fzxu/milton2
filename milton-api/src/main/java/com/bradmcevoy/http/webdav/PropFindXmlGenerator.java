@@ -64,16 +64,16 @@ public class PropFindXmlGenerator {
         Map<String, String> findNameSpaces( List<PropFindResponse> propFindResponses ) {
             int i = 1;
             Map<String, String> map = new HashMap<String, String>();
+            
+            // always add webdav namespace
+            map.put( WebDavProtocol.NS_DAV, "D" );
+
             for( PropFindResponse r : propFindResponses ) {
                 for( QName p : r.getKnownProperties().keySet() ) {
                     String uri = p.getNamespaceURI();
 //                    if( uri.endsWith( ":" ) ) uri = uri.substring( 0, uri.length() - 1 ); // strip trailing :
                     if( !map.containsKey( uri ) ) {
-                        if( uri.equals( WebDavProtocol.NS_DAV ) ) {
-                            map.put( uri, "D" );
-                        } else {
-                            map.put( uri, "ns" + i++ );
-                        }
+                        map.put( uri, "ns" + i++ );
                     }
                 }
             }
