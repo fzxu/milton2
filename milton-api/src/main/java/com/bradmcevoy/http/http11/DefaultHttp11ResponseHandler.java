@@ -25,6 +25,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public static final String NOT_FOUND_HTML = "<html><body><h1>${url} Not Found (404)</h1></body></html>";
     public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
     public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
+    public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
 
     public static String generateEtag( Resource r ) {
         String s = r.getUniqueId();
@@ -253,5 +254,16 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
     public AuthenticationService getAuthenticationService() {
         return authenticationService;
+    }
+
+    public void respondServerError( Request request, Response response, String reason ) {
+        try {
+            response.setStatus( Status.SC_INTERNAL_SERVER_ERROR );
+            OutputStream out = response.getOutputStream();
+            out.write( SERVER_ERROR_HTML.getBytes() );
+        } catch( IOException ex ) {
+            throw new RuntimeException( ex );
+        }
+
     }
 }

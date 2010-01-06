@@ -85,4 +85,15 @@ public interface Http11ResponseHandler {
      */
     void respondDeleteFailed( Request request, Response response, Resource resource, Status status );
 
+    /**
+     * Usually a 500 error. Some error occured processing the request. Note
+     * that you might not be able to assume that this will generate all 500
+     * errors since a runtime exception might result in code outside of milton's
+     * control generating the 500 response.
+     * 
+     * @param request
+     * @param response
+     * @param reason
+     */
+    void respondServerError( Request request, Response response, String reason);
 }

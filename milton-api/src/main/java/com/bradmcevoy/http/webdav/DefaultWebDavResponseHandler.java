@@ -133,6 +133,12 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         wrapped.respondBadRequest( resource, response, request );
     }
 
+    public void respondServerError( Request request, Response response, String reason ) {
+        wrapped.respondServerError( request, response, reason );
+    }
+
+
+
     public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
         List<HrefStatus> statii = new ArrayList<HrefStatus>();
         statii.add( new HrefStatus( request.getAbsoluteUrl(), status ) );
