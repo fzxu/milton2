@@ -68,7 +68,8 @@ public class MoveHandler implements ExistingEntityHandler {
             Resource rExisting = colDest.child( dest.name);
             if( rExisting != null ) {
                 // check for overwrite header
-                if( !request.getOverwriteHeader() ) {
+                Boolean ow = request.getOverwriteHeader();
+                if( ow == null || !request.getOverwriteHeader().booleanValue() ) {
                     log.debug( "destination resource exists, and overwrite header is not set");
                     responseHandler.respondConflict( resource, response, request, "A resource exists at the destination");
                     return ;
