@@ -19,6 +19,7 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
     private final int nonceValiditySeconds;
     private Map<UUID, Nonce> nonces = new ConcurrentHashMap<UUID, Nonce>();
     private final ExpiredNonceRemover remover;
+    private boolean enableNonceCountChecking;
 
     public SimpleMemoryNonceProvider( int nonceValiditySeconds ) {
         this.nonceValiditySeconds = nonceValiditySeconds;
@@ -63,7 +64,7 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
                     log.debug( "nonce ok" );
                     return NonceValidity.OK;
                 } else {
-                    if( nc <= n.getNonceCount() ) {
+                    if( enableNonceCountChecking && nc <= n.getNonceCount() ) {
                         log.warn( "nonce-count was not greater then previous, possible replay attack. new: " + nc + " old:" + n.getNonceCount() );
                         return NonceValidity.INVALID;
                     } else {
@@ -81,4 +82,25 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
         long dif = ( System.currentTimeMillis() - issued.getTime() ) / 1000;
         return dif > nonceValiditySeconds;
     }
+
+    /**
+     * IE seems to send nc (nonce count) parameters out of order. To correctly
+     * implement checking we need to record which nonces have been sent, and not
+     * assume they will be sent in a monotonically increasing sequence.
+     *
+     * The quick fix here is to disable checking of the nc param, since other
+     * common servers seem to do so to.
+     *
+     * Note that this will allow replay attacks.
+     *
+     * @return
+     */
+    public boolean isEnableNonceCountChecking() {
+        return enableNonceCountChecking;
+    }
+
+    public void setEnableNonceCountChecking( boolean enableNonceCountChecking ) {
+        this.enableNonceCountChecking = enableNonceCountChecking;
+    }
+
 }

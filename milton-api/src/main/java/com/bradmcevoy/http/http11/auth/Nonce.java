@@ -32,7 +32,7 @@ public class Nonce implements Serializable{
     }
 
     public Nonce increaseNonceCount(long newNonceCount) {
-        if( newNonceCount <= this.nonceCount) throw new IllegalArgumentException( "new nonce-count is not greater then the last. old:" + nonceCount + " new:" + newNonceCount);
+//        if( newNonceCount <= this.nonceCount) throw new IllegalArgumentException( "new nonce-count is not greater then the last. old:" + nonceCount + " new:" + newNonceCount);
         return new Nonce( value, issued, newNonceCount);
     }
 
