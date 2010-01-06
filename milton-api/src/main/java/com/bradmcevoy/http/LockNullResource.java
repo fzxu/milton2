@@ -14,9 +14,12 @@ package com.bradmcevoy.http;
  * the get* properties, will have no value as a lock-null resource does not support the GET method.
  * Lock-Null resources MUST have defined values for lockdiscovery and supportedlock properties.
  *
- * Until a method such as PUT or MKCOL is successfully executed on the lock-null resource the resource MUST stay in the lock-null state. However, once a PUT or MKCOL is successfully executed on a lock-null resource the resource ceases to be in the lock-null state.
+ * Until a method such as PUT or MKCOL is successfully executed on the lock-null resource 
+ * the resource MUST stay in the lock-null state. However, once a PUT or MKCOL is
+ * successfully executed on a lock-null resource the resource ceases to be in the lock-null state.
  *
- * If the resource is unlocked, for any reason, without a PUT, MKCOL, or similar method having been successfully executed upon it then the resource MUST return to the null state.
+ * If the resource is unlocked, for any reason, without a PUT, MKCOL, or similar method
+ * having been successfully executed upon it then the resource MUST return to the null state.
  *
  *
  */
