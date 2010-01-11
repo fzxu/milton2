@@ -106,10 +106,11 @@ public class MiltonServlet implements Servlet{
     }
 
     protected void init(ResourceFactory rf, WebDavResponseHandler responseHandler) {
+        AuthenticationService service = new AuthenticationService();
         if( responseHandler == null ) {
             httpManager = new ServletHttpManager(rf);
         } else {
-            httpManager = new ServletHttpManager(rf, responseHandler);
+            httpManager = new ServletHttpManager(rf, responseHandler, service);
         }
     }
 

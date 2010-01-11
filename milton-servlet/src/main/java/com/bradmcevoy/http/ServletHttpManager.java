@@ -8,8 +8,8 @@ public class ServletHttpManager extends HttpManager implements Initable {
     
     private static final Logger log = LoggerFactory.getLogger(ServletHttpManager.class);
     
-    public ServletHttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler) {
-        super(resourceFactory, responseHandler);
+    public ServletHttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler, AuthenticationService authenticationService) {
+        super(resourceFactory, responseHandler, authenticationService );
     }
 
     public ServletHttpManager(ResourceFactory resourceFactory) {
