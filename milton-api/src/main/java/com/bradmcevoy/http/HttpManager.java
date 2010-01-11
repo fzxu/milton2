@@ -74,8 +74,17 @@ public class HttpManager {
         this.handlers = new ProtocolHandlers(responseHandler, authenticationService);
 
         initHandlers();
-
     }
+
+    public HttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler, ProtocolHandlers handlers) {
+        if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
+        this.resourceFactory = resourceFactory;
+        this.responseHandler = responseHandler;
+        this.handlers = handlers;
+
+        initHandlers();
+    }
+
 
     private void initHandlers() {
         for( HttpExtension ext : handlers ) {

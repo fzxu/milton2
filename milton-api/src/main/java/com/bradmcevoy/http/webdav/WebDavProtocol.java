@@ -25,12 +25,18 @@ public class WebDavProtocol implements HttpExtension {
         this.handlers = handlers;
     }
 
-    
+
     public WebDavProtocol( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper) {
+        this(responseHandler, handlerHelper, new WebDavResourceTypeHelper());
+    }
+
+    public WebDavProtocol( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper) {
+        this(handlerHelper, resourceTypeHelper, responseHandler, PropertySourceUtil.createDefaultSources( resourceTypeHelper ));
+    }
+
+    public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> propertySources) {
         handlers = new HashSet<Handler>();
         ResourceHandlerHelper resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
-        ResourceTypeHelper resourceTypeHelper = new WebDavResourceTypeHelper();
-        List<PropertySource> propertySources = PropertySourceUtil.createDefaultSources( resourceTypeHelper );
 
         // note valuewriters is also used in DefaultWebDavResponseHandler
         // if using non-default configuration you should inject the same instance into there

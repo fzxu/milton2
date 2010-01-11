@@ -2,6 +2,7 @@ package com.bradmcevoy.http.http11;
 
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 
 public class PutHandler implements Handler {
 
@@ -23,9 +25,14 @@ public class PutHandler implements Handler {
     public PutHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
-
+        checkResponseHandler();
     }
 
+    private void checkResponseHandler() {
+        if( !( responseHandler instanceof WebDavResponseHandler ) ) {
+            log.warn( "response handler is not a WebDavResponseHandler, so locking and quota checking will not be enabled" );
+        }
+    }
 
     public String[] getMethods() {
         return new String[]{Method.PUT.code};
@@ -52,15 +59,35 @@ public class PutHandler implements Handler {
         Resource existingResource = manager.getResourceFactory().getResource( host, urlToCreateOrUpdate );
         ReplaceableResource replacee;
 
+
+
+        StorageErrorReason res = null;
         if( existingResource != null ) {
             //Make sure the parent collection is not locked by someone else
             if( handlerHelper.isLockedOut( request, existingResource ) ) {
                 log.warn( "resource is locked, but not by the current user" );
-                response.setStatus( Status.SC_LOCKED ); //423
+                respondLocked( request, response, existingResource );
                 return;
             }
-
+            Resource parent = manager.getResourceFactory().getResource( host, path.getParent().toString() );
+            if( parent instanceof CollectionResource ) {
+                CollectionResource parentCol = (CollectionResource) parent;
+                res = handlerHelper.checkStorageOnReplace( request, parentCol, existingResource, host );
+            } else {
+                log.warn( "parent exists but is not a collection resource: " + path.getParent() );
+            }
+        } else {
+            CollectionResource parentCol = findNearestParent( manager, host, path );
+            res = handlerHelper.checkStorageOnAdd( request, parentCol, path.getParent(), host );
         }
+
+
+        if( res != null ) {
+            respondInsufficientStorage( request, response, res );
+            return;
+        }
+
+
         if( existingResource != null && existingResource instanceof ReplaceableResource ) {
             replacee = (ReplaceableResource) existingResource;
         } else {
@@ -87,7 +114,7 @@ public class PutHandler implements Handler {
 
                         //Make sure the parent collection is not locked by someone else
                         if( handlerHelper.isLockedOut( request, folderResource ) ) {
-                            response.setStatus( Status.SC_LOCKED ); //423
+                            respondLocked( request, response, folderResource );
                             return;
                         }
 
@@ -101,7 +128,7 @@ public class PutHandler implements Handler {
                     manager.onProcessResourceFinish( request, response, folderResource, t );
                 }
             } else {
-                responseHandler.respondNotFound( response, request);
+                responseHandler.respondNotFound( response, request );
             }
         }
     }
@@ -115,7 +142,7 @@ public class PutHandler implements Handler {
 
         log.debug( "process: putting to: " + folder.getName() );
         try {
-            Long l = getContentLength(request);
+            Long l = getContentLength( request );
             String ct = findContentTypes( request, newName );
             log.debug( "PutHandler: creating resource of type: " + ct );
             folder.createNew( newName, request.getInputStream(), l, ct );
@@ -134,11 +161,11 @@ public class PutHandler implements Handler {
         if( l == null ) {
             String s = request.getRequestHeader( Request.Header.X_EXPECTED_ENTITY_LENGTH );
             if( s != null && s.length() > 0 ) {
-                log.debug( "no content-length given, but founhd non-standard length header: " + s);
+                log.debug( "no content-length given, but founhd non-standard length header: " + s );
                 try {
                     l = Long.parseLong( s );
-                } catch( NumberFormatException e) {
-                    throw new RuntimeException("invalid length for header: " + Request.Header.X_EXPECTED_ENTITY_LENGTH.code + ". value is: " + s);
+                } catch( NumberFormatException e ) {
+                    throw new RuntimeException( "invalid length for header: " + Request.Header.X_EXPECTED_ENTITY_LENGTH.code + ". value is: " + s );
                 }
             }
         }
@@ -198,6 +225,25 @@ public class PutHandler implements Handler {
             log.debug( "parent in URL is not a collection: " + r.getName() );
             return null;
         }
+    }
+
+    private CollectionResource findNearestParent( HttpManager manager, String host, Path path ) throws NotAuthorizedException, ConflictException {
+        log.debug( "findOrCreateFolders" );
+
+        if( path == null ) return null;
+
+        Resource thisResource = manager.getResourceFactory().getResource( host, path.toString() );
+        if( thisResource != null ) {
+            if( thisResource instanceof CollectionResource ) {
+                return (CollectionResource) thisResource;
+            } else {
+                log.warn( "parent is not a collection: " + path );
+                return null;
+            }
+        }
+
+        CollectionResource parent = findNearestParent( manager, host, path.getParent() );
+        return parent;
     }
 
     /**
@@ -283,5 +329,23 @@ public class PutHandler implements Handler {
             }
         }
 
+    }
+
+    private void respondLocked( Request request, Response response, Resource existingResource ) {
+        if( responseHandler instanceof WebDavResponseHandler ) {
+            WebDavResponseHandler rh = (WebDavResponseHandler) responseHandler;
+            rh.respondLocked( request, response, existingResource );
+        } else {
+            response.setStatus( Status.SC_LOCKED ); //423
+        }
+    }
+
+    private void respondInsufficientStorage( Request request, Response response, StorageErrorReason storageErrorReason ) {
+        if( responseHandler instanceof WebDavResponseHandler ) {
+            WebDavResponseHandler rh = (WebDavResponseHandler) responseHandler;
+            rh.respondInsufficientStorage( request, response, storageErrorReason );
+        } else {
+            response.setStatus( Status.SC_INSUFFICIENT_STORAGE );
+        }
     }
 }

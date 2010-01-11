@@ -8,10 +8,13 @@ import com.bradmcevoy.http.LockToken;
 import com.bradmcevoy.http.LockableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
+import com.bradmcevoy.http.QuotaResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
+import com.bradmcevoy.http.quota.DefaultQuotaDataAccessor;
+import com.bradmcevoy.http.quota.QuotaDataAccessor;
 import com.bradmcevoy.http.webdav.WebDavProtocol.SupportedLocks;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,9 +31,15 @@ public class DefaultWebDavPropertySource implements PropertySource {
 
     private final Map<String, StandardProperty> writersMap = new HashMap<String, StandardProperty>();
     private final ResourceTypeHelper resourceTypeHelper;
+    private final QuotaDataAccessor quotaDataAccessor;
 
     public DefaultWebDavPropertySource( ResourceTypeHelper resourceTypeHelper ) {
+        this(resourceTypeHelper, new DefaultQuotaDataAccessor());
+    }
+
+    public DefaultWebDavPropertySource(ResourceTypeHelper resourceTypeHelper, QuotaDataAccessor quotaDataAccessor) {
         this.resourceTypeHelper = resourceTypeHelper;
+        this.quotaDataAccessor = new DefaultQuotaDataAccessor();
         add( new ContentLengthPropertyWriter() );
         add( new ContentTypePropertyWriter() );
         add( new CreationDatePropertyWriter() );
@@ -45,6 +54,10 @@ public class DefaultWebDavPropertySource implements PropertySource {
         add( new MSIsCollectionPropertyWriter() );
         add( new MSIsReadOnlyPropertyWriter() );
         add( new MSNamePropertyWriter() );
+
+        add( new QuotaAvailableBytesPropertyWriter() );
+        add( new QuotaUsedBytesPropertyWriter() );
+
     }
 
     public Object getProperty( QName name, Resource r ) {
@@ -60,11 +73,11 @@ public class DefaultWebDavPropertySource implements PropertySource {
     }
 
     public void setProperty( QName name, Object value, Resource r ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
+        throw new UnsupportedOperationException( "Cannot set readonly property: " + name );
     }
 
     public void clearProperty( QName name, Resource r ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
+        throw new UnsupportedOperationException( "Cannot set readonly property: " + name );
     }
 
     public List<QName> getAllPropertyNames( Resource r ) {
@@ -221,6 +234,50 @@ public class DefaultWebDavPropertySource implements PropertySource {
             return Long.class;
         }
     }
+
+
+    class QuotaUsedBytesPropertyWriter implements StandardProperty<Long> {
+
+        public void append( XmlWriter xmlWriter, PropFindableResource res, String href ) {
+            Long ll = getValue( res );
+            sendStringProp( xmlWriter, "D:" + fieldName(), ll == null ? "" : ll.toString() );
+        }
+
+        public Long getValue( PropFindableResource res ) {
+            return quotaDataAccessor.getQuotaUsed( res );
+        }
+
+        public String fieldName() {
+            return "quota-used-bytes";
+        }
+
+        public Class getValueClass() {
+            return Long.class;
+        }
+    }
+
+
+    class QuotaAvailableBytesPropertyWriter implements StandardProperty<Long> {
+
+        public void append( XmlWriter xmlWriter, PropFindableResource res, String href ) {
+            Long ll = getValue( res );
+            sendStringProp( xmlWriter, "D:" + fieldName(), ll == null ? "" : ll.toString() );
+        }
+
+        public Long getValue( PropFindableResource res ) {
+            return quotaDataAccessor.getQuotaAvailable( res );
+        }
+
+        public String fieldName() {
+            return "quota-available-bytes";
+        }
+
+        public Class getValueClass() {
+            return Long.class;
+        }
+    }
+
+
 
     class EtagPropertyWriter implements StandardProperty<String> {
 

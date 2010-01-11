@@ -1,6 +1,7 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 
 /**
  *
@@ -11,6 +12,12 @@ public class ReadOnlySecurityManager implements SecurityManager{
     public Object authenticate( String user, String password ) {
         return null;
     }
+
+    public Object authenticate( DigestResponse digestRequest ) {
+        return null;
+    }
+
+
 
     public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
         switch(method) {

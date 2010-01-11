@@ -2,6 +2,7 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
 import java.util.List;
 import java.util.Map;
 
@@ -123,6 +124,14 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
 
     public void respondServerError( Request request, Response response, String reason ) {
         wrapped.respondServerError( request, response, reason );
+    }
+
+    public void respondInsufficientStorage( Request request, Response response, StorageErrorReason storageErrorReason ) {
+        wrapped.respondInsufficientStorage( request, response, storageErrorReason );
+    }
+
+    public void respondLocked( Request request, Response response, Resource existingResource ) {
+        wrapped.respondLocked( request, response, existingResource );
     }
 
 

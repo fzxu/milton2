@@ -1,11 +1,23 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 
 /**
  *
  */
 public interface SecurityManager {
+
+    /**
+     * Authenticate a digest request
+     *
+     * See com.bradmcevoy.http.http11.auth.DigestGenerator
+     *
+     * @param digestRequest
+     * @return
+     */
+    Object authenticate( DigestResponse digestRequest );
+
 
     /**
      *
@@ -32,5 +44,7 @@ public interface SecurityManager {
      * @return - the name of the security realm this is managing
      */
     String getRealm();
+
+
 
 }

@@ -1,6 +1,10 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
+import com.bradmcevoy.http.quota.StorageChecker;
+import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,15 +14,14 @@ import org.slf4j.LoggerFactory;
  */
 public class HandlerHelper {
 
-    private Logger log = LoggerFactory.getLogger(HandlerHelper.class);
-
+    private final static Logger log = LoggerFactory.getLogger( HandlerHelper.class );
     private AuthenticationService authenticationService;
+    private final List<StorageChecker> storageCheckers;
 
-    public HandlerHelper( AuthenticationService authenticationService ) {
+    public HandlerHelper( AuthenticationService authenticationService, List<StorageChecker> storageCheckers ) {
         this.authenticationService = authenticationService;
+        this.storageCheckers = storageCheckers;
     }
-
-
 
 
     /**
@@ -39,16 +42,15 @@ public class HandlerHelper {
         }
     }
 
-
     public boolean checkAuthorisation( HttpManager manager, Resource resource, Request request ) {
         Auth auth = request.getAuthorization();
         if( auth != null ) {
-            Object authTag = authenticationService.authenticate(resource, request); //handler.authenticate( auth.user, auth.password );
+            Object authTag = authenticationService.authenticate( resource, request ); //handler.authenticate( auth.user, auth.password );
             if( authTag == null ) {
                 log.warn( "failed to authenticate" );
                 return false;
             } else {
-                log.debug( "got authenticated tag: " + authTag.getClass());
+                log.debug( "got authenticated tag: " + authTag.getClass() );
                 auth.setTag( authTag );
             }
         } else {
@@ -109,19 +111,39 @@ public class HandlerHelper {
         return false;
     }
 
-    public boolean missingLock(Request inRequest, Resource inParentcol) {
-		//make sure we are not requiring a lock
-	    String value = inRequest.getHeaders().get("If");
-	    if( value != null)
-	    {
-	    	if( value.contains("(<DAV:no-lock>)") )
-	    	{
-	    		log.info("Contained valid token. so is unlocked");
-	    		return true;
-	    	}
-	    }
+    public boolean missingLock( Request inRequest, Resource inParentcol ) {
+        //make sure we are not requiring a lock
+        String value = inRequest.getHeaders().get( "If" );
+        if( value != null ) {
+            if( value.contains( "(<DAV:no-lock>)" ) ) {
+                log.info( "Contained valid token. so is unlocked" );
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
+
+    public StorageErrorReason checkStorageOnReplace(Request request, CollectionResource parentCol, Resource replaced, String host) {
+        for( StorageChecker sc : storageCheckers) {
+            StorageErrorReason res = sc.checkStorageOnReplace( request, parentCol, replaced, host );
+            if( res != null ) {
+                log.debug( "insufficient storage reason: " + res + " reported by: " + sc.getClass() );
+                return res;
+            }
+        }
+        return null;
+    }
+
+    public StorageErrorReason checkStorageOnAdd(Request request, CollectionResource nearestParent, Path parentPath, String host) {
+        for( StorageChecker sc : storageCheckers) {
+            StorageErrorReason res = sc.checkStorageOnAdd( request, nearestParent, parentPath, host );
+            if( res != null ) {
+                log.debug( "insufficient storage reason: " + res + " reported by: " + sc.getClass() );
+                return res;
+            }
+        }
+        return null;
+    }
 
 }

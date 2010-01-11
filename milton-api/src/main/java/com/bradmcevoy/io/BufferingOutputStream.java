@@ -14,6 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * An output stream which will buffer data, initially using memory up to
+ * maxMemorySize, and then overflowing to a temporary file.
+ *
+ * To use this class you will write to it, and then close it, and then
+ * call getInputStream to read the data.
+ *
+ * The temporary file, if it was created, will be deleted when the inputstream
+ * is closed.
  *
  * @author brad
  */

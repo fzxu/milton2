@@ -5,6 +5,7 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
+import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
 import java.util.List;
 
 /**
@@ -23,4 +24,8 @@ public interface WebDavResponseHandler extends Http11ResponseHandler{
      * @param r - the resource
      */
     void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, Resource r );
+
+    void respondInsufficientStorage( Request request, Response response, StorageErrorReason storageErrorReason );
+
+    void respondLocked( Request request, Response response, Resource existingResource );
 }

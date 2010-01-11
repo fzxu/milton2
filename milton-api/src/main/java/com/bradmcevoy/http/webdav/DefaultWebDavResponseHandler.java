@@ -15,6 +15,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import com.bradmcevoy.http.values.ValueWriters;
+import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -162,5 +163,13 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         } catch( IOException ex ) {
             throw new RuntimeException( ex );
         }
+    }
+
+    public void respondInsufficientStorage( Request request, Response response, StorageErrorReason storageErrorReason ) {
+        response.setStatus( Status.SC_INSUFFICIENT_STORAGE );
+    }
+
+    public void respondLocked( Request request, Response response, Resource existingResource ) {
+        response.setStatus( Status.SC_LOCKED );
     }
 }
