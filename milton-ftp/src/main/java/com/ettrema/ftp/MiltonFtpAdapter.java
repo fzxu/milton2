@@ -111,6 +111,12 @@ public class MiltonFtpAdapter implements FileSystemFactory {
         }
     }
 
+    public void close() {
+        if( server != null ) {
+            server.stop();
+        }
+    }
+
     public Resource getResource( Path path, String host ) {
         return resourceFactory.getResource( host, path.toString() );
     }

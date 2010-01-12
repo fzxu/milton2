@@ -3,6 +3,7 @@ package com.ettrema.http.fs;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
+import com.bradmcevoy.http.DigestResource;
 import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockResult;
 import com.bradmcevoy.http.LockTimeout;
@@ -12,6 +13,7 @@ import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 import java.io.File;
 import java.util.Date;
 import org.slf4j.Logger;
@@ -20,7 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  *
  */
-public abstract class FsResource implements Resource, MoveableResource, CopyableResource, LockableResource {
+public abstract class FsResource implements Resource, MoveableResource, CopyableResource, LockableResource, DigestResource {
     private static final Logger log = LoggerFactory.getLogger(FsResource.class);
 
     File file;
@@ -49,6 +51,11 @@ public abstract class FsResource implements Resource, MoveableResource, Copyable
     public Object authenticate(String user, String password) {
         return factory.getSecurityManager().authenticate(user, password);
     }
+
+    public Object authenticate( DigestResponse digestRequest ) {
+        return factory.getSecurityManager().authenticate(digestRequest);
+    }
+
 
     public boolean authorise(Request request, Method method, Auth auth) {
         return factory.getSecurityManager().authorise(request, method, auth, this);

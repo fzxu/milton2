@@ -21,7 +21,7 @@
                 <configuration>
                     <connectors>
                         <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-                            <port>8095</port>
+                            <port>80</port>
                             <maxIdleTime>60000</maxIdleTime>
                         </connector>
                     </connectors>

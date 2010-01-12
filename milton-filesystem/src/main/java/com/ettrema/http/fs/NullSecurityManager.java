@@ -4,6 +4,7 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.ettrema.ftp.MiltonUser;
 
 /**
@@ -16,6 +17,12 @@ public class NullSecurityManager implements FsSecurityManager{
     public Object authenticate(String user, String password) {
         return user;
     }
+
+    public Object authenticate( DigestResponse digestRequest ) {
+        return digestRequest.getUser();
+    }
+
+
 
     public boolean authorise(Request request, Method method, Auth auth, Resource resource) {
         return true;

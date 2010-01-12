@@ -108,8 +108,8 @@ public abstract class TResource implements GetableResource, PropFindableResource
         String serverResponse = dg.generateDigest( digestRequest, password );
         String clientResponse = digestRequest.getResponseDigest();
 
-        log.debug( "server resp: " + serverResponse);
-        log.debug( "given response: " + clientResponse);
+        log.debug( "server resp: " + serverResponse );
+        log.debug( "given response: " + clientResponse );
 
         if( serverResponse.equals( clientResponse ) ) {
             return "ok";
@@ -120,29 +120,19 @@ public abstract class TResource implements GetableResource, PropFindableResource
 
     public boolean authorise( Request request, Method method, Auth auth ) {
         log.debug( "authorise" );
-
-
         if( auth == null ) {
             if( this.user == null ) {
                 return true;
-
-
             } else {
                 return false;
-
-
             }
         } else {
             return ( this.user == null || auth.getUser().equals( this.user ) );
-
-
         }
     }
 
     public String getRealm() {
         return "testrealm@host.com";
-
-
     }
 
     public Date getModifiedDate() {
@@ -155,43 +145,28 @@ public abstract class TResource implements GetableResource, PropFindableResource
         if( this.parent == null )
             throw new RuntimeException( "attempt to delete root" );
 
-
         if( this.parent.children == null )
             throw new NullPointerException( "children is null" );
-
-
         this.parent.children.remove( this );
-
-
     }
 
     public void copyTo( CollectionResource toCollection, String name ) {
         TResource rClone;
         rClone = (TResource) this.clone( (TFolderResource) toCollection );
         rClone.name = name;
-
-
     }
 
     public int compareTo( Resource o ) {
         if( o instanceof TResource ) {
             TResource res = (TResource) o;
-
-
             return this.getName().compareTo( res.getName() );
-
-
         } else {
             return -1;
-
-
         }
     }
 
     public String getUniqueId() {
         return this.hashCode() + "";
-
-
     }
 
     public LockToken getCurrentLock() {
@@ -215,7 +190,6 @@ public abstract class TResource implements GetableResource, PropFindableResource
 
         LockTimeout.DateAndSeconds lockedUntil = timeout.getLockedUntil( 60l, 3600l );
 
-
         this.lock = new TLock( lockedUntil.date, UUID.randomUUID().toString(), lockedUntil.seconds, lockInfo );
 
         LockToken token = new LockToken();
@@ -223,46 +197,26 @@ public abstract class TResource implements GetableResource, PropFindableResource
         token.timeout = new LockTimeout( lockedUntil.seconds );
         token.tokenId = this.lock.lockId;
 
-
-
         return LockResult.success( token );
-
-
     }
 
     public LockResult refreshLock( String token ) {
         if( lock == null ) throw new RuntimeException( "not locked" );
-
-
         if( !lock.lockId.equals( token ) )
             throw new RuntimeException( "invalid lock id" );
-
-
         this.lock = lock.refresh();
         LockToken tok = makeToken();
-
-
         return LockResult.success( tok );
-
-
     }
 
     public void unlock( String tokenId ) {
         if( lock == null ) {
             log.warn( "request to unlock not locked resource" );
-
-
             return;
-
-
         }
         if( !lock.lockId.equals( tokenId ) )
             throw new RuntimeException( "Invalid lock token" );
-
-
         this.lock = null;
-
-
     }
 
     LockToken makeToken() {
@@ -270,20 +224,12 @@ public abstract class TResource implements GetableResource, PropFindableResource
         token.info = lock.lockInfo;
         token.timeout = new LockTimeout( lock.seconds );
         token.tokenId = lock.lockId;
-
-
         return token;
-
-
     }
 
     private void checkAndRemove( TFolderResource parent, String name ) {
         TResource r = (TResource) parent.child( name );
-
-
         if( r != null ) parent.children.remove( r );
-
-
     }
 
     /**
@@ -299,20 +245,6 @@ public abstract class TResource implements GetableResource, PropFindableResource
 
     protected void print( PrintWriter printer, String s ) {
         printer.print( s );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     class TLock {

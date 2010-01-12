@@ -149,4 +149,5 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
     public Long getContentLength() {
         return null;
     }
+
 }

@@ -4,6 +4,8 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.http11.auth.DigestGenerator;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.ettrema.ftp.MiltonUser;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -58,6 +60,24 @@ public class SimpleSecurityManager implements FsSecurityManager{
             return ok ? user : null;
         }
     }
+
+    public Object authenticate( DigestResponse digestRequest ) {
+        DigestGenerator dg = new DigestGenerator();
+        String actualPassword = nameAndPasswords.get( digestRequest.getUser() );
+        String serverResponse = dg.generateDigest( digestRequest, actualPassword );
+        String clientResponse = digestRequest.getResponseDigest();
+
+        log.debug( "server resp: " + serverResponse );
+        log.debug( "given response: " + clientResponse );
+
+        if( serverResponse.equals( clientResponse ) ) {
+            return "ok";
+        } else {
+            return null;
+        }
+    }
+
+
 
     public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
         log.debug( "authorise");

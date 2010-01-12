@@ -102,7 +102,7 @@
     via FTP
     The FTP server will auto start on port 2121
     -->
-    <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter">
+    <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter" destroy-method="close">
         <constructor-arg ref="filesystem.resource.factory"/>
         <constructor-arg ref="ftp.user.manager"/>
         <constructor-arg value="2121" />
