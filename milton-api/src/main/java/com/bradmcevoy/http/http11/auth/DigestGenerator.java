@@ -77,7 +77,6 @@ public class DigestGenerator {
             if( i > 0 ) d += ":";
             d = d + ss[i];
         }
-        System.out.println( "d=" + d );
         return new String( DigestUtils.md5Hex( d ) );
     }
 }
