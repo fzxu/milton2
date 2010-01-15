@@ -115,7 +115,9 @@ public class DebugFilter implements Filter{
         private void record(FileOutputStream fout) {
             try {
                 PrintWriter writer = new PrintWriter(fout);
-                writer.println("HTTP/1.1 " + getStatus().code);
+                if( getStatus() != null ) {
+                    writer.println("HTTP/1.1 " + getStatus().code);
+                }
                 for (Map.Entry<String, String> header : this.getHeaders().entrySet()) {
                     writer.println(header.getKey() + ": " + header.getValue());
                 }
