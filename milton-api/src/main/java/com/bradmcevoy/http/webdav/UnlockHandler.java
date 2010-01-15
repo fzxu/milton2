@@ -9,6 +9,7 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.http11.Http11ResponseHandler;
 
 public class UnlockHandler implements ExistingEntityHandler {
 
@@ -16,9 +17,13 @@ public class UnlockHandler implements ExistingEntityHandler {
 
     private final ResourceHandlerHelper resourceHandlerHelper;
 
-    public UnlockHandler( ResourceHandlerHelper resourceHandlerHelper ) {
+    private final Http11ResponseHandler responseHandler;
+
+    public UnlockHandler( ResourceHandlerHelper resourceHandlerHelper, Http11ResponseHandler responseHandler ) {
         this.resourceHandlerHelper = resourceHandlerHelper;
+        this.responseHandler = responseHandler;
     }
+
 
     public void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException {
         resourceHandlerHelper.process( httpManager, request, response, this );
@@ -48,6 +53,7 @@ public class UnlockHandler implements ExistingEntityHandler {
         
         log.debug("unlocking token: " + sToken);
         r.unlock(sToken);
+        responseHandler.respondNoContent( resource, response, request );
     }
     
     public String[] getMethods() {
