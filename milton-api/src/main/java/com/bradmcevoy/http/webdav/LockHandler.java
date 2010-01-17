@@ -17,7 +17,6 @@ import com.bradmcevoy.http.LockInfo.LockScope;
 import com.bradmcevoy.http.LockInfo.LockType;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
-import com.bradmcevoy.http.http11.Http11ResponseHandler;
 
 /**
  * Note that this is both a new entity handler and an existing entity handler
@@ -28,10 +27,10 @@ public class LockHandler implements ResourceHandler {
 
     private Logger log = LoggerFactory.getLogger(LockHandler.class);
 
-    private final Http11ResponseHandler responseHandler;
+    private final WebDavResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
 
-    public LockHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
+    public LockHandler( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
     }
@@ -135,8 +134,7 @@ public class LockHandler implements ResourceHandler {
 
     private void processCreateAndLock(HttpManager manager, Request request, Response response, Resource parentResource, String name) {
         if( parentResource instanceof LockingCollectionResource ) {
-            log.debug("parent supports lock-null. doing createAndLock");
-            response.setStatus(Status.SC_CREATED);
+            log.debug("parent supports lock-null. doing createAndLock");            
             LockingCollectionResource lockingParent = (LockingCollectionResource) parentResource;
             LockTimeout timeout = LockTimeout.parseTimeout(request);
             response.setContentTypeHeader( Response.XML );
@@ -154,6 +152,7 @@ public class LockHandler implements ResourceHandler {
 
             log.debug("Creating lock on unmapped resource: " + name);
             LockToken tok = lockingParent.createAndLock(name, timeout, lockInfo);
+            response.setStatus(Status.SC_CREATED);
             response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
             respondWithToken(tok, request, response);
             
@@ -180,7 +179,7 @@ public class LockHandler implements ResourceHandler {
         }
 
        	if( handlerHelper.isLockedOut( request, r )) {
-    		response.setStatus(Status.SC_LOCKED);
+            this.responseHandler.respondLocked(request, response, r);
     		return;
     	}
 
@@ -191,7 +190,7 @@ public class LockHandler implements ResourceHandler {
         LockResult result = r.lock(timeout, lockInfo);
         if( result.isSuccessful()) {
             LockToken tok = result.getLockToken();
-            log.debug("..locked: " + tok.tokenId);
+            log.debug("..locked ok: " + tok.tokenId);
             response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
             respondWithToken(tok, request, response);
         } else {
