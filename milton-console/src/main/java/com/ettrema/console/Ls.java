@@ -7,11 +7,13 @@ import java.util.List;
 
 public class Ls extends AbstractConsoleCommand{
 
-    private final LinkGenerator linkGenerator;
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Ls.class );
 
-    Ls(List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory, LinkGenerator linkGenerator) {
+    private final ResultFormatter resultFormatter;
+
+    Ls(List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory, ResultFormatter resultFormatter) {
         super(args, host, currentDir, resourceFactory);
-        this.linkGenerator = linkGenerator;
+        this.resultFormatter = resultFormatter;
     }
 
     @Override
@@ -21,23 +23,30 @@ public class Ls extends AbstractConsoleCommand{
             return result("current dir not found: " + cursor.getPath().toString());
         }
         CollectionResource target;
+        Cursor newCursor;
         if( args.size() > 0 ) {
             String dir = args.get(0);
-            Cursor c = cursor.find( dir );
-            if( !c.exists() ) {
+            log.debug( "dir: " + dir);
+            newCursor = cursor.find( dir );
+
+            if( !newCursor.exists() ) {
                 return result("not found: " + dir);
-            } else if( !c.isFolder() ) {
+            } else if( !newCursor.isFolder() ) {
                 return result("not a folder: " + dir);
             }
-            target = (CollectionResource) c.getResource();
+            target = (CollectionResource) newCursor.getResource();
         } else {
+            newCursor = cursor;
             target = currentResource();
         }
         StringBuffer sb = new StringBuffer();
+        List<? extends Resource> children = target.getChildren();
+        sb.append( resultFormatter.begin( children));
         for( Resource r1 : target.getChildren() ) {
-            String href = cursor.getPath().child(r1.getName()).toString();
-            sb.append("<a href='").append(href).append("'>").append(r1.getName()).append("</a>").append("<br/>");
+            String href = newCursor.getPath().child(r1.getName()).toString();
+            sb.append(resultFormatter.format( href, r1 ));
         }
+        sb.append( resultFormatter.end());
         return result(sb.toString());
     }
 }

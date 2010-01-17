@@ -44,6 +44,12 @@
                 var replay = "<a id='replay" + replayId + "' href='javascript:replay(" + replayId + ")'>" + s + "</a>";
                 output.innerHTML = output.innerHTML + "<br/>&gt;" + replay;
                 submitForm();
+
+            }
+
+            function runCmd(s) {
+                document.getElementById("cmd").value = s;
+                doCmd();
             }
 
             // must change url to match that in controller

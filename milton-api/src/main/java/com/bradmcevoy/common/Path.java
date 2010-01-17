@@ -3,49 +3,46 @@ package com.bradmcevoy.common;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 
 /** Immutable
  */
 public class Path implements Serializable {
-    
-    private static final long serialVersionUID =  -8411900835514833454L;
-    
+
+    private static final long serialVersionUID = -8411900835514833454L;
     private final Path parent;
     private final String name;
     public static final Path root = new Path();
     private int hash;
     private final int length;
-    
     public static final LengthComparator LENGTH_COMPARATOR = new LengthComparator();
-    
-    private final HashMap<String,Path> children = new HashMap<String,Path>();
 
-    public static Path path(Path parent, String path) {
-        if( path == null ) throw new NullPointerException("The path parameter may not be null");
-        return split(parent,path);
+
+    public static Path path( Path parent, String path ) {
+        if( path == null )
+            throw new NullPointerException( "The path parameter may not be null" );
+        return split( parent, path );
     }
-    
-    public static Path path(String path) {
-        if( path == null || path.length()==0 ) return root;
-        return split(null,path);
-    }     
-    
-    private static Path split(Path startFrom, String s) {        
+
+    public static Path path( String path ) {
+        if( path == null || path.length() == 0 ) return root;
+        return split( null, path );
+    }
+
+    private static Path split( Path startFrom, String s ) {
         Path parent = startFrom;
         StringBuffer sb = null;
-        for( int i=0; i<s.length(); i++ ) {
-            char c = s.charAt(i);
+        for( int i = 0; i < s.length(); i++ ) {
+            char c = s.charAt( i );
             switch( c ) {
                 case '/':
-                    if( sb == null) {
+                    if( sb == null ) {
                         parent = root;
                     } else {
-                        if( sb.length() > 0 ) {                                
+                        if( sb.length() > 0 ) {
                             String ss = sb.toString();
-                            if( parent != null ) parent = parent.intern(ss);
-                            else parent = new Path(null,ss);
+                            if( parent != null ) parent = parent.child( ss );
+                            else parent = new Path( null, ss );
                         }
                         sb = null;
                     }
@@ -55,29 +52,29 @@ public class Path implements Serializable {
 //                    break;
                 default:
                     if( sb == null ) sb = new StringBuffer();
-                    sb.append(c);                        
+                    sb.append( c );
             }
         }
-        if( sb != null) {
-            if( sb.length() > 0 ) {                                
+        if( sb != null ) {
+            if( sb.length() > 0 ) {
                 String ss = sb.toString();
-                if( parent != null ) parent = parent.intern(ss);
-                else parent = new Path(null,ss);
+                if( parent != null ) parent = parent.child( ss );
+                else parent = new Path( null, ss );
             }
         }
-        
+
         return parent;
     }
-       
-    
+
     private Path() {
         this.parent = null;
         this.name = null;
         length = 0;
     }
-            
-    private Path(Path parent, String name) {
-        if( name == null ) throw new IllegalArgumentException("name may not be null");
+
+    private Path( Path parent, String name ) {
+        if( name == null )
+            throw new IllegalArgumentException( "name may not be null" );
         this.parent = parent;
         this.name = name;
         if( this.parent != null ) {
@@ -86,32 +83,23 @@ public class Path implements Serializable {
             this.length = 1;
         }
     }
-    
-    private Path intern(String name) {
-        Path ch = children.get(name);
-        if( ch != null ) return ch;
-        ch = new Path(this,name);
-        children.put(ch.getName(),ch);
-        return ch;
-    }
 
-    
-    
+
     public int getLength() {
         return length;
     }
-    
+
     public String[] getParts() {
         String[] arr = new String[length];
         Path p = this;
         int i = length;
-        while( i>0 ) {
+        while( i > 0 ) {
             arr[--i] = p.getName();
             p = p.getParent();
         }
         return arr;
     }
-    
+
     /**
      * 
      * @return - the first part of the path. ie a/b/c returns a
@@ -126,60 +114,56 @@ public class Path implements Serializable {
         if( p != null ) return p.getName();
         return null;
     }
-        
+
     public List<String> getAfterFirst() {
         List<String> afterFirst = new ArrayList<String>();
         Path p = this;
         while( !p.getParent().isRoot() ) {
-            afterFirst.add(0,p.getName());
+            afterFirst.add( 0, p.getName() );
             p = p.getParent();
         }
         return afterFirst;
     }
-    
+
     public Path getStripFirst() {
-        return stripFirst(this);
+        return stripFirst( this );
     }
-    
-    Path stripFirst(Path p) {
+
+    Path stripFirst( Path p ) {
         Path pParent = p.getParent();
         if( pParent.isRoot() ) return root;
-        pParent = stripFirst(pParent);
-        return new Path(pParent,p.getName());
+        pParent = stripFirst( pParent );
+        return new Path( pParent, p.getName() );
     }
-    
+
     public String getName() {
         return name;
     }
-    
-    public Path getParent()     {
+
+    public Path getParent() {
         return parent;
     }
-    
+
     public boolean isRoot() {
-        return ((parent==null)&&(name==null));
+        return ( ( parent == null ) && ( name == null ) );
     }
-    
-    public String toPath()
-    {
+
+    public String toPath() {
         if( isRoot() ) return "";
         if( parent == null ) return name;
         return parent.toString() + '/' + name;
     }
-    
+
     @Override
-    public String toString() 
-    {
-    	return toPath();
+    public String toString() {
+        return toPath();
     }
 
-    
-    public String toString(String delimiter) {
+    public String toString( String delimiter ) {
         if( parent == null ) return "";
         if( parent == null ) return name;
-        return parent.toString(delimiter) + delimiter + name;
+        return parent.toString( delimiter ) + delimiter + name;
     }
-
 
     public static Path root() {
         return root;
@@ -189,7 +173,7 @@ public class Path implements Serializable {
     public int hashCode() {
         if( hash == 0 ) {
             if( parent == null ) {
-                hash = name.hashCode();
+                hash = 158;
             } else {
                 hash = parent.hashCode() ^ name.hashCode();
             }
@@ -198,14 +182,14 @@ public class Path implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals( Object obj ) {
         if( obj == null ) return false;
         if( obj instanceof Path ) {
-            Path p2 = (Path)obj;
+            Path p2 = (Path) obj;
             if( this.isRoot() ) {
                 return p2.isRoot();
             } else {
-                if( parentEquals(this,p2) ) {
+                if( parentEquals( this, p2 ) ) {
                     return this.name.equals( p2.name );
                 } else {
                     return false;
@@ -215,18 +199,21 @@ public class Path implements Serializable {
             return false;
         }
     }
-    
-    private static boolean parentEquals(Path p1, Path p2) {
+
+    private static boolean parentEquals( Path p1, Path p2 ) {
         if( p2.parent == null ) {
             return p1.parent == null;
         } else {
-            return p2.parent.equals(p1.parent);
+            return p2.parent.equals( p1.parent );
         }
     }
-    
-    public Path child(String name) {
-        if( name == null ) throw new NullPointerException("name is null");
-        return intern(name);
+
+    public Path child( String name ) {
+        System.out.println( "this name: " + this.name );
+        System.out.println( "this root: " + this.isRoot() );
+        Path ch = new Path( this, name );
+        System.out.println( "parent name: " + ch.getParent().name );
+        return ch;
     }
 
     public boolean isRelative() {
@@ -236,14 +223,13 @@ public class Path implements Serializable {
             return parent.isRelative();
         }
     }
-    
+
     public static class LengthComparator implements Comparator<Path> {
 
-        public int compare(Path o1, Path o2) {
+        public int compare( Path o1, Path o2 ) {
             Integer i1 = o1.getLength();
             Integer i2 = o2.getLength();
-            return i1.compareTo(i2);
+            return i1.compareTo( i2 );
         }
-        
-    }            
+    }
 }
