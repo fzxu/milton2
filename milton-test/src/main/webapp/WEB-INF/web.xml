@@ -22,17 +22,18 @@
             <param-name>resource.factory.class</param-name>
             <param-value>com.bradmcevoy.http.TResourceFactory</param-value>
         </init-param>
-<!-- To disable digest authentication uncomment the following -->
+<!--
+To disable digest authentication uncomment the following. To completely disable
+all authentication provide an empty value. If this init-param is missing milton
+will default to basic and digest authentication.
+-->
 <!--
         <init-param>
             <param-name>authentication.handler.classes</param-name>
             <param-value>com.bradmcevoy.http.http11.auth.BasicAuthHandler</param-value>
         </init-param>
 -->
-        <init-param>
-            <param-name>authentication.handler.classes</param-name>
-            <param-value></param-value>
-        </init-param>
+
 
         <init-param>
             <param-name>not.found.url</param-name>
