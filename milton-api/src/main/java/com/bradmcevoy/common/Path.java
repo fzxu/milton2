@@ -209,10 +209,7 @@ public class Path implements Serializable {
     }
 
     public Path child( String name ) {
-        System.out.println( "this name: " + this.name );
-        System.out.println( "this root: " + this.isRoot() );
         Path ch = new Path( this, name );
-        System.out.println( "parent name: " + ch.getParent().name );
         return ch;
     }
 
