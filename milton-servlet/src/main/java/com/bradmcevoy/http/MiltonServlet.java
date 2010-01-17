@@ -2,6 +2,8 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -10,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * 
@@ -23,10 +24,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @author brad
  */
-public class MiltonServlet implements Servlet{
-    
-    private Logger log = LoggerFactory.getLogger(MiltonServlet.class);
-        
+public class MiltonServlet implements Servlet {
+
+    private Logger log = LoggerFactory.getLogger( MiltonServlet.class );
     private static final ThreadLocal<HttpServletRequest> originalRequest = new ThreadLocal<HttpServletRequest>();
     private static final ThreadLocal<HttpServletResponse> originalResponse = new ThreadLocal<HttpServletResponse>();
     private static final ThreadLocal<ServletConfig> tlServletConfig = new ThreadLocal<ServletConfig>();
@@ -34,7 +34,7 @@ public class MiltonServlet implements Servlet{
     public static HttpServletRequest request() {
         return originalRequest.get();
     }
-    
+
     public static HttpServletResponse response() {
         return originalResponse.get();
     }
@@ -47,105 +47,131 @@ public class MiltonServlet implements Servlet{
     public static ServletConfig servletConfig() {
         return tlServletConfig.get();
     }
-    
-    public static void forward(String url) {
+
+    public static void forward( String url ) {
         try {
-            request().getRequestDispatcher(url).forward(originalRequest.get(),originalResponse.get());
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        } catch (ServletException ex) {
-            throw new RuntimeException(ex);
+            request().getRequestDispatcher( url ).forward( originalRequest.get(), originalResponse.get() );
+        } catch( IOException ex ) {
+            throw new RuntimeException( ex );
+        } catch( ServletException ex ) {
+            throw new RuntimeException( ex );
+        }
+    }
+    private ServletConfig config;
+    protected ServletHttpManager httpManager;
+
+    public void init( ServletConfig config ) throws ServletException {
+        try {
+            this.config = config;
+            // Note that the config variable may be null, in which case default handlers will be used
+            // If present and blank, NO handlers will be configed
+            List<String> authHandlers = loadAuthHandlersIfAny( config.getInitParameter( "authentication.handler.classes" ) );
+            String resourceFactoryFactoryClassName = config.getInitParameter( "resource.factory.factory.class" );
+            if( resourceFactoryFactoryClassName != null && resourceFactoryFactoryClassName.length() > 0 ) {
+                initFromFactoryFactory( resourceFactoryFactoryClassName, authHandlers );
+            } else {
+                String resourceFactoryClassName = config.getInitParameter( "resource.factory.class" );
+                String responseHandlerClassName = config.getInitParameter( "response.handler.class" );
+                init( resourceFactoryClassName, responseHandlerClassName, authHandlers );
+            }
+            httpManager.init( new ApplicationConfig( config ), httpManager );
+        } catch( ServletException ex ) {
+            log.error( "Exception starting milton servlet", ex );
+            throw ex;
+        } catch( Throwable ex ) {
+            log.error( "Exception starting milton servlet", ex );
+            throw new RuntimeException( ex );
         }
     }
 
-    private ServletConfig config;
-
-    protected ServletHttpManager httpManager;
-
-
-    public void init(ServletConfig config) throws ServletException {
-        try {
-            this.config = config;
-            String resourceFactoryFactoryClassName = config.getInitParameter("resource.factory.factory.class");
-            if( resourceFactoryFactoryClassName != null && resourceFactoryFactoryClassName.length() > 0 ) {
-                initFromFactoryFactory(resourceFactoryFactoryClassName);
-            } else {
-                String resourceFactoryClassName = config.getInitParameter("resource.factory.class");
-                String responseHandlerClassName = config.getInitParameter("response.handler.class");
-                init(resourceFactoryClassName, responseHandlerClassName);
-            }
-            httpManager.init(new ApplicationConfig(config),httpManager); 
-        } catch( ServletException ex )  {
-            log.error("Exception starting milton servlet",ex);
-            throw ex;
-        } catch (Throwable ex) {
-            log.error("Exception starting milton servlet",ex);
-            throw new RuntimeException(ex);
-        }        
-    }
-
-    protected void init(String resourceFactoryClassName, String responseHandlerClassName) throws ServletException {
-        log.debug("resourceFactoryClassName: " + resourceFactoryClassName);
-        ResourceFactory rf = instantiate(resourceFactoryClassName);
+    protected void init( String resourceFactoryClassName, String responseHandlerClassName, List<String> authHandlers ) throws ServletException {
+        log.debug( "resourceFactoryClassName: " + resourceFactoryClassName );
+        ResourceFactory rf = instantiate( resourceFactoryClassName );
         WebDavResponseHandler responseHandler;
         if( responseHandlerClassName == null ) {
             responseHandler = null; // allow default to be created
         } else {
-            responseHandler = instantiate(responseHandlerClassName);
+            responseHandler = instantiate( responseHandlerClassName );
         }
-        init(rf, responseHandler);
+        init( rf, responseHandler, authHandlers );
     }
 
-    protected void initFromFactoryFactory(String resourceFactoryFactoryClassName) throws ServletException {
-        log.debug("resourceFactoryFactoryClassName: " + resourceFactoryFactoryClassName);
-        ResourceFactoryFactory rff = instantiate(resourceFactoryFactoryClassName);
+    protected void initFromFactoryFactory( String resourceFactoryFactoryClassName, List<String> authHandlers ) throws ServletException {
+        log.debug( "resourceFactoryFactoryClassName: " + resourceFactoryFactoryClassName );
+        ResourceFactoryFactory rff = instantiate( resourceFactoryFactoryClassName );
         rff.init();
         ResourceFactory rf = rff.createResourceFactory();
         WebDavResponseHandler responseHandler = rff.createResponseHandler();
-        init(rf, responseHandler);
+        init( rf, responseHandler, authHandlers );
     }
 
-    protected void init(ResourceFactory rf, WebDavResponseHandler responseHandler) {
-        AuthenticationService service = new AuthenticationService();
-        if( responseHandler == null ) {
-            httpManager = new ServletHttpManager(rf);
+    protected void init( ResourceFactory rf, WebDavResponseHandler responseHandler, List<String> authHandlers ) throws ServletException {
+        AuthenticationService authService;
+        if( authHandlers == null ) {
+            authService = new AuthenticationService();
         } else {
-            httpManager = new ServletHttpManager(rf, responseHandler, service);
+            List<AuthenticationHandler> list = new ArrayList<AuthenticationHandler>();
+            for( String authHandlerClassName : authHandlers ) {
+                Object o = instantiate( authHandlerClassName );
+                if( o instanceof AuthenticationHandler ) {
+                    AuthenticationHandler auth = (AuthenticationHandler) o;
+                    list.add( auth );
+                } else {
+                    throw new ServletException( "Class: " + authHandlerClassName + " is not a: " + AuthenticationHandler.class.getCanonicalName() );
+                }
+            }
+            authService = new AuthenticationService( list );
+        }
+
+        // log the auth handler config
+        log.debug( "Configured authentication handlers: " + authService.getAuthenticationHandlers().size());
+        if( authService.getAuthenticationHandlers().size() > 0 ) {
+            for( AuthenticationHandler hnd : authService.getAuthenticationHandlers()) {
+                log.debug( " - " + hnd.getClass().getCanonicalName());
+            }
+        } else {
+            log.warn("No authentication handlers are configured! Any requests requiring authorisation will fail.");
+        }
+
+
+        if( responseHandler == null ) {
+            httpManager = new ServletHttpManager( rf, authService );
+        } else {
+            httpManager = new ServletHttpManager( rf, responseHandler, authService );
         }
     }
 
-    protected <T> T instantiate(String className) throws ServletException {
+    protected <T> T instantiate( String className ) throws ServletException {
         try {
-            Class c = Class.forName(className);
+            Class c = Class.forName( className );
             T rf = (T) c.newInstance();
             return rf;
-        } catch (Throwable ex) {
-            throw new ServletException("Failed to instantiate: " + className, ex);
+        } catch( Throwable ex ) {
+            throw new ServletException( "Failed to instantiate: " + className, ex );
         }
     }
 
     public void destroy() {
-        log.debug("destroy");
-        if( httpManager == null ) return ;
-        httpManager.destroy(httpManager);
+        log.debug( "destroy" );
+        if( httpManager == null ) return;
+        httpManager.destroy( httpManager );
     }
 
-
-    public void service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse) throws ServletException, IOException {
+    public void service( javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse ) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         HttpServletResponse resp = (HttpServletResponse) servletResponse;
         try {
-            originalRequest.set(req);
-            originalResponse.set(resp);
+            originalRequest.set( req );
+            originalResponse.set( resp );
             tlServletConfig.set( config );
-            Request request = new ServletRequest(req);
-            Response response = new ServletResponse(resp);
-            httpManager.process(request, response);
+            Request request = new ServletRequest( req );
+            Response response = new ServletResponse( resp );
+            httpManager.process( request, response );
         } finally {
             originalRequest.remove();
             originalResponse.remove();
             tlServletConfig.remove();
-            servletResponse.getOutputStream().flush();            
+            servletResponse.getOutputStream().flush();
             servletResponse.flushBuffer();
         }
     }
@@ -154,7 +180,26 @@ public class MiltonServlet implements Servlet{
         return "MiltonServlet";
     }
 
-    public ServletConfig getServletConfig() { 
+    public ServletConfig getServletConfig() {
         return config;
-    }    
+    }
+
+    /**
+     * Returns null, or a list of configured authentication handler class names
+     *
+     * @param initParameter - null, or the (possibly empty) list of comma seperated class names
+     * @return - null, or a possibly empty list of class names
+     */
+    private List<String> loadAuthHandlersIfAny( String initParameter ) {
+        if( initParameter == null ) return null;
+        String[] arr = initParameter.split( "," );
+        List<String> list = new ArrayList<String>();
+        for( String s : arr ) {
+            s = s.trim();
+            if( s.length() > 0 ){
+                list.add( s );
+            }
+        }
+        return list;
+    }
 }

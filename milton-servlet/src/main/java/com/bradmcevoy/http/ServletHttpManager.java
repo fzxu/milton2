@@ -12,6 +12,11 @@ public class ServletHttpManager extends HttpManager implements Initable {
         super(resourceFactory, responseHandler, authenticationService );
     }
 
+    public ServletHttpManager(ResourceFactory resourceFactory, AuthenticationService authenticationService) {
+        super(resourceFactory, authenticationService );
+    }
+
+
     public ServletHttpManager(ResourceFactory resourceFactory) {
         super(resourceFactory);
     }

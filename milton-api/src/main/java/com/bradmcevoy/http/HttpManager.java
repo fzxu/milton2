@@ -67,6 +67,17 @@ public class HttpManager {
         initHandlers();
     }
 
+    public HttpManager(ResourceFactory resourceFactory, AuthenticationService authenticationService) {
+        if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
+        this.resourceFactory = resourceFactory;
+        DefaultWebDavResponseHandler webdavResponseHandler = new DefaultWebDavResponseHandler(authenticationService);
+        this.responseHandler = webdavResponseHandler;
+        this.handlers = new ProtocolHandlers(webdavResponseHandler, authenticationService);
+
+        initHandlers();
+    }
+
+
     public HttpManager(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler, AuthenticationService authenticationService) {
         if( resourceFactory == null ) throw new NullPointerException("resourceFactory cannot be null");
         this.resourceFactory = resourceFactory;

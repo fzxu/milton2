@@ -4,6 +4,7 @@ import com.bradmcevoy.http.http11.auth.BasicAuthHandler;
 import com.bradmcevoy.http.http11.auth.DigestAuthenticationHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,4 +60,10 @@ public class AuthenticationService {
         }
         return challenges;
     }
+
+    public List<AuthenticationHandler> getAuthenticationHandlers() {
+        return Collections.unmodifiableList( authenticationHandlers );
+    }
+
+
 }
