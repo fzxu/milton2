@@ -36,16 +36,15 @@ public class StandardFilter implements Filter {
             log.warn( "conflictException");
             manager.getResponseHandler().respondConflict(ex.getResource(), response, request, INTERNAL_SERVER_ERROR_HTML);
         } catch (NotAuthorizedException ex) {
-            log.warn( "not auth ex");
+            log.warn( "NotAuthorizedException");
             manager.getResponseHandler().respondUnauthorised(ex.getResource(), response, request);
-        } catch(Exception e) {
+        } catch(Throwable e) {
             log.error("process", e);
             try {
+                manager.getResponseHandler().respondServerError( request, response, INTERNAL_SERVER_ERROR_HTML );
+            } catch (Throwable ex) {
+                log.error("Exception generating server error response, setting response status to 500", ex);
                 response.setStatus(Response.Status.SC_INTERNAL_SERVER_ERROR);
-                log.info("setting error content");
-                response.getOutputStream().write(INTERNAL_SERVER_ERROR_HTML.getBytes());
-            } catch (IOException ex) {
-                log.warn("exception writing content");
             }
         } finally {
             response.close();            
