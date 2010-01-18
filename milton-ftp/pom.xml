@@ -24,6 +24,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.ettrema</groupId>
+            <artifactId>berry-server</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>easymock</groupId>
             <artifactId>easymock</artifactId>
             <version>2.4</version>

@@ -13,6 +13,7 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.ettrema.berry.Service;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FileSystemFactory;
@@ -26,10 +27,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Adapts a milton resource factory into an FTP file system, which allows integration
+ * with Apache FTP. ie with this class a milton data source can be accessed by 
+ * webdav and FTP simultaneously.
+ * 
+ * Implements the Service interface from Berry to allow starting or stopping.
+ * 
+ * The default behaviour is to start the FTP server as part of object construction
  *
- * @author u370681
+ * @author bradm
  */
-public class MiltonFtpAdapter implements FileSystemFactory {
+public class MiltonFtpAdapter implements FileSystemFactory, Service {
 
     private static final Logger log = LoggerFactory.getLogger( MiltonFtpAdapter.class );
     private final ResourceFactory resourceFactory;
@@ -81,11 +89,11 @@ public class MiltonFtpAdapter implements FileSystemFactory {
      * @param userManager
      * @param actionListener
      * @param port
-     * @param autoStart - whether or not to start the server
+     * @param autoStart - whether or not to start the server. If false the server can be started with the start() method
      * @throws FtpException
      */
     public MiltonFtpAdapter( ResourceFactory wrapped, UserManager userManager, FtpActionListener actionListener, int port, boolean autoStart ) throws FtpException {
-        log.debug( "creating MiltonFtpAdapter.2" );
+        log.debug( "creating FTP adapter on port: " + port);
         this.resourceFactory = wrapped;
         FtpServerFactory serverFactory = new FtpServerFactory();
         ListenerFactory factory;
@@ -105,9 +113,10 @@ public class MiltonFtpAdapter implements FileSystemFactory {
 
         serverFactory.setUserManager( userManager );
         server = serverFactory.createServer();
-        if( autoStart ) {
-            log.debug( "starting the FTP server on port: " + port );
-            server.start();
+        if( autoStart ) {            
+            start();
+        } else {
+            log.info("autoStart is false, so not starting FTP server just yet..");
         }
     }
 
@@ -125,5 +134,18 @@ public class MiltonFtpAdapter implements FileSystemFactory {
         MiltonUser mu = (MiltonUser) user;
         Resource root = resourceFactory.getResource( mu.domain, "/" );
         return new MiltonFsView( Path.root, (CollectionResource) root, resourceFactory, (MiltonUser) user );
+    }
+
+    public void start() {
+        log.debug( "starting the FTP server on port" );
+        try {
+            server.start();
+        } catch( FtpException ex ) {
+            throw new RuntimeException( ex );
+        }
+    }
+
+    public void stop() {
+        server.stop();
     }
 }
