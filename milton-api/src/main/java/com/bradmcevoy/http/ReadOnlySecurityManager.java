@@ -9,12 +9,24 @@ import com.bradmcevoy.http.http11.auth.DigestResponse;
  */
 public class ReadOnlySecurityManager implements SecurityManager{
 
+    private final String realm;
+
+    public ReadOnlySecurityManager( String realm ) {
+        this.realm = realm;
+    }
+
+    public ReadOnlySecurityManager() {
+        this.realm = "ReadOnlyRealm";
+    }
+
+
+
     public Object authenticate( String user, String password ) {
-        return null;
+        return user;
     }
 
     public Object authenticate( DigestResponse digestRequest ) {
-        return null;
+        return digestRequest.getUser();
     }
 
 
@@ -30,7 +42,7 @@ public class ReadOnlySecurityManager implements SecurityManager{
     }
 
     public String getRealm() {
-        return null;
+        return realm;
     }
 
     public Object getUserByName( String name ) {
