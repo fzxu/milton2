@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.ettrema</groupId>
         <artifactId>milton</artifactId>
-        <version>1.5.0</version>
+        <version>1.5.1-SNAPSHOT</version>
     </parent>
     <groupId>com.ettrema</groupId>
     <artifactId>milton-ftp</artifactId>
@@ -22,11 +22,6 @@
             <groupId>com.ettrema</groupId>
             <artifactId>milton-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.ettrema</groupId>
-            <artifactId>berry-server</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>easymock</groupId>
