@@ -21,6 +21,7 @@ public class MemoryLockManagerTest extends TestCase {
         lockManager = new MemoryLockManager();
     }
 
+    
     public void testLockUnLock() {
         LockTimeout timeout = new LockTimeout( 100l );
         LockInfo lockInfo = new LockInfo( LockInfo.LockScope.NONE, LockInfo.LockType.READ, "me", LockInfo.LockDepth.ZERO );
