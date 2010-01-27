@@ -29,11 +29,15 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class FsDirectoryResource extends FsResource implements MakeCollectionableResource, PutableResource, CopyableResource, DeletableResource, MoveableResource, PropFindableResource, LockingCollectionResource, GetableResource {
+
+    private static final Logger log = LoggerFactory.getLogger(FsDirectoryResource.class);
 
     public FsDirectoryResource( FileSystemResourceFactory factory, File dir ) {
         super( factory, dir );
@@ -63,7 +67,11 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         if( files != null ) {
             for( File fchild : files ) {
                 FsResource res = factory.resolveFile( fchild );
-                list.add( res );
+                if( res != null ) {
+                    list.add( res );
+                } else {
+                    log.error("Couldnt resolve file {}", fchild.getAbsolutePath());
+                }
             }
         }
         return list;
