@@ -11,16 +11,14 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OptionsHandler implements ExistingEntityHandler {
+public class OptionsHandler implements ResourceHandler {
 
     private static final Logger log = LoggerFactory.getLogger( OptionsHandler.class );
     private final Http11ResponseHandler responseHandler;
-    private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
 
     public OptionsHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
-        this.handlerHelper = handlerHelper;
         this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
     }
 
@@ -29,13 +27,19 @@ public class OptionsHandler implements ExistingEntityHandler {
         resourceHandlerHelper.process( manager, request, response, this );
     }
 
-    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        resourceHandlerHelper.processResource( manager, request, response, r, this );
-    }
+    public void processResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        long t = System.currentTimeMillis();
+        try {
 
-    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
-        List<String> methodsAllowed = determineMethodsAllowed( manager, resource );
-        responseHandler.respondWithOptions( resource, response, request, methodsAllowed );
+            manager.onProcessResourceStart( request, response, resource );
+
+            List<String> methodsAllowed = determineMethodsAllowed( manager, resource );
+            responseHandler.respondWithOptions( resource, response, request, methodsAllowed );
+
+        } finally {
+            t = System.currentTimeMillis() - t;
+            manager.onProcessResourceFinish( request, response, resource, t );
+        }
     }
 
     public String[] getMethods() {
@@ -58,6 +62,4 @@ public class OptionsHandler implements ExistingEntityHandler {
         }
         return list;
     }
-
-
 }
