@@ -43,6 +43,7 @@
         <module>milton-filesystem-test</module>
         <module>milton-ftp</module>
         <module>milton-ajax-demo</module>
+		<module>milton-gae</module>
     </modules>
     <build>
         <plugins>
