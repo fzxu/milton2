@@ -7,9 +7,15 @@ public class TResourceFactory implements ResourceFactory {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResourceFactory.class);
     
-    public static final TFolderResource ROOT = new TFolderResource((TFolderResource)null,"localhost:8084/MiltonTestWeb");
+    public static final TFolderResource ROOT = new TFolderResource((TFolderResource)null,"localhost:80/webdav");
     
-    static {
+    static {        
+        String user = "Mufasa";
+        //String password = "Circle Of Life";
+        String password = "pwd";
+
+//        ROOT.setSecure(user,password);
+
         TFolderResource folder;
         TResource file;
         file = new TTextResource(ROOT,"index.html","Hi there");
@@ -27,10 +33,6 @@ public class TResourceFactory implements ResourceFactory {
         folder = new TFolderResource(folder,"subfolder1");
         file = new TTextResource(folder,"index.html","");
         folder = new TFolderResource(ROOT,"secure");
-
-        String user = "Mufasa";
-        //String password = "Circle Of Life";
-        String password = "pwd";
 
         folder.setSecure(user,password);
         file = new TTextResource(folder,"index.html","");
