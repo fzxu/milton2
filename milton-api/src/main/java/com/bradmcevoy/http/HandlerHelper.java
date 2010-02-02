@@ -60,7 +60,12 @@ public class HandlerHelper {
 
         boolean authorised = resource.authorise( request, request.getMethod(), auth );
         if( !authorised ) {
-            log.warn( "Not authorised, requesting authentication" );
+            if( log.isWarnEnabled()) {
+                log.warn( "authorisation declined, requesting authentication: " + request.getAbsolutePath() );
+                if( auth != null ) {
+                    log.warn("auth: " + auth.getUser() + " tag: " + auth.getTag());
+                }
+            }
             return false;
         } else {
             return true;

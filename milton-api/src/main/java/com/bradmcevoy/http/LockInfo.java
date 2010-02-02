@@ -43,7 +43,10 @@ public class LockInfo {
         reader.parse( new InputSource( in ) );
         LockInfo info = handler.getInfo();
         info.depth = LockDepth.INFINITY; // todo
-        info.lockedByUser = request.getAuthorization().getUser();
+        info.lockedByUser = null;
+        if(request.getAuthorization() != null ) {
+            info.lockedByUser = request.getAuthorization().getUser();
+        }
         if( info.lockedByUser == null ) {
             log.warn( "resource is being locked with a null user. This won't really be locked at all..." );
         }

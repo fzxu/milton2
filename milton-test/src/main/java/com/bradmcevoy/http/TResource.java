@@ -17,8 +17,8 @@ public abstract class TResource implements GetableResource, PropFindableResource
     Date createdDate;
     TFolderResource parent;
     TLock lock;
-    private String user;
-    private String password;
+    String user;
+    String password;
 
     protected abstract Object clone( TFolderResource newParent );
 
@@ -28,6 +28,8 @@ public abstract class TResource implements GetableResource, PropFindableResource
         modDate = new Date();
         createdDate = new Date();
         if( parent != null ) {
+            this.user = parent.user;
+            this.password = parent.password;
             checkAndRemove( parent, name );
             parent.children.add( this );
         }
@@ -83,7 +85,7 @@ public abstract class TResource implements GetableResource, PropFindableResource
         log.debug( "authentication: " + user + " - " + requestedPassword + " = " + password );
         if( this.user == null ) {
             log.debug( "no user defined, so allow access" );
-            return true;
+            return "ok";
         }
         if( !user.equals( this.user ) ) {
             return null;
@@ -104,7 +106,12 @@ public abstract class TResource implements GetableResource, PropFindableResource
     }
 
     public Object authenticate( DigestResponse digestRequest ) {
-        DigestGenerator dg = new DigestGenerator();
+        if( this.user == null ) {
+            log.debug( "no user defined, so allow access" );
+            return "ok";
+        }
+
+        DigestGenerator dg = new DigestGenerator();        
         String serverResponse = dg.generateDigest( digestRequest, password );
         String clientResponse = digestRequest.getResponseDigest();
 

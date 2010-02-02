@@ -57,7 +57,7 @@ public class DebugFilter implements Filter{
         counter++;
         FileOutputStream fout = null;
         try {
-            File f = new File(logDir, counter + "_" + req2.getMethod() + "_.req");
+            File f = new File(logDir, counter + "_" + req2.getMethod() + ".req");
             fout = new FileOutputStream(f);
             req2.record(fout);
         } catch (FileNotFoundException ex) {
@@ -67,7 +67,7 @@ public class DebugFilter implements Filter{
         }
 
         try {
-            File f = new File(logDir, counter + "_" + req2.getMethod() + "_.resp");
+            File f = new File(logDir, counter + "_" + resp2.getStatus().code + ".resp");
             fout = new FileOutputStream(f);
             resp2.record(fout);
         } catch (FileNotFoundException ex) {

@@ -24,7 +24,8 @@ public class DigestGenerator {
      */
     public String generateDigest( DigestResponse dr, String password ) throws IllegalArgumentException {
         log.debug( "user:" + dr.getUser() + ":realm:" + dr.getRealm() + ":" + password );
-        String a1Md5 = encodePasswordInA1Format( dr.getUser(), dr.getRealm(), password );
+        String p = password == null ? "" : password;
+        String a1Md5 = encodePasswordInA1Format( dr.getUser(), dr.getRealm(), p );
         return generateDigestWithEncryptedPassword( dr, a1Md5 );
     }
 
