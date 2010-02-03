@@ -138,8 +138,13 @@ public class PropFindPropertyBuilder {
             list = new ArrayList<Resource>( list );
             for( Resource child : list ) {
                 if( child instanceof PropFindableResource ) {
-                    String childHref = collectionHref + Utils.percentEncode( child.getName() );
-                    processResource( responses, (PropFindableResource) child, parseResult, childHref, requestedDepth, currentDepth + 1, href + col.getName() );
+                    String childName = child.getName();
+                    if( childName == null ) {
+                        log.warn("null name for resource of type: " + child.getClass() + " in folder: " + href + " WILL NOT be returned in PROPFIND response!!");
+                    } else {
+                        String childHref = collectionHref + Utils.percentEncode( childName );
+                        processResource( responses, (PropFindableResource) child, parseResult, childHref, requestedDepth, currentDepth + 1, href + col.getName() );
+                    }
                 }
             }
         }
