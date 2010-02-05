@@ -25,7 +25,7 @@ public class MemoryLockManagerTest extends TestCase {
     public void testLockUnLock() {
         LockTimeout timeout = new LockTimeout( 100l );
         LockInfo lockInfo = new LockInfo( LockInfo.LockScope.NONE, LockInfo.LockType.READ, "me", LockInfo.LockDepth.ZERO );
-        FsResource resource = new FsFileResource( null, new File( File.pathSeparator ) );
+        FsResource resource = new FsFileResource( null, null, new File( File.pathSeparator ) );
 
         // lock it
         LockResult res = lockManager.lock( timeout, lockInfo, resource );

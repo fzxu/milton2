@@ -27,10 +27,12 @@ public abstract class FsResource implements Resource, MoveableResource, Copyable
 
     File file;
     final FileSystemResourceFactory factory;
+    final String host;
 
     protected abstract void doCopy(File dest);
     
-    public FsResource(FileSystemResourceFactory factory, File file) {
+    public FsResource(String host, FileSystemResourceFactory factory, File file) {
+        this.host = host;
         this.file = file;
         this.factory = factory;
     }
@@ -62,7 +64,7 @@ public abstract class FsResource implements Resource, MoveableResource, Copyable
     }
 
     public String getRealm() {
-        return factory.getRealm();
+        return factory.getRealm(this.host);
     }
 
     public Date getModifiedDate() {

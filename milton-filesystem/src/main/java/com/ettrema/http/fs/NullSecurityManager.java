@@ -28,7 +28,7 @@ public class NullSecurityManager implements FsSecurityManager{
         return true;
     }
 
-    public String getRealm() {
+    public String getRealm(String host) {
         return realm;
     }
 

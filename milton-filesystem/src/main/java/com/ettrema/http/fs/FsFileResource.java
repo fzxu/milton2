@@ -26,8 +26,14 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
 
     private static final Logger log = LoggerFactory.getLogger( FsFileResource.class );
 
-    public FsFileResource( FileSystemResourceFactory factory, File file ) {
-        super( factory, file );
+    /**
+     *
+     * @param host - the requested host. Eg www.mycompany.com
+     * @param factory
+     * @param file
+     */
+    public FsFileResource( String host, FileSystemResourceFactory factory, File file ) {
+        super( host, factory, file );
     }
 
     public Long getContentLength() {

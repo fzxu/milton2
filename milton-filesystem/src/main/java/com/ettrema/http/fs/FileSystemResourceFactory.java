@@ -20,6 +20,8 @@ public class FileSystemResourceFactory implements ResourceFactory {
     FsLockManager lockManager;
     Long maxAgeSeconds;
     String contextPath;
+    boolean allowDirectoryBrowsing;
+    String defaultPage;
 
     /**
      * Creates and (optionally) initialises the factory. This looks for a 
@@ -96,21 +98,21 @@ public class FileSystemResourceFactory implements ResourceFactory {
         log.debug("getResource: host: " + host + " - url:" + url);
         url = stripContext(url);
         File requested = resolvePath(root,url);
-        return resolveFile(requested);
+        return resolveFile(host, requested);
     }
 
     public String getSupportedLevels() {
         return "1,2";
     }
     
-    public FsResource resolveFile(File file) {
+    public FsResource resolveFile(String host, File file) {
         if( !file.exists() ) {
             log.debug("file not found: " + file.getAbsolutePath());
             return null;
         } else if( file.isDirectory() ) {
-            return new FsDirectoryResource(this, file);
+            return new FsDirectoryResource(host, this, file);
         } else {
-            return new FsFileResource(this, file);
+            return new FsFileResource(host, this, file);
         }        
     }
     
@@ -123,8 +125,8 @@ public class FileSystemResourceFactory implements ResourceFactory {
         return f;
     }
 
-    public String getRealm() {
-        return securityManager.getRealm();
+    public String getRealm(String host) {
+        return securityManager.getRealm(host);
     }
 
     /**
@@ -171,6 +173,36 @@ public class FileSystemResourceFactory implements ResourceFactory {
     public String getContextPath() {
         return contextPath;
     }
+
+    /**
+     * Whether to generate an index page.
+     *
+     * @return
+     */
+    public boolean isAllowDirectoryBrowsing() {
+        return allowDirectoryBrowsing;
+    }
+
+    public void setAllowDirectoryBrowsing( boolean allowDirectoryBrowsing ) {
+        this.allowDirectoryBrowsing = allowDirectoryBrowsing;
+    }
+
+    /**
+     * if provided GET requests to a folder will redirect to a page of this name
+     * within the folder
+     *
+     * @return - eg index.html
+     */
+    public String getDefaultPage() {
+        return defaultPage;
+    }
+
+    public void setDefaultPage( String defaultPage ) {
+        this.defaultPage = defaultPage;
+    }
+
+
+    
 
     private String stripContext( String url ) {
         if( this.contextPath != null && contextPath.length() > 0 ) {

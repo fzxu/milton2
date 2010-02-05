@@ -84,7 +84,7 @@ public class SimpleSecurityManager implements FsSecurityManager{
         return auth != null && auth.getTag() != null;
     }
 
-    public String getRealm() {
+    public String getRealm(String host) {
         return realm;
     }
 

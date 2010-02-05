@@ -33,14 +33,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Represents a directory in a physical file system.
  *
  */
 public class FsDirectoryResource extends FsResource implements MakeCollectionableResource, PutableResource, CopyableResource, DeletableResource, MoveableResource, PropFindableResource, LockingCollectionResource, GetableResource {
 
     private static final Logger log = LoggerFactory.getLogger(FsDirectoryResource.class);
 
-    public FsDirectoryResource( FileSystemResourceFactory factory, File dir ) {
-        super( factory, dir );
+    public FsDirectoryResource( String host, FileSystemResourceFactory factory, File dir ) {
+        super( host, factory, dir );
         if( !dir.exists() )
             throw new IllegalArgumentException( "Directory does not exist: " + dir.getAbsolutePath() );
         if( !dir.isDirectory() )
@@ -52,12 +53,12 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         boolean ok = fnew.mkdir();
         if( !ok )
             throw new RuntimeException( "Failed to create: " + fnew.getAbsolutePath() );
-        return new FsDirectoryResource( factory, fnew );
+        return new FsDirectoryResource( host, factory, fnew );
     }
 
     public Resource child( String name ) {
         File fchild = new File( file, name );
-        return factory.resolveFile( fchild );
+        return factory.resolveFile( this.host, fchild );
 
     }
 
@@ -66,7 +67,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         File[] files = this.file.listFiles();
         if( files != null ) {
             for( File fchild : files ) {
-                FsResource res = factory.resolveFile( fchild );
+                FsResource res = factory.resolveFile( this.host, fchild );
                 if( res != null ) {
                     list.add( res );
                 } else {
@@ -77,9 +78,18 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         return list;
     }
 
+    /**
+     * Will redirect if a default page has been specified on the factory
+     *
+     * @param request
+     * @return
+     */
     public String checkRedirect( Request request ) {
-        //return request.getAbsoluteUrl() + "/index.html";
-        return null;
+        if( factory.getDefaultPage() != null ) {
+            return request.getAbsoluteUrl() + "/" + factory.getDefaultPage();
+        } else {
+            return null;
+        }
     }
 
     public Resource createNew( String name, InputStream in, Long length, String contentType ) throws IOException {
@@ -92,7 +102,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
             IOUtils.closeQuietly( out );
         }
         // todo: ignores contentType
-        return factory.resolveFile( dest );
+        return factory.resolveFile( this.host, dest );
 
     }
 
@@ -108,7 +118,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
     public LockToken createAndLock( String name, LockTimeout timeout, LockInfo lockInfo ) {
         File dest = new File( this.getFile(), name );
         createEmptyFile( dest );
-        FsFileResource newRes = new FsFileResource( factory, dest );
+        FsFileResource newRes = new FsFileResource( host, factory, dest );
         LockResult res = newRes.lock( timeout, lockInfo );
         return res.getLockToken();
     }
@@ -124,23 +134,40 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         }
     }
 
+    /**
+     * Will generate a listing of the contents of this directory, unless
+     * the factory's allowDirectoryBrowsing has been set to false.
+     *
+     * If so it will just output a message saying that access has been disabled.
+     *
+     * @param out
+     * @param range
+     * @param params
+     * @param contentType
+     * @throws IOException
+     * @throws NotAuthorizedException
+     */
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
         XmlWriter w = new XmlWriter( out );
         w.open( "html" );
         w.open( "body" );
         w.begin( "h1" ).open().writeText( this.getName() ).close();
-        w.open( "table" );
-        for( Resource r : getChildren() ) {
-            w.open( "tr" );
+        if( this.factory.isAllowDirectoryBrowsing()) {
+            w.open( "table" );
+            for( Resource r : getChildren() ) {
+                w.open( "tr" );
 
-            w.open( "td" );
-            w.begin( "a" ).writeAtt( "href", r.getName() + "/" ).open().writeText( r.getName() ).close();
-            w.close( "td" );
+                w.open( "td" );
+                w.begin( "a" ).writeAtt( "href", r.getName() + "/" ).open().writeText( r.getName() ).close();
+                w.close( "td" );
 
-            w.begin( "td" ).open().writeText( r.getModifiedDate() + "" ).close();
-            w.close( "tr" );
+                w.begin( "td" ).open().writeText( r.getModifiedDate() + "" ).close();
+                w.close( "tr" );
+            }
+            w.close( "table" );
+        } else {
+            w.begin( "p").writeText( "Directory browsing is disabled").close();
         }
-        w.close( "table" );
         w.close( "body" );
         w.close( "html" );
         w.flush();

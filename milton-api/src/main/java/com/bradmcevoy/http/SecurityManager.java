@@ -40,10 +40,12 @@ public interface SecurityManager {
     boolean authorise( Request request, Method method, Auth auth, Resource resource );
 
     /**
+     *
+     * @param  - host - the host name which has been requested
      * 
      * @return - the name of the security realm this is managing
      */
-    String getRealm();
+    String getRealm(String host);
 
 
 
