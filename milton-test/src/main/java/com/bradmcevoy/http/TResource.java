@@ -9,7 +9,9 @@ import java.util.Date;
 import java.util.UUID;
 
 public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource,
-    CopyableResource, PropPatchableResource, LockableResource, DigestResource {
+    CopyableResource, PropPatchableResource, LockableResource
+//    , DigestResource
+{
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TResource.class );
     String name;
@@ -83,58 +85,36 @@ public abstract class TResource implements GetableResource, PropFindableResource
 
     public Object authenticate( String user, String requestedPassword ) {
         log.debug( "authentication: " + user + " - " + requestedPassword + " = " + password );
-        if( this.user == null ) {
-            log.debug( "no user defined, so allow access" );
-            return "ok";
-        }
-        if( !user.equals( this.user ) ) {
-            return null;
-        }
-        if( password == null ) {
-            if( requestedPassword == null || requestedPassword.length() == 0 ) {
-                return "ok";
-            } else {
-                return null;
-            }
-        } else {
-            if( password.equals( requestedPassword ) ) {
-                return "ok";
-            } else {
-                return null;
-            }
-        }
+        return "ok";
     }
-
-    public Object authenticate( DigestResponse digestRequest ) {
-        if( this.user == null ) {
-            log.debug( "no user defined, so allow access" );
-            return "ok";
-        }
-
-        DigestGenerator dg = new DigestGenerator();        
-        String serverResponse = dg.generateDigest( digestRequest, password );
-        String clientResponse = digestRequest.getResponseDigest();
-
-        log.debug( "server resp: " + serverResponse );
-        log.debug( "given response: " + clientResponse );
-
-        if( serverResponse.equals( clientResponse ) ) {
-            return "ok";
-        } else {
-            return null;
-        }
-    }
+//
+//    public Object authenticate( DigestResponse digestRequest ) {
+//        if( this.user == null ) {
+//            log.debug( "no user defined, so allow access" );
+//            return "ok";
+//        }
+//
+//        DigestGenerator dg = new DigestGenerator();
+//        String serverResponse = dg.generateDigest( digestRequest, password );
+//        String clientResponse = digestRequest.getResponseDigest();
+//
+//        log.debug( "server resp: " + serverResponse );
+//        log.debug( "given response: " + clientResponse );
+//
+//        if( serverResponse.equals( clientResponse ) ) {
+//            return "ok";
+//        } else {
+//            return null;
+//        }
+//    }
 
     public boolean authorise( Request request, Method method, Auth auth ) {
         log.debug( "authorise" );
         if( auth == null ) {
-            if( this.user == null ) {
-                return true;
-            } else {
-                return false;
-            }
+            return false;
+
         } else {
-            return ( this.user == null || auth.getUser().equals( this.user ) );
+            return true;
         }
     }
 

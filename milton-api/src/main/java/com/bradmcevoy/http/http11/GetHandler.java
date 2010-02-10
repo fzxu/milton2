@@ -6,8 +6,6 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import java.util.regex.Matcher;
@@ -36,30 +34,19 @@ public class GetHandler implements ExistingEntityHandler {
 
     @Override
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        resourceHandlerHelper.processResource( manager, request, response, r, this, true );
+        manager.onGet( request, response, r, request.getParams() );
+        resourceHandlerHelper.processResource( manager, request, response, r, this, true, request.getParams(), null);
     }
 
-    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, BadRequestException, ConflictException {
 //        log.debug( "process: " + request.getAbsolutePath() );
         GetableResource r = (GetableResource) resource;
         if( checkConditional( r, request ) ) {
             responseHandler.respondNotModified( r, response, request );
             return;
         }
-
-        // need a linked hash map to preserve ordering of params
-        Map<String, String> params = new LinkedHashMap<String, String>();
-
-        Map<String, FileItem> files = new HashMap<String, FileItem>();
-
-        try {
-            request.parseRequestParameters( params, files );
-        } catch( RequestParseException ex ) {
-            log.warn( "exception parsing request. probably interrupted upload", ex );
-            return;
-        }
-        manager.onGet( request, response, resource, params );
-        sendContent( manager, request, response, r, params );
+        
+        sendContent( manager, request, response, r, request.getParams() );
     }
 
     public Range getRange( Request requestInfo ) {

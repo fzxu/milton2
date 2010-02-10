@@ -95,6 +95,7 @@ public class JsonPropFindHandler {
                         // name is simple form Eg displayname, default nsUri to DAV
                         qn = new QName( WebDavProtocol.NS_DAV, s);
                     }
+                    log.debug( "field: " + qn);
                     fields.add( qn );
                 }
             }

@@ -1,6 +1,8 @@
 package com.bradmcevoy.http;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,7 @@ public abstract class AbstractRequest implements Request {
     public static final int INFINITY = 3; // To limit tree browsing a bit
 
     public abstract String getRequestHeader( Request.Header header );
+    private final Map<String, Object> attributes = new HashMap<String, Object>();
 
     public Date getIfModifiedHeader() {
         String s = getRequestHeader( Request.Header.IF_MODIFIED );
@@ -115,5 +118,17 @@ public abstract class AbstractRequest implements Request {
         } else {
             return url;
         }
+    }
+
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
+    public Map<String, String> getParams() {
+        return (Map<String, String>) attributes.get( "_params" );
+    }
+
+    public Map<String, FileItem> getFiles() {
+        return (Map<String, FileItem>) attributes.get( "_files" );
     }
 }

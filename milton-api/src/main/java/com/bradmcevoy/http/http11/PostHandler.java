@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 public class PostHandler implements ExistingEntityHandler {
 
     private Logger log = LoggerFactory.getLogger( PostHandler.class );
-
     private final Http11ResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
@@ -37,17 +36,6 @@ public class PostHandler implements ExistingEntityHandler {
 
     @Override
     public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        this.resourceHandlerHelper.process( manager, request, response, this );
-    }
-
-    @Override
-    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        resourceHandlerHelper.processResource( manager, request, response, r, this, true );
-    }
-
-    @Override
-    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException {
-        PostableResource r = (PostableResource) resource;
         // need a linked hash map to preserve ordering of params
         Map<String, String> params = new LinkedHashMap<String, String>();
         Map<String, FileItem> files = new HashMap<String, FileItem>();
@@ -57,12 +45,27 @@ public class PostHandler implements ExistingEntityHandler {
             log.warn( "exception parsing request. probably interrupted upload", ex );
             return;
         }
-        manager.onPost( request, response, resource, params, files );
-        String url = r.processForm( params, files );
+
+        request.getAttributes().put( "_params", params );
+        request.getAttributes().put( "_files", files );
+
+        this.resourceHandlerHelper.process( manager, request, response, this );
+    }
+
+    @Override
+    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        manager.onPost( request, response, r, request.getParams(), request.getFiles() );
+        resourceHandlerHelper.processResource( manager, request, response, r, this, true, request.getParams(), request.getFiles() );
+    }
+
+    @Override
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException {
+        PostableResource r = (PostableResource) resource;
+        String url = r.processForm( request.getParams(), request.getFiles() );
         if( url != null ) {
             responseHandler.respondRedirect( response, request, url );
         } else {
-            responseHandler.respondContent( resource, response, request, params );
+            responseHandler.respondContent( resource, response, request, request.getParams() );
         }
     }
 }

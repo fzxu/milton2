@@ -158,4 +158,33 @@ public interface Request {
      * should be deleted
      */
     Boolean getOverwriteHeader();
+
+    /**
+     * Return a writable map of arbitrary values to be associated with the request
+     *
+     * @return a writable map of arbitrary values to be associated with the request
+     */
+    Map<String,Object> getAttributes();
+
+    /**
+     * Note to implementors: the parameters will be created by the core handler
+     * classes and added to the attributes map. If you're extending AbstractRequest
+     * this method will already be implemented for you by returning that attribute
+     *
+     * If you are not extending AbstractRequest you should return implement this as: return attributes.get( "_params");
+     *
+     * @return - map of querystring or POST parameters, keyed by name
+     */
+    Map<String, String> getParams();
+
+    /**
+     * Note to implementors: the parameters will be created by the core handler
+     * classes and added to the attributes map. If you're extending AbstractRequest
+     * this method will already be implemented for you by returning that attribute
+     *
+     * If you are not extending AbstractRequest you should return implement this as: return attributes.get( "_files");
+     *
+     * @return - a map of files from an upload request, keyed by file name
+     */
+    Map<String, FileItem> getFiles();
 }

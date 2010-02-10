@@ -5,6 +5,9 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,20 @@ public class ResourceHandlerHelper {
     }
 
     public void process( HttpManager manager, Request request, Response response, ResourceHandler handler ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        // need a linked hash map to preserve ordering of params
+        Map<String, String> params = new LinkedHashMap<String, String>();
+
+        Map<String, FileItem> files = new HashMap<String, FileItem>();
+
+        try {
+            request.parseRequestParameters( params, files );
+        } catch( RequestParseException ex ) {
+            log.warn( "exception parsing request. probably interrupted upload", ex );
+            return;
+        }
+        request.getAttributes().put( "_params", params);
+        request.getAttributes().put( "_files", files);
+
         if( !handlerHelper.checkExpects( responseHandler, request, response ) ) {
             return;
         }
@@ -40,11 +57,16 @@ public class ResourceHandlerHelper {
         handler.processResource( manager, request, response, r );
     }
 
+    
     public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        processResource( manager, request, response, resource, handler, false );
+        processResource( manager, request, response, resource, handler, false,null, null );
     }
 
-    public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler, boolean allowRedirect ) throws NotAuthorizedException, ConflictException, BadRequestException {
+    public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler, Map<String, String> params, Map<String, FileItem> files ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        processResource( manager, request, response, resource, handler, false,params, files );
+    }
+
+    public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler, boolean allowRedirect, Map<String, String> params, Map<String, FileItem> files ) throws NotAuthorizedException, ConflictException, BadRequestException {
         long t = System.currentTimeMillis();
         try {
 
