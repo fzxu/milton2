@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PropFindJsonResource implements GetableResource {
     
@@ -28,7 +26,8 @@ public class PropFindJsonResource implements GetableResource {
     }
 
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
-        jsonPropFindHandler.sendContent( wrappedResource, encodedUrl, out, range, params, contentType );
+        //jsonPropFindHandler.sendContent( wrappedResource, encodedUrl, out, range, params, contentType );
+        jsonPropFindHandler.sendContent( wrappedResource, "na", out, range, params, contentType );
     }
 
     public Long getMaxAgeSeconds( Auth auth ) {
