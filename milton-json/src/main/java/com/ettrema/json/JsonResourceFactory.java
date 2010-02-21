@@ -43,7 +43,7 @@ public class JsonResourceFactory implements ResourceFactory {
                 String method = path.getName();
                 Resource wrappedResource = wrapped.getResource(host, resourcePath.toString());
                 if( wrappedResource != null ) {
-                    return wrapResource(wrappedResource, method, sPath);
+                    return wrapResource(host, wrappedResource, method, sPath);
                 }
             }
         } else {
@@ -52,7 +52,7 @@ public class JsonResourceFactory implements ResourceFactory {
         return null;
     }
 
-    private Resource wrapResource(Resource wrappedResource, String method,String href) {
+    private Resource wrapResource(String host, Resource wrappedResource, String method,String href) {
         if( Request.Method.PROPFIND.code.equals(method)) {
             if( wrappedResource instanceof PropFindableResource) {
                 if( wrappedResource instanceof DigestResource ) {
@@ -83,9 +83,9 @@ public class JsonResourceFactory implements ResourceFactory {
         if( Request.Method.COPY.code.equals(method)) {
             if( wrappedResource instanceof CopyableResource) {
                 if( wrappedResource instanceof DigestResource ) {
-                    return new DigestCopyJsonResource((CopyableResource)wrappedResource, wrapped);
+                    return new DigestCopyJsonResource(host, (CopyableResource)wrappedResource, wrapped);
                 } else {
-                    return new CopyJsonResource((CopyableResource)wrappedResource, wrapped);
+                    return new CopyJsonResource(host, (CopyableResource)wrappedResource, wrapped);
                 }
             }
         }

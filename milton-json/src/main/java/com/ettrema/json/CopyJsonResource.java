@@ -25,23 +25,30 @@ import org.slf4j.LoggerFactory;
  */
 public class CopyJsonResource extends JsonResource implements PostableResource{
     private static final Logger log = LoggerFactory.getLogger( CopyJsonResource.class );
+    private final String host;
     private final ResourceFactory resourceFactory;
     private final CopyableResource wrapped;
 
-    public CopyJsonResource( CopyableResource copyableResource, ResourceFactory resourceFactory ) {
+    public CopyJsonResource( String host, CopyableResource copyableResource, ResourceFactory resourceFactory ) {
         super(copyableResource, Request.Method.COPY.code);
+        this.host = host;
         this.wrapped = copyableResource;
         this.resourceFactory = resourceFactory;
     }
     public String processForm( Map<String, String> parameters, Map<String, FileItem> files ) throws BadRequestException, NotAuthorizedException {
         String dest = parameters.get( "destination");
         Path pDest = Path.path( dest );
-        Resource rDestParent = resourceFactory.getResource( dest, pDest.getParent().toString());
+        Resource rDestParent = resourceFactory.getResource( host, pDest.getParent().toString());
         if( rDestParent == null ) throw new BadRequestException( wrapped, "The destination parent does not exist");
         if(rDestParent instanceof CollectionResource ) {
             CollectionResource colDestParent = (CollectionResource) rDestParent;
-            wrapped.copyTo( colDestParent, pDest.getName());
-            return null;
+            if( colDestParent.child( pDest.getName()) == null ) {
+                wrapped.copyTo( colDestParent, pDest.getName());
+                return null;
+            } else {
+                log.warn( "destination already exists: " + pDest.getName());
+                throw new BadRequestException( rDestParent, "File already exists");
+            }
         } else {
             throw new BadRequestException( wrapped, "The destination parent is not a collection resource");
         }

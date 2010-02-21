@@ -14,8 +14,8 @@ public class DigestCopyJsonResource extends CopyJsonResource implements DigestRe
 
     private final DigestResource digestResource;
 
-    public DigestCopyJsonResource( CopyableResource wrappedResource, ResourceFactory resourceFactory ) {
-        super(wrappedResource, resourceFactory );
+    public DigestCopyJsonResource( String host, CopyableResource wrappedResource, ResourceFactory resourceFactory ) {
+        super(host, wrappedResource, resourceFactory );
         this.digestResource = (DigestResource) wrappedResource;
     }
 
