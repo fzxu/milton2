@@ -47,7 +47,7 @@ public class LockHandler implements ResourceHandler {
 
 
     @Override
-    public void process(HttpManager manager, Request request, Response response) {
+    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException {
         if( !handlerHelper.checkExpects( responseHandler, request, response )) {
             return ;
         }
@@ -67,7 +67,7 @@ public class LockHandler implements ResourceHandler {
     }
     
     
-    protected void processExistingResource(HttpManager manager, Request request, Response response, Resource resource) {
+    protected void processExistingResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException {
         if (!isCompatible(resource)) {
             responseHandler.respondMethodNotImplemented( resource, response, request );
             return;
@@ -113,7 +113,7 @@ public class LockHandler implements ResourceHandler {
      * @param host
      * @param url
      */
-    private void processNonExistingResource(HttpManager manager, Request request, Response response, String host, String url) {
+    private void processNonExistingResource(HttpManager manager, Request request, Response response, String host, String url) throws NotAuthorizedException {
         String name;
         
         Path parentPath = Path.path(url);
@@ -132,7 +132,7 @@ public class LockHandler implements ResourceHandler {
         }
     }
 
-    private void processCreateAndLock(HttpManager manager, Request request, Response response, Resource parentResource, String name) {
+    private void processCreateAndLock(HttpManager manager, Request request, Response response, Resource parentResource, String name) throws NotAuthorizedException {
         if( parentResource instanceof LockingCollectionResource ) {
             log.debug("parent supports lock-null. doing createAndLock");            
             LockingCollectionResource lockingParent = (LockingCollectionResource) parentResource;
@@ -168,7 +168,7 @@ public class LockHandler implements ResourceHandler {
         return handler instanceof LockableResource;
     }
 
-    protected void processNewLock(HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout) {
+    protected void processNewLock(HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout) throws NotAuthorizedException {
         LockInfo lockInfo;        
         try {
             lockInfo = LockInfo.parseLockInfo(request);            
@@ -198,7 +198,7 @@ public class LockHandler implements ResourceHandler {
         }
     }
 
-    protected void processRefresh(HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout, String ifHeader) {
+    protected void processRefresh(HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout, String ifHeader) throws NotAuthorizedException {
         String token = parseToken(ifHeader);
         log.debug("refreshing lock: " + token);
         LockResult result = r.refreshLock(token);
