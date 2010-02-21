@@ -7,8 +7,10 @@ import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.PropPatchableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -22,7 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  *
  */
-public class FsFileResource extends FsResource implements CopyableResource, DeletableResource, GetableResource, MoveableResource, PropFindableResource {
+public class FsFileResource extends FsResource implements CopyableResource, DeletableResource, GetableResource, MoveableResource, PropFindableResource, PropPatchableResource {
 
     private static final Logger log = LoggerFactory.getLogger( FsFileResource.class );
 
@@ -65,14 +67,14 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
             int bytes = IOUtils.copy( in, out );
             log.debug( "wrote bytes:  " + bytes );
             out.flush();
-        //        }
+            //        }
         } finally {
             IOUtils.closeQuietly( in );
         }
     }
 
     /** @{@inheritDoc} */
-    public Long getMaxAgeSeconds(Auth auth) {
+    public Long getMaxAgeSeconds( Auth auth ) {
         return factory.maxAgeSeconds( this );
     }
 
@@ -84,5 +86,10 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
         } catch( IOException ex ) {
             throw new RuntimeException( "Failed doing copy to: " + dest.getAbsolutePath(), ex );
         }
+    }
+
+    public void setProperties( Fields fields ) {
+        // MIL-50
+        // not implemented. Just to keep MS Office sweet
     }
 }
