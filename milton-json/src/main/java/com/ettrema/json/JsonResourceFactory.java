@@ -1,7 +1,9 @@
 package com.ettrema.json;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.DigestResource;
+import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Request;
@@ -66,6 +68,24 @@ public class JsonResourceFactory implements ResourceFactory {
                     return new DigestPutJsonResource((PutableResource)wrappedResource, href);
                 } else {
                     return new PutJsonResource((PutableResource)wrappedResource, href);
+                }
+            }
+        }
+        if( Request.Method.MKCOL.code.equals(method)) {
+            if( wrappedResource instanceof MakeCollectionableResource) {
+                if( wrappedResource instanceof DigestResource ) {
+                    return new DigestMkcolJsonResource((MakeCollectionableResource)wrappedResource, href);
+                } else {
+                    return new MkcolJsonResource((MakeCollectionableResource)wrappedResource, href);
+                }
+            }
+        }
+        if( Request.Method.COPY.code.equals(method)) {
+            if( wrappedResource instanceof CopyableResource) {
+                if( wrappedResource instanceof DigestResource ) {
+                    return new DigestCopyJsonResource((CopyableResource)wrappedResource, wrapped);
+                } else {
+                    return new CopyJsonResource((CopyableResource)wrappedResource, wrapped);
                 }
             }
         }
