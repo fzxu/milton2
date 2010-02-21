@@ -1,5 +1,7 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+
 /**
  *
  * @author brad
@@ -13,7 +15,7 @@ public interface LockableResource extends Resource {
      * @return - a result containing the token representing the lock if succesful,
      * otherwise a failure reason code
      */
-    public LockResult lock(LockTimeout timeout, LockInfo lockInfo);
+    public LockResult lock(LockTimeout timeout, LockInfo lockInfo) throws NotAuthorizedException;
     
     /**
      * Renew the lock and return new lock info
@@ -21,7 +23,7 @@ public interface LockableResource extends Resource {
      * @param token
      * @return
      */
-    public LockResult refreshLock(String token);
+    public LockResult refreshLock(String token) throws NotAuthorizedException;
 
     /**
      * If the resource is currently locked, and the tokenId  matches the current
@@ -29,7 +31,7 @@ public interface LockableResource extends Resource {
      *
      * @param tokenId
      */
-    public void unlock(String tokenId);
+    public void unlock(String tokenId) throws NotAuthorizedException;
 
     /**
      *
