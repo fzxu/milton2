@@ -1,5 +1,7 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+
 /**
  * A collection which allows locking "unmapped resources". This means that a LOCK
  * method can effectively create an empty resource which is immediately locked
@@ -25,6 +27,6 @@ public interface  LockingCollectionResource extends CollectionResource{
      * @param lockInfo
      * @return
      */
-    public LockToken createAndLock(String name, LockTimeout timeout, LockInfo lockInfo);
+    public LockToken createAndLock(String name, LockTimeout timeout, LockInfo lockInfo) throws NotAuthorizedException;
     
 }
