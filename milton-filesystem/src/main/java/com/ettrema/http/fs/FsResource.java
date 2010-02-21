@@ -13,6 +13,7 @@ import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
 import java.io.File;
 import java.util.Date;
@@ -106,15 +107,15 @@ public abstract class FsResource implements Resource, MoveableResource, Copyable
         if( !ok ) throw new RuntimeException("Failed to delete");
     }
 
-    public LockResult lock(LockTimeout timeout, LockInfo lockInfo) {
+    public LockResult lock(LockTimeout timeout, LockInfo lockInfo) throws NotAuthorizedException {
         return factory.getLockManager().lock(timeout, lockInfo, this);
     }
 
-    public LockResult refreshLock(String token) {
+    public LockResult refreshLock(String token) throws NotAuthorizedException {
         return factory.getLockManager().refresh(token, this);
     }
 
-    public void unlock(String tokenId) {
+    public void unlock(String tokenId) throws NotAuthorizedException {
         factory.getLockManager().unlock(tokenId, this);
     }
 

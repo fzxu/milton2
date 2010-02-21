@@ -115,7 +115,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         }
     }
 
-    public LockToken createAndLock( String name, LockTimeout timeout, LockInfo lockInfo ) {
+    public LockToken createAndLock( String name, LockTimeout timeout, LockInfo lockInfo ) throws NotAuthorizedException{
         File dest = new File( this.getFile(), name );
         createEmptyFile( dest );
         FsFileResource newRes = new FsFileResource( host, factory, dest );

@@ -5,6 +5,7 @@ import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockResult;
 import com.bradmcevoy.http.LockTimeout;
 import com.bradmcevoy.http.LockToken;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.File;
 import junit.framework.TestCase;
 
@@ -22,7 +23,7 @@ public class MemoryLockManagerTest extends TestCase {
     }
 
     
-    public void testLockUnLock() {
+    public void testLockUnLock() throws NotAuthorizedException {
         LockTimeout timeout = new LockTimeout( 100l );
         LockInfo lockInfo = new LockInfo( LockInfo.LockScope.NONE, LockInfo.LockType.READ, "me", LockInfo.LockDepth.ZERO );
         FsResource resource = new FsFileResource( null, null, new File( File.pathSeparator ) );

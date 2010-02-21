@@ -4,7 +4,7 @@ import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockResult;
 import com.bradmcevoy.http.LockTimeout;
 import com.bradmcevoy.http.LockToken;
-import com.sun.servicetag.UnauthorizedAccessException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ public class MemoryLockManager implements FsLockManager {
         return LockResult.success( curLock.token );
     }
 
-    public synchronized void unlock( String tokenId, FsResource resource ) {
+    public synchronized void unlock( String tokenId, FsResource resource ) throws NotAuthorizedException {
         LockToken lockToken = currentLock( resource );
         if( lockToken == null ) {
             log.debug( "not locked" );
@@ -57,7 +57,7 @@ public class MemoryLockManager implements FsLockManager {
         if( lockToken.tokenId.equals( tokenId ) ) {
             removeLock( lockToken );
         } else {
-            throw new UnauthorizedAccessException( "Request lock id is not valid" );
+            throw new NotAuthorizedException(resource );
         }
     }
 
@@ -89,6 +89,7 @@ public class MemoryLockManager implements FsLockManager {
         if( lock == null ) return null;
         LockToken token = new LockToken();
         token.info = new LockInfo( LockInfo.LockScope.EXCLUSIVE, LockInfo.LockType.WRITE, lock.owner, LockInfo.LockDepth.ZERO );
+        token.info.lockedByUser = lock.lockedByUser;
         token.timeout = lock.token.timeout;
         token.tokenId = lock.token.tokenId;
         return token;
