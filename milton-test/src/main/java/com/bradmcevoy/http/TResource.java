@@ -1,9 +1,7 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.http11.auth.DigestGenerator;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.UUID;
