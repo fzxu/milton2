@@ -8,7 +8,6 @@ import com.bradmcevoy.http.LockToken;
 import com.bradmcevoy.http.LockableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
-import com.bradmcevoy.http.QuotaResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.XmlWriter;
@@ -313,7 +312,7 @@ public class DefaultWebDavPropertySource implements PropertySource {
         }
 
         public String fieldName() {
-            return "supportedlock";
+            return "lockdiscovery";
         }
 
         public Class getValueClass() {
