@@ -28,4 +28,13 @@ public interface PropPatchSetter {
      * that success responses should not contain the value
      */
     List<PropFindResponse> setProperties(String href, PropPatchRequestParser.ParseResult parseResult, Resource r);
+
+    /**
+     * Return whether the given resource can be proppatch'ed with this
+     * PropPatchSetter
+     *
+     * @param r
+     * @return
+     */
+    boolean supports(Resource r);
 }

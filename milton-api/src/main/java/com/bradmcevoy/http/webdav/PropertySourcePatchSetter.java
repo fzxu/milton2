@@ -32,6 +32,20 @@ public class PropertySourcePatchSetter implements PropPatchSetter{
         this.valueWriters = valueWriters;
     }
 
+    /**
+     * This returns true for all resources, but it actually depends on the
+     * configured property sources.
+     *
+     * If no property sources support a given resource, a proppatch attempt
+     * will return 404's for all properties
+     *
+     * @param r
+     * @return
+     */
+    public boolean supports( Resource r ) {
+        return true;
+    }
+
 
 
     public List<PropFindResponse> setProperties( String href, ParseResult parseResult, Resource r ) {

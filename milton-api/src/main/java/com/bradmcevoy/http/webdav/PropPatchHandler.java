@@ -123,8 +123,8 @@ public class PropPatchHandler implements ExistingEntityHandler {
         return new String[]{Method.PROPPATCH.code};
     }
 
-    public boolean isCompatible( Resource handler ) {
-        return ( handler instanceof PropPatchableResource );
+    public boolean isCompatible( Resource r ) {
+        return patchSetter.supports( r );
     }
 
     public void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException {
@@ -136,16 +136,13 @@ public class PropPatchHandler implements ExistingEntityHandler {
     }
 
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
-        log.debug( "process" );
- 
-        PropPatchableResource patchable = (PropPatchableResource) resource;
         // todo: check if token header
         try {
             InputStream in = request.getInputStream();
             ParseResult parseResult = requestParser.getRequestedFields( in );
             String href = request.getAbsoluteUrl();
-            List<PropFindResponse> responses = patchSetter.setProperties( href, parseResult, patchable );
-            responseHandler.respondPropFind( responses, response, request, patchable);
+            List<PropFindResponse> responses = patchSetter.setProperties( href, parseResult, resource );
+            responseHandler.respondPropFind( responses, response, request, resource);
         } catch( WritingException ex ) {
             throw new RuntimeException( ex );
         } catch( ReadingException ex ) {

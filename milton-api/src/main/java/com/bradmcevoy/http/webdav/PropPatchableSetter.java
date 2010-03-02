@@ -29,8 +29,6 @@ public class PropPatchableSetter implements PropPatchSetter {
         this.helper = new Helper();
     }
 
-
-
     public boolean supports(Resource r) {
         return (r instanceof PropPatchableResource);
     }
