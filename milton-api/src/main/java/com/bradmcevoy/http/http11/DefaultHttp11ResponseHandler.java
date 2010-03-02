@@ -175,12 +175,14 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 //        log.debug( "not modified" );
         response.setStatus( Response.Status.SC_NOT_MODIFIED );
         response.setDateHeader( new Date() );
-        String acc = request.getAcceptHeader();
         String etag = generateEtag( resource );
         if( etag != null ) {
             response.setEtag( etag );
         }
-        response.setLastModifiedHeader( resource.getModifiedDate() );
+        Date mod = resource.getModifiedDate();
+        if( mod != null ) {
+            response.setLastModifiedHeader( resource.getModifiedDate() );
+        }
         setCacheControl( resource, response, request.getAuthorization() );
     }
 
