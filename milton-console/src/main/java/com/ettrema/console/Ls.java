@@ -4,10 +4,12 @@ package com.ettrema.console;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Ls extends AbstractConsoleCommand{
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Ls.class );
+    private static final Logger log = LoggerFactory.getLogger(Ls.class);
 
     private final ResultFormatter resultFormatter;
 

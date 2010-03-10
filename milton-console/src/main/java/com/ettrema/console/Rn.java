@@ -2,21 +2,19 @@ package com.ettrema.console;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.ConflictException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class Rn extends AbstractConsoleCommand {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Rn.class );
+    private static final Logger log = LoggerFactory.getLogger(Rn.class);
 
     public Rn( List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory ) {
         super( args, host, currentDir, resourceFactory );

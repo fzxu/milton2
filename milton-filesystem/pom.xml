@@ -11,11 +11,6 @@
 	<name>Milton WebDav Filesytem Library</name>
 	<dependencies>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>1.5.2</version>
-		</dependency>
-		<dependency>
 			<groupId>com.ettrema</groupId>
 			<artifactId>milton-api</artifactId>
 			<version>${project.version}</version>

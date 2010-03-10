@@ -17,29 +17,47 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
 
     private static final Logger log = LoggerFactory.getLogger( SimpleMemoryNonceProvider.class );
     private final int nonceValiditySeconds;
-    private Map<UUID, Nonce> nonces = new ConcurrentHashMap<UUID, Nonce>();
+    private Map<UUID, Nonce> nonces;
     private final ExpiredNonceRemover remover;
     private boolean enableNonceCountChecking;
 
+
+
     public SimpleMemoryNonceProvider( int nonceValiditySeconds ) {
+        this.nonces = new ConcurrentHashMap<UUID, Nonce>();
         this.nonceValiditySeconds = nonceValiditySeconds;
         this.remover = new ExpiredNonceRemover( nonces, nonceValiditySeconds );
         log.debug( "created" );
     }
 
     public SimpleMemoryNonceProvider( int nonceValiditySeconds, ExpiredNonceRemover remover ) {
+        this(nonceValiditySeconds,remover, new ConcurrentHashMap<UUID, Nonce>());
+    }
+
+    public SimpleMemoryNonceProvider( int nonceValiditySeconds, ExpiredNonceRemover remover, Map<UUID, Nonce> nonces ) {
+        this.nonces = nonces;
         this.nonceValiditySeconds = nonceValiditySeconds;
         this.remover = remover;
     }
 
-    public String createNonce( Resource resource, Request request ) {
+    public SimpleMemoryNonceProvider( int nonceValiditySeconds, Map<UUID, Nonce> nonces ) {
+        this.nonces = nonces;
+        this.nonceValiditySeconds = nonceValiditySeconds;
+        this.remover = new ExpiredNonceRemover( nonces, nonceValiditySeconds );
+    }
+
+    public Nonce createNonceObject( Resource resource, Request request ) {
         UUID id = UUID.randomUUID();
         Date now = new Date();
         Nonce n = new Nonce( id, now );
         nonces.put( n.getValue(), n );
         log.debug( "created nonce: " + n.getValue() );
         log.debug( "map size: " + nonces.size() );
-        return n.getValue().toString();
+        return n;
+    }
+
+    public String createNonce( Resource resource, Request request ) {
+        return createNonceObject(resource, request ).getValue().toString();
     }
 
     public NonceValidity getNonceValidity( String nonce, Long nc ) {
@@ -102,5 +120,4 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
     public void setEnableNonceCountChecking( boolean enableNonceCountChecking ) {
         this.enableNonceCountChecking = enableNonceCountChecking;
     }
-
 }

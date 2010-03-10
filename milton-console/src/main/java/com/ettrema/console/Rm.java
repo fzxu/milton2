@@ -5,13 +5,15 @@ import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class Rm extends AbstractConsoleCommand {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( Rm.class );
+    private static final Logger log = LoggerFactory.getLogger(Rm.class);
 
     public Rm( List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory ) {
         super( args, host, currentDir, resourceFactory );

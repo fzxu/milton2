@@ -2,6 +2,7 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.http11.auth.BasicAuthHandler;
 import com.bradmcevoy.http.http11.auth.DigestAuthenticationHandler;
+import com.bradmcevoy.http.http11.auth.NonceProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,23 +20,59 @@ public class AuthenticationService {
 
     private final List<AuthenticationHandler> authenticationHandlers;
 
+    /**
+     * Creates a AuthenticationService using the given handlers. Use this if
+     * you don't want the default of a BasicAuthHandler and a DigestAuthenticationHandler
+     *
+     * @param authenticationHandlers
+     */
     public AuthenticationService( List<AuthenticationHandler> authenticationHandlers ) {
         this.authenticationHandlers = authenticationHandlers;
     }
 
+    /**
+     * Creates basic and digest handlers with the given NonceProvider
+     * 
+     * @param nonceProvider
+     */
+    public AuthenticationService(NonceProvider nonceProvider) {
+        AuthenticationHandler digest = new DigestAuthenticationHandler(nonceProvider);
+        AuthenticationHandler basic = new BasicAuthHandler();
+        this.authenticationHandlers = Arrays.asList( digest, basic);
+    }
+
+    /**
+     * Creates with Basic and Digest handlers
+     *
+     */
     public AuthenticationService() {
         AuthenticationHandler digest = new DigestAuthenticationHandler();
         AuthenticationHandler basic = new BasicAuthHandler();
         this.authenticationHandlers = Arrays.asList( digest, basic);
     }
 
+    /**
+     * Looks for an AuthenticationHandler which supports the given resource and
+     * authorization header, and then returns the result of that handler's
+     * authenticate method.
+     *
+     * Returns null if no handlers support the request
+     *
+     * @param resource
+     * @param request
+     * @return
+     */
     public Object authenticate( Resource resource, Request request ) {
         for( AuthenticationHandler h : authenticationHandlers ) {
             if( h.supports( resource, request.getAuthorization() ) ) {
-                return h.authenticate( resource, request );
+                Object o = h.authenticate( resource, request );
+                if( o == null ) {
+                    log.warn("authentication failed by AuthenticationHandler:" + h.getClass());
+                }
+                return o;
             }            
         }
-        log.debug("No AuthenticationHandler supports scheme:" + request.getAuthorization().getScheme() + " and resource type: " + resource.getClass());
+        log.warn("No AuthenticationHandler supports scheme:" + request.getAuthorization().getScheme() + " and resource type: " + resource.getClass());
         return null;
     }
 

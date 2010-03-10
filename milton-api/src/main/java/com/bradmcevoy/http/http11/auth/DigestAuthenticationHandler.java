@@ -44,7 +44,7 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         Auth auth = request.getAuthorization();
         // Check all required parameters were supplied (ie RFC 2069)
         if( ( auth.getUser() == null ) || ( auth.getRealm() == null ) || ( auth.getNonce() == null ) || ( auth.getUri() == null ) ) {
-            log.debug( "missing params" );
+            log.warn( "missing params" );
             return null;
         }
 
@@ -52,7 +52,7 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         Long nc;
         if( "auth".equals( auth.getQop() ) ) {
             if( ( auth.getNc() == null ) || ( auth.getCnonce() == null ) ) {
-                log.debug( "missing params2" );
+                log.warn( "missing params2" );
                 return null;
             }
             nc = Long.parseLong( auth.getNc(), 16); // the nonce-count. hex value, must always increase
@@ -64,13 +64,13 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         String expectedRealm = r.getRealm();
         if( expectedRealm == null ) throw new IllegalStateException( "realm is null on resource of class: " + r.getClass());
         if( !r.getRealm().equals( auth.getRealm() ) ) {
-            log.debug( "incorrect realm: resource: " + r.getRealm() + " given: " + auth.getRealm() );
+            log.warn( "incorrect realm: resource: " + r.getRealm() + " given: " + auth.getRealm() );
             return null;
         }
 
         // Check nonce was a Base64 encoded (as sent by DigestProcessingFilterEntryPoint)
         if( !Base64.isArrayByteBase64( auth.getNonce().getBytes() ) ) {
-            log.debug( "nonce not base64 encoded" );
+            log.warn( "nonce not base64 encoded" );
             return null;
         }
 

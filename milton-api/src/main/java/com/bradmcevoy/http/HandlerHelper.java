@@ -47,7 +47,7 @@ public class HandlerHelper {
         if( auth != null ) {
             Object authTag = authenticationService.authenticate( resource, request ); //handler.authenticate( auth.user, auth.password );
             if( authTag == null ) {
-                log.warn( "failed to authenticate" );
+                log.warn( "failed to authenticate - authenticationService:" + authenticationService.getClass() + " resource type:" + resource.getClass() );
                 return false;
             } else {
                 log.debug( "got authenticated tag: " + authTag.getClass() );
