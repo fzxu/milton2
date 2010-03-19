@@ -133,7 +133,7 @@ public class HandlerHelper {
         for( StorageChecker sc : storageCheckers) {
             StorageErrorReason res = sc.checkStorageOnReplace( request, parentCol, replaced, host );
             if( res != null ) {
-                log.debug( "insufficient storage reason: " + res + " reported by: " + sc.getClass() );
+                log.warn( "insufficient storage reason: " + res + " reported by: " + sc.getClass() );
                 return res;
             }
         }
@@ -144,7 +144,7 @@ public class HandlerHelper {
         for( StorageChecker sc : storageCheckers) {
             StorageErrorReason res = sc.checkStorageOnAdd( request, nearestParent, parentPath, host );
             if( res != null ) {
-                log.debug( "insufficient storage reason: " + res + " reported by: " + sc.getClass() );
+                log.warn( "insufficient storage reason: " + res + " reported by: " + sc.getClass() );
                 return res;
             }
         }

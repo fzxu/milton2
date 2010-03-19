@@ -48,7 +48,7 @@ public class ResourceHandlerHelper {
         }
         String host = request.getHostHeader();
         String url = HttpManager.decodeUrl( request.getAbsolutePath() );
-        log.debug( "find resource: path: " + url + " host: " + host );
+        //log.debug( "find resource: path: " + url + " host: " + host );
         Resource r = manager.getResourceFactory().getResource( host, url );
         if( r == null ) {
             responseHandler.respondNotFound( response, request );
