@@ -33,7 +33,11 @@ public class Utils {
      * @return
      */
     public static String decodePath( String href ) {
+        // For IPv6
         href = href.replace( "[", "%5B" ).replace( "]", "%5D" );
+
+        // Seems that some client apps send spaces.. maybe..
+        href = href.replace( " ", "%20");
         try {
             if( href.startsWith( "/" ) ) {
                 URI uri = new URI( "http://anything.com" + href );
