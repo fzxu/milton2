@@ -114,15 +114,24 @@ public class GetHandler implements ExistingEntityHandler {
     }
 
     private void sendContent( HttpManager manager, Request request, Response response, GetableResource resource, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
-        if( request.getMethod().equals( Method.HEAD)) {
-            responseHandler.respondHead( resource, response, request );
-        } else {
-            Range range = getRange( request );
-            if( range != null ) {
-                responseHandler.respondPartialContent( resource, response, request, params, range );
+        try {
+            if( request.getMethod().equals( Method.HEAD ) ) {
+                responseHandler.respondHead( resource, response, request );
             } else {
-                responseHandler.respondContent( resource, response, request, params );
+                Range range = getRange( request );
+                if( range != null ) {
+                    responseHandler.respondPartialContent( resource, response, request, params, range );
+                } else {
+                    responseHandler.respondContent( resource, response, request, params );
+                }
             }
+        } catch( NotAuthorizedException notAuthorizedException ) {
+            throw notAuthorizedException;
+        } catch( BadRequestException badRequestException ) {
+            throw badRequestException;
+        } catch(Throwable e) {
+            log.error( "Exception sending content for:" + request.getAbsolutePath() + " of resource type: " + resource.getClass().getCanonicalName());
+            throw new RuntimeException( e );
         }
     }
 }

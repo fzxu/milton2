@@ -12,7 +12,7 @@ package com.bradmcevoy.http;
  * See: http://www.faqs.org/rfcs/rfc4331.html
  *
  * Note that these properties may or may not be used in quota checking on PUT.
- * The PutHandler delegates to the StorageManager which might be configured to
+ * The PutHandler delegates to a StorageChecker which might be configured to
  * use a StorageChecker which uses this information.
  *
  * @author brad

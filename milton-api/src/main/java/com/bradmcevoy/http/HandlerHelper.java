@@ -61,7 +61,7 @@ public class HandlerHelper {
         boolean authorised = resource.authorise( request, request.getMethod(), auth );
         if( !authorised ) {
             if( log.isWarnEnabled()) {
-                log.warn( "authorisation declined, requesting authentication: " + request.getAbsolutePath() );
+                log.warn( "authorisation declined, requesting authentication: " + request.getAbsolutePath() + ". resource type: " + resource.getClass().getCanonicalName());
                 if( auth != null ) {
                     log.warn("auth: " + auth.getUser() + " tag: " + auth.getTag());
                 }

@@ -38,7 +38,7 @@ public class DefaultWebDavPropertySource implements PropertySource {
 
     public DefaultWebDavPropertySource(ResourceTypeHelper resourceTypeHelper, QuotaDataAccessor quotaDataAccessor) {
         this.resourceTypeHelper = resourceTypeHelper;
-        this.quotaDataAccessor = new DefaultQuotaDataAccessor();
+        this.quotaDataAccessor = quotaDataAccessor;
         add( new ContentLengthPropertyWriter() );
         add( new ContentTypePropertyWriter() );
         add( new CreationDatePropertyWriter() );
