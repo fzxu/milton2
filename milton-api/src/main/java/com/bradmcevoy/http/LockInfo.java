@@ -13,7 +13,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 public class LockInfo {
 
-    private static Logger log = LoggerFactory.getLogger( LockInfo.class );
+    private static final Logger log = LoggerFactory.getLogger( LockInfo.class );
 
     public enum LockScope {
 
@@ -44,7 +44,7 @@ public class LockInfo {
         LockInfo info = handler.getInfo();
         info.depth = LockDepth.INFINITY; // todo
         info.lockedByUser = null;
-        if(request.getAuthorization() != null ) {
+        if( request.getAuthorization() != null ) {
             info.lockedByUser = request.getAuthorization().getUser();
         }
         if( info.lockedByUser == null ) {

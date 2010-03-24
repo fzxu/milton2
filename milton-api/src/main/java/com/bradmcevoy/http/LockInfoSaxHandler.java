@@ -8,61 +8,64 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.bradmcevoy.http.LockInfo.LockScope;
 import com.bradmcevoy.http.LockInfo.LockType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LockInfoSaxHandler extends DefaultHandler {
 
+    private static final Logger log = LoggerFactory.getLogger( LockInfo.class );
+
     private LockInfo info = new LockInfo();
-    
     private StringBuilder owner;
-    
     private Stack<String> elementPath = new Stack<String>();
-    
+
     @Override
-    public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
-        elementPath.push(localName);
-        if(localName.equals("owner"))
+    public void startElement( String uri, String localName, String name, Attributes attributes ) throws SAXException {
+        elementPath.push( localName );
+        if( localName.equals( "owner" ) ) {
             owner = new StringBuilder();
-        super.startElement(uri, localName, name, attributes);
+        }
+        super.startElement( uri, localName, name, attributes );
     }
-    
+
     @Override
-    public void characters(char[] ch, int start, int length) throws SAXException {
-        if(owner!=null){
-            owner.append(ch,start,length);
+    public void characters( char[] ch, int start, int length ) throws SAXException {
+        if( owner != null ) {
+            owner.append( ch, start, length );
         }
     }
 
     @Override
-    public void endElement(String uri, String localName, String name) throws SAXException {
+    public void endElement( String uri, String localName, String name ) throws SAXException {
         elementPath.pop();
-        if(localName.equals("owner"))
+        if( localName.equals( "owner" ) ) {
+            log.debug( "owner: " + owner.toString());
             getInfo().owner = owner.toString();
-        if(elementPath.size()>1){
-            if(elementPath.get(1).equals("lockscope")){
-                if( localName.equals("exclusive") ) {
+        }
+        if( elementPath.size() > 1 ) {
+            if( elementPath.get( 1 ).equals( "lockscope" ) ) {
+                if( localName.equals( "exclusive" ) ) {
                     getInfo().scope = LockScope.EXCLUSIVE;
-                } else if( localName.equals("shared")) {
+                } else if( localName.equals( "shared" ) ) {
                     getInfo().scope = LockScope.SHARED;
                 } else {
                     getInfo().scope = LockScope.NONE;
-                }  
-            }
-            else if(elementPath.get(1).equals("locktype")){
-                if( localName.equals("read") ) {
+                }
+            } else if( elementPath.get( 1 ).equals( "locktype" ) ) {
+                if( localName.equals( "read" ) ) {
                     getInfo().type = LockType.READ;
-                } else if( localName.equals("write")) {
+                } else if( localName.equals( "write" ) ) {
                     getInfo().type = LockType.WRITE;
                 } else {
                     getInfo().type = LockType.WRITE;
                 }
             }
 
-        }        
-        super.endElement(uri, localName, name);
+        }
+        super.endElement( uri, localName, name );
     }
 
     public LockInfo getInfo() {
         return info;
     }
-
 }

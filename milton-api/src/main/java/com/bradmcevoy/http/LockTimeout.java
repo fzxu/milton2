@@ -106,7 +106,9 @@ public class LockTimeout {
 
     @Override
     public String toString() {
-        if(this.seconds.equals( Long.MAX_VALUE )) {
+        if( this.seconds == null ) {
+            return INFINITE;
+        } else if(this.seconds.equals( Long.MAX_VALUE )) {
             return INFINITE;
         } else {
             return "Second-" + this.seconds;

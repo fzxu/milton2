@@ -4,8 +4,8 @@ import com.bradmcevoy.http.http11.auth.BasicAuthHandler;
 import com.bradmcevoy.http.http11.auth.DigestAuthenticationHandler;
 import com.bradmcevoy.http.http11.auth.NonceProvider;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +17,9 @@ import org.slf4j.LoggerFactory;
 public class AuthenticationService {
 
     private static final Logger log = LoggerFactory.getLogger( AuthenticationService.class );
-
-    private final List<AuthenticationHandler> authenticationHandlers;
+    private List<AuthenticationHandler> authenticationHandlers;
+    private boolean disableBasic;
+    private boolean disableDigest;
 
     /**
      * Creates a AuthenticationService using the given handlers. Use this if
@@ -35,10 +36,13 @@ public class AuthenticationService {
      * 
      * @param nonceProvider
      */
-    public AuthenticationService(NonceProvider nonceProvider) {
-        AuthenticationHandler digest = new DigestAuthenticationHandler(nonceProvider);
+    public AuthenticationService( NonceProvider nonceProvider ) {
+        AuthenticationHandler digest = new DigestAuthenticationHandler( nonceProvider );
         AuthenticationHandler basic = new BasicAuthHandler();
-        this.authenticationHandlers = Arrays.asList( digest, basic);
+
+        authenticationHandlers = new ArrayList<AuthenticationHandler>();
+        authenticationHandlers.add( basic );
+        authenticationHandlers.add( digest );
     }
 
     /**
@@ -48,8 +52,47 @@ public class AuthenticationService {
     public AuthenticationService() {
         AuthenticationHandler digest = new DigestAuthenticationHandler();
         AuthenticationHandler basic = new BasicAuthHandler();
-        this.authenticationHandlers = Arrays.asList( digest, basic);
+        authenticationHandlers = new ArrayList<AuthenticationHandler>();
+        authenticationHandlers.add( basic );
+        authenticationHandlers.add( digest );
     }
+
+    public void setDisableBasic( boolean b ) {
+        if( b ) {
+            Iterator<AuthenticationHandler> it = this.authenticationHandlers.iterator();
+            while( it.hasNext() ) {
+                AuthenticationHandler hnd = it.next();
+                if( hnd instanceof BasicAuthHandler ) {
+                    it.remove();
+                }
+            }
+        }
+        disableBasic = b;
+    }
+
+    public boolean isDisableBasic() {
+        return disableBasic;
+    }
+
+
+
+    public void setDisableDigest( boolean b ) {
+        if( b ) {
+            Iterator<AuthenticationHandler> it = this.authenticationHandlers.iterator();
+            while( it.hasNext() ) {
+                AuthenticationHandler hnd = it.next();
+                if( hnd instanceof DigestAuthenticationHandler ) {
+                    it.remove();
+                }
+            }
+        }
+        disableDigest = b;
+    }
+
+    public boolean isDisableDigest() {
+        return disableDigest;
+    }
+    
 
     /**
      * Looks for an AuthenticationHandler which supports the given resource and
@@ -67,12 +110,12 @@ public class AuthenticationService {
             if( h.supports( resource, request.getAuthorization() ) ) {
                 Object o = h.authenticate( resource, request );
                 if( o == null ) {
-                    log.warn("authentication failed by AuthenticationHandler:" + h.getClass());
+                    log.warn( "authentication failed by AuthenticationHandler:" + h.getClass() );
                 }
                 return o;
-            }            
+            }
         }
-        log.warn("No AuthenticationHandler supports scheme:" + request.getAuthorization().getScheme() + " and resource type: " + resource.getClass());
+        log.warn( "No AuthenticationHandler supports scheme:" + request.getAuthorization().getScheme() + " and resource type: " + resource.getClass() );
         return null;
     }
 
@@ -87,12 +130,12 @@ public class AuthenticationService {
     public List<String> getChallenges( Resource resource, Request request ) {
         List<String> challenges = new ArrayList<String>();
         for( AuthenticationHandler h : authenticationHandlers ) {
-            if( h.isCompatible(resource)) {
-                log.debug( "challenge for auth: " + h.getClass());
-                String ch = h.getChallenge(resource, request);
+            if( h.isCompatible( resource ) ) {
+                log.debug( "challenge for auth: " + h.getClass() );
+                String ch = h.getChallenge( resource, request );
                 challenges.add( ch );
             } else {
-                log.debug( "not challenging for auth: " + h.getClass() + " for resource type: " + resource.getClass());
+                log.debug( "not challenging for auth: " + h.getClass() + " for resource type: " + resource.getClass() );
             }
         }
         return challenges;
@@ -101,6 +144,4 @@ public class AuthenticationService {
     public List<AuthenticationHandler> getAuthenticationHandlers() {
         return Collections.unmodifiableList( authenticationHandlers );
     }
-
-
 }

@@ -1,4 +1,3 @@
-
 package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.http.*;
@@ -7,16 +6,16 @@ import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.LockInfo.LockScope;
-import com.bradmcevoy.http.LockInfo.LockType;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
+import java.net.URI;
 
 /**
  * Note that this is both a new entity handler and an existing entity handler
@@ -25,16 +24,25 @@ import com.bradmcevoy.http.Response.Status;
  */
 public class LockHandler implements ResourceHandler {
 
-    private Logger log = LoggerFactory.getLogger(LockHandler.class);
-
+    private Logger log = LoggerFactory.getLogger( LockHandler.class );
     private final WebDavResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
+
+    private LockWriterHelper lockWriterHelper;
 
     public LockHandler( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
+        lockWriterHelper = new LockWriterHelper();
     }
 
+    public LockWriterHelper getLockWriterHelper() {
+        return lockWriterHelper;
+    }
+
+    public void setLockWriterHelper( LockWriterHelper lockWriterHelper ) {
+        this.lockWriterHelper = lockWriterHelper;
+    }
 
 
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
@@ -45,43 +53,41 @@ public class LockHandler implements ResourceHandler {
         return new String[]{Method.LOCK.code};
     }
 
-
     @Override
-    public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException {
-        if( !handlerHelper.checkExpects( responseHandler, request, response )) {
-            return ;
+    public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException {
+        if( !handlerHelper.checkExpects( responseHandler, request, response ) ) {
+            return;
         }
 
         String host = request.getHostHeader();
-        String url = HttpManager.decodeUrl(request.getAbsolutePath());
+        String url = HttpManager.decodeUrl( request.getAbsolutePath() );
 
         // Find a resource if it exists
-        Resource r = manager.getResourceFactory().getResource(host, url);
-        if (r != null) {
-            log.debug("locking existing resource: " + r.getName());
-            processExistingResource(manager, request, response, r);
+        Resource r = manager.getResourceFactory().getResource( host, url );
+        if( r != null ) {
+            log.debug( "locking existing resource: " + r.getName() );
+            processExistingResource( manager, request, response, r );
         } else {
-            log.debug("lock target doesnt exist, attempting lock null..");
-            processNonExistingResource(manager, request, response, host, url);
-        }                       
+            log.debug( "lock target doesnt exist, attempting lock null.." );
+            processNonExistingResource( manager, request, response, host, url );
+        }
     }
-    
-    
-    protected void processExistingResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException {
-        if (!isCompatible(resource)) {
+
+    protected void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException {
+        if( !isCompatible( resource ) ) {
             responseHandler.respondMethodNotImplemented( resource, response, request );
             return;
         }
 
         LockableResource r = (LockableResource) resource;
-        LockTimeout timeout = LockTimeout.parseTimeout(request);
+        LockTimeout timeout = LockTimeout.parseTimeout( request );
         String ifHeader = request.getIfHeader();
         response.setContentTypeHeader( Response.XML );
-        if( ifHeader == null || ifHeader.length() == 0  ) {
-            processNewLock(manager,request,response,r,timeout);
+        if( ifHeader == null || ifHeader.length() == 0 ) {
+            processNewLock( manager, request, response, r, timeout );
         } else {
-            processRefresh(manager,request,response,r,timeout,ifHeader);
-        }        
+            processRefresh( manager, request, response, r, timeout, ifHeader );
+        }
     }
 
     /**
@@ -113,198 +119,151 @@ public class LockHandler implements ResourceHandler {
      * @param host
      * @param url
      */
-    private void processNonExistingResource(HttpManager manager, Request request, Response response, String host, String url) throws NotAuthorizedException {
+    private void processNonExistingResource( HttpManager manager, Request request, Response response, String host, String url ) throws NotAuthorizedException {
         String name;
-        
-        Path parentPath = Path.path(url);
+
+        Path parentPath = Path.path( url );
         name = parentPath.getName();
         parentPath = parentPath.getParent();
         url = parentPath.toString();
-        
-        Resource r = manager.getResourceFactory().getResource(host, url);
+
+        Resource r = manager.getResourceFactory().getResource( host, url );
         if( r != null ) {
-            processCreateAndLock(manager, request,response,r, name);
+            processCreateAndLock( manager, request, response, r, name );
         } else {
-            log.debug("couldnt find parent to execute lock-null, returning not found");
+            log.debug( "couldnt find parent to execute lock-null, returning not found" );
             //respondNotFound(response,request);
-            response.setStatus(Status.SC_CONFLICT);
+            response.setStatus( Status.SC_CONFLICT );
 
         }
     }
 
-    private void processCreateAndLock(HttpManager manager, Request request, Response response, Resource parentResource, String name) throws NotAuthorizedException {
+    private void processCreateAndLock( HttpManager manager, Request request, Response response, Resource parentResource, String name ) throws NotAuthorizedException {
         if( parentResource instanceof LockingCollectionResource ) {
-            log.debug("parent supports lock-null. doing createAndLock");            
+            log.debug( "parent supports lock-null. doing createAndLock" );
             LockingCollectionResource lockingParent = (LockingCollectionResource) parentResource;
-            LockTimeout timeout = LockTimeout.parseTimeout(request);
+            LockTimeout timeout = LockTimeout.parseTimeout( request );
             response.setContentTypeHeader( Response.XML );
 
-            LockInfo lockInfo;        
+            LockInfo lockInfo;
             try {
-                lockInfo = LockInfo.parseLockInfo(request);            
-            } catch (SAXException ex) {
-                throw new RuntimeException("Exception reading request body", ex);
-            } catch (IOException ex) {
-                throw new RuntimeException("Exception reading request body", ex);
+                lockInfo = LockInfo.parseLockInfo( request );
+            } catch( SAXException ex ) {
+                throw new RuntimeException( "Exception reading request body", ex );
+            } catch( IOException ex ) {
+                throw new RuntimeException( "Exception reading request body", ex );
             }
 
             // TODO: this should be refactored to return a LockResult as for existing entities
 
-            log.debug("Creating lock on unmapped resource: " + name);
-            LockToken tok = lockingParent.createAndLock(name, timeout, lockInfo);
-            response.setStatus(Status.SC_CREATED);
-            response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
-            respondWithToken(tok, request, response);
-            
+            log.debug( "Creating lock on unmapped resource: " + name );
+            LockToken tok = lockingParent.createAndLock( name, timeout, lockInfo );
+            response.setStatus( Status.SC_CREATED );
+            response.setLockTokenHeader( "<opaquelocktoken:" + tok.tokenId + ">" );  // spec says to set response header. See 8.10.1
+            respondWithToken( tok, request, response );
+
         } else {
-            log.debug("parent does not support lock-null, respondong method not allowed");
+            log.debug( "parent does not support lock-null, respondong method not allowed" );
             responseHandler.respondMethodNotImplemented( parentResource, response, request );
         }
     }
-    
-    
+
     @Override
-    public boolean isCompatible(Resource handler) {
+    public boolean isCompatible( Resource handler ) {
         return handler instanceof LockableResource;
     }
 
-    protected void processNewLock(HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout) throws NotAuthorizedException {
-        LockInfo lockInfo;        
+    protected void processNewLock( HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout ) throws NotAuthorizedException {
+        LockInfo lockInfo;
         try {
-            lockInfo = LockInfo.parseLockInfo(request);            
-        } catch (SAXException ex) {
-            throw new RuntimeException("Exception reading request body", ex);
-        } catch (IOException ex) {
-            throw new RuntimeException("Exception reading request body", ex);
+            lockInfo = LockInfo.parseLockInfo( request );
+        } catch( SAXException ex ) {
+            throw new RuntimeException( "Exception reading request body", ex );
+        } catch( IOException ex ) {
+            throw new RuntimeException( "Exception reading request body", ex );
         }
 
-       	if( handlerHelper.isLockedOut( request, r )) {
-            this.responseHandler.respondLocked(request, response, r);
-    		return;
-    	}
+        if( handlerHelper.isLockedOut( request, r ) ) {
+            this.responseHandler.respondLocked( request, response, r );
+            return;
+        }
 
         // todo: check if already locked and return 423 locked or 412-precondition failed
         // also must support multi-status. when locking a collection and a DEPTH > 1, must lock all
         // child elements
-        log.debug("locking: " + r.getName());
-        LockResult result = r.lock(timeout, lockInfo);
-        if( result.isSuccessful()) {
+        log.debug( "locking: " + r.getName() );
+        LockResult result = r.lock( timeout, lockInfo );
+        if( result.isSuccessful() ) {
             LockToken tok = result.getLockToken();
-            log.debug("..locked ok: " + tok.tokenId);
-            response.setLockTokenHeader("<opaquelocktoken:" + tok.tokenId + ">");  // spec says to set response header. See 8.10.1
-            respondWithToken(tok, request, response);
+            log.debug( "..locked ok: " + tok.tokenId );
+            response.setLockTokenHeader( "<opaquelocktoken:" + tok.tokenId + ">" );  // spec says to set response header. See 8.10.1
+            respondWithToken( tok, request, response );
         } else {
-            responseWithLockFailure(result, request, response);
+            responseWithLockFailure( result, request, response );
         }
     }
 
-    protected void processRefresh(HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout, String ifHeader) throws NotAuthorizedException {
-        String token = parseToken(ifHeader);
-        log.debug("refreshing lock: " + token);
-        LockResult result = r.refreshLock(token);
-        if( result.isSuccessful()) {
+    protected void processRefresh( HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout, String ifHeader ) throws NotAuthorizedException {
+        String token = parseToken( ifHeader );
+        log.debug( "refreshing lock: " + token );
+        LockResult result = r.refreshLock( token );
+        if( result.isSuccessful() ) {
             LockToken tok = result.getLockToken();
-            respondWithToken(tok, request, response);
+            respondWithToken( tok, request, response );
         } else {
-            responseWithLockFailure(result, request, response);
+            responseWithLockFailure( result, request, response );
         }
     }
 
-    protected void respondWithToken(LockToken tok, Request request, Response response) {
-        response.setStatus(Status.SC_OK);
+    protected void respondWithToken( LockToken tok, Request request, Response response ) {
+        response.setStatus( Status.SC_OK );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        XmlWriter writer = new XmlWriter(out);
-        writer.writeXMLHeader();        
-        writer.open("D:prop  xmlns:D=\"DAV:\"");
+        XmlWriter writer = new XmlWriter( out );
+        writer.writeXMLHeader();
+        writer.open( "D:prop  xmlns:D=\"DAV:\"" );
         writer.newLine();
-        writer.open("D:lockdiscovery");
+        writer.open( "D:lockdiscovery" );
         writer.newLine();
-        writer.open("D:activelock");
-        writer.newLine();        
-        appendType(writer, tok.info.type);
-        appendScope(writer, tok.info.scope);
-        appendDepth(writer, tok.info.depth);
-        appendOwner(writer, tok.info.owner);
-        appendTimeout(writer, tok.timeout.getSeconds());
-        appendTokenId(writer, tok.tokenId);
-        appendRoot(writer, request.getAbsoluteUrl());
-        writer.close("D:activelock");
-        writer.close("D:lockdiscovery");
-        writer.close("D:prop");
+        writer.open( "D:activelock" );
+        writer.newLine();
+        lockWriterHelper.appendType( writer, tok.info.type );
+        lockWriterHelper.appendScope( writer, tok.info.scope );
+        lockWriterHelper.appendDepth( writer, tok.info.depth );
+        lockWriterHelper.appendOwner( writer, tok.info.owner );
+        lockWriterHelper.appendTimeout( writer, tok.timeout.getSeconds() );
+        lockWriterHelper.appendTokenId( writer, tok.tokenId );
+        lockWriterHelper.appendRoot( writer, request.getAbsoluteUrl() );
+        writer.close( "D:activelock" );
+        writer.close( "D:lockdiscovery" );
+        writer.close( "D:prop" );
         writer.flush();
-        
-        log.debug("lock response: " + out.toString());
+
+        log.debug( "lock response: " + out.toString() );
         try {
-            response.getOutputStream().write(out.toByteArray());
-        } catch (IOException ex) {
-            log.warn("exception writing to outputstream", ex);
+            response.getOutputStream().write( out.toByteArray() );
+        } catch( IOException ex ) {
+            log.warn( "exception writing to outputstream", ex );
         }
 //        response.close();
 
     }
 
-    static String parseToken(String ifHeader) {
+    static String parseToken( String ifHeader ) {
         String token = ifHeader;
-        int pos = token.indexOf(":");
+        int pos = token.indexOf( ":" );
         if( pos >= 0 ) {
-            token = token.substring(pos+1);
-            pos = token.indexOf(">");
+            token = token.substring( pos + 1 );
+            pos = token.indexOf( ">" );
             if( pos >= 0 ) {
-                token = token.substring(0, pos); 
+                token = token.substring( 0, pos );
             }
         }
         return token;
     }
 
-    private void appendDepth(XmlWriter writer, LockInfo.LockDepth depthType) {
-        String s = "Infinity";
-        if( depthType != null ) {
-            if( depthType.equals(LockInfo.LockDepth.INFINITY)) s = depthType.name().toUpperCase();
-        }
-        writer.writeProperty(null, "D:depth", s);
+
+    private void responseWithLockFailure( LockResult result, Request request, Response response ) {
+        response.setStatus( result.getFailureReason().status );
 
     }
-
-    private void appendOwner(XmlWriter writer, String owner) {
-        XmlWriter.Element el = writer.begin("D:owner").open();
-        XmlWriter.Element el2 = writer.begin("D:href").open();
-        if( owner != null ){
-            el2.writeText(owner);
-        }
-        el2.close();        
-        el.close();                
-    }
-
-    private void appendScope(XmlWriter writer, LockScope scope) {
-        writer.writeProperty(null, "D:lockscope", "<D:" + scope.toString().toLowerCase() + "/>");   
-    }
-
-    private void appendTimeout(XmlWriter writer, Long seconds) {        
-        if( seconds != null && seconds > 0 ) {
-            writer.writeProperty(null, "D:timeout", "Second-" + seconds);
-        }
-    }
-
-    private void appendTokenId(XmlWriter writer, String tokenId) {
-        XmlWriter.Element el = writer.begin("D:locktoken").open();
-        writer.writeProperty(null, "D:href", "opaquelocktoken:" + tokenId);
-        el.close(); 
-    }
-
-    private void appendType(XmlWriter writer, LockType type) {
-        writer.writeProperty(null, "D:locktype", "<D:" + type.toString().toLowerCase() + "/>");
-    }
-
-    private void appendRoot(XmlWriter writer, String lockRoot) {
-        XmlWriter.Element el = writer.begin("D:lockroot").open();
-        writer.writeProperty(null, "D:href", lockRoot);
-        el.close(); 
-    }
-
-
-    private void responseWithLockFailure(LockResult result, Request request, Response response) {
-        response.setStatus( result.getFailureReason().status);
-        
-    }
-
 }

@@ -4,9 +4,20 @@ import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockToken;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.XmlWriter.Element;
+import com.bradmcevoy.http.webdav.LockWriterHelper;
 import java.util.Map;
 
 public class LockTokenValueWriter implements ValueWriter {
+
+    private LockWriterHelper lockWriterHelper = new LockWriterHelper();
+
+    public LockWriterHelper getLockWriterHelper() {
+        return lockWriterHelper;
+    }
+
+    public void setLockWriterHelper( LockWriterHelper lockWriterHelper ) {
+        this.lockWriterHelper = lockWriterHelper;
+    }
 
     public boolean supports( String nsUri, String localName, Class c ) {
         return LockToken.class.isAssignableFrom( c );
@@ -17,15 +28,13 @@ public class LockTokenValueWriter implements ValueWriter {
         Element lockentry = writer.begin( "D:lockdiscovery" ).open();
         if( token != null ) {
             LockInfo info = token.info;
-            writer.begin( "D:lockscope" ).open().writeText( "<D:" + info.scope.name().toLowerCase() + "/>" ).close();
-            writer.begin( "D:locktype" ).open().writeText( "<D:" + info.type.name().toLowerCase() + "/>" ).close();
-            writer.begin( "D:depth" ).open().writeText( "0" ).close();
-            writer.begin( "D:owner" ).open().writeText( info.owner ).close();
-            writer.begin( "D:timeout" ).open().writeText( token.timeout.toString() ).close();
-            Element elToken = writer.begin( "D:locktoken" ).open();
-            writer.begin( "D:href" ).open().writeText( "urn:uuid:" + token.tokenId ).close();
-            writer.begin( "D:lockroot" ).open().writeText( href ).close();
-            elToken.close();
+            lockWriterHelper.appendType( writer, info.type );
+            lockWriterHelper.appendScope( writer, info.scope );
+            lockWriterHelper.appendDepth( writer, info.depth );
+            lockWriterHelper.appendOwner( writer, info.owner );
+            lockWriterHelper.appendTimeout( writer, token.timeout.getSeconds() );
+            lockWriterHelper.appendTokenId( writer, token.tokenId );
+            lockWriterHelper.appendRoot( writer, href );
         }
         lockentry.close();
     }
