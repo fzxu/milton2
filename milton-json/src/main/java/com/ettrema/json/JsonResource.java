@@ -5,6 +5,8 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract class to contain common properties
@@ -12,6 +14,8 @@ import java.util.Date;
  * @author brad
  */
 public abstract class JsonResource {
+
+    private static final Logger log = LoggerFactory.getLogger( JsonResource.class );
 
     private final Resource wrappedResource;
     private final String name;
@@ -44,11 +48,32 @@ public abstract class JsonResource {
     }
 
     public Object authenticate( String user, String password ) {
-        return wrappedResource.authenticate( user, password );
+        if( log.isDebugEnabled()) {
+            log.debug( "authenticate: " + user);
+        }
+        Object o = wrappedResource.authenticate( user, password );
+        if( log.isDebugEnabled()) {
+            if( o == null ) {
+                log.debug( "authentication failed on wrapped resource of type: " + wrappedResource.getClass());
+            }
+        }
+        return o;
     }
 
     public boolean authorise( Request request, Method method, Auth auth ) {
-        return wrappedResource.authorise( request, Request.Method.PROPFIND, auth );
+        if( log.isDebugEnabled()) {
+            log.debug( "authorise: " + request.getAuthorization());
+        }
+        if( auth != null && request.getAuthorization() == null ) {
+            log.warn( "got auth, but null request.getAuthorization()!!");
+        }
+        boolean b = wrappedResource.authorise( request, Request.Method.PROPFIND, auth );
+        if( log.isDebugEnabled()) {
+            if( !b ) {
+                log.debug( "authorise failed on wrapped resource of type: " + wrappedResource.getClass());
+            }
+        }
+        return b;
     }
 
     public String getRealm() {

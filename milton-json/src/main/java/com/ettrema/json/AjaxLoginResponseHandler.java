@@ -7,6 +7,8 @@ import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -21,6 +23,8 @@ import java.util.List;
  * @author brad
  */
 public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
+
+    private static final Logger log = LoggerFactory.getLogger( AjaxLoginResponseHandler.class );
 
     private final List<ResourceMatcher> resourceMatchers;
 
@@ -41,7 +45,7 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
     }
 
     /**
-     * if the resource is a AjaxLoginResource then return a 400
+     * if the resource is a AjaxLoginResource then return a 403
      *
      * otherwise just do a normal 401
      *
@@ -52,7 +56,8 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
     @Override
     public void respondUnauthorised( Resource resource, Response response, Request request ) {
         if( matches(resource) ) {
-            wrapped.respondBadRequest( resource, response, request );
+            log.warn("unauthorised on wrapped ajax resource");
+            wrapped.respondForbidden( resource, response, request );
         } else {
             wrapped.respondUnauthorised( resource, response, request );
         }
