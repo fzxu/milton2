@@ -110,6 +110,10 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
         wrapped.respondBadRequest( resource, response, request );
     }
 
+    public void respondForbidden( Resource resource, Response response, Request request ) {
+        wrapped.respondForbidden( resource, response, request );
+    }
+
     public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
         wrapped.respondDeleteFailed( request, response, resource, status );
     }

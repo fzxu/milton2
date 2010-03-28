@@ -63,6 +63,10 @@ public class GetHandler implements ExistingEntityHandler {
     /** Return true if the resource has not been modified
      */
     private boolean checkConditional( GetableResource resource, Request request ) {
+        // If maxAgeSeconds is null then we do not cache
+        if( resource.getMaxAgeSeconds( request.getAuthorization()) == null ) {
+            return false;
+        }
         if( checkIfMatch( resource, request ) ) {
             return true;
         }

@@ -134,6 +134,12 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         wrapped.respondBadRequest( resource, response, request );
     }
 
+    public void respondForbidden( Resource resource, Response response, Request request ) {
+        wrapped.respondForbidden( resource, response, request );
+    }
+
+
+
     public void respondServerError( Request request, Response response, String reason ) {
         wrapped.respondServerError( request, response, reason );
     }

@@ -71,6 +71,18 @@ public interface Http11ResponseHandler {
      */
     void respondBadRequest( Resource resource, Response response, Request request);
 
+
+    /**
+     * Respond with a 403 status - forbidden
+     *
+     * @param resource
+     * @param response
+     * @param request
+     * @param params
+     */
+    void respondForbidden( Resource resource, Response response, Request request);
+
+
     /**
      * Called when a delete has failed, including the failure status.
      *

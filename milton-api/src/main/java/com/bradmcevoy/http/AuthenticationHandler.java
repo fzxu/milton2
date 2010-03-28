@@ -13,11 +13,15 @@ public interface AuthenticationHandler {
      * Returns true if this supports authenticating with the given Auth data
      * on the given resource.
      *
+     * Only the first AuthenticationHandler which returns true for supports
+     * will be used for authentication. Ie supports implementations should be
+     * mutually exclusive
+     *
      * @param r
      * @param auth
      * @return
      */
-    boolean supports(Resource r, Auth auth);
+    boolean supports(Resource r, Request request);
 
     /**
      * Authenticate the details in the request for access to the given
@@ -43,9 +47,14 @@ public interface AuthenticationHandler {
     /**
      * Returns true if this authentication handler is compatible with the given
      * resource
+     *
+     * This is used when authorisation has failed, in generating challenge responses
+     *
+     * If you don't want to add a challenge response, return false
      * 
      * @param resource
-     * @return
+     * @return - true if this can authenticate the resource, and it should issue a
+     * http challenge
      */
     boolean isCompatible( Resource resource );
 }

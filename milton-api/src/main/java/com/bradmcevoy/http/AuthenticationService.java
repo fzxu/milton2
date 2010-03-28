@@ -107,7 +107,7 @@ public class AuthenticationService {
      */
     public Object authenticate( Resource resource, Request request ) {
         for( AuthenticationHandler h : authenticationHandlers ) {
-            if( h.supports( resource, request.getAuthorization() ) ) {
+            if( h.supports( resource, request ) ) {
                 Object o = h.authenticate( resource, request );
                 if( o == null ) {
                     log.warn( "authentication failed by AuthenticationHandler:" + h.getClass() );

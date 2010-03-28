@@ -203,4 +203,31 @@ public interface Response {
      * @param unencodedUrl
      */
     void sendRedirect( String url );
+
+
+   /**
+    * The <code>setCookie</code> method is used to set a cookie value
+    * with the cookie name. This will add a cookie to the response
+    * stored under the name of the cookie, when this is committed it
+    * will be added as a Set-Cookie header to the resulting response.
+    *
+    * @param cookie this is the cookie to be added to the response
+    *
+    * @return returns the cookie that has been set in the response
+    */
+   Cookie setCookie(Cookie cookie);
+
+   /**
+    * The <code>setCookie</code> method is used to set a cookie value
+    * with the cookie name. This will add a cookie to the response
+    * stored under the name of the cookie, when this is committed it
+    * will be added as a Set-Cookie header to the resulting response.
+    * This is a convenience method that avoids cookie creation.
+    *
+    * @param name this is the cookie to be added to the response
+    * @param value this is the cookie value that is to be used
+    *
+    * @return returns the cookie that has been set in the response
+    */
+   Cookie setCookie(String name, String value);
 }

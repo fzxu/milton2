@@ -16,7 +16,8 @@ public class BasicAuthHandler implements AuthenticationHandler {
 
     private static final Logger log = LoggerFactory.getLogger( BasicAuthHandler.class );
 
-    public boolean supports( Resource r, Auth auth ) {
+    public boolean supports( Resource r, Request request ) {
+        Auth auth = request.getAuthorization();
         log.debug( "supports: " + auth.getScheme() );
         return auth.getScheme().equals( Scheme.BASIC );
     }

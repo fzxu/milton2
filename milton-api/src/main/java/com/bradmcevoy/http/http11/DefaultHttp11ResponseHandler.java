@@ -250,6 +250,10 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         response.setStatus( Response.Status.SC_BAD_REQUEST );
     }
 
+    public void respondForbidden( Resource resource, Response response, Request request ) {
+        response.setStatus( Response.Status.SC_FORBIDDEN );
+    }
+
     public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
         response.setStatus( status );
     }

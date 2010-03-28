@@ -139,6 +139,14 @@ public class DebugFilter implements Filter{
             r.setAuthenticateHeader( challenges );
         }
 
+        public Cookie setCookie( Cookie cookie ) {
+            return r.setCookie( cookie );
+        }
+
+        public Cookie setCookie( String name, String value ) {
+            return r.setCookie( name, value );
+        }
+
 
     }
 
@@ -205,6 +213,14 @@ public class DebugFilter implements Filter{
             } catch (IOException ex) {
                 log.error("",ex);
             }
+        }
+
+        public Cookie getCookie( String name ) {
+            return r.getCookie( name );
+        }
+
+        public List<Cookie> getCookies() {
+            return r.getCookies();
         }
 
     }

@@ -3,6 +3,7 @@ package com.bradmcevoy.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public interface Request {
@@ -187,4 +188,30 @@ public interface Request {
      * @return - a map of files from an upload request, keyed by file name
      */
     Map<String, FileItem> getFiles();
+
+
+
+   /**
+    * This is used to acquire a cookie using the name of that cookie.
+    * If the cookie exists within the HTTP header then it is returned
+    * as a <code>Cookie</code> object. Otherwise this method will
+    * return null. Each cookie object will contain the name, value
+    * and path of the cookie as well as the optional domain part.
+    *
+    * @param name this is the name of the cookie object to acquire
+    *
+    * @return this returns a cookie object from the header or null
+    */
+   public Cookie getCookie(String name);
+
+   /**
+    * This is used to acquire all cookies that were sent in the header.
+    * If any cookies exists within the HTTP header they are returned
+    * as <code>Cookie</code> objects. Otherwise this method will an
+    * empty list. Each cookie object will contain the name, value and
+    * path of the cookie as well as the optional domain part.
+    *
+    * @return this returns all cookie objects from the HTTP header
+    */
+   public List<Cookie> getCookies();   
 }

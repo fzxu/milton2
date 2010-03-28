@@ -2,9 +2,7 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
 import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.webdav.PropFindResponse;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
