@@ -50,6 +50,7 @@ public class MkColHandler implements Handler {
             log.debug( "process: resource: " + parentcol.getClass().getName() );
 
             if( handlerHelper.isLockedOut( request, parentcol ) ) {
+                log.warn("isLockedOut");
                 response.setStatus( Status.SC_LOCKED );
                 return;
             }
@@ -75,7 +76,12 @@ public class MkColHandler implements Handler {
         }
     }
 
-    protected void processMakeCol( HttpManager milton, Request request, Response response, CollectionResource resource, String newName ) throws ConflictException, NotAuthorizedException {
+    protected void processMakeCol( HttpManager manager, Request request, Response response, CollectionResource resource, String newName ) throws ConflictException, NotAuthorizedException {
+        if( !handlerHelper.checkAuthorisation( manager, resource, request ) ) {
+            responseHandler.respondUnauthorised( resource, response, request );
+            return;
+        }
+
         MakeCollectionableResource existingCol = (MakeCollectionableResource) resource;
         try {
             //For litmus test and RFC support
@@ -89,11 +95,12 @@ public class MkColHandler implements Handler {
         }
         Resource existingChild = existingCol.child( newName );
         if( existingChild != null ) {
-            log.debug( "item already exists: " + existingChild.getName() );
+            log.warn( "item already exists: " + existingChild.getName() );
             throw new ConflictException( existingChild );
         }
         CollectionResource made = existingCol.createCollection( newName );
         if( made == null ) {
+            log.warn( "createCollection returned null. In resource class: " + existingCol.getClass());
             response.setStatus( Response.Status.SC_METHOD_NOT_ALLOWED );
         } else {
             response.setStatus( Response.Status.SC_CREATED );
