@@ -258,9 +258,6 @@ public class PutHandler implements Handler {
             responseHandler.respondUnauthorised( replacee, response, request );
             return;
         }
-
-        // TODO: check if locked
-
         try {
             Long l = request.getContentLengthHeader();
             replacee.replaceContent( request.getInputStream(), l );
