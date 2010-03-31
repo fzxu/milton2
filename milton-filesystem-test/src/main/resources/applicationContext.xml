@@ -52,7 +52,9 @@
 
     <bean id="milton.fs.lock.manager" class="com.ettrema.http.fs.MemoryLockManager" />
 
-    <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService"/>
+    <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService">
+        <property name="disableDigest" value="true"/>
+    </bean>
 <!--
     <bean id="milton.response.handler" class="com.bradmcevoy.http.MsOfficeResponseHandler"/>
 -->
