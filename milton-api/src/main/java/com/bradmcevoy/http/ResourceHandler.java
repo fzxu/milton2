@@ -3,7 +3,6 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import java.util.Map;
 
 /**
  *

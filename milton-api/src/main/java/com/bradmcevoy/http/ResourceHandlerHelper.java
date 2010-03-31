@@ -78,7 +78,8 @@ public class ResourceHandlerHelper {
                 }
             }
 
-            if( !handler.isCompatible( resource ) ) {
+
+            if( handlerHelper.isNotCompatible( resource, request.getMethod()) || !handler.isCompatible( resource ) ) {
                 log.debug( "resource not compatible. Resource class: " + resource.getClass() + " handler: " + handler.getClass() );
                 responseHandler.respondMethodNotImplemented( resource, response, request );
                 return;

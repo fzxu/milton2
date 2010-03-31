@@ -6,7 +6,6 @@ import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,6 @@ import org.xml.sax.SAXException;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
-import java.net.URI;
 
 /**
  * Note that this is both a new entity handler and an existing entity handler
@@ -74,8 +72,12 @@ public class LockHandler implements ResourceHandler {
     }
 
     protected void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException {
-        if( !isCompatible( resource ) ) {
+        if( handlerHelper.isNotCompatible( resource, request.getMethod()) || !isCompatible( resource ) ) {
             responseHandler.respondMethodNotImplemented( resource, response, request );
+            return;
+        }
+        if( !handlerHelper.checkAuthorisation( manager, resource, request ) ) {
+            responseHandler.respondUnauthorised( resource, response, request );
             return;
         }
 
@@ -129,7 +131,12 @@ public class LockHandler implements ResourceHandler {
 
         Resource r = manager.getResourceFactory().getResource( host, url );
         if( r != null ) {
-            processCreateAndLock( manager, request, response, r, name );
+            if( !handlerHelper.checkAuthorisation( manager, r, request ) ) {
+                responseHandler.respondUnauthorised( r, response, request );
+                return;
+            } else {
+                processCreateAndLock( manager, request, response, r, name );
+            }
         } else {
             log.debug( "couldnt find parent to execute lock-null, returning not found" );
             //respondNotFound(response,request);

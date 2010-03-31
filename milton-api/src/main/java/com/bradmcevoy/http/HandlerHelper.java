@@ -1,6 +1,7 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import com.bradmcevoy.http.quota.StorageChecker;
 import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
@@ -151,4 +152,21 @@ public class HandlerHelper {
         return null;
     }
 
+    /**
+     * Returns true to indicate that the given resource MUST NOT handle the 
+     * given method.
+     * 
+     * A return value of false indicates that it might.
+     * 
+     * @param r - the resource to check
+     * @param m - the HTTP request method
+     * @return - true to indicate the resource must not handle method m
+     */
+    public boolean isNotCompatible(Resource r, Method m) {
+        if( r instanceof ConditionalCompatibleResource ){
+            ConditionalCompatibleResource  ccr = (ConditionalCompatibleResource) r;
+            return !ccr.isCompatible( m );
+        }
+        return false;
+    }
 }

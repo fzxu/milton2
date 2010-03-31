@@ -26,7 +26,7 @@ public class OptionsHandler implements ResourceHandler {
     private final Http11ResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
-    private final boolean enableAuthorisation;
+    private boolean enableAuthorisation;
 
     /**
      * Creates an OptionHandler with no authorisation
@@ -114,10 +114,24 @@ public class OptionsHandler implements ResourceHandler {
         for( Handler f : manager.getAllHandlers() ) {
             if( f.isCompatible( res ) ) {
                 for( String m : f.getMethods() ) {
-                    list.add( m );
+                    Method httpMethod = Method.valueOf( m );
+                    if( !handlerHelper.isNotCompatible( res, httpMethod) ) {
+                        list.add( m );
+                    }
                 }
             }
         }
         return list;
+    }
+
+    public boolean isEnableAuthorisation() {
+        return enableAuthorisation;
+    }
+
+    public void setEnableAuthorisation( boolean enableAuthorisation ) {
+        this.enableAuthorisation = enableAuthorisation;
+        if( enableAuthorisation && (handlerHelper == null)) {
+            throw new RuntimeException( "enableAuthorisation set to true, but no handlerHelper has been provided. You WILL get NullPointerException's");
+        }
     }
 }
