@@ -27,23 +27,19 @@
             <timezone>GMT+12</timezone>
         </developer>
     </developers>
-    <contributors>
-        <contributor>
-            <name>Koen Serry</name>
-            <timezone>GMT+1</timezone>
-        </contributor>
-    </contributors>
     <modules>
         <module>milton-api</module>
         <module>milton-servlet</module>
         <module>milton-console</module>
         <module>milton-json</module>
-        <module>milton-test</module>
         <module>milton-filesystem</module>
-        <module>milton-filesystem-test</module>
         <module>milton-ftp</module>
-        <module>milton-ajax-demo</module>
 		<module>milton-gae</module>
+        <!--
+        <module>milton-test</module>
+        <module>milton-ajax-demo</module>
+        <module>milton-filesystem-test</module>
+        -->
     </modules>
     <build>
         <plugins>
