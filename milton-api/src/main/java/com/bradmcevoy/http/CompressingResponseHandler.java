@@ -16,6 +16,7 @@ import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
+import java.util.Date;
 
 /**
  * Response Handler which wraps another, and compresses content if appropriate
@@ -40,6 +41,11 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
     public CompressingResponseHandler( WebDavResponseHandler wrapped ) {
         super(wrapped);
     }
+
+    public String generateEtag( Resource r ) {
+        return wrapped.generateEtag( r );
+    }
+
 
 
     @Override
@@ -68,7 +74,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 }
 
                 log.debug( "respondContent-compressed: " + resource.getClass() );
-                DefaultHttp11ResponseHandler.setRespondContentCommonHeaders( response, resource );
+                setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK );
                 response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
                 Long contentLength = tempOut.getSize();
                 response.setContentLengthHeader( contentLength );
@@ -84,11 +90,19 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 return ;
             }
         }
-
         wrapped.respondContent( resource, response, request, params );
+    }
 
-
-
+    protected void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status ) {
+        response.setStatus( status );
+        response.setDateHeader( new Date() );
+        String etag = wrapped.generateEtag( resource );
+        if( etag != null ) {
+            response.setEtag( etag );
+        }
+        if( resource.getModifiedDate() != null ) {
+            response.setLastModifiedHeader( resource.getModifiedDate() );
+        }
     }
 
     private boolean canCompress( GetableResource r, String contentType, String acceptableEncodings ) {

@@ -11,7 +11,8 @@ import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.XmlWriter;
-import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
+import com.bradmcevoy.http.http11.DefaultETagGenerator;
+import com.bradmcevoy.http.http11.ETagGenerator;
 import com.bradmcevoy.http.quota.DefaultQuotaDataAccessor;
 import com.bradmcevoy.http.quota.QuotaDataAccessor;
 import com.bradmcevoy.http.webdav.WebDavProtocol.SupportedLocks;
@@ -31,14 +32,32 @@ public class DefaultWebDavPropertySource implements PropertySource {
     private final Map<String, StandardProperty> writersMap = new HashMap<String, StandardProperty>();
     private final ResourceTypeHelper resourceTypeHelper;
     private final QuotaDataAccessor quotaDataAccessor;
+    private final ETagGenerator eTagGenerator;
 
     public DefaultWebDavPropertySource( ResourceTypeHelper resourceTypeHelper ) {
-        this(resourceTypeHelper, new DefaultQuotaDataAccessor());
+        this.resourceTypeHelper = resourceTypeHelper;
+        this.quotaDataAccessor = new DefaultQuotaDataAccessor();
+        this.eTagGenerator = new DefaultETagGenerator();
     }
+
+    /**
+     *
+     * @param resourceTypeHelper
+     * @param quotaDataAccessor
+     * @param eTagGenerator - note that this must match the ETagGenerator used in HTTP11 processing. Ie, see
+     */
+    public DefaultWebDavPropertySource( ResourceTypeHelper resourceTypeHelper, QuotaDataAccessor quotaDataAccessor, ETagGenerator eTagGenerator ) {
+        this.resourceTypeHelper = resourceTypeHelper;
+        this.quotaDataAccessor = quotaDataAccessor;
+        this.eTagGenerator = eTagGenerator;
+    }
+
+
 
     public DefaultWebDavPropertySource(ResourceTypeHelper resourceTypeHelper, QuotaDataAccessor quotaDataAccessor) {
         this.resourceTypeHelper = resourceTypeHelper;
         this.quotaDataAccessor = quotaDataAccessor;
+        this.eTagGenerator = new DefaultETagGenerator();
         add( new ContentLengthPropertyWriter() );
         add( new ContentTypePropertyWriter() );
         add( new CreationDatePropertyWriter() );
@@ -288,7 +307,7 @@ public class DefaultWebDavPropertySource implements PropertySource {
         }
 
         public String getValue( PropFindableResource res ) {
-            String etag = DefaultHttp11ResponseHandler.generateEtag( res );
+            String etag = eTagGenerator.generateEtag( res );
             return etag;
         }
 

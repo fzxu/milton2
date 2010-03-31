@@ -22,8 +22,11 @@ import java.util.Map;
  *
  *  In other words, hacks to support particular client programs should be implemented
  *  here
+ *
+ *  Extends ETagGenerator to facillitate wrapping, although generatlly it will
+ *  contain an instance and delegate to it.
  */
-public interface Http11ResponseHandler {
+public interface Http11ResponseHandler extends ETagGenerator {
     /**
      * Invoked when an operation is successful, but there is no content, and
      * there is nothing more specific to return (Eg created)

@@ -27,20 +27,24 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
     public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
 
-    public static String generateEtag( Resource r ) {
-        String s = r.getUniqueId();
-        if( s == null ) return null;
-        Date dt = r.getModifiedDate();
-        if( dt != null ) {
-            s = s + "_" + dt.hashCode();
-        }
-        return s;
-    }
     private final AuthenticationService authenticationService;
+    private final ETagGenerator eTagGenerator;
 
     public DefaultHttp11ResponseHandler( AuthenticationService authenticationService ) {
         this.authenticationService = authenticationService;
+        this.eTagGenerator = new DefaultETagGenerator();
     }
+
+    public DefaultHttp11ResponseHandler( AuthenticationService authenticationService, ETagGenerator eTagGenerator ) {
+        this.authenticationService = authenticationService;
+        this.eTagGenerator = eTagGenerator;
+    }
+
+    public String generateEtag( Resource r ) {
+        return eTagGenerator.generateEtag( r );
+    }
+
+
 
     public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
         response.setStatus( Response.Status.SC_OK );
@@ -132,7 +136,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         response.setStatus( Response.Status.SC_PARTIAL_CONTENT );
         response.setContentRangeHeader( range.getStart(), range.getFinish(), resource.getContentLength() );
         response.setDateHeader( new Date() );
-        String etag = generateEtag( resource );
+        String etag = eTagGenerator.generateEtag( resource );
         if( etag != null ) {
             response.setEtag( etag );
         }
@@ -175,7 +179,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 //        log.debug( "not modified" );
         response.setStatus( Response.Status.SC_NOT_MODIFIED );
         response.setDateHeader( new Date() );
-        String etag = generateEtag( resource );
+        String etag = eTagGenerator.generateEtag( resource );
         if( etag != null ) {
             response.setEtag( etag );
         }
@@ -230,14 +234,14 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         pw.flush();
     }
 
-    public static void setRespondContentCommonHeaders( Response response, Resource resource ) {
+    protected void setRespondContentCommonHeaders( Response response, Resource resource ) {
         setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK );
     }
 
-    public static void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status ) {
+    protected void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status ) {
         response.setStatus( status );
         response.setDateHeader( new Date() );
-        String etag = generateEtag( resource );
+        String etag = eTagGenerator.generateEtag( resource );
         if( etag != null ) {
             response.setEtag( etag );
         }

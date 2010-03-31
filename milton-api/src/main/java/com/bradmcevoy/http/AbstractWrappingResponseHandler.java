@@ -36,6 +36,11 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
         this.wrapped = wrapped;
     }
 
+    public String generateEtag( Resource r ) {
+        return wrapped.generateEtag( r );
+    }
+
+
 
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
         wrapped.respondContent( resource, response, request, params );

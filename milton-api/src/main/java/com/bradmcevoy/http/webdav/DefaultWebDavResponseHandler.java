@@ -51,6 +51,12 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         this.propFindXmlGenerator = propFindXmlGenerator;
     }
 
+    public String generateEtag( Resource r ) {
+        return wrapped.generateEtag( r );
+    }
+
+
+
     public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
         wrapped.respondWithOptions( resource, response, request, methodsAllowed );
         List<String> supportedLevels = resourceTypeHelper.getSupportedLevels( resource );
