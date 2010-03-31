@@ -125,4 +125,28 @@ public class ServletResponse extends AbstractResponse {
         }
     }
 
+    public Cookie setCookie( Cookie cookie ) {
+        if( cookie instanceof ServletCookie) {
+            ServletCookie sc = (ServletCookie) cookie;
+            r.addCookie( sc.getWrappedCookie() );
+            return cookie;
+        } else {
+            javax.servlet.http.Cookie c = new javax.servlet.http.Cookie( cookie.getName(), cookie.getValue());
+            c.setDomain( cookie.getDomain());
+            c.setMaxAge( cookie.getExpiry());
+            c.setPath( cookie.getPath());
+            c.setSecure( cookie.getSecure());
+            c.setVersion( cookie.getVersion());
+
+            r.addCookie( c );
+            return new ServletCookie( c );
+        }
+    }
+
+    public Cookie setCookie( String name, String value ) {
+        javax.servlet.http.Cookie c = new javax.servlet.http.Cookie( name, value );
+        r.addCookie( c );
+        return new ServletCookie( c );
+    }
+
 }

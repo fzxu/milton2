@@ -2,12 +2,15 @@ package com.ettrema.ftp;
 
 import com.bradmcevoy.http.AbstractRequest;
 import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.Cookie;
 import com.bradmcevoy.http.FileItem;
 import com.bradmcevoy.http.Request.Header;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.RequestParseException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,6 +61,14 @@ public class FtpRequest extends AbstractRequest{
 
     public void parseRequestParameters( Map<String, String> params, Map<String, FileItem> files ) throws RequestParseException {
         throw new UnsupportedOperationException( "Not supported yet." );
+    }
+
+    public Cookie getCookie( String name ) {
+        return null;
+    }
+
+    public List<Cookie> getCookies() {
+        return new ArrayList<Cookie>();
     }
 
 }
