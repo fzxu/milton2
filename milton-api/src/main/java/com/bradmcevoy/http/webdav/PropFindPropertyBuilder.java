@@ -143,7 +143,8 @@ public class PropFindPropertyBuilder {
                         log.warn("null name for resource of type: " + child.getClass() + " in folder: " + href + " WILL NOT be returned in PROPFIND response!!");
                     } else {
                         String childHref = collectionHref + Utils.percentEncode( childName );
-                        processResource( responses, (PropFindableResource) child, parseResult, childHref, requestedDepth, currentDepth + 1, href + col.getName() );
+                        // Note that the new collection href, is just the current href
+                        processResource( responses, (PropFindableResource) child, parseResult, childHref, requestedDepth, currentDepth + 1, href );
                     }
                 }
             }
