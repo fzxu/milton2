@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FsDirectoryResource extends FsResource implements MakeCollectionableResource, PutableResource, CopyableResource, DeletableResource, MoveableResource, PropFindableResource, LockingCollectionResource, GetableResource {
 
-    private static final Logger log = LoggerFactory.getLogger(FsDirectoryResource.class);
+    private static final Logger log = LoggerFactory.getLogger( FsDirectoryResource.class );
 
     public FsDirectoryResource( String host, FileSystemResourceFactory factory, File dir ) {
         super( host, factory, dir );
@@ -71,7 +71,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
                 if( res != null ) {
                     list.add( res );
                 } else {
-                    log.error("Couldnt resolve file {}", fchild.getAbsolutePath());
+                    log.error( "Couldnt resolve file {}", fchild.getAbsolutePath() );
                 }
             }
         }
@@ -115,7 +115,7 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
         }
     }
 
-    public LockToken createAndLock( String name, LockTimeout timeout, LockInfo lockInfo ) throws NotAuthorizedException{
+    public LockToken createAndLock( String name, LockTimeout timeout, LockInfo lockInfo ) throws NotAuthorizedException {
         File dest = new File( this.getFile(), name );
         createEmptyFile( dest );
         FsFileResource newRes = new FsFileResource( host, factory, dest );
@@ -148,26 +148,24 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
      * @throws NotAuthorizedException
      */
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
+        String subpath = getFile().getCanonicalPath().substring( factory.getRoot().getCanonicalPath().length() ).replace( '\\', '/' );
+        String uri = "/" + factory.getContextPath() + subpath;
         XmlWriter w = new XmlWriter( out );
         w.open( "html" );
         w.open( "body" );
         w.begin( "h1" ).open().writeText( this.getName() ).close();
-        if( this.factory.isAllowDirectoryBrowsing()) {
-            w.open( "table" );
-            for( Resource r : getChildren() ) {
-                w.open( "tr" );
+        w.open( "table" );
+        for( Resource r : getChildren() ) {
+            w.open( "tr" );
 
-                w.open( "td" );
-                w.begin( "a" ).writeAtt( "href", r.getName() + "/" ).open().writeText( r.getName() ).close();
-                w.close( "td" );
+            w.open( "td" );
+            w.begin( "a" ).writeAtt( "href", uri + "/" + r.getName() ).open().writeText( r.getName() ).close();
+            w.close( "td" );
 
-                w.begin( "td" ).open().writeText( r.getModifiedDate() + "" ).close();
-                w.close( "tr" );
-            }
-            w.close( "table" );
-        } else {
-            w.begin( "p").writeText( "Directory browsing is disabled").close();
+            w.begin( "td" ).open().writeText( r.getModifiedDate() + "" ).close();
+            w.close( "tr" );
         }
+        w.close( "table" );
         w.close( "body" );
         w.close( "html" );
         w.flush();
@@ -184,5 +182,4 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
     public Long getContentLength() {
         return null;
     }
-
 }
