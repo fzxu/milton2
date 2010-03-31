@@ -36,6 +36,11 @@ public class DateUtils {
      * Date format pattern used to parse HTTP date headers in RFC 1123 format.
      */
     public static final String PATTERN_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
+
+    /**
+     * Date format pattern used to parse HTTP date headers in RFC 1123 format.
+     */
+    public static final String PATTERN_RFC1123_NOSECS = "EEE, dd MMM yyyy HH:mm zzz";
     
     /**
      * Date format pattern used to parse HTTP date headers in RFC 1036 format.
@@ -55,7 +60,7 @@ public class DateUtils {
     public static final String PATTERN_ASCTIME2 = "EEE MMM yyyy HH:mm:ss zzz";
     
     private static final Collection<String> DEFAULT_PATTERNS = Arrays.asList(
-            new String[] { PATTERN_ASCTIME, PATTERN_ASCTIME2, PATTERN_RFC1036, PATTERN_RFC1123 } );
+            new String[] { PATTERN_ASCTIME, PATTERN_ASCTIME2, PATTERN_RFC1036, PATTERN_RFC1123, PATTERN_RFC1123_NOSECS } );
     
     private static final Date DEFAULT_TWO_DIGIT_YEAR_START;
     

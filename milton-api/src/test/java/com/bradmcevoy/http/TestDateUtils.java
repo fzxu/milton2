@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.DateUtils.DateParseException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -15,6 +16,23 @@ public class TestDateUtils extends TestCase {
         System.out.println("parsed: " + dt);
         String s = DateUtils.formatDate(dt);
         System.out.println("formatted to: " + s);
+    }
+
+    public void testParseNormal() throws DateParseException {
+        Date dt = DateUtils.parseDate( "Sun, 28 Mar 2010 01:00:00 GMT");
+        System.out.println( dt.getTime() );
+        assertEquals( 1269738000000l, dt.getTime());
+    }
+
+    /**
+     * See http://www.ettrema.com:8080/browse/MIL-60
+     *
+     * @throws com.bradmcevoy.http.DateUtils.DateParseException
+     */
+    public void testParseWithoutSeconds() throws DateParseException {
+        Date dt = DateUtils.parseDate( "Sun, 28 Mar 2010 01:00 GMT");
+        System.out.println( dt.getTime() );
+        assertEquals( 1269738000000l, dt.getTime());
     }
     
 }
