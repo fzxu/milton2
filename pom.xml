@@ -34,7 +34,7 @@
         <module>milton-json</module>
         <module>milton-filesystem</module>
         <module>milton-ftp</module>
-		<module>milton-gae</module>
+        <module>milton-gae</module>
         <!--
         <module>milton-test</module>
         <module>milton-ajax-demo</module>
@@ -50,7 +50,16 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
-<!--
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.0</version>
+                <configuration>
+                    <tagBase>svn://www.ettrema.com/milton/tags</tagBase>
+                </configuration>
+            </plugin>
+
+            <!--
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -85,28 +94,28 @@
             </plugin>
 
 
-			<plugin>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>deploy</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 -->
 
         </plugins>
