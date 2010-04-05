@@ -46,6 +46,9 @@ public class FileUtils {
     @SuppressWarnings("unchecked")
     public static String readResource(Class cl, String res) throws IOException {
         InputStream in = cl.getResourceAsStream(res);
+        if( in == null ) {
+            throw new IOException( "Failed to read resource: " + res + " relative to class: " + cl.getCanonicalName());
+        }
         ByteArrayOutputStream out = readIn(in);
         return out.toString();
     }
