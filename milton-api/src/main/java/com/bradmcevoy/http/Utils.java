@@ -117,6 +117,16 @@ public class Utils {
      * @return
      */
     public static String percentEncode( String s ) {
+        s = _percentEncode( s ); // the original method, from java.net
+        s = s.replace( ":", "%3A");
+        s = s.replace( ";", "%3B");
+        s = s.replace( "=", "%3D");
+        s = s.replace( "?", "%3F");
+        s = s.replace( "@", "%40");
+        return s;
+    }
+    
+    private static String _percentEncode( String s ) {
         int n = s.length();
         if( n == 0 ) {
             return s;
