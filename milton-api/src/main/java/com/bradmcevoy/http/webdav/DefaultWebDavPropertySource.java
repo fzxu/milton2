@@ -38,6 +38,7 @@ public class DefaultWebDavPropertySource implements PropertySource {
         this.resourceTypeHelper = resourceTypeHelper;
         this.quotaDataAccessor = new DefaultQuotaDataAccessor();
         this.eTagGenerator = new DefaultETagGenerator();
+        addStandardProperties(  );
     }
 
     /**
@@ -50,6 +51,7 @@ public class DefaultWebDavPropertySource implements PropertySource {
         this.resourceTypeHelper = resourceTypeHelper;
         this.quotaDataAccessor = quotaDataAccessor;
         this.eTagGenerator = eTagGenerator;
+        addStandardProperties(  );
     }
 
 
@@ -58,6 +60,11 @@ public class DefaultWebDavPropertySource implements PropertySource {
         this.resourceTypeHelper = resourceTypeHelper;
         this.quotaDataAccessor = quotaDataAccessor;
         this.eTagGenerator = new DefaultETagGenerator();
+        addStandardProperties(  );
+
+    }
+
+    private void addStandardProperties() {
         add( new ContentLengthPropertyWriter() );
         add( new ContentTypePropertyWriter() );
         add( new CreationDatePropertyWriter() );
@@ -65,17 +72,13 @@ public class DefaultWebDavPropertySource implements PropertySource {
         add( new LastModifiedDatePropertyWriter() );
         add( new ResourceTypePropertyWriter() );
         add( new EtagPropertyWriter() );
-
         add( new SupportedLockPropertyWriter() );
         add( new LockDiscoveryPropertyWriter() );
-
         add( new MSIsCollectionPropertyWriter() );
         add( new MSIsReadOnlyPropertyWriter() );
         add( new MSNamePropertyWriter() );
-
         add( new QuotaAvailableBytesPropertyWriter() );
         add( new QuotaUsedBytesPropertyWriter() );
-
     }
 
     public Object getProperty( QName name, Resource r ) {
