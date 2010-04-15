@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.ettrema</groupId>
+        <artifactId>milton</artifactId>
+        <version>1.5.3-SNAPSHOT</version>
+    </parent>
+    <groupId>com.ettrema</groupId>
+    <artifactId>milton-client</artifactId>
+    <packaging>jar</packaging>
+    <name>Milton Client Lib</name>
+    <dependencies>
+        <dependency>
+            <groupId>com.ettrema</groupId>
+            <artifactId>milton-api</artifactId>
+            <version>1.5.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <dependency>
+            <scope>test</scope>
+            <groupId>easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <scope>test</scope>
+            <groupId>easymock</groupId>
+            <artifactId>easymockclassextension</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <scope>test</scope>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>2.1_3</version>
+        </dependency>
+    </dependencies>
+</project>
+
