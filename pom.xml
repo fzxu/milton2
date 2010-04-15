@@ -35,6 +35,7 @@
         <module>milton-filesystem</module>
         <module>milton-ftp</module>
         <module>milton-gae</module>
+        <module>milton-client</module>
         <!--
         <module>milton-test</module>
         <module>milton-ajax-demo</module>

@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * Wraps a UserManager from apache FTP to provide a SecurityManager for
+ * Wraps a UserManager from apache FTP to provide a UserManager for
  * milton
  *
  *

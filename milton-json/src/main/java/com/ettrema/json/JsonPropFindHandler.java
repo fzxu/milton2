@@ -107,7 +107,8 @@ public class JsonPropFindHandler {
             }
 
             String href = encodedUrl.replace( "/_DAV/PROPFIND", "");
-            log.debug( "href: " + href);
+            log.debug( "href1111: " + href);
+            log.debug( "prop builder: " + propertyBuilder.getClass());
             ParseResult parseResult = new ParseResult( false, fields);
             List<PropFindResponse> props = propertyBuilder.buildProperties( wrappedResource, depth, parseResult, href );
             List<Map<String, Object>> list = helper.toMap( props );

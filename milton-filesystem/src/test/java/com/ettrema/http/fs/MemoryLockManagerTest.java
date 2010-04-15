@@ -15,11 +15,11 @@ import junit.framework.TestCase;
  */
 public class MemoryLockManagerTest extends TestCase {
 
-    MemoryLockManager lockManager;
+    FsMemoryLockManager lockManager;
 
     @Override
     protected void setUp() throws Exception {
-        lockManager = new MemoryLockManager();
+        lockManager = new FsMemoryLockManager();
     }
 
     

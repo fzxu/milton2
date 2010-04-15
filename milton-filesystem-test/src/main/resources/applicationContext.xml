@@ -50,7 +50,7 @@
         </property>
     </bean>
 
-    <bean id="milton.fs.lock.manager" class="com.ettrema.http.fs.MemoryLockManager" />
+    <bean id="milton.fs.lock.manager" class="com.ettrema.http.fs.FsMemoryLockManager" />
 
     <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService">
         <property name="disableDigest" value="true"/>
@@ -97,7 +97,11 @@
     <!-- Adapts the specified milton security manager to the FTP server -->
     <bean id="ftp.user.manager" class="com.ettrema.ftp.UserManagerAdapter">
         <constructor-arg ref="filesystem.resource.factory"/>
-        <constructor-arg ref="milton.fs.security.manager"/>
+        <constructor-arg>
+            <bean class="com.ettrema.ftp.WrappingFtpSecurityManager">
+                <constructor-arg ref="milton.fs.security.manager"/>
+            </bean>
+        </constructor-arg>
     </bean>
 
     <!-- This server will provide access to the same resources available on webdav

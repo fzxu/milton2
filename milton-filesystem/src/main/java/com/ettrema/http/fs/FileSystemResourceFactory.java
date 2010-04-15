@@ -17,7 +17,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     
     File root;
     SecurityManager securityManager;
-    FsLockManager lockManager;
+    LockManager lockManager;
     Long maxAgeSeconds;
     String contextPath;
     boolean allowDirectoryBrowsing;
@@ -42,7 +42,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
     public FileSystemResourceFactory() {
         log.debug("setting default configuration...");
         String sRoot = System.getProperty("user.home");
-        FsSecurityManager sm = new NullSecurityManager();
+        SecurityManager sm = new NullSecurityManager();
         init(sRoot, sm);
     }
     
@@ -158,11 +158,11 @@ public class FileSystemResourceFactory implements ResourceFactory {
         return maxAgeSeconds;
     }
 
-    public FsLockManager getLockManager() {
+    public LockManager getLockManager() {
         return lockManager;
     }
 
-    public void setLockManager(FsLockManager lockManager) {
+    public void setLockManager(LockManager lockManager) {
         this.lockManager = lockManager;
     }
 

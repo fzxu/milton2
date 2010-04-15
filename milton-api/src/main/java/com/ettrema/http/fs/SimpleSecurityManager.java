@@ -6,7 +6,6 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.http11.auth.DigestGenerator;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
-import com.ettrema.ftp.MiltonUser;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author brad
  */
-public class SimpleSecurityManager implements FsSecurityManager{
+public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManager{
 
     private static final Logger log = LoggerFactory.getLogger(SimpleSecurityManager.class);
 
@@ -99,28 +98,11 @@ public class SimpleSecurityManager implements FsSecurityManager{
         this.nameAndPasswords = nameAndPasswords;
     }
 
-    public void delete( String name ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
 
-    public boolean doesExist( String name ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
-
-    public String[] getAllUserNames() {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
-
-    public MiltonUser getUserByName( String name, String domain ) {
-        log.debug( "getUserByName: " + name + " - " + domain);
-        String actualPassword = nameAndPasswords.get( name );
-        if( actualPassword == null ) return null;
-        return new MiltonUser( name, name, domain );
-    }
-
-    public void save( MiltonUser user ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
-    
-
+//    public MiltonUser getUserByName( String name, String domain ) {
+//        log.debug( "getUserByName: " + name + " - " + domain);
+//        String actualPassword = nameAndPasswords.get( name );
+//        if( actualPassword == null ) return null;
+//        return new MiltonUser( name, name, domain );
+//    }
 }
