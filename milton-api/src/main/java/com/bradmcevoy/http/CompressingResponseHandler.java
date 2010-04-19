@@ -42,11 +42,6 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
         super(wrapped);
     }
 
-    public String generateEtag( Resource r ) {
-        return wrapped.generateEtag( r );
-    }
-
-
 
     @Override
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
