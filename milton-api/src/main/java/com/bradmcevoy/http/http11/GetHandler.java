@@ -86,21 +86,36 @@ public class GetHandler implements ExistingEntityHandler {
 
     /**
      *
-     * @param handler
+     * @param resource
      * @param requestInfo
      * @return - true if the resource has NOT been modified since that date in the request
      */
-    private boolean checkIfModifiedSince( GetableResource handler, Request requestInfo ) {
-        Date dtRequest = requestInfo.getIfModifiedHeader();
-        if( dtRequest == null ) return false;
-        Date dtCurrent = handler.getModifiedDate();
-        if( dtCurrent == null ) return true;
-        long timeActual = dtCurrent.getTime();
-        long timeRequest = dtRequest.getTime() + 1000; // allow for rounding to nearest second
-//        log.debug("times as long: " + dtCurrent.getTime() + " - " + dtRequest.getTime());
-        boolean unchangedSince = ( timeRequest >= timeActual );
-//        log.debug("checkModifiedSince: actual: " + dtCurrent + " - request:" + dtRequest + " = " + unchangedSince  + " (true indicates no change)");
-        return unchangedSince;
+    private boolean checkIfModifiedSince( GetableResource resource, Request requestInfo ) {
+        Long maxAgeSecs = resource.getMaxAgeSeconds( requestInfo.getAuthorization());
+
+        if( maxAgeSecs == null  ) {
+            return false; // if null, always generate a fresh response
+        } else {
+            Date dtRequest = requestInfo.getIfModifiedHeader();
+            if( dtRequest == null ) return false;
+            Date dtCurrent = resource.getModifiedDate();
+            if( dtCurrent == null ) return true;
+            long timeNow = System.currentTimeMillis();
+            long timeRequest = dtRequest.getTime() + 1000; // allow for rounding to nearest second
+            long timeElapsed = timeNow - timeRequest;
+            if( timeElapsed > maxAgeSecs) {
+                // its been longer then the max age period, so generate fresh response
+                return false;
+            } else {
+                long timeActual = dtCurrent.getTime();
+        //        log.debug("times as long: " + dtCurrent.getTime() + " - " + dtRequest.getTime());
+                boolean unchangedSince = ( timeRequest >= timeActual );
+        //        log.debug("checkModifiedSince: actual: " + dtCurrent + " - request:" + dtRequest + " = " + unchangedSince  + " (true indicates no change)");
+                
+                // If the modified time requested is greater or equal then the actual modified time, do not generate response
+                return unchangedSince;
+            }
+        }
     }
 
     private boolean checkIfNoneMatch( GetableResource handler, Request requestInfo ) {
