@@ -78,4 +78,11 @@ public class VehicleDao {
         sess.saveOrUpdate( vehicle );
         t.commit();
     }
+
+    public void delete( Vehicle vehicle ) {
+        Session sess = sessionFactory.openSession();
+        Transaction t = sess.beginTransaction();
+        sess.delete( vehicle);
+        t.commit();
+    }
 }

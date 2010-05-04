@@ -13,16 +13,14 @@
         <property name="realm" value="aRealm" />
         <property name="nameAndPasswords">
             <map>
-                <entry key="me" value="pwd"/>
-                <entry key="user1" value="pwd1"/>
-                <entry key="user2" value="pwd2"/>
+                <entry key="admin" value="pwd"/>
             </map>
         </property>
     </bean>
 
     <bean id="lock.manager" class="com.ettrema.http.fs.SimpleLockManager" />
 
-    <bean id="milton.resource.factory" class="com.ettrema.examples.db.resources.DemoDbResourceFactory">
+    <bean id="resource.factory" class="com.ettrema.examples.db.resources.DemoDbResourceFactory">
         <constructor-arg ref="security.manager"/>
         <constructor-arg ref="lock.manager"/>
         <constructor-arg ref="dao.vehicle"/>
@@ -30,22 +28,24 @@
 
 
     <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">
-        <constructor-arg ref="milton.resource.factory" />
+        <constructor-arg ref="resource.factory" />
+    </bean>
+
+    <bean id="ftp.security.manager" class="com.ettrema.ftp.WrappingFtpSecurityManager">
+        <constructor-arg ref="security.manager"/>
     </bean>
 
     <!-- Adapts the specified milton security manager to the FTP server -->
-<!--
     <bean id="ftp.user.manager" class="com.ettrema.ftp.UserManagerAdapter">
-        <constructor-arg ref="filesystem.resource.factory"/>
-        <constructor-arg ref="milton.fs.security.manager"/>
+        <constructor-arg ref="resource.factory"/>
+        <constructor-arg ref="ftp.security.manager"/>
     </bean>
--->
 
     <!-- This server will provide access to the same resources available on webdav
     via FTP -->
-<!--
+    <!--
     <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter">
-        <constructor-arg ref="filesystem.resource.factory"/>
+        <constructor-arg ref="resource.factory"/>
         <constructor-arg ref="ftp.user.manager"/>
     </bean>
     -->

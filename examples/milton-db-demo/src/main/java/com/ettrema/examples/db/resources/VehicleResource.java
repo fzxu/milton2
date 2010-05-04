@@ -1,6 +1,7 @@
 package com.ettrema.examples.db.resources;
 
 import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.FileItem;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.PostableResource;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author brad
  */
-public class VehicleResource implements PropFindableResource, GetableResource, PostableResource {
+public class VehicleResource implements PropFindableResource, GetableResource, PostableResource, DeletableResource {
 
     private static final Logger log = LoggerFactory.getLogger( VehicleResource.class );
 
@@ -113,5 +114,9 @@ public class VehicleResource implements PropFindableResource, GetableResource, P
         vehicleDao.update(vehicle);
         return null;
 
+    }
+
+    public void delete() {
+        vehicleDao.delete(this.vehicle);
     }
 }
