@@ -65,7 +65,7 @@ public class OptionsHandler implements ResourceHandler {
      * 
      * @param responseHandler
      * @param handlerHelper - redundant if enableAuthorisation is false
-     * @param enableAuthorisation
+     * @param enableAuthorisation - if false OPTIONS requests will never request authentication
      */
     public OptionsHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper, boolean enableAuthorisation ) {
         this.responseHandler = responseHandler;

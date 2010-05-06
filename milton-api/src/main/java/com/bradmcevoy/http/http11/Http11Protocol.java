@@ -20,8 +20,12 @@ public class Http11Protocol implements HttpExtension{
     }
 
     public Http11Protocol(Http11ResponseHandler responseHandler, HandlerHelper handlerHelper) {
+        this(responseHandler, handlerHelper, true );
+    }
+
+    public Http11Protocol(Http11ResponseHandler responseHandler, HandlerHelper handlerHelper, boolean enableOptionsAuth) {
         this.handlers = new HashSet<Handler>();
-        handlers.add(new OptionsHandler(responseHandler, handlerHelper));
+        handlers.add(new OptionsHandler(responseHandler, handlerHelper, enableOptionsAuth));
         handlers.add(new GetHandler(responseHandler, handlerHelper));
         handlers.add(new PostHandler(responseHandler, handlerHelper));
         handlers.add(new DeleteHandler(responseHandler, handlerHelper));
