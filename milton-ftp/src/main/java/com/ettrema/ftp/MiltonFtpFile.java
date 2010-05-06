@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +145,11 @@ public class MiltonFtpFile implements FtpFile {
     }
 
     public long getLastModified() {
-        return r.getModifiedDate().getTime();
+        if( r.getModifiedDate() != null ) {
+            return r.getModifiedDate().getTime();
+        } else {
+            return System.currentTimeMillis();
+        }
     }
 
     public boolean setLastModified( long time ) {

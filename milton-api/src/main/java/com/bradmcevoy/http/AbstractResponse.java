@@ -1,11 +1,8 @@
 package com.bradmcevoy.http;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,17 +10,12 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractResponse implements Response {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractResponse.class);
-
-
-    protected DateFormat hdf;
+   
     protected Long contentLength;
     
 
     public AbstractResponse() {
-        hdf = new SimpleDateFormat(DateUtils.PATTERN_RESPONSE_HEADER);
-        hdf.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
-
 
 
     public void setResponseHeader(Response.Header header, String value) {
@@ -169,9 +161,10 @@ public abstract class AbstractResponse implements Response {
     }    
 
     protected void setAnyDateHeader(Header name, Date date) {
-        if (date == null)
+        if (date == null) {
             return;
-        String fmt = hdf.format(date);
+        }
+        String fmt = DateUtils.formatForHeader( date );
         setResponseHeader(name, fmt);
 
     }

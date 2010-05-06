@@ -29,7 +29,8 @@ public class DateUtils {
      */
     public static final String PATTERN_RESPONSE_HEADER = "E, dd MMM yyyy HH:mm:ss z";
     //public static final String PATTERN_RESPONSE_HEADER = "E MMM yyyy H:m:s z";
-    
+
+    private static final ThreadLocal<DateFormat> thHeaderDateFormat = new ThreadLocal<DateFormat>();
     
     
     /**
@@ -194,8 +195,13 @@ public class DateUtils {
     }
     
     public static String formatForHeader(Date date) {
-        DateFormat hdf = new SimpleDateFormat(PATTERN_RESPONSE_HEADER);
-        return hdf.format(date);
+        DateFormat df = thHeaderDateFormat.get();
+        if( df == null ) {
+            df = new SimpleDateFormat(DateUtils.PATTERN_RESPONSE_HEADER);
+            df.setTimeZone(TimeZone.getTimeZone("GMT"));
+            thHeaderDateFormat.set( df );
+        }
+        return df.format(date);
     }
     
     private static String pad2(int i) {

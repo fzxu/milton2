@@ -30,7 +30,7 @@ public class MiltonFsView implements FileSystemView {
         this.current = current;
         this.home = current;
         this.resourceFactory = resourceFactory;
-        log.debug( "created view on resource: " + current.getName() + " for user: " + user.name + "@" + user.domain);
+        log.debug( "created view on resource: " + current.getName() + " for user: " + user.name + "@" + user.domain );
     }
 
     public FtpFile getHomeDirectory() throws FtpException {
@@ -48,19 +48,23 @@ public class MiltonFsView implements FileSystemView {
         if( rp.resource == null ) {
             log.debug( "not found: " + p );
             return false;
-        } else
-            if( rp.resource instanceof CollectionResource ) {
-                current = (CollectionResource) rp.resource;
-                currentPath = rp.path;
-                return true;
-            } else {
-                log.debug( "not a collection: " + rp.resource.getName() );
-                return false;
-            }
+        } else if( rp.resource instanceof CollectionResource ) {
+            current = (CollectionResource) rp.resource;
+            currentPath = rp.path;
+            log.debug( "currentPath is now: " + currentPath);
+            return true;
+        } else {
+            log.debug( "not a collection: " + rp.resource.getName() );
+            return false;
+        }
     }
 
     public FtpFile getFile( String path ) throws FtpException {
         log.debug( "getFile: " + path );
+        if( path.startsWith( "." ) ) {
+            path = currentPath.toString() + path.substring( 1 );
+            log.debug( "getFile2: " + path );
+        }
         Path p = Path.path( path );
         ResourceAndPath rp = getResource( p );
         if( rp.resource == null ) {

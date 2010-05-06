@@ -26,7 +26,7 @@ public class UserManagerAdapter implements UserManager {
     private final ResourceFactory resourceFactory;
     private final UserService userService;
 
-    public UserManagerAdapter( ResourceFactory resourceFactory,UserService userLocator ) {
+    public UserManagerAdapter( ResourceFactory resourceFactory, UserService userLocator ) {
         this.resourceFactory = resourceFactory;
         this.userService = userLocator;
     }
@@ -38,7 +38,7 @@ public class UserManagerAdapter implements UserManager {
             return null;
         }
 
-        return userService.getUserByName(naa.toMilton(), naa.domain);
+        return userService.getUserByName( naa.toMilton(), naa.domain );
     }
 
     public String[] getAllUserNames() throws FtpException {
@@ -46,15 +46,15 @@ public class UserManagerAdapter implements UserManager {
     }
 
     public void delete( String name ) throws FtpException {
-        userService.delete(name);
+        userService.delete( name );
     }
 
     public void save( User user ) throws FtpException {
-        userService.save((MiltonUser) user);
+        userService.save( (MiltonUser) user );
     }
 
     public boolean doesExist( String name ) throws FtpException {
-        return userService.doesExist(name);
+        return userService.doesExist( name );
     }
 
     public User authenticate( Authentication authentication ) throws AuthenticationFailedException {
@@ -76,7 +76,7 @@ public class UserManagerAdapter implements UserManager {
 
             Object oUser = hostRoot.authenticate( naa.toMilton(), password );
             if( oUser != null ) {
-                return new MiltonUser(oUser, naa.toMilton(), naa.domain);
+                return new MiltonUser( oUser, naa.toMilton(), naa.domain );
             } else {
                 log.debug( "authentication failed: " + user );
                 return null;
