@@ -100,6 +100,7 @@ public class TFolderResource extends TTextResource implements PutableResource, M
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
         ByteArrayOutputStream bos = readStream(inputStream);
         log.debug("createNew: " + bos.size() + " - name: " + newName + " current child count: " + this.children.size());
+
         TResource r = new TBinaryResource(this,newName, bos.toByteArray(), contentType);
         log.debug("new child count: " + this.children.size());
         return r;
