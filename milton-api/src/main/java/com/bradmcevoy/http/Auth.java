@@ -94,7 +94,7 @@ public class Auth {
      *
      * The actual value will be application dependent
      */
-    void setTag( Object authTag ) {
+    public void setTag( Object authTag ) {
         tag = authTag;
     }
 

@@ -46,13 +46,17 @@ public class HandlerHelper {
     public boolean checkAuthorisation( HttpManager manager, Resource resource, Request request ) {
         Auth auth = request.getAuthorization();
         if( auth != null ) {
-            Object authTag = authenticationService.authenticate( resource, request ); //handler.authenticate( auth.user, auth.password );
-            if( authTag == null ) {
-                log.warn( "failed to authenticate - authenticationService:" + authenticationService.getClass() + " resource type:" + resource.getClass() );
-                return false;
+            if( auth.getTag() == null ) {  // don't do double authentication
+                Object authTag = authenticationService.authenticate( resource, request ); //handler.authenticate( auth.user, auth.password );
+                if( authTag == null ) {
+                    log.warn( "failed to authenticate - authenticationService:" + authenticationService.getClass() + " resource type:" + resource.getClass() );
+                    return false;
+                } else {
+                    log.debug( "got authenticated tag: " + authTag.getClass() );
+                    auth.setTag( authTag );
+                }
             } else {
-                log.debug( "got authenticated tag: " + authTag.getClass() );
-                auth.setTag( authTag );
+                log.trace("request is pre-authenticated");
             }
         } else {
             auth = manager.getSessionAuthentication( request );

@@ -10,6 +10,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * A very simple nonce provide that users a map to store issued nonces.
+ *
+ * If the map is constructed internally it will be a ConcurrentHashMap, which
+ * will restrict the application to a single machine, and nonces will not
+ * be preserved across restarts.
+ *
+ * To improve reliability and scalability provide an alternative map implementation.
+ * For example, it could be a cluster
+ * aware map which synchonrises across a cluster. Or it could be a map which
+ * persists entries to a database or file.
  *
  * @author brad
  */
@@ -51,8 +61,6 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
         Date now = new Date();
         Nonce n = new Nonce( id, now );
         nonces.put( n.getValue(), n );
-        log.debug( "created nonce: " + n.getValue() );
-        log.debug( "map size: " + nonces.size() );
         return n;
     }
 
