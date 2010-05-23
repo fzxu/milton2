@@ -9,6 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * An inputstream to read a file, and to delete the file when this stream is closed
+ *
+ * This is useful for situations where you are using a local file to buffer the contents
+ * of remote data, and want to ensure that the temporary local file is deleted when
+ * it is no longer being used
  *
  * @author brad
  */
@@ -16,7 +21,7 @@ public class FileDeletingInputStream extends InputStream{
 
     private static Logger log = LoggerFactory.getLogger(FileDeletingInputStream.class);
 
-    private final File tempFile;
+    private File tempFile;
     private InputStream wrapped;
 
     public FileDeletingInputStream( File tempFile ) throws FileNotFoundException {
@@ -50,8 +55,23 @@ public class FileDeletingInputStream extends InputStream{
             wrapped.close();
         } finally {
             if(!tempFile.delete()) {
-                log.warn("Failde to delete: " + tempFile.getAbsolutePath());
+                log.error("Failed to delete: " + tempFile.getAbsolutePath());
+            } else {
+                tempFile = null;
             }
         }
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if( tempFile != null ) {
+            log.error("temporary file was not deleted. Was close called on the inputstream? Will attempt to delete");
+            if( !tempFile.delete()) {
+                log.error("Still couldnt delete temporary file: " + tempFile.getAbsolutePath());
+            }
+        }
+        super.finalize();
+    }
+
+
 }

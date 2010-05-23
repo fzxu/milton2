@@ -101,6 +101,11 @@ public abstract class AbstractRequest implements Request {
         return getRequestHeader( Header.RANGE );
     }
 
+    public String getContentRangeHeader() {
+        return getRequestHeader( Header.CONTENT_RANGE );
+    }
+
+
     public Boolean getOverwriteHeader() {
         String s = getRequestHeader( Header.OVERWRITE );
         if( s == null || s.length() == 0 ) return null;

@@ -127,6 +127,10 @@ public class DebugFilter implements Filter{
                     }
                 }
                 writer.flush();
+                
+                // write to console
+                log.debug( out.toString());
+
                 fout.write(out.toByteArray());
                 fout.flush();
             } catch (IOException ex) {

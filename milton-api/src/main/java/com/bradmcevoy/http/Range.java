@@ -17,5 +17,12 @@ public class Range {
 
     public long getFinish() {
         return finish;
-    }        
+    }
+
+    @Override
+    public String toString() {
+        return "bytes " + start + "-" + finish;
+    }
+
+
 }

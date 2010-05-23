@@ -39,9 +39,23 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
     }
 
+    public DefaultWebDavResponseHandler(AuthenticationService authenticationService, ResourceTypeHelper resourceTypeHelper) {
+        ValueWriters valueWriters = new ValueWriters();
+        wrapped = new DefaultHttp11ResponseHandler(authenticationService);
+        this.resourceTypeHelper = resourceTypeHelper;
+        propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
+
+    }
+
     public DefaultWebDavResponseHandler( ValueWriters valueWriters, AuthenticationService authenticationService ) {
         wrapped = new DefaultHttp11ResponseHandler(authenticationService);
         resourceTypeHelper = new WebDavResourceTypeHelper();
+        propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
+    }
+
+    public DefaultWebDavResponseHandler( ValueWriters valueWriters, AuthenticationService authenticationService, ResourceTypeHelper resourceTypeHelper ) {
+        wrapped = new DefaultHttp11ResponseHandler(authenticationService);
+        this.resourceTypeHelper = resourceTypeHelper;
         propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
     }
 

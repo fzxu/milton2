@@ -25,6 +25,8 @@ public class ValueWriters {
         writers.add( new DateValueWriter() );
         writers.add( new ResourceTypeValueWriter() );
         writers.add( new BooleanValueWriter() );
+        writers.add( new CDataValueWriter() );
+        writers.add( new CDataValueWriter() );
         writers.add( new ToStringValueWriter() );
     }
 

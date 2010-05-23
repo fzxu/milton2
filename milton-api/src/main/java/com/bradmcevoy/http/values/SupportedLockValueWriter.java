@@ -8,7 +8,7 @@ import java.util.Map;
 public class SupportedLockValueWriter implements ValueWriter {
 
     public boolean supports( String nsUri, String localName, Class c ) {
-        return SupportedLocks.class.isAssignableFrom( c);
+        return SupportedLocks.class.isAssignableFrom( c );
     }
 
     public void writeValue( XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes ) {

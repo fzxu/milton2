@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -54,6 +55,14 @@ public class FileUtils {
     }
 
     public static void close(InputStream in) {
+        try {
+            if( in == null ) return;
+            in.close();
+        } catch( IOException ex ) {
+        }
+    }
+
+    public static void close(Closeable in) {
         try {
             if( in == null ) return;
             in.close();

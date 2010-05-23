@@ -1,41 +1,111 @@
 package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.CollectionResource;
+import com.bradmcevoy.http.DateUtils;
+import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.property.PropertySource;
 import com.bradmcevoy.http.Handler;
 import com.bradmcevoy.http.HandlerHelper;
 import com.bradmcevoy.http.HttpExtension;
+import com.bradmcevoy.http.LockToken;
+import com.bradmcevoy.http.LockableResource;
+import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.PutableResource;
+import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceHandlerHelper;
+import com.bradmcevoy.http.Utils;
+import com.bradmcevoy.http.XmlWriter;
+import com.bradmcevoy.http.http11.DefaultETagGenerator;
+import com.bradmcevoy.http.http11.ETagGenerator;
+import com.bradmcevoy.http.quota.DefaultQuotaDataAccessor;
+import com.bradmcevoy.http.quota.QuotaDataAccessor;
+import com.bradmcevoy.http.values.PrincipalCollectionSetList;
+import com.bradmcevoy.http.values.SupportedReportSetList;
 import com.bradmcevoy.http.values.ValueWriters;
+import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
+import com.ettrema.http.report.Report;
+import com.ettrema.http.report.ReportHandler;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
+import javax.xml.namespace.QName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ * Defines the methods and properties that make up the webdav protocol.
+ *
+ * We've been a little pragmatic about what the webdav protocol actually is. It
+ * generally doesnt include things defined in subsequent protocols (RFC's), but where
+ * something is frequently used by other protocols (like REPORT) or is very tightly
+ * couple with normal webdav operations (like quota checking) you'll find it here
+ * 
  *
  * @author brad
  */
-public class WebDavProtocol implements HttpExtension {
+public class WebDavProtocol implements HttpExtension, PropertySource {
 
+    private static final Logger log = LoggerFactory.getLogger( WebDavProtocol.class );
     public static final String NS_DAV = "DAV:";
     private final Set<Handler> handlers;
+    private final Map<String, Report> reports;
+    private final ResourceTypeHelper resourceTypeHelper;
+    private final QuotaDataAccessor quotaDataAccessor;
+    private final PropertyMap propertyMap;
+    private final List<PropertySource> propertySources = new ArrayList<PropertySource>();
+    private final ETagGenerator eTagGenerator;
 
-    public WebDavProtocol( Set<Handler> handlers ) {
-        this.handlers = handlers;
+//    public WebDavProtocol( Set<Handler> handlers ) {
+//        this.handlers = handlers;
+//        reports = new HashMap<String, Report>();
+//    }
+    public WebDavProtocol( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper ) {
+        this( responseHandler, handlerHelper, new WebDavResourceTypeHelper() );
     }
 
-
-    public WebDavProtocol( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper) {
-        this(responseHandler, handlerHelper, new WebDavResourceTypeHelper());
+    public WebDavProtocol( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper ) {
+        this( handlerHelper, resourceTypeHelper, responseHandler, PropertySourceUtil.createDefaultSources( resourceTypeHelper ) );
     }
 
-    public WebDavProtocol( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper) {
-        this(handlerHelper, resourceTypeHelper, responseHandler, PropertySourceUtil.createDefaultSources( resourceTypeHelper ));
+    public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> extraPropertySources ) {
+        this( handlerHelper, resourceTypeHelper, responseHandler, extraPropertySources, new DefaultQuotaDataAccessor() );
     }
 
-    public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> propertySources) {
+    public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> extraPropertySources, QuotaDataAccessor quotaDataAccessor ) {
+        this.eTagGenerator = new DefaultETagGenerator();
         handlers = new HashSet<Handler>();
+        this.resourceTypeHelper = resourceTypeHelper;
+        this.quotaDataAccessor = quotaDataAccessor;
+        this.propertyMap = new PropertyMap( WebDavProtocol.NS_DAV );
+
+        log.info( "DefaultWebDavPropertySource: resourceTypeHelper: " + resourceTypeHelper.getClass() );
+        log.info( "DefaultWebDavPropertySource: quotaDataAccessor: " + quotaDataAccessor.getClass() );
+        propertyMap.add( new ContentLengthPropertyWriter() );
+        propertyMap.add( new ContentTypePropertyWriter() );
+        propertyMap.add( new CreationDatePropertyWriter() );
+        propertyMap.add( new DisplayNamePropertyWriter() );
+        propertyMap.add( new LastModifiedDatePropertyWriter() );
+        propertyMap.add( new ResourceTypePropertyWriter() );
+        propertyMap.add( new EtagPropertyWriter() );
+
+        propertyMap.add( new SupportedLockPropertyWriter() );
+        propertyMap.add( new LockDiscoveryPropertyWriter() );
+
+        propertyMap.add( new MSIsCollectionPropertyWriter() );
+        propertyMap.add( new MSIsReadOnlyPropertyWriter() );
+        propertyMap.add( new MSNamePropertyWriter() );
+
+        propertyMap.add( new QuotaAvailableBytesPropertyWriter() );
+        propertyMap.add( new QuotaUsedBytesPropertyWriter() );
+
+        propertyMap.add( new PrincipalCollectionSetPropertyWriter() );
+        propertyMap.add( new SupportedReportSetProperty() );
+
         ResourceHandlerHelper resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
 
         // note valuewriters is also used in DefaultWebDavResponseHandler
@@ -43,20 +113,361 @@ public class WebDavProtocol implements HttpExtension {
         // and here
         ValueWriters valueWriters = new ValueWriters();
 
+        log.debug( "adding property sources: " + extraPropertySources.size() );
+        for( PropertySource ps : extraPropertySources ) {
+            addPropertySource( ps );
+        }
+        propertySources.addAll( extraPropertySources );
+        log.debug( "adding webdav as a property source" );
+        addPropertySource( this );
         PropertySourcePatchSetter patchSetter = new PropertySourcePatchSetter( propertySources, valueWriters );
         handlers.add( new PropFindHandler( resourceHandlerHelper, resourceTypeHelper, responseHandler, propertySources ) );
         handlers.add( new MkColHandler( responseHandler, handlerHelper ) );
         handlers.add( new PropPatchHandler( resourceHandlerHelper, responseHandler, patchSetter ) );
         handlers.add( new CopyHandler( responseHandler, handlerHelper, resourceHandlerHelper ) );
-        handlers.add( new LockHandler( responseHandler, handlerHelper ) ); 
+        handlers.add( new LockHandler( responseHandler, handlerHelper ) );
         handlers.add( new UnlockHandler( resourceHandlerHelper, responseHandler ) );
         handlers.add( new MoveHandler( responseHandler, handlerHelper, resourceHandlerHelper ) );
+
+        // Reports are added by other protocols via addReport
+        reports = new HashMap<String, Report>();
+        handlers.add( new ReportHandler( responseHandler, resourceHandlerHelper, reports ) );
+    }
+
+    public List<PropertySource> getPropertySources() {
+        return Collections.unmodifiableList( propertySources );
+    }
+
+    public void addPropertySource( PropertySource ps ) {
+        propertySources.add( ps );
+        log.debug( "adding property source: " + ps.getClass() + " new size: " + propertySources.size() );
+    }
+
+    public void addReport( Report report ) {
+        this.reports.put( report.getName(), report );
     }
 
     public Set<Handler> getHandlers() {
         return Collections.unmodifiableSet( handlers );
     }
 
+    /**
+     * Used as a marker to generate supported locks element in propfind responses
+     *
+     * See SupportedLockValueWriter
+     */
     public static class SupportedLocks {
+    }
+
+    public Object getProperty( QName name, Resource r ) {
+        log.debug( "getProperty: " + name.getLocalPart() );
+        Object o = propertyMap.getProperty( name, r );
+        log.debug( "Property Result : "+o );
+        return o;
+    }
+
+    public void setProperty( QName name, Object value, Resource r ) {
+        log.debug( "setProperty: " + name.getLocalPart() );
+        throw new UnsupportedOperationException( "Not supported. Standard webdav properties are not writable" );
+    }
+
+    public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
+        log.debug( "getPropertyMetaData: " + name.getLocalPart() );
+        PropertyMetaData propertyMetaData= propertyMap.getPropertyMetaData( name, r );
+        log.debug( "PropertyMetaData Result : "+propertyMetaData );
+        return propertyMetaData;
+    }
+
+    public void clearProperty( QName name, Resource r ) {
+        log.debug( "clearProperty: " + name.getLocalPart() );
+        throw new UnsupportedOperationException( "Not supported. Standard webdav properties are not writable" );
+    }
+
+    public List<QName> getAllPropertyNames( Resource r ) {
+        return propertyMap.getAllPropertyNames( r );
+    }
+
+    class DisplayNamePropertyWriter implements StandardProperty<String> {
+
+        public String getValue( PropFindableResource res ) {
+            return res.getName();
+        }
+
+        public String fieldName() {
+            return "displayname";
+        }
+
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+    }
+
+    class CreationDatePropertyWriter implements StandardProperty<Date> {
+
+        public String fieldName() {
+            return "getcreated";
+        }
+
+        public Date getValue( PropFindableResource res ) {
+            return res.getModifiedDate();
+        }
+
+        public Class<Date> getValueClass() {
+            return Date.class;
+        }
+    }
+
+    class LastModifiedDatePropertyWriter implements StandardProperty<Date> {
+
+        public String fieldName() {
+            return "getlastmodified";
+        }
+
+        public Date getValue( PropFindableResource res ) {
+            return res.getModifiedDate();
+        }
+
+        public Class<Date> getValueClass() {
+            return Date.class;
+        }
+    }
+
+    class ResourceTypePropertyWriter implements StandardProperty<List<QName>> {
+
+        public List<QName> getValue( PropFindableResource res ) {
+            log.trace( "ResourceTypePropertyWriter:getValue" );
+            return resourceTypeHelper.getResourceTypes( res );
+        }
+
+        public String fieldName() {
+            return "resourcetype";
+        }
+
+        public Class getValueClass() {
+            return List.class;
+        }
+    }
+
+    class ContentTypePropertyWriter implements StandardProperty<String> {
+
+        public String getValue( PropFindableResource res ) {
+            if( res instanceof GetableResource ) {
+                GetableResource getable = (GetableResource) res;
+                return getable.getContentType( null );
+            } else {
+                return "";
+            }
+        }
+
+        public String fieldName() {
+            return "getcontenttype";
+        }
+
+        public Class getValueClass() {
+            return String.class;
+        }
+    }
+
+    class ContentLengthPropertyWriter implements StandardProperty<Long> {
+
+        public Long getValue( PropFindableResource res ) {
+            if( res instanceof GetableResource ) {
+                GetableResource getable = (GetableResource) res;
+                Long l = getable.getContentLength();
+                return l;
+            } else {
+                return null;
+            }
+        }
+
+        public String fieldName() {
+            return "getcontentlength";
+        }
+
+        public Class getValueClass() {
+            return Long.class;
+        }
+    }
+
+    class QuotaUsedBytesPropertyWriter implements StandardProperty<Long> {
+
+        public Long getValue( PropFindableResource res ) {
+            return quotaDataAccessor.getQuotaUsed( res );
+        }
+
+        public String fieldName() {
+            return "quota-used-bytes";
+        }
+
+        public Class getValueClass() {
+            return Long.class;
+        }
+    }
+
+    class QuotaAvailableBytesPropertyWriter implements StandardProperty<Long> {
+
+        public Long getValue( PropFindableResource res ) {
+            return quotaDataAccessor.getQuotaAvailable( res );
+        }
+
+        public String fieldName() {
+            return "quota-available-bytes";
+        }
+
+        public Class getValueClass() {
+            return Long.class;
+        }
+    }
+
+    class EtagPropertyWriter implements StandardProperty<String> {
+
+        public String getValue( PropFindableResource res ) {
+            String etag = eTagGenerator.generateEtag( res );
+            return etag;
+        }
+
+        public String fieldName() {
+            return "getetag";
+        }
+
+        public Class getValueClass() {
+            return String.class;
+        }
+    }
+
+//    <D:supportedlock/><D:lockdiscovery/>
+    class LockDiscoveryPropertyWriter implements StandardProperty<LockToken> {
+
+        public LockToken getValue( PropFindableResource res ) {
+            if( !( res instanceof LockableResource ) ) return null;
+            LockableResource lr = (LockableResource) res;
+            LockToken token = lr.getCurrentLock();
+            return token;
+        }
+
+        public String fieldName() {
+            return "supportedlock";
+        }
+
+        public Class getValueClass() {
+            return LockToken.class;
+        }
+    }
+
+    class SupportedLockPropertyWriter implements StandardProperty<SupportedLocks> {
+
+        public SupportedLocks getValue( PropFindableResource res ) {
+            if( res instanceof LockableResource ) {
+                return new SupportedLocks();
+            } else {
+                return null;
+            }
+        }
+
+        public String fieldName() {
+            return "supportedlock";
+        }
+
+        public Class getValueClass() {
+            return SupportedLocks.class;
+        }
+    }
+
+    // MS specific fields
+    class MSNamePropertyWriter extends DisplayNamePropertyWriter {
+
+        @Override
+        public String fieldName() {
+            return "name";
+        }
+    }
+
+    class MSIsCollectionPropertyWriter implements StandardProperty<Boolean> {
+
+        @Override
+        public String fieldName() {
+            return "iscollection";
+        }
+
+        public Boolean getValue( PropFindableResource res ) {
+            return ( res instanceof CollectionResource );
+        }
+
+        public Class getValueClass() {
+            return Boolean.class;
+        }
+    }
+
+    class MSIsReadOnlyPropertyWriter implements StandardProperty<Boolean> {
+
+        @Override
+        public String fieldName() {
+            return "isreadonly";
+        }
+
+        public Boolean getValue( PropFindableResource res ) {
+            return !( res instanceof PutableResource );
+        }
+
+        public Class getValueClass() {
+            return Boolean.class;
+        }
+    }
+
+
+    class PrincipalCollectionSetPropertyWriter implements StandardProperty<PrincipalCollectionSetList> {
+
+        @Override
+        public String fieldName() {
+            return "principal-collection-set";
+        }
+
+        public PrincipalCollectionSetList getValue( PropFindableResource res ) {
+            PrincipalCollectionSetList principalCollectionSet = new PrincipalCollectionSetList();
+            principalCollectionSet.add("http://localhost:7080/caldavdemo/folder1/cal1");
+            return principalCollectionSet;
+        }
+
+        public Class getValueClass() {
+            return PrincipalCollectionSetList.class;
+        }
+    }
+
+    class SupportedReportSetProperty implements StandardProperty<SupportedReportSetList> {
+
+        public String fieldName() {
+            return "supported-report-set";
+        }
+
+        public SupportedReportSetList getValue( PropFindableResource res ) {
+            SupportedReportSetList reportSet = new SupportedReportSetList();
+            for (String reportName : reports.keySet()) {
+              reportSet.add(reportName);
+            }
+            return reportSet;
+        }
+
+        public Class getValueClass() {
+            return SupportedReportSetList.class;
+        }
+    }
+
+    private String nameEncode( String s ) {
+        //return Utils.encode(href, false); // see MIL-31
+        return Utils.escapeXml( s );
+        //return href.replaceAll("&", "&amp;");  // http://www.ettrema.com:8080/browse/MIL-24
+    }
+
+    protected void sendStringProp( XmlWriter writer, String name, String value ) {
+        String s = value;
+        if( s == null ) {
+            writer.writeProperty( null, name );
+        } else {
+            writer.writeProperty( null, name, s );
+        }
+    }
+
+    void sendDateProp( XmlWriter writer, String name, Date date ) {
+        sendStringProp( writer, name, ( date == null ? null : DateUtils.formatDate( date ) ) );
     }
 }

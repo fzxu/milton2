@@ -8,23 +8,38 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bradmcevoy.common.ContentTypeUtils;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
+import com.bradmcevoy.io.FileUtils;
+import com.bradmcevoy.io.RandomFileOutputStream;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 
 public class PutHandler implements Handler {
 
     private static final Logger log = LoggerFactory.getLogger( PutHandler.class );
     private final Http11ResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
+    private final PutHelper putHelper;
 
     public PutHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
+        this.putHelper = new PutHelper();
+        checkResponseHandler();
+    }
+
+    public PutHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper, PutHelper putHelper ) {
+        this.responseHandler = responseHandler;
+        this.handlerHelper = handlerHelper;
+        this.putHelper = putHelper;
         checkResponseHandler();
     }
 
@@ -59,9 +74,7 @@ public class PutHandler implements Handler {
         Resource existingResource = manager.getResourceFactory().getResource( host, urlToCreateOrUpdate );
         ReplaceableResource replacee;
 
-
-
-        StorageErrorReason res = null;
+        StorageErrorReason storageErr = null;
         if( existingResource != null ) {
             //Make sure the parent collection is not locked by someone else
             if( handlerHelper.isLockedOut( request, existingResource ) ) {
@@ -72,21 +85,19 @@ public class PutHandler implements Handler {
             Resource parent = manager.getResourceFactory().getResource( host, path.getParent().toString() );
             if( parent instanceof CollectionResource ) {
                 CollectionResource parentCol = (CollectionResource) parent;
-                res = handlerHelper.checkStorageOnReplace( request, parentCol, existingResource, host );
+                storageErr = handlerHelper.checkStorageOnReplace( request, parentCol, existingResource, host );
             } else {
                 log.warn( "parent exists but is not a collection resource: " + path.getParent() );
             }
         } else {
-            CollectionResource parentCol = findNearestParent( manager, host, path );
-            res = handlerHelper.checkStorageOnAdd( request, parentCol, path.getParent(), host );
+            CollectionResource parentCol = putHelper.findNearestParent( manager, host, path );
+            storageErr = handlerHelper.checkStorageOnAdd( request, parentCol, path.getParent(), host );
         }
 
-
-        if( res != null ) {
-            respondInsufficientStorage( request, response, res );
+        if( storageErr != null ) {
+            respondInsufficientStorage( request, response, storageErr );
             return;
         }
-
 
         if( existingResource != null && existingResource instanceof ReplaceableResource ) {
             replacee = (ReplaceableResource) existingResource;
@@ -133,8 +144,7 @@ public class PutHandler implements Handler {
         }
     }
 
-    private void processCreate( HttpManager manager, Request request, Response response, PutableResource folder, String newName ) throws ConflictException {
-        log.debug( "processCreate: " + newName + " in " + folder.getName() );
+    private void processCreate( HttpManager manager, Request request, Response response, PutableResource folder, String newName ) throws ConflictException, BadRequestException {
         if( !handlerHelper.checkAuthorisation( manager, folder, request ) ) {
             responseHandler.respondUnauthorised( folder, response, request );
             return;
@@ -142,55 +152,18 @@ public class PutHandler implements Handler {
 
         log.debug( "process: putting to: " + folder.getName() );
         try {
-            Long l = getContentLength( request );
-            String ct = findContentTypes( request, newName );
+            Long l = putHelper.getContentLength( request );
+            String ct = putHelper.findContentTypes( request, newName );
             log.debug( "PutHandler: creating resource of type: " + ct );
             folder.createNew( newName, request.getInputStream(), l, ct );
-            log.debug( "PutHandler: DONE creating resource" );
         } catch( IOException ex ) {
             log.warn( "IOException reading input stream. Probably interrupted upload: " + ex.getMessage() );
             return;
         }
         manager.getResponseHandler().respondCreated( folder, response, request );
-
-        log.debug( "process: finished" );
-    }
-
-    private Long getContentLength( Request request ) {
-        Long l = request.getContentLengthHeader();
-        if( l == null ) {
-            String s = request.getRequestHeader( Request.Header.X_EXPECTED_ENTITY_LENGTH );
-            if( s != null && s.length() > 0 ) {
-                log.debug( "no content-length given, but founhd non-standard length header: " + s );
-                try {
-                    l = Long.parseLong( s );
-                } catch( NumberFormatException e ) {
-                    throw new RuntimeException( "invalid length for header: " + Request.Header.X_EXPECTED_ENTITY_LENGTH.code + ". value is: " + s );
-                }
-            }
-        }
-        return l;
-    }
-
-    /**
-     * returns a textual representation of the list of content types for the
-     * new resource. This will be the content type header if there is one,
-     * otherwise it will be determined by the file name
-     *
-     * @param request
-     * @param newName
-     * @return
-     */
-    private String findContentTypes( Request request, String newName ) {
-        String ct = request.getContentTypeHeader();
-        if( ct != null ) return ct;
-
-        return ContentTypeUtils.findContentTypes( newName );
     }
 
     private CollectionResource findOrCreateFolders( HttpManager manager, String host, Path path ) throws NotAuthorizedException, ConflictException {
-        log.debug( "findOrCreateFolders" );
-
         if( path == null ) return null;
 
         Resource thisResource = manager.getResourceFactory().getResource( host, path.toString() );
@@ -227,24 +200,6 @@ public class PutHandler implements Handler {
         }
     }
 
-    private CollectionResource findNearestParent( HttpManager manager, String host, Path path ) throws NotAuthorizedException, ConflictException {
-        log.debug( "findOrCreateFolders" );
-
-        if( path == null ) return null;
-
-        Resource thisResource = manager.getResourceFactory().getResource( host, path.toString() );
-        if( thisResource != null ) {
-            if( thisResource instanceof CollectionResource ) {
-                return (CollectionResource) thisResource;
-            } else {
-                log.warn( "parent is not a collection: " + path );
-                return null;
-            }
-        }
-
-        CollectionResource parent = findNearestParent( manager, host, path.getParent() );
-        return parent;
-    }
 
     /**
      * "If an existing resource is modified, either the 200 (OK) or 204 (No Content) response codes SHOULD be sent to indicate successful completion of the request."
@@ -253,15 +208,65 @@ public class PutHandler implements Handler {
      * @param response
      * @param replacee
      */
-    private void processReplace( HttpManager manager, Request request, Response response, ReplaceableResource replacee ) {
+    private void processReplace( HttpManager manager, Request request, Response response, ReplaceableResource replacee ) throws BadRequestException, NotAuthorizedException {
         if( !handlerHelper.checkAuthorisation( manager, replacee, request ) ) {
             responseHandler.respondUnauthorised( replacee, response, request );
             return;
         }
         try {
-            Long l = request.getContentLengthHeader();
-            replacee.replaceContent( request.getInputStream(), l );
-            log.debug( "PutHandler: DONE creating resource" );
+            Range range = putHelper.parseContentRange(replacee, request);
+            if( range != null ) {
+                log.debug("partial put: " + range);
+                if( replacee instanceof PartialllyUpdateableResource ) {
+                    log.debug("doing partial put on a PartialllyUpdateableResource");
+                    PartialllyUpdateableResource partialllyUpdateableResource = (PartialllyUpdateableResource) replacee;
+                    partialllyUpdateableResource.replacePartialContent(range, request.getInputStream());
+                } else if( replacee instanceof GetableResource) {
+                    log.debug("doing partial put on a GetableResource");
+                    File tempFile = File.createTempFile("milton-partial",null );
+                    RandomAccessFile randomAccessFile = null;
+                    
+                    // The new length of the resource
+                    long length;
+                    try {
+                        randomAccessFile = new RandomAccessFile(tempFile, "rw");
+                        RandomFileOutputStream tempOut = new RandomFileOutputStream(tempFile);
+                        GetableResource gr = (GetableResource) replacee;
+                        // Update the content with the supplied partial content, and get the result as an inputstream
+                        gr.sendContent(tempOut, null, null, null);
+
+                        // Calculate new length, if the partial put is extending it
+                        length = randomAccessFile.length();
+                        if( range.getFinish()+1 > length ) {
+                            length = range.getFinish()+1;
+                        }
+
+                        randomAccessFile.setLength(length);
+                        randomAccessFile.seek(range.getStart());
+
+                        int numBytesRead;
+                        byte[] copyBuffer = new byte[1024];
+                        InputStream newContent = request.getInputStream();
+
+                        while ((numBytesRead = newContent.read(copyBuffer)) != -1) {
+                            randomAccessFile.write(copyBuffer, 0, numBytesRead);
+                        }
+                    } finally {
+                        FileUtils.close(randomAccessFile);
+                    }
+                    
+                    InputStream updatedContent = new FileInputStream(tempFile);
+                    BufferedInputStream bufin = new BufferedInputStream(updatedContent);
+
+                    // Now, finally, we can just do a normal update
+                    replacee.replaceContent(bufin, length);
+                } else {
+                    throw new BadRequestException(replacee, "Cant apply partial update. Resource does not support PartialllyUpdateableResource or GetableResource");
+                }
+            } else {
+                Long l = request.getContentLengthHeader();
+                replacee.replaceContent( request.getInputStream(), l );
+            }
         } catch( IOException ex ) {
             log.warn( "IOException reading input stream. Probably interrupted upload: " + ex.getMessage() );
             return;

@@ -4,7 +4,6 @@ import com.bradmcevoy.http.Handler;
 import com.bradmcevoy.http.HandlerHelper;
 import com.bradmcevoy.http.HttpExtension;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,9 +33,5 @@ public class Http11Protocol implements HttpExtension{
 
     public Set<Handler> getHandlers() {
         return handlers;
-    }
-
-    public void registerHandlers( Map<String, Handler> methodHandlers ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
     }
 }

@@ -13,7 +13,7 @@ public interface PropFindRequestFieldParser {
 
     ParseResult getRequestedFields( InputStream in );
 
-    class ParseResult {
+    public class ParseResult {
         private final boolean allProp;
         private final Set<QName> names;
 
