@@ -29,6 +29,10 @@ public interface ResourceFactory {
      * 
      * Note that your implementation should not be sensitive to trailing slashes
      * Eg these paths should return the same resource /apath and /apath/
+     *
+     * You should generally avoid using any request information other then that
+     * provided in the method arguments. But if you find you need to you can access the
+     * request and response objects from HttpManager.request() and HttpManager.response()
      * 
      * @param host
      * @param path

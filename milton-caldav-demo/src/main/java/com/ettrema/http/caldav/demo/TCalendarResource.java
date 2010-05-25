@@ -2,7 +2,6 @@ package com.ettrema.http.caldav.demo;
 
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.io.StreamUtils;
-import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.CalendarResource;
 import com.bradmcevoy.http.ReportableResource;
 import com.ettrema.http.caldav.ICalFormatter;

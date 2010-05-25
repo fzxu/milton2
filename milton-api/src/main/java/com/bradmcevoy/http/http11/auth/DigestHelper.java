@@ -1,10 +1,8 @@
 package com.bradmcevoy.http.http11.auth;
 
 import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.http11.auth.NonceProvider.NonceValidity;
-import com.bradmcevoy.http.SecurityManager;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

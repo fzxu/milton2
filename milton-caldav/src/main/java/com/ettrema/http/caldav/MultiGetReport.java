@@ -3,7 +3,6 @@ package com.ettrema.http.caldav;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
-import com.bradmcevoy.http.webdav.PropFindHandler;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindRequestFieldParser;
 import com.bradmcevoy.http.webdav.PropFindResponse;
