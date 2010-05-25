@@ -34,5 +34,9 @@ public class TestDateUtils extends TestCase {
         System.out.println( dt.getTime() );
         assertEquals( 1269738000000l, dt.getTime());
     }
-    
+
+    public void testParseHeaderFormat() throws DateParseException {
+        Date dt = DateUtils.parseDate("2010-04-11T12:00:00Z");
+        System.out.println("dt: " + dt);
+    }
 }
