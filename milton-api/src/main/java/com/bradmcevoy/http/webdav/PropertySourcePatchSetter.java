@@ -32,6 +32,11 @@ public class PropertySourcePatchSetter implements PropPatchSetter{
         this.valueWriters = valueWriters;
     }
 
+    public PropertySourcePatchSetter( List<PropertySource> propertySources) {
+        this.propertySources = propertySources;
+        this.valueWriters = new ValueWriters();
+    }
+
     /**
      * This returns true for all resources, but it actually depends on the
      * configured property sources.

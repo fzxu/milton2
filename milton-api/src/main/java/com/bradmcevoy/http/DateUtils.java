@@ -61,7 +61,7 @@ public class DateUtils {
     public static final String PATTERN_ASCTIME2 = "EEE MMM yyyy HH:mm:ss zzz";
     
     private static final Collection<String> DEFAULT_PATTERNS = Arrays.asList(
-            new String[] { PATTERN_ASCTIME, PATTERN_ASCTIME2, PATTERN_RFC1036, PATTERN_RFC1123, PATTERN_RFC1123_NOSECS } );
+            new String[] { PATTERN_ASCTIME, PATTERN_ASCTIME2, PATTERN_RFC1036, PATTERN_RFC1123, PATTERN_RFC1123_NOSECS,PATTERN_WEBDAV } );
     
     private static final Date DEFAULT_TWO_DIGIT_YEAR_START;
     
