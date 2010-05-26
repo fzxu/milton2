@@ -65,6 +65,7 @@ public class JsonPropFindHandler {
 
     public void sendContent( PropFindableResource wrappedResource, String encodedUrl, OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
         JsonConfig cfg = new JsonConfig();
+        cfg.setIgnoreTransientFields(true);
         cfg.setCycleDetectionStrategy( CycleDetectionStrategy.LENIENT );
 
         JSON json;
@@ -107,7 +108,6 @@ public class JsonPropFindHandler {
             }
 
             String href = encodedUrl.replace( "/_DAV/PROPFIND", "");
-            log.debug( "href1111: " + href);
             log.debug( "prop builder: " + propertyBuilder.getClass());
             ParseResult parseResult = new ParseResult( false, fields);
             List<PropFindResponse> props = propertyBuilder.buildProperties( wrappedResource, depth, parseResult, href );

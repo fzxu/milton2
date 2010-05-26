@@ -36,7 +36,7 @@ public class TestDateUtils extends TestCase {
     }
 
     public void testParseHeaderFormat() throws DateParseException {
-        Date dt = DateUtils.parseDate("2010-04-11T12:00:00Z");
+        Date dt = DateUtils.parseDate("2010-04-11 12:00:00");
         System.out.println("dt: " + dt);
     }
 }

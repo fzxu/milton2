@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.TimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A utility class for parsing and formatting HTTP dates as used in cookies and
@@ -20,9 +22,11 @@ import java.util.TimeZone;
  * @author Michael Becke
  */
 public class DateUtils {
-        
+
+    private static final Logger log = LoggerFactory.getLogger(DateUtils.class);
+
     // 2005-03-30T05:18:33Z
-    public static final String PATTERN_WEBDAV = "yyyy-MM-ddTHH:mm:ssZ";
+    public static final String PATTERN_WEBDAV = "yyyy-MM-dd HH:mm:ss";
     
     /**
      *  Used for response headers, and for modified date in propfind
@@ -122,7 +126,9 @@ public class DateUtils {
             Collection<String> dateFormats,
             Date startDate
             ) throws DateParseException {
-        
+
+        log.debug("parseDate: " + dateValue);
+
         if (dateValue == null) {
             throw new IllegalArgumentException("dateValue is null");
         }
@@ -154,7 +160,9 @@ public class DateUtils {
                 dateParser.applyPattern(format);
             }
             try {
-                return dateParser.parse(dateValue);
+                Date dt = dateParser.parse(dateValue);
+                log.debug("parsed ok with: " + format + " -->> " + dt);
+                return dt;
             } catch (ParseException pe) {
                 // ignore this exception, we will try the next format
             }
@@ -163,15 +171,19 @@ public class DateUtils {
         // we were unable to parse the date
         throw new DateParseException("Unable to parse the date " + dateValue);
     }
-    
+
+    public static String formatDate(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        return formatDate(cal);
+    }
+
     /**
      *
      * @see #PATTERN_WEBDAV
      */
-    public static String formatDate(Date date) {
+    public static String formatDate(Calendar cal) {
         // 2005-03-30T05:18:33Z
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
         StringBuffer sb = new StringBuffer();
         sb.append( cal.get(Calendar.YEAR)+"" );
         sb.append('-');
