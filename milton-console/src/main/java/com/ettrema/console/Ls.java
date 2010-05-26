@@ -41,7 +41,7 @@ public class Ls extends AbstractConsoleCommand{
             newCursor = cursor;
             target = currentResource();
         }
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         List<? extends Resource> children = target.getChildren();
         sb.append( resultFormatter.begin( children));
         for( Resource r1 : target.getChildren() ) {

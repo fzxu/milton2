@@ -69,7 +69,7 @@ public class ICalFormatter {
         if( d == null ) return "";
         Calendar cal = Calendar.getInstance();
         cal.setTime( d );
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append( cal.get( Calendar.YEAR ) + "" );
         sb.append( pad2( cal.get( Calendar.MONTH ) + 1 ) );
         sb.append( pad2( cal.get( Calendar.DAY_OF_MONTH ) ) );

@@ -31,7 +31,7 @@ public class Path implements Serializable {
 
     private static Path split( Path startFrom, String s ) {
         Path parent = startFrom;
-        StringBuffer sb = null;
+        StringBuilder sb = null;
         for( int i = 0; i < s.length(); i++ ) {
             char c = s.charAt( i );
             switch( c ) {
@@ -51,7 +51,7 @@ public class Path implements Serializable {
 //                    // ignore
 //                    break;
                 default:
-                    if( sb == null ) sb = new StringBuffer();
+                    if( sb == null ) sb = new StringBuilder();
                     sb.append( c );
             }
         }

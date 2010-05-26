@@ -78,11 +78,11 @@ public class StaticResource implements GetableResource {
 
     public String getContentType(String preferredList) {
         Collection mimeTypes = MimeUtil.getMimeTypes( file );
-        StringBuffer sb = null;
+        StringBuilder sb = null;
         for( Object o : mimeTypes ) {
             MimeType mt = (MimeType) o;
             if( sb == null) {
-                sb = new StringBuffer();
+                sb = new StringBuilder();
             } else {
                 sb.append( ",");
             }

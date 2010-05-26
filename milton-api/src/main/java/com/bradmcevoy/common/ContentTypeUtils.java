@@ -39,16 +39,16 @@ public class ContentTypeUtils {
     }
 
     private static String buildContentTypeText( Collection mimeTypes ) {
-        StringBuffer sb = null;
+        StringBuilder sb = null;
         for( Object o : mimeTypes ) {
             MimeType mt = (MimeType) o;
             if( sb == null ) {
-                sb = new StringBuffer();
+                sb = new StringBuilder();
             } else {
                 sb.append( "," );
             }
             sb.append( mt.toString() );
         }
-        return sb.toString();
+        return sb.toString();  // NPE risk
     }
 }

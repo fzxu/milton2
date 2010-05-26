@@ -6,7 +6,7 @@ import java.util.List;
 public class DefaultResultFormatter implements ResultFormatter {
 
     public String format( String href, Resource r1 ) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append( "<a href=\'" ).append( href ).append( "\'>" ).append( r1.getName() ).append( "</a>" ).append( "<br/>" );
         return sb.toString();
     }

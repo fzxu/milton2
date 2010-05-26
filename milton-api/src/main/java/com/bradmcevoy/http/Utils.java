@@ -98,7 +98,7 @@ public class Utils {
         s = s.replaceAll( "'", "&apos;" );
         s = s.replaceAll( "<", "&lt;" );
         s = s.replaceAll( ">", "&gt;" );
-//        s = s.replaceAll("æ", "ae");
+//        s = s.replaceAll("ï¿½", "ae");
         return s;
     }
 
@@ -147,7 +147,7 @@ public class Utils {
         ByteBuffer bb = null;
         bb = Charset.forName( "UTF-8" ).encode( CharBuffer.wrap( ns ) );
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         while( bb.hasRemaining() ) {
             int b = bb.get() & 0xff;
             if( ( b >= 0x80 || b < (char) 48 || isSquareBracket( b ) ) && ( b != '.' && b != '-' ) ) {
@@ -163,7 +163,7 @@ public class Utils {
         return b == 0x5B || b == 0x5D;
     }
 
-    private static void appendEscape( StringBuffer sb, byte b ) {
+    private static void appendEscape( StringBuilder sb, byte b ) {
         sb.append( '%' );
         sb.append( hexDigits[( b >> 4 ) & 0x0f] );
         sb.append( hexDigits[( b >> 0 ) & 0x0f] );

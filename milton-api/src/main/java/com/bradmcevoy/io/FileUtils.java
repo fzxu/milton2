@@ -110,7 +110,7 @@ public class FileUtils {
         try {
             fr = new FileReader(file);
             br = new BufferedReader(fr);
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             String s = null;
             while ((s = br.readLine()) != null) {
                 sb.append(s);
@@ -132,7 +132,7 @@ public class FileUtils {
             BufferedInputStream bin = new BufferedInputStream(in);
             int s;
             byte[] buf = new byte[1024];
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             while( (s = bin.read(buf)) > -1 ) {
                 sb.append(new String(buf,0,s));
             }
@@ -172,7 +172,7 @@ public class FileUtils {
     public static String stripExtension(String nm) {
         if( nm.indexOf(".") >= 0 ) {
             String[] arr = nm.split("[.]");
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for( int i=0; i<arr.length-1; i++ ) {
                 if(arr[i] != null ) {
                     if( i!=0 ) sb.append(".");

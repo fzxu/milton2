@@ -107,7 +107,7 @@ public class StringSplitUtils {
         if( oldPattern == null || newPattern == null ) {
             return inString;
         }
-        StringBuffer sbuf = new StringBuffer();
+        StringBuilder sbuf = new StringBuilder();
 
         int pos = 0;//ourpositionintheoldstring
         int index = inString.indexOf( oldPattern );

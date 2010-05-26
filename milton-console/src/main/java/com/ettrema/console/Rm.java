@@ -40,7 +40,7 @@ public class Rm extends AbstractConsoleCommand {
     }
 
     private Result delete( List<DeletableResource> deletables ) {
-        StringBuffer sb = new StringBuffer( "deleted: " );
+        StringBuilder sb = new StringBuilder( "deleted: " );
         for( DeletableResource dr : deletables ) {
             sb.append( dr.getName() ).append( ',' );
             dr.delete();

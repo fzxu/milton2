@@ -17,7 +17,7 @@ public class Help extends AbstractConsoleCommand {
     
     @Override
     public Result execute() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         List<ConsoleCommandFactory> list = new ArrayList<ConsoleCommandFactory>();
         list.addAll(factories );
         Collections.sort(list, new Comparator() {

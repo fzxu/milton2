@@ -124,10 +124,10 @@ public abstract class AbstractResponse implements Response {
     public void setAllowHeader(List<String> methodsAllowed) {
         if (methodsAllowed == null || methodsAllowed.size() == 0)
             return;
-        StringBuffer sb = null;
+        StringBuilder sb = null;
         for (String m : methodsAllowed) {
             if (sb == null) {
-                sb = new StringBuffer();
+                sb = new StringBuilder();
             } else {
                 sb.append(",");
             }

@@ -184,7 +184,7 @@ public class DateUtils {
      */
     public static String formatDate(Calendar cal) {
         // 2005-03-30T05:18:33Z
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append( cal.get(Calendar.YEAR)+"" );
         sb.append('-');
         sb.append( pad2(cal.get(Calendar.MONTH)+1) );
