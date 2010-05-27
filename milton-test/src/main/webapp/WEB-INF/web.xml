@@ -4,7 +4,20 @@
 	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
 	 version="2.4">
-             
+
+     <!-- Use the CustomFilter as an example of creating your own filter -->
+     <!-- Alternatively, use MiltonServlet further below-->
+    <filter>
+        <filter-name>CustomFilter</filter-name>
+        <filter-class>com.bradmcevoy.http.CustomFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>CustomFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+<!--
     <filter>
         <filter-name>StaticResourceFilter</filter-name>
         <filter-class>com.bradmcevoy.http.StaticResourceFilter</filter-class>
@@ -14,7 +27,7 @@
         <filter-name>StaticResourceFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-             
+-->
     <servlet>
         <servlet-name>milton</servlet-name>
         <servlet-class>com.bradmcevoy.http.MiltonServlet</servlet-class>
@@ -47,12 +60,12 @@ will default to basic and digest authentication.
         </init-param>
 
     </servlet>
-    
+<!--
     <servlet-mapping>
         <servlet-name>milton</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>    
-    
+-->
     <session-config>
         <session-timeout>
             30
