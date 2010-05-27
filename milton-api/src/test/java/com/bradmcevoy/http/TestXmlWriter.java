@@ -1,6 +1,6 @@
 package com.bradmcevoy.http;
 
-import java.io.ByteArrayOutputStream;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import junit.framework.TestCase;
 
 public class TestXmlWriter extends TestCase {

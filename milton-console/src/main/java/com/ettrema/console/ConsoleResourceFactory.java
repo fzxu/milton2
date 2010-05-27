@@ -8,12 +8,15 @@ import com.bradmcevoy.http.SimpleResource;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
-import java.io.ByteArrayOutputStream;
+
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

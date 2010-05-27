@@ -5,9 +5,12 @@ import com.bradmcevoy.io.StreamUtils;
 import com.ettrema.http.CalendarResource;
 import com.bradmcevoy.http.ReportableResource;
 import com.ettrema.http.caldav.ICalFormatter;
-import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

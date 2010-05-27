@@ -1,9 +1,10 @@
 package com.ettrema.httpclient;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
 /**
  *
