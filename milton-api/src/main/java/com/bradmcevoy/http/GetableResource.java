@@ -7,20 +7,23 @@ import java.util.Map;
 
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
+/**
+ * webDAV GET and HEAD
+ */
 public interface GetableResource extends Resource {
     /**
      * Send the resource's content using the given output stream. Implementations
      * should assume that bytes are being physically transmitted and that headers
      * have already been committed, although this might not be the case with
      * all web containers.
-     *
+     * <P/>
      * This method will be used to serve GET requests, and also to generate
      * content following POST requests (if they have not redirected)
-     *
+     * <P/>
      * The Range argument is not-null for partial content requests. In this case
      * implementations should (but are not required) to only send the data
      * range requested.
-     *
+     * <P/>
      * The contentType argument is that which was resolved by negotiation in
      * the getContentType method. HTTP allows a given resource to have multiple
      * representations on the same URL. For example, a data series could be retrieved
@@ -50,29 +53,31 @@ public interface GetableResource extends Resource {
     Long getMaxAgeSeconds(Auth auth);
 
     /** 
-     * Given a comma seperated listed of preferred content types acceptable for a client, return one content type which is the best.
-     * 
+     * Given a comma separated listed of preferred content types acceptable for a client,
+     * return one content type which is the best.
+     * <P/>
      * Returns the most preferred  MIME type. E.g. text/html, image/jpeg, etc
-     *
+     * <P/>
      *  Must be IANA registered
-     *
+     * <P/>
      *  accepts is the accepts header. Eg: Accept: text/*, text/html, text/html;level=1
-     *
+     * <P/>
      *  See - http://www.iana.org/assignments/media-types/ for a list of content types
      *  See - http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for details about the accept header
-     * 
+     * <P/>
      *  If you can't handle accepts interpretation, just return a single content type - E.g. text/html
-     *
+     * <P/>
      * But typically you should do something like this:
-     *         String mime = ContentTypeUtils.findContentTypes( this.file );
-     *         return ContentTypeUtils.findAcceptableContentType( mime, preferredList );
-     * 
-     *  See com.bradmcevoy.common.ContentTypeUtils;
+     * <PRE>
+     *   String mime = ContentTypeUtils.findContentTypes( this.file );
+     *   return ContentTypeUtils.findAcceptableContentType( mime, preferredList );
+     * </PRE>
+     *  @see com.bradmcevoy.common.ContentTypeUtils
      *
      */
     String getContentType(String accepts);
 
-    /** The length of the content in this resource. If unknown return nnull
+    /** The length of the content in this resource. If unknown return NULL
      */
     Long getContentLength();
     

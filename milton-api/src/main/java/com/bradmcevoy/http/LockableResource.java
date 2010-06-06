@@ -3,7 +3,8 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 /**
- *
+ * webDAV LOCK
+ * 
  * @author brad
  */
 public interface LockableResource extends Resource {

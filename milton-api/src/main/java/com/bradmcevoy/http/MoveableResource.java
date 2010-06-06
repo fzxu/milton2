@@ -2,6 +2,9 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.exceptions.ConflictException;
 
+/**
+ * webDAV MOVE
+ */
 public interface MoveableResource  extends Resource {
     /** rDest is the destination folder to move to.
      *
