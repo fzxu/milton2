@@ -30,7 +30,6 @@ public class Utils {
      * /with%20space -> /with space
      *
      * @param href
-     * @return
      */
     public static String decodePath( String href ) {
         // For IPv6
@@ -114,7 +113,6 @@ public class Utils {
      * by "part of url" i mean the bits between slashes
      *
      * @param s
-     * @return
      */
     public static String percentEncode( String s ) {
         s = _percentEncode( s ); // the original method, from java.net
@@ -196,10 +194,9 @@ public class Utils {
     }
 
     /**
-     * Convert the list of strings to a comma seperated string
+     * Convert the list of strings to a comma separated string
      *
      * @param list
-     * @return
      */
     public static String toCsv(List<String> list) {
         String res = "";

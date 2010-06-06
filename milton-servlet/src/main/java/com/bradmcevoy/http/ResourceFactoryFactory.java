@@ -8,16 +8,20 @@ import com.bradmcevoy.http.webdav.WebDavResponseHandler;
  * To use your implementation, specify its class name in: resource.factory.factory.class
  * as an init parameter on the servlet or filter in web.xml
  * 
- * Eg
- *     <servlet>
-        <servlet-name>milton</servlet-name>
-        <servlet-class>com.bradmcevoy.http.MiltonServlet</servlet-class>
-        <init-param>
-            <param-name>resource.factory.factory.class</param-name>
-            <param-value>com.bradmcevoy.http.SpringResourceFactoryFactory</param-value>
-        </init-param>
-    </servlet>
-
+ * Example:
+ * <PRE>
+ * {@code
+ * <servlet>
+ *   <servlet-name>milton</servlet-name>
+ *   <servlet-class>com.bradmcevoy.http.MiltonServlet</servlet-class>
+ *     <init-param>
+ *       <param-name>resource.factory.factory.class</param-name>
+ *       <param-value>com.bradmcevoy.http.SpringResourceFactoryFactory</param-value>
+ *     </init-param>
+ * </servlet>
+ * }
+ * </PRE>
+ *
  * 
  */
 public interface ResourceFactoryFactory {
@@ -30,7 +34,7 @@ public interface ResourceFactoryFactory {
     public WebDavResponseHandler createResponseHandler();
 
     /**
-     * Called immediaely after construction
+     * Called immediately after construction
      */
     void init();
     

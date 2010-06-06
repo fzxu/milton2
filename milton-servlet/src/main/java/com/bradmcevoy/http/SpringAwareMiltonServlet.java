@@ -31,27 +31,30 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  *
  * An example applicationContext.xml might look like this
  *
+ * <PRE>
+ * {@code
  * <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
-
-    <bean id="milton.resource.factory" class="com.ettrema.http.fs.FileSystemResourceFactory">
-        <property name="securityManager" ref="milton.fs.security.manager" />
-        <property name="maxAgeSeconds" value="3600" />
-    </bean>
-
-    <bean id="milton.fs.security.manager" class="com.ettrema.http.fs.NullSecurityManager" >
-        <property name="realm" value="aRealm" />
-    </bean>
-
-    <bean id="milton.response.handler" class="com.bradmcevoy.http.DefaultResponseHandler" />
-
-    <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">
-        <constructor-arg ref="milton.resource.factory" />
-        <constructor-arg ref="milton.response.handler" />
-    </bean>
-</beans>
+ *      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ *      xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
  *
+ *   <bean id="milton.resource.factory" class="com.ettrema.http.fs.FileSystemResourceFactory">
+ *       <property name="securityManager" ref="milton.fs.security.manager" />
+ *       <property name="maxAgeSeconds" value="3600" />
+ *   </bean>
+ *
+ *   <bean id="milton.fs.security.manager" class="com.ettrema.http.fs.NullSecurityManager" >
+ *       <property name="realm" value="aRealm" />
+ *   </bean>
+ *
+ *   <bean id="milton.response.handler" class="com.bradmcevoy.http.DefaultResponseHandler" />
+ *
+ *   <bean id="milton.http.manager" class="com.bradmcevoy.http.HttpManager">
+ *       <constructor-arg ref="milton.resource.factory" />
+ *       <constructor-arg ref="milton.response.handler" />
+ *   </bean>
+ * </beans>
+ * }
+ * </PRE>
  * @author brad
  */
 public class SpringAwareMiltonServlet implements Servlet{
