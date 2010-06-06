@@ -119,7 +119,7 @@ public class Console implements GetableResource, PostableResource {
         }
         String currentDir = parameters.get("currentDir");
         if( currentDir == null ) currentDir = "/";
-        String[] arr = sCmd.split(" ");  // todo: this won't handle quoted arguments properly eg cp "a file" "another file"
+        String[] arr = sCmd.split(" ");  // todo: this won't handle quoted arguments properly E.g. cp "a file" "another file"
         try {
             result = doCmd( currentDir, arr, host );
         } catch( Throwable e ) {

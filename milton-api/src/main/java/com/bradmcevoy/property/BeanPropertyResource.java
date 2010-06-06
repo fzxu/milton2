@@ -22,7 +22,7 @@ public @interface BeanPropertyResource {
      * Default property which is the namespace uri for the properties
      * on this resource
      *
-     * Eg http://mycompany.com/ns/example
+     * E.g. http://mycompany.com/ns/example
      * 
      * @return - the namespace uri
      */

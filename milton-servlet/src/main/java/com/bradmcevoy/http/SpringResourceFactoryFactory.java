@@ -9,7 +9,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * This will load applicationContext.xml from the classpath and use that to
  * load the ResourceFactory from bean id: milton.resource.factory
  * 
- * Eg web.xml
+ * Example web.xml
  * <PRE>
  * {@code
  * <servlet>
@@ -23,7 +23,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * }
  * </PRE>
  * 
- * Eg applicationContext.xml
+ * Example applicationContext.xml
  * <PRE>
  * {@code
  * <?xml version="1.0" encoding="UTF-8"?>

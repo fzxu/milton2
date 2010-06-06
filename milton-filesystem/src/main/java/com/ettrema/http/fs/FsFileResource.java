@@ -30,7 +30,7 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
 
     /**
      *
-     * @param host - the requested host. Eg www.mycompany.com
+     * @param host - the requested host. E.g. www.mycompany.com
      * @param factory
      * @param file
      */
@@ -88,6 +88,7 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
         }
     }
 
+    @Deprecated
     public void setProperties( Fields fields ) {
         // MIL-50
         // not implemented. Just to keep MS Office sweet

@@ -21,7 +21,7 @@ public interface ConditionalCompatibleResource {
      * HTTP method.
      *
      * Note that a resource MUST also implement the corresponding milton interface
-     * (eg GetableResource)
+     * (E.g. GetableResource)
      *
      * @param m - the HTTP method in the current request
      * @return - false to say that this resource must not handle this request, true

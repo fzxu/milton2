@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * Adapter to between apache FTP's FtpFile interface and milton's Resource interface
  *
  * This class can wrap any Resource instance and will allow or disallow requests
- * as appropriate given what methods the resource instance supports - Eg DeletableResource,
+ * as appropriate given what methods the resource instance supports - E.g. DeletableResource,
  * MoveableResource, etc
  *
  * @author u370681

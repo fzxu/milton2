@@ -33,7 +33,7 @@ public interface PutableResource extends CollectionResource {
     /**
      * Create a new resource, or overwrite an existing one
      *
-     * @param newName - the name to create within the collection. Eg myFile.txt
+     * @param newName - the name to create within the collection. E.g. myFile.txt
      * @param inputStream - the data to populate the resource with
      * @param length - the length of the data
      * @param contentType - the content type to create

@@ -87,13 +87,13 @@ public class JsonPropFindHandler {
                 for( String s : arr ) {
                     QName qn;
                     if( s.contains( ":")) {
-                        // name is of form uri:local  Eg MyDav:authorName
+                        // name is of form uri:local  E.g. MyDav:authorName
                         String parts[] = s.split( ":");
                         String nsUri = parts[0];
                         String localName = parts[1];
                         qn = new QName( nsUri, localName);
                     } else {
-                        // name is simple form Eg displayname, default nsUri to DAV
+                        // name is simple form E.g. displayname, default nsUri to DAV
                         qn = new QName( WebDavProtocol.NS_DAV, s);
                     }
                     log.debug( "field: " + qn);

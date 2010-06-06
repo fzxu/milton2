@@ -57,7 +57,7 @@ public class LockInfo {
     public LockScope scope;
     public LockType type;
     /**
-     * Contact details for the lock owner. Eg phone number, website address, or
+     * Contact details for the lock owner. E.g. phone number, website address, or
      * email address. Generally not used. Can be ignored.
      */
     public String owner;

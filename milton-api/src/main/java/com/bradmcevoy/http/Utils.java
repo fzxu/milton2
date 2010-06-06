@@ -26,7 +26,7 @@ public class Utils {
     /**
      * does percentage decoding on a path portion of a url
      *
-     * Eg /foo  > /foo
+     * E.g. /foo  > /foo
      * /with%20space -> /with space
      *
      * @param href

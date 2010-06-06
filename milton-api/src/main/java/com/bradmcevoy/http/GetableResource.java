@@ -52,7 +52,7 @@ public interface GetableResource extends Resource {
     /** 
      * Given a comma seperated listed of preferred content types acceptable for a client, return one content type which is the best.
      * 
-     * Returns the most preferred  MIME type. Eg text/html, image/jpeg, etc
+     * Returns the most preferred  MIME type. E.g. text/html, image/jpeg, etc
      *
      *  Must be IANA registered
      *
@@ -61,7 +61,7 @@ public interface GetableResource extends Resource {
      *  See - http://www.iana.org/assignments/media-types/ for a list of content types
      *  See - http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for details about the accept header
      * 
-     *  If you can't handle accepts interpretation, just return a single content type - Eg text/html
+     *  If you can't handle accepts interpretation, just return a single content type - E.g. text/html
      *
      * But typically you should do something like this:
      *         String mime = ContentTypeUtils.findContentTypes( this.file );

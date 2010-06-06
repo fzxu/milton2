@@ -191,7 +191,7 @@ public class FileSystemResourceFactory implements ResourceFactory {
      * if provided GET requests to a folder will redirect to a page of this name
      * within the folder
      *
-     * @return - eg index.html
+     * @return - E.g. index.html
      */
     public String getDefaultPage() {
         return defaultPage;

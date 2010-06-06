@@ -5,7 +5,7 @@ import java.util.Date;
 
 /**
  * 
- * Implementations should implemenet compareTo as an alphabetic comparison 
+ * Implementations should implement compareTo as an alphabetic comparison 
  *  on the name property
  * 
  * @author Alienware1
@@ -16,7 +16,7 @@ public interface Resource {
      * Returning a null value is allowed, and disables the ETag field
      *
      * If a unique id is returned it will be combined with the modified date (if available)
-     * to produce an etag which identifies this version of this resource.
+     * to produce an ETag which identifies this version of this resource.
      * 
      * @return - a string which uniquely identifies this resource. This will be
      * used in the ETag header field, and affects caching of resources. 
@@ -27,7 +27,7 @@ public interface Resource {
     /**
      * Note that this name MUST be consistent with URL resolution in your ResourceFactory
      * 
-     * If they arent consistent Milton will generate a different href in PropFind
+     * If they aren't consistent Milton will generate a different href in PropFind
      * responses then what clients have request and this will cause either an
      * error or no resources to be displayed
      * 
@@ -39,11 +39,12 @@ public interface Resource {
     /**
      * Check the given credentials, and return a relevant object if accepted.
      * 
-     * Returning null indicates credentials were not accpeted
+     * Returning null indicates credentials were not accepted
      * 
-     * @param user - the username provided by the user's agent
+     * @param user - the user name provided by the user's agent
      * @param password - the password provided by the user's agent
-     * @return - if credentials are accepted, some object to attach to the Auth object. otherwise null
+     * @return - if credentials are accepted, some object to attach to the Auth object.
+     * otherwise null
      */
     Object authenticate(String user, String password);
 
@@ -51,18 +52,18 @@ public interface Resource {
      *  the specified method.
      *
      *  Note that the current user may be determined by the Auth associated with
-     *  the request, or by a seperate, application specific, login mechanism such
+     *  the request, or by a separate, application specific, login mechanism such
      *  as a session variable or cookie based system. This method should correctly
      *  interpret all such mechanisms
      *
      *  The auth given as a parameter will be null if authentication failed. The
      *  auth associated with the request will still exist
      */
-    boolean authorise(Request request, Request.Method method,Auth auth);
+    boolean authorise(Request request, Request.Method method, Auth auth);
 
     /** Return the security realm for this resource. Just any string identifier.
      *
-     * This will be used to contruct authorization challenges and will be used
+     * This will be used to construct authorization challenges and will be used
      * on Digest authentication to construct the expected response.
      */
     String getRealm();
@@ -79,7 +80,7 @@ public interface Resource {
      *
      * Although nulls are explicitly allowed by milton, certain client applications
      * might require modified dates for file browsing. For example, the command line
-     * client on Vista doesnt work properly if this is null.
+     * client on Vista doesn't work properly if this is null.
      *
      */
     Date getModifiedDate();

@@ -43,7 +43,7 @@ public interface StorageChecker {
      * provided.
      *
      * @param request
-     * @param parentPath - the path to the parent collection. Eg http://abc.com/path = /path
+     * @param parentPath - the path to the parent collection. E.g. http://abc.com/path = /path
      * @param host
      * @return - null if the operation should proceed, or the reason for the failure
      */

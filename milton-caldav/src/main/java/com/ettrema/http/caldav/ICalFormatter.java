@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * A helper class to parse and format the iCalendar specification
  *
- * To use this, first implement the appropriate interface (eg EventResource for VEVENT)
+ * To use this, first implement the appropriate interface (E.g. EventResource for VEVENT)
  * and then use this class to implement getICalData
  *
  * Eg

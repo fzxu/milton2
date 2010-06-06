@@ -29,7 +29,7 @@ import java.util.Map;
 public interface Http11ResponseHandler extends ETagGenerator {
     /**
      * Invoked when an operation is successful, but there is no content, and
-     * there is nothing more specific to return (Eg created)
+     * there is nothing more specific to return (E.g. created)
      *
      * For example, as a result of a PUT when a resouce has been updated)
      *

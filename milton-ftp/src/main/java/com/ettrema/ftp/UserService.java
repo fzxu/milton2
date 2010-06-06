@@ -30,7 +30,7 @@ public interface UserService {
 
     /**
      *
-     * @param name - milton form of the username Eg user@authority
+     * @param name - milton form of the username E.g. user@authority
      * @param domain - the domain to login into
      * @return
      */

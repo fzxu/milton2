@@ -37,13 +37,13 @@ public class JsonPropPatchHandler {
             String sFieldValue = params.get(fieldName);
             QName qn;
             if (fieldName.contains(":")) {
-                // name is of form uri:local  Eg MyDav:authorName
+                // name is of form uri:local  E.g. MyDav:authorName
                 String parts[] = fieldName.split(":");
                 String nsUri = parts[0];
                 String localName = parts[1];
                 qn = new QName(nsUri, localName);
             } else {
-                // name is simple form Eg displayname, default nsUri to DAV
+                // name is simple form E.g. displayname, default nsUri to DAV
                 qn = new QName(WebDavProtocol.NS_DAV, fieldName);
             }
             log.debug("field: " + qn);

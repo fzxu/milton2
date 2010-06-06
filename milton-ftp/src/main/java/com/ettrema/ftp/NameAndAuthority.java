@@ -48,17 +48,17 @@ public class NameAndAuthority {
         }
     }
     /**
-     * The username part. Eg brad
+     * The username part. E.g. brad
      */
     public final String name;
     
     /**
-     * The domain they are logging into. Optional. Eg milton.ettrema.com
+     * The domain they are logging into. Optional. E.g. milton.ettrema.com
      */
     public final String domain;
 
     /**
-     * The name of the authority which grants access. Optional Eg www.ettrema.com
+     * The name of the authority which grants access. Optional E.g. www.ettrema.com
      *
      * This is typically a domain which owns the domain being logged into.
      *

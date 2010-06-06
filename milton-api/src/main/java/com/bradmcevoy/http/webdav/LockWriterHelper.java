@@ -69,7 +69,7 @@ public class LockWriterHelper {
     /**
      * If set the owner value will not be wrapped in an href tag unless it is
      * a valid URL.
-     * Eg true: this -> <owner>this</owner>
+     * E.g. true: this -> <owner>this</owner>
      *    false: that -> <owner><href>that</href></owner>
      *
      * See also LockTokenValueWriter.java

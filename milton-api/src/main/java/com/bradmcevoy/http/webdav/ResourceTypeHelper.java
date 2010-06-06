@@ -12,19 +12,19 @@ import javax.xml.namespace.QName;
  */
 public interface ResourceTypeHelper {
     /**
-     * Get the resource types for a PROPFIND request. Eg collection, calendar, etc
+     * Get the resource types for a PROPFIND request. E.g. collection, calendar, etc
      *
      * @param r
-     * @return - a list of QName's where the URI determines the namespace (eg DAV,
+     * @return - a list of QName's where the URI determines the namespace (E.g. DAV,
      * http://calendarserver.org/ns/) and the name is the name of the resource type
-     * eg collection, calendar
+     * E.g. collection, calendar
      */
     List<QName> getResourceTypes(Resource r);
 
 
     /**
      * Gets the list of supported level names for a resource. This is to populate
-     * the DAV header, eg 1, access-control, calendar-access
+     * the DAV header, E.g. 1, access-control, calendar-access
      *
      * Typically, this list is determined by the type of the resource. Eg, if the
      * resource supports locking then it returns 1, 2. Note that should **NOTE** be
