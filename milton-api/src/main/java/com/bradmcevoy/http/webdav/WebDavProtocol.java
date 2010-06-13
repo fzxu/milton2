@@ -13,7 +13,6 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceHandlerHelper;
-import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.http11.DefaultETagGenerator;
 import com.bradmcevoy.http.http11.ETagGenerator;
@@ -450,12 +449,6 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         public Class getValueClass() {
             return SupportedReportSetList.class;
         }
-    }
-
-    private String nameEncode( String s ) {
-        //return Utils.encode(href, false); // see MIL-31
-        return Utils.escapeXml( s );
-        //return href.replaceAll("&", "&amp;");  // http://www.ettrema.com:8080/browse/MIL-24
     }
 
     protected void sendStringProp( XmlWriter writer, String name, String value ) {
