@@ -49,6 +49,10 @@ public class ContentTypeUtils {
             }
             sb.append( mt.toString() );
         }
-        return sb.toString();  // NPE risk
+        if( sb == null ) {
+            return "";
+        } else {
+            return sb.toString();
+        }
     }
 }

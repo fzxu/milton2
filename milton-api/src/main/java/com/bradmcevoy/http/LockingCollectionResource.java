@@ -6,13 +6,19 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
  * A collection which allows locking "unmapped resources". This means that a LOCK
  * method can effectively create an empty resource which is immediately locked
  * 
- * Implement this in conjunction with LockableResource to fully support locking
+ * Implement this in conjunction with LockableResource on child resources to fully support locking.
+ *
+ * Note that this interface now extends LockableResource because collection resources
+ * need to implement both in most cases.
+ *
+ * If, however, you don't want your collection resources to be lockable, just
+ * implement ConditionalCompatibleResource
  * 
  * See - http://www.ettrema.com:8080/browse/MIL-14
  * 
  * @author brad
  */
-public interface  LockingCollectionResource extends CollectionResource{
+public interface  LockingCollectionResource extends CollectionResource, LockableResource {
     
     /**
      * Create an empty non-collection resource of the given name and immediately

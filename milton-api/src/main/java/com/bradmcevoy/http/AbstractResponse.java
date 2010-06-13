@@ -10,13 +10,10 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractResponse implements Response {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractResponse.class);
-   
     protected Long contentLength;
-    
 
     public AbstractResponse() {
     }
-
 
     public void setResponseHeader(Response.Header header, String value) {
         //log.debug("setResponseHeader: " + header.code + " - " + value);
@@ -34,8 +31,7 @@ public abstract class AbstractResponse implements Response {
     public Long getContentLength() {
         return contentLength;
     }
-    
-    
+
     public void setDateHeader(Date date) {
         setAnyDateHeader(Header.DATE, date);
     }
@@ -44,23 +40,19 @@ public abstract class AbstractResponse implements Response {
 //    public void setAuthenticateHeader(String realm) {
 //        setResponseHeader(Header.WWW_AUTHENTICATE, "Basic realm=\"" + realm + "\"");
 //    }
-
     public void setContentRangeHeader(long start, long finish, Long totalLength) {
         String l = totalLength == null ? "*" : totalLength.toString();
 
         String s = null;
-        if( finish > -1)
-        {
-        s = "bytes " + start + "-" + finish + "/" + l;
-        }
-        else
-        {
-        	long wrotetill = totalLength.longValue() - 1;
-        	//The end position starts counting at zero. So subtract 1
+        if (finish > -1) {
+            s = "bytes " + start + "-" + finish + "/" + l;
+        } else {
+            long wrotetill = totalLength.longValue() - 1;
+            //The end position starts counting at zero. So subtract 1
             s = "bytes " + start + "-" + wrotetill + "/" + l;
         }
- 
-        
+
+
         setResponseHeader(Header.CONTENT_RANGE, s);
     }
 
@@ -68,7 +60,7 @@ public abstract class AbstractResponse implements Response {
         String s = totalLength == null ? "" : totalLength.toString();
         setResponseHeader(Header.CONTENT_LENGTH, s);
         this.contentLength = totalLength;
-        
+
     }
 
     public void setContentTypeHeader(String type) {
@@ -80,7 +72,7 @@ public abstract class AbstractResponse implements Response {
     }
 
     public void setCacheControlMaxAgeHeader(Long delta) {
-        if( delta != null ) {
+        if (delta != null) {
             setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.MAX_AGE.code + "=" + delta);
         } else {
             setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.NO_CACHE.code);
@@ -88,14 +80,12 @@ public abstract class AbstractResponse implements Response {
     }
 
     public void setCacheControlPrivateMaxAgeHeader(Long delta) {
-        if( delta != null ) {
+        if (delta != null) {
             setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.PRIVATE.code + " " + CacheControlResponse.MAX_AGE.code + "=" + delta);
         } else {
             setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.PRIVATE.code);
         }
     }
-
-
 
     public void setExpiresHeader(Date expiresAt) {
         if (expiresAt == null) {
@@ -122,8 +112,9 @@ public abstract class AbstractResponse implements Response {
     }
 
     public void setAllowHeader(List<String> methodsAllowed) {
-        if (methodsAllowed == null || methodsAllowed.size() == 0)
+        if (methodsAllowed == null || methodsAllowed.size() == 0) {
             return;
+        }
         StringBuilder sb = null;
         for (String m : methodsAllowed) {
             if (sb == null) {
@@ -149,7 +140,7 @@ public abstract class AbstractResponse implements Response {
 
     public void sendRedirect(String url) {
         setStatus(Response.Status.SC_MOVED_TEMPORARILY);
-        setLocationHeader( url );        
+        setLocationHeader(url);
     }
 
     public void write(String s) {
@@ -158,13 +149,13 @@ public abstract class AbstractResponse implements Response {
         } catch (IOException ex) {
             log.warn("Exception writing to output. Probably client closed connection", ex);
         }
-    }    
+    }
 
     protected void setAnyDateHeader(Header name, Date date) {
         if (date == null) {
             return;
         }
-        String fmt = DateUtils.formatForHeader( date );
+        String fmt = DateUtils.formatForHeader(date);
         setResponseHeader(name, fmt);
 
     }
