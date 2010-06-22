@@ -75,13 +75,13 @@
         <constructor-arg ref="milton.resource.factory" />
         <constructor-arg ref="milton.response.handler.compressing" />
         <constructor-arg ref="auth.service" />
-
+<!--
         <property name="filters">
             <list>
                 <ref bean="milton.debug.filter" />
             </list>
         </property>
-
+-->
     </bean>
 
     <!-- If added to the http manager, this filter will output request and responses
