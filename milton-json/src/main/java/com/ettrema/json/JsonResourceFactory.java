@@ -3,12 +3,14 @@ package com.ettrema.json;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.DigestResource;
+import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropPatchSetter;
 import com.bradmcevoy.property.PropertySource;
@@ -31,16 +33,12 @@ public class JsonResourceFactory implements ResourceFactory {
         this.wrapped = wrapped;
         this.propFindHandler = propFindHandler;
         this.propPatchHandler = propPatchHandler;
-    }
-
-    public JsonResourceFactory(ResourceFactory wrapped) {
-        this.wrapped = wrapped;
-        this.propFindHandler = new JsonPropFindHandler();
-        this.propPatchHandler = new JsonPropPatchHandler();
+        log.debug("created with: " + propFindHandler.getClass().getCanonicalName());
     }
 
     public JsonResourceFactory(ResourceFactory wrapped,List<PropertySource> propertySources, PropPatchSetter patchSetter) {
         this.wrapped = wrapped;
+        log.debug("using property sources: " + propertySources.size());
         this.propFindHandler = new JsonPropFindHandler(new PropFindPropertyBuilder(propertySources));
         this.propPatchHandler = new JsonPropPatchHandler(patchSetter);
     }
@@ -51,13 +49,14 @@ public class JsonResourceFactory implements ResourceFactory {
         log.debug(host + " :: " + sPath);
         Path path = Path.path(sPath);
         Path parent = path.getParent();
+        String encodedPath = HttpManager.request().getAbsolutePath();
         if (parent != null && parent.getName() != null && parent.getName().equals(DAV_FOLDER)) {
             Path resourcePath = parent.getParent();
             if (resourcePath != null) {
                 String method = path.getName();
                 Resource wrappedResource = wrapped.getResource(host, resourcePath.toString());
                 if (wrappedResource != null) {
-                    return wrapResource(host, wrappedResource, method, sPath);
+                    return wrapResource(host, wrappedResource, method, encodedPath);
                 }
             }
         } else {
