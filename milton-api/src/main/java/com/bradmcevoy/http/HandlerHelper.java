@@ -108,7 +108,7 @@ public class HandlerHelper {
                 return false;
             } else if( !lockedByUser.equals( auth.getUser() ) ) {
                 log.info( "fail: lock owned by: " + lockedByUser + " not by " + auth.getUser() );
-                String value = inRequest.getHeaders().get( "If" );
+                String value = inRequest.getIfHeader();
                 if( value != null ) {
                     if( value.contains( "opaquelocktoken:" + token.tokenId + ">" ) ) {
                         log.info( "Contained valid token. so is unlocked" );
