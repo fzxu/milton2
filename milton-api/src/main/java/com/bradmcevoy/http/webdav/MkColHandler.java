@@ -68,10 +68,12 @@ public class MkColHandler implements Handler {
                 CollectionResource col = (CollectionResource) parentcol;
                 processMakeCol( manager, request, response, col, name );
             } else {
+                log.warn("parent collection is no a CollectionResource: " + parentcol.getName());
                 responseHandler.respondConflict( parentcol, response, request, "not a collection" );
             }
             
         } else {
+            log.warn("parent does not exist: " + parenturl);
             manager.getResponseHandler().respondConflict( parentcol, response, request, name );
         }
     }
