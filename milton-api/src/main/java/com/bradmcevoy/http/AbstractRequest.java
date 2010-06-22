@@ -119,10 +119,13 @@ public abstract class AbstractRequest implements Request {
     public static String stripToPath( String url ) {
         int i = url.indexOf( "/", 8 );
         if( i > 0 ) {
-            return url.substring( i );
-        } else {
-            return url;
+            url = url.substring( i );
         }
+        i = url.indexOf("?");
+        if( i > 0 ) {
+            url = url.substring(0,i);
+        }
+        return url;
     }
 
     public Map<String, Object> getAttributes() {
