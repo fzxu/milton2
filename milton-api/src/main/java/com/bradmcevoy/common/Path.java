@@ -118,9 +118,10 @@ public class Path implements Serializable {
     public List<String> getAfterFirst() {
         List<String> afterFirst = new ArrayList<String>();
         Path p = this;
-        while( !p.getParent().isRoot() ) {
+        while( p != null && p.getParent() != null && !p.getParent().isRoot() ) {
             afterFirst.add( 0, p.getName() );
             p = p.getParent();
+            if( p == null ) break;
         }
         return afterFirst;
     }
@@ -131,7 +132,7 @@ public class Path implements Serializable {
 
     Path stripFirst( Path p ) {
         Path pParent = p.getParent();
-        if( pParent.isRoot() ) return root;
+        if( pParent == null || pParent.isRoot() ) return root;
         pParent = stripFirst( pParent );
         return new Path( pParent, p.getName() );
     }
