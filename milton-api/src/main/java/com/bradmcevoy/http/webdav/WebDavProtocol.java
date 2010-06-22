@@ -56,7 +56,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     private final ResourceTypeHelper resourceTypeHelper;
     private final QuotaDataAccessor quotaDataAccessor;
     private final PropertyMap propertyMap;
-    private final List<PropertySource> propertySources = new ArrayList<PropertySource>();
+    private final List<PropertySource> propertySources;
     private final ETagGenerator eTagGenerator;
 
 //    public WebDavProtocol( Set<Handler> handlers ) {
@@ -76,14 +76,18 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     }
 
     public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> extraPropertySources, QuotaDataAccessor quotaDataAccessor ) {
+        this(handlerHelper, resourceTypeHelper, responseHandler, extraPropertySources, quotaDataAccessor, null);
+    }
+
+    public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> propertySources, QuotaDataAccessor quotaDataAccessor, PropPatchSetter patchSetter ) {
         this.eTagGenerator = new DefaultETagGenerator();
         handlers = new HashSet<Handler>();
         this.resourceTypeHelper = resourceTypeHelper;
         this.quotaDataAccessor = quotaDataAccessor;
         this.propertyMap = new PropertyMap( WebDavProtocol.NS_DAV );
 
-        log.info( "DefaultWebDavPropertySource: resourceTypeHelper: " + resourceTypeHelper.getClass() );
-        log.info( "DefaultWebDavPropertySource: quotaDataAccessor: " + quotaDataAccessor.getClass() );
+        log.info( "resourceTypeHelper: " + resourceTypeHelper.getClass() );
+        log.info( "quotaDataAccessor: " + quotaDataAccessor.getClass() );
         propertyMap.add( new ContentLengthPropertyWriter() );
         propertyMap.add( new ContentTypePropertyWriter() );
         propertyMap.add( new CreationDatePropertyWriter() );
@@ -112,14 +116,15 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         // and here
         ValueWriters valueWriters = new ValueWriters();
 
-        log.debug( "adding property sources: " + extraPropertySources.size() );
-        for( PropertySource ps : extraPropertySources ) {
-            addPropertySource( ps );
-        }
-        propertySources.addAll( extraPropertySources );
+        log.debug( "provided property sources: " + propertySources.size() );
+        this.propertySources = propertySources;
+
         log.debug( "adding webdav as a property source" );
         addPropertySource( this );
-        PropertySourcePatchSetter patchSetter = new PropertySourcePatchSetter( propertySources, valueWriters );
+        if( patchSetter == null ) {
+            log.info("creating default patcheSetter: " + PropertySourcePatchSetter.class);
+            patchSetter = new PropertySourcePatchSetter( propertySources, valueWriters );
+        }
         handlers.add( new PropFindHandler( resourceHandlerHelper, resourceTypeHelper, responseHandler, propertySources ) );
         handlers.add( new MkColHandler( responseHandler, handlerHelper ) );
         handlers.add( new PropPatchHandler( resourceHandlerHelper, responseHandler, patchSetter ) );
