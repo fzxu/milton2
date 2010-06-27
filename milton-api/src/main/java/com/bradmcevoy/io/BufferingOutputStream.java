@@ -163,4 +163,15 @@ public class BufferingOutputStream extends OutputStream{
     public byte[] getInMemoryData() {
         return this.tempMemoryBuffer.toByteArray();
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if( tempFile != null && tempFile.exists() ) {
+            log.error("temporary file was not deleted. Was close called on the inputstream? Will attempt to delete");
+            if( !tempFile.delete()) {
+                log.error("Still couldnt delete temporary file: " + tempFile.getAbsolutePath());
+            }
+        }
+        super.finalize();
+    }
 }

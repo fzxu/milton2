@@ -24,7 +24,6 @@ import com.bradmcevoy.http.values.ValueWriters;
 import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
 import com.ettrema.http.report.Report;
 import com.ettrema.http.report.ReportHandler;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -164,26 +163,20 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     }
 
     public Object getProperty( QName name, Resource r ) {
-        log.debug( "getProperty: " + name.getLocalPart() );
         Object o = propertyMap.getProperty( name, r );
-        log.debug( "Property Result : "+o );
         return o;
     }
 
     public void setProperty( QName name, Object value, Resource r ) {
-        log.debug( "setProperty: " + name.getLocalPart() );
         throw new UnsupportedOperationException( "Not supported. Standard webdav properties are not writable" );
     }
 
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
-        log.debug( "getPropertyMetaData: " + name.getLocalPart() );
         PropertyMetaData propertyMetaData= propertyMap.getPropertyMetaData( name, r );
-        log.debug( "PropertyMetaData Result : "+propertyMetaData );
         return propertyMetaData;
     }
 
     public void clearProperty( QName name, Resource r ) {
-        log.debug( "clearProperty: " + name.getLocalPart() );
         throw new UnsupportedOperationException( "Not supported. Standard webdav properties are not writable" );
     }
 
