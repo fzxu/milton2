@@ -23,4 +23,19 @@ public class TestXmlWriter extends TestCase {
         System.out.println(expected);
         assertEquals(expected,s);
     }
+
+    public void testNested() throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        XmlWriter w = new XmlWriter(out);
+        w.begin("a")
+            .begin("b")
+                .prop("b1", "b1_val")
+//                .prop("b2", "b2_val")
+            .close()
+        .close();
+//            .prop("a1","a1_val");
+        w.flush();
+        String s = out.toString();
+        System.out.println("actual: \n" + s);
+    }
 }

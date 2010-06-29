@@ -21,7 +21,6 @@ public class BeanPropertySource implements PropertySource {
     private static final Object[] NOARGS = new Object[0];
 
     public Object getProperty( QName name, Resource r ) {
-        log.debug( "getProperty: " + name);
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
         if( pd == null ) throw new IllegalArgumentException("no prop: " + name.getLocalPart() + " on " + r.getClass());
         try {
@@ -41,20 +40,16 @@ public class BeanPropertySource implements PropertySource {
     }
 
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
-        log.debug( "getPropertyMetaData: " + name);
         BeanPropertyResource anno = getAnnotation( r );
         if( anno == null ) {
-            log.debug( "no annotation on class {}", r.getClass());
             return PropertyMetaData.UNKNOWN;
         }
         if( !name.getNamespaceURI().equals( anno.value() ) ) {
-            log.debug( "different namespace {} != {}", name.getNamespaceURI(), anno.value());
             return PropertyMetaData.UNKNOWN;
         }
 
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
         if( pd == null || pd.getReadMethod() == null ) {
-            log.debug( "property not found {} in class {}", name.getLocalPart(), r.getClass());
             return PropertyMetaData.UNKNOWN;
         } else {
             boolean writable = anno.writable() && ( pd.getWriteMethod() != null );

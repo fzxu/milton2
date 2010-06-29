@@ -127,7 +127,6 @@ public class DateUtils {
             Date startDate
             ) throws DateParseException {
 
-        log.debug("parseDate: " + dateValue);
 
         if (dateValue == null) {
             throw new IllegalArgumentException("dateValue is null");
@@ -161,7 +160,6 @@ public class DateUtils {
             }
             try {
                 Date dt = dateParser.parse(dateValue);
-                log.debug("parsed ok with: " + format + " -->> " + dt);
                 return dt;
             } catch (ParseException pe) {
                 // ignore this exception, we will try the next format
@@ -216,7 +214,7 @@ public class DateUtils {
         return df.format(date);
     }
     
-    private static String pad2(int i) {
+    public static String pad2(int i) {
         if( i < 10 ) {
             return "0" + i;
         } else {
