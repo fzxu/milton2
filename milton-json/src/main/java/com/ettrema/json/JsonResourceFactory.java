@@ -10,7 +10,6 @@ import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
-import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropPatchSetter;
 import com.bradmcevoy.property.PropertySource;

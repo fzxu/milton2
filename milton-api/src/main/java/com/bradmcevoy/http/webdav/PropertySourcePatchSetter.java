@@ -1,11 +1,14 @@
 package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.values.ValueWriters;
+import com.bradmcevoy.http.webdav.PropFindResponse.NameAndError;
 import com.bradmcevoy.http.webdav.PropPatchRequestParser.ParseResult;
 import com.bradmcevoy.property.PropertySource;
 import com.bradmcevoy.property.PropertySource.PropertyMetaData;
+import com.bradmcevoy.property.PropertySource.PropertySetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,20 +22,18 @@ import org.slf4j.LoggerFactory;
  *
  * @author brad
  */
-public class PropertySourcePatchSetter implements PropPatchSetter{
+public class PropertySourcePatchSetter implements PropPatchSetter {
 
-    private static final Logger log = LoggerFactory.getLogger( PropertySourcePatchSetter.class );
-
+    private static final Logger log = LoggerFactory.getLogger(PropertySourcePatchSetter.class);
     private final List<PropertySource> propertySources;
-
     private final ValueWriters valueWriters;
 
-    public PropertySourcePatchSetter( List<PropertySource> propertySources, ValueWriters valueWriters ) {
+    public PropertySourcePatchSetter(List<PropertySource> propertySources, ValueWriters valueWriters) {
         this.propertySources = propertySources;
         this.valueWriters = valueWriters;
     }
 
-    public PropertySourcePatchSetter( List<PropertySource> propertySources) {
+    public PropertySourcePatchSetter(List<PropertySource> propertySources) {
         this.propertySources = propertySources;
         this.valueWriters = new ValueWriters();
     }
@@ -47,43 +48,54 @@ public class PropertySourcePatchSetter implements PropPatchSetter{
      * @param r
      * @return
      */
-    public boolean supports( Resource r ) {
+    public boolean supports(Resource r) {
         return true;
     }
 
+    public PropFindResponse setProperties(String href, ParseResult parseResult, Resource r) {
+        log.debug("setProperties: toset: " + parseResult.getFieldsToSet().size());
+        Map<QName, ValueAndType> knownProps = new HashMap<QName, ValueAndType>();        
 
-
-    public List<PropFindResponse> setProperties( String href, ParseResult parseResult, Resource r ) {
-        log.debug( "setProperties: toset: " + parseResult.getFieldsToSet().size());
-        Map<QName, ValueAndType> knownProps = new HashMap<QName, ValueAndType>();
-        List<QName> unknownProps = new ArrayList<QName>();
-        PropertyMetaData meta;
-
-        for( Entry<QName, String> entry : parseResult.getFieldsToSet().entrySet()) {
-            log.debug( "setting: " + entry.getKey().getLocalPart());
+        Map<Status, List<NameAndError>> errorProps = new HashMap<Status, List<NameAndError>>();
+        List<QName> list;
+        for (Entry<QName, String> entry : parseResult.getFieldsToSet().entrySet()) {
+            QName name = entry.getKey();
+            log.debug("setting: " + name.getLocalPart());
             boolean found = false;
-            for(PropertySource source : propertySources ) {
-                meta = source.getPropertyMetaData( entry.getKey(), r );
-                if( meta != null && meta.isWritable() ) {
-                    log.debug( "setting: " + entry.getKey().getLocalPart() + " to: " + entry.getValue());
+            for (PropertySource source : propertySources) {
+                PropertyMetaData meta = source.getPropertyMetaData(entry.getKey(), r);
+                if (meta != null && meta.isWritable()) {
+                    log.debug("setting: " + name.getLocalPart() + " to: " + entry.getValue());
                     found = true;
-                    Object val = parse(entry.getKey(), entry.getValue(), meta.getValueType());
-                    source.setProperty( entry.getKey(), val, r);
-                    knownProps.put( entry.getKey(), new ValueAndType( null, meta.getValueType()));
+                    Object val = parse(name, entry.getValue(), meta.getValueType());
+                    try {
+                        source.setProperty(name, val, r);
+                        knownProps.put(name, new ValueAndType(null, meta.getValueType()));
+                    } catch (PropertySetException ex) {
+                        addErrorProp(errorProps, ex.getStatus(), name, ex.getErrorNotes());
+                    }
                 }
             }
-            if( !found ) {
-                unknownProps.add( entry.getKey());
+            if (!found) {
+                addErrorProp(errorProps, Status.SC_NOT_FOUND, entry.getKey(), "Unknown property");
             }
         }
-        List<PropFindResponse> list = new ArrayList<PropFindResponse>();
-        PropFindResponse resp = new PropFindResponse( href, knownProps, unknownProps);
-        list.add( resp );
-        return list;
+        PropFindResponse resp = new PropFindResponse(href, knownProps, errorProps);
+        return resp;
     }
 
-    private Object parse( QName key, String value, Class valueType ) {
+    private void addErrorProp(Map<Status, List<NameAndError>> errorProps, Status stat, QName name, String err) {
+        List<NameAndError> list = errorProps.get(stat);
+        if (list == null) {
+            list = new ArrayList<NameAndError>();
+            errorProps.put(stat, list);
+        }
+        NameAndError ne = new NameAndError(name, err);
+        list.add(ne);
+
+    }
+
+    private Object parse(QName key, String value, Class valueType) {
         return valueWriters.parse(key, valueType, value);
     }
-
 }

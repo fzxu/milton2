@@ -92,6 +92,7 @@ public class PropFindHandler implements ExistingEntityHandler {
         String url = request.getAbsoluteUrl();
 
         List<PropFindResponse> propFindResponses = propertyBuilder.buildProperties(pfr, depth, parseResult, url);
+        log.debug("responses: " + propFindResponses.size());
         responseHandler.respondPropFind(propFindResponses, response, request, pfr);
     }
 

@@ -1,8 +1,11 @@
 package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.Response;
+import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.values.ValueWriters;
+import com.bradmcevoy.http.webdav.PropFindResponse.NameAndError;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -96,13 +99,21 @@ public class PropFindXmlGenerator {
                 el.open();
                 writer.writeProperty( "D", "href", r.getHref() );
                 sendKnownProperties( writer, mapOfNamespaces, r.getKnownProperties(), r.getHref() );
-                sendUnknownProperties( writer, mapOfNamespaces, r.getUnknownProperties() );
+                if( r.getErrorProperties() != null ) {
+                    for( Status status : r.getErrorProperties().keySet()) {
+                        List<NameAndError> props = r.getErrorProperties().get(status);
+                        sendErrorProperties( status, writer, mapOfNamespaces, props );
+                    }
+                }
                 el.close();
             }
         }
 
         private void sendKnownProperties( XmlWriter writer, Map<String, String> mapOfNamespaces, Map<QName, ValueAndType> properties, String href ) {
-//            log.debug( "sendKnownProperties: " + properties.size() );
+            sendProperties(Response.Status.SC_OK, writer, mapOfNamespaces, properties, href);
+        }
+
+        private void sendProperties( Response.Status status, XmlWriter writer, Map<String, String> mapOfNamespaces, Map<QName, ValueAndType> properties, String href ) {
             if( !properties.isEmpty() ) {
                 XmlWriter.Element elPropStat = writer.begin( "D:propstat" ).open();
                 XmlWriter.Element elProp = writer.begin( "D:prop" ).open();
@@ -112,22 +123,23 @@ public class PropFindXmlGenerator {
                     valueWriters.writeValue( writer, qname, prefix, val, href, mapOfNamespaces );
                 }
                 elProp.close();
-                writer.writeProperty( "D", "status", "HTTP/1.1 200 OK" );
+                writer.writeProperty( "D", "status", status.toString() );
                 elPropStat.close();
             }
         }
 
-        private void sendUnknownProperties( XmlWriter writer, Map<String, String> mapOfNamespaces, List<QName> properties ) {
+        private void sendErrorProperties( Response.Status status, XmlWriter writer, Map<String, String> mapOfNamespaces, List<NameAndError> properties ) {
 //            log.debug( "sendUnknownProperties: " + properties.size() );
             if( !properties.isEmpty() ) {
                 XmlWriter.Element elPropStat = writer.begin( "D:propstat" ).open();
                 XmlWriter.Element elProp = writer.begin( "D:prop" ).open();
-                for( QName qname : properties ) {
+                for( NameAndError ne : properties ) {
+                    QName qname = ne.getName();
                     String prefix = mapOfNamespaces.get( qname.getNamespaceURI() );
                     writer.writeProperty( prefix, qname.getLocalPart() );
                 }
                 elProp.close();
-                writer.writeProperty( "D", "status", "HTTP/1.1 404 Not Found" );
+                writer.writeProperty( "D", "status", status.toString() );
                 elPropStat.close();
             }
         }

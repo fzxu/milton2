@@ -1,6 +1,7 @@
 package com.ettrema.json;
 
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.PropPatchRequestParser.ParseResult;
 import com.bradmcevoy.http.webdav.PropPatchSetter;
 import com.bradmcevoy.http.webdav.PropPatchableSetter;
@@ -31,7 +32,7 @@ public class JsonPropPatchHandler {
         this.patchSetter = new PropPatchableSetter();
     }
 
-    public void process(Resource wrappedResource, String encodedUrl, Map<String, String> params) {
+    public PropFindResponse process(Resource wrappedResource, String encodedUrl, Map<String, String> params) {
         Map<QName,String> fields = new HashMap<QName, String>();
         for (String fieldName : params.keySet()) {
             String sFieldValue = params.get(fieldName);
@@ -51,7 +52,7 @@ public class JsonPropPatchHandler {
         }
 
         ParseResult parseResult = new ParseResult(fields, null);
-        patchSetter.setProperties(encodedUrl, parseResult, wrappedResource);
+        return patchSetter.setProperties(encodedUrl, parseResult, wrappedResource);
     }
 
 }

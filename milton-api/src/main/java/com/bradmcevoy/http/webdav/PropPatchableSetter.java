@@ -2,11 +2,13 @@ package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.http.PropPatchableResource;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Field;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import com.bradmcevoy.http.webdav.PropPatchRequestParser.ParseResult;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -33,11 +35,12 @@ public class PropPatchableSetter implements PropPatchSetter {
         return (r instanceof PropPatchableResource);
     }
 
-    public List<PropFindResponse> setProperties( String href, ParseResult parseResult, Resource r ) {
+    public PropFindResponse setProperties( String href, ParseResult parseResult, Resource r ) {
         PropPatchableResource ppr = (PropPatchableResource) r;
         Fields fields = helper.buildFields(parseResult);
         ppr.setProperties( fields );
-        return helper.buildResult(href, parseResult);
+        List<PropFindResponse> list = helper.buildResult(href, parseResult);
+        return list.get(0);
     }
 
     class Helper {
@@ -64,7 +67,7 @@ public class PropPatchableSetter implements PropPatchSetter {
                 knownProps.put( entry.getKey(), null);
             }
             
-            PropFindResponse resp = new PropFindResponse( href, knownProps, new ArrayList<QName>());
+            PropFindResponse resp = new PropFindResponse( href, knownProps, new HashMap<Status, List<PropFindResponse.NameAndError>>());
             List<PropFindResponse> responses = new ArrayList<PropFindResponse>();
             responses.add( resp );
             return responses;

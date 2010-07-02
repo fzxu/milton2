@@ -32,7 +32,8 @@ public abstract class JsonResource {
     }
 
     public String getContentType( String accepts ) {
-        return "application/json";
+        return "application/x-javascript; charset=utf-8";
+        //return "application/json";
     }
 
     public Long getContentLength() {

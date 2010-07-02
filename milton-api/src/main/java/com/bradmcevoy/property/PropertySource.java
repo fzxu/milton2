@@ -1,6 +1,8 @@
 package com.bradmcevoy.property;
 
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.Response;
+import com.bradmcevoy.http.Response.Status;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -50,7 +52,7 @@ public interface PropertySource {
 
     Object getProperty( QName name, Resource r );
 
-    void setProperty( QName name, Object value, Resource r );
+    void setProperty( QName name, Object value, Resource r ) throws PropertySetException;
 
     /**
      * Check to see if the property is known, and if it is writable.
@@ -75,7 +77,7 @@ public interface PropertySource {
      * @param name
      * @param r
      */
-    void clearProperty( QName name, Resource r );
+    void clearProperty( QName name, Resource r ) throws PropertySetException;
 
     /**
      *
@@ -86,4 +88,42 @@ public interface PropertySource {
      * by any other source
      */
     List<QName> getAllPropertyNames( Resource r );
+
+    /**
+     * Exception from setting a field
+     */
+    public class PropertySetException extends Exception {
+        private Response.Status status;
+        private QName field;
+        private String notes;
+
+        public PropertySetException(Status status, QName field, String notes) {
+            this.status = status;
+            this.field = field;
+            this.notes = notes;
+        }
+
+        /**
+         * A response code indicating the problem. Eg 500 for a processing error,
+         * or conflict, forbidden, etc
+         *
+         * @return
+         */
+        public Status getStatus() {
+            return status;
+        }
+
+        public QName getField() {
+            return field;
+        }
+
+        /**
+         * Should contain a human readable description of the problem
+         *
+         * @return
+         */
+        public String getErrorNotes() {
+            return notes;
+        }
+    }
 }

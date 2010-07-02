@@ -3,17 +3,21 @@ package com.bradmcevoy.http.webdav;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.values.ValueAndType;
+import com.bradmcevoy.http.webdav.PropFindResponse.NameAndError;
 import com.bradmcevoy.property.PropertySource;
 import com.bradmcevoy.property.PropertySource.PropertyMetaData;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 import org.slf4j.Logger;
@@ -94,7 +98,7 @@ public class PropFindPropertyBuilder {
     private void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropFindRequestFieldParser.ParseResult parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) {
         collectionHref = suffixSlash(collectionHref);
         final LinkedHashMap<QName, ValueAndType> knownProperties = new LinkedHashMap<QName, ValueAndType>();
-        final ArrayList<QName> unknownProperties = new ArrayList<QName>();
+        final ArrayList<NameAndError> unknownProperties = new ArrayList<NameAndError>();
 
         if (resource instanceof CollectionResource) {
             if (!href.endsWith("/")) {
@@ -127,7 +131,7 @@ public class PropFindPropertyBuilder {
                     if (log.isDebugEnabled()) {
                         log.debug("unknown: " + field.toString());
                     }
-                    unknownProperties.add(field);
+                    unknownProperties.add(new NameAndError(field, null));
                 }
 
             }
@@ -141,12 +145,16 @@ public class PropFindPropertyBuilder {
             }
         }
 
-        PropFindResponse r = new PropFindResponse(href, knownProperties, unknownProperties);
+        Map<Status, List<NameAndError>> errorProperties = new HashMap<Status, List<NameAndError>>();
+        errorProperties.put(Status.SC_NOT_FOUND, unknownProperties);
+        PropFindResponse r = new PropFindResponse(href, knownProperties, errorProperties);
         responses.add(r);
 
+        log.debug("depth: " + currentDepth + " - " + requestedDepth);
         if (requestedDepth > currentDepth && resource instanceof CollectionResource) {
             CollectionResource col = (CollectionResource) resource;
             List<? extends Resource> list = col.getChildren();
+            log.debug("children: " + list.size());
             list = new ArrayList<Resource>(list);
             for (Resource child : list) {
                 if (child instanceof PropFindableResource) {

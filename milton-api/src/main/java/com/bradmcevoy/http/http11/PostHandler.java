@@ -59,12 +59,14 @@ public class PostHandler implements ExistingEntityHandler {
     }
 
     @Override
-    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException {
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         PostableResource r = (PostableResource) resource;
         String url = r.processForm( request.getParams(), request.getFiles() );
         if( url != null ) {
+            log.debug("redirect: " + url );
             responseHandler.respondRedirect( response, request, url );
         } else {
+            log.debug("respond with content");
             responseHandler.respondContent( resource, response, request, request.getParams() );
         }
     }

@@ -141,7 +141,9 @@ public class PropPatchHandler implements ExistingEntityHandler {
             InputStream in = request.getInputStream();
             ParseResult parseResult = requestParser.getRequestedFields( in );
             String href = request.getAbsoluteUrl();
-            List<PropFindResponse> responses = patchSetter.setProperties( href, parseResult, resource );
+            List<PropFindResponse> responses = new ArrayList<PropFindResponse>();
+            PropFindResponse resp = patchSetter.setProperties( href, parseResult, resource );
+            responses.add(resp);
             responseHandler.respondPropFind( responses, response, request, resource);
         } catch( WritingException ex ) {
             throw new RuntimeException( ex );

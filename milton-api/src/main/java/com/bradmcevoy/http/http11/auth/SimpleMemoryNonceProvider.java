@@ -37,7 +37,6 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
         this.nonces = new ConcurrentHashMap<UUID, Nonce>();
         this.nonceValiditySeconds = nonceValiditySeconds;
         this.remover = new ExpiredNonceRemover( nonces, nonceValiditySeconds );
-        log.debug( "created" );
     }
 
     public SimpleMemoryNonceProvider( int nonceValiditySeconds, ExpiredNonceRemover remover ) {
@@ -69,12 +68,12 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
     }
 
     public NonceValidity getNonceValidity( String nonce, Long nc ) {
-        log.debug( "getNonceValidity: " + nonce );
+        log.trace( "getNonceValidity: " + nonce );
         UUID value = null;
         try {
             value = UUID.fromString( nonce );
         } catch( Exception e ) {
-            log.debug( "couldnt parse nonce" );
+            log.warn( "couldnt parse nonce" );
             return NonceValidity.INVALID;
         }
         Nonce n = nonces.get( value );
@@ -87,14 +86,14 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
                 return NonceValidity.EXPIRED;
             } else {
                 if( nc == null ) {
-                    log.debug( "nonce ok" );
+                    log.trace( "nonce ok" );
                     return NonceValidity.OK;
                 } else {
                     if( enableNonceCountChecking && nc <= n.getNonceCount() ) {
                         log.warn( "nonce-count was not greater then previous, possible replay attack. new: " + nc + " old:" + n.getNonceCount() );
                         return NonceValidity.INVALID;
                     } else {
-                        log.debug( "nonce and nonce-count ok" );
+                        log.trace( "nonce and nonce-count ok" );
                         Nonce newNonce = n.increaseNonceCount( nc );
                         nonces.put( newNonce.getValue(), newNonce );
                         return NonceValidity.OK;
