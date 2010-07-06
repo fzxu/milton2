@@ -52,7 +52,7 @@ public class HandlerHelper {
                     log.warn( "failed to authenticate - authenticationService:" + authenticationService.getClass() + " resource type:" + resource.getClass() );
                     return false;
                 } else {
-                    log.debug( "got authenticated tag: " + authTag.getClass() );
+                    log.trace( "got authenticated tag: " + authTag.getClass() );
                     auth.setTag( authTag );
                 }
             } else {

@@ -150,11 +150,9 @@ public class PropFindPropertyBuilder {
         PropFindResponse r = new PropFindResponse(href, knownProperties, errorProperties);
         responses.add(r);
 
-        log.debug("depth: " + currentDepth + " - " + requestedDepth);
         if (requestedDepth > currentDepth && resource instanceof CollectionResource) {
             CollectionResource col = (CollectionResource) resource;
             List<? extends Resource> list = col.getChildren();
-            log.debug("children: " + list.size());
             list = new ArrayList<Resource>(list);
             for (Resource child : list) {
                 if (child instanceof PropFindableResource) {

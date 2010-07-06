@@ -23,7 +23,9 @@ public class MultipleResourceFactory implements ResourceFactory {
         
 
     public Resource getResource(String host, String url) {
-        log.debug( "getResource: " + url);
+        if( log.isTraceEnabled()){
+            log.trace( "getResource: " + url);
+        }
         for( ResourceFactory rf : factories ) {
             Resource r = rf.getResource(host,url);
             if( r != null ) {

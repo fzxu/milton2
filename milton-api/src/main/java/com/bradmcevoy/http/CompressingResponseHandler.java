@@ -68,7 +68,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                     FileUtils.close( tempOut);
                 }
 
-                log.debug( "respondContent-compressed: " + resource.getClass() );
+                log.trace( "respondContent-compressed: " + resource.getClass() );
                 setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK );
                 response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
                 Long contentLength = tempOut.getSize();
@@ -101,13 +101,13 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
     }
 
     private boolean canCompress( GetableResource r, String contentType, String acceptableEncodings ) {
-        log.debug( "canCompress: contentType: " + contentType + " acceptable-encodings: " + acceptableEncodings );
+        log.trace( "canCompress: contentType: " + contentType + " acceptable-encodings: " + acceptableEncodings );
         if( contentType != null ) {
             contentType = contentType.toLowerCase();
             boolean contentIsCompressable = contentType.contains( "text" ) || contentType.contains( "css" ) || contentType.contains( "js" ) || contentType.contains( "javascript" );
             if( contentIsCompressable ) {
                 boolean supportsGzip = ( acceptableEncodings != null && acceptableEncodings.toLowerCase().indexOf( "gzip" ) > -1 );
-                log.debug( "supports gzip: " + supportsGzip );
+                log.trace( "supports gzip: " + supportsGzip );
                 return supportsGzip;
             }
         }

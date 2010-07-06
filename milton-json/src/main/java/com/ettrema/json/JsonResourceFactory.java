@@ -45,7 +45,9 @@ public class JsonResourceFactory implements ResourceFactory {
 
 
     public Resource getResource(String host, String sPath) {
-        log.debug(host + " :: " + sPath);
+        if( log.isTraceEnabled()) {
+            log.trace(host + " :: " + sPath);
+        }
         Path path = Path.path(sPath);
         Path parent = path.getParent();
         String encodedPath = HttpManager.request().getAbsolutePath();

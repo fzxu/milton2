@@ -18,15 +18,15 @@ public class BasicAuthHandler implements AuthenticationHandler {
 
     public boolean supports( Resource r, Request request ) {
         Auth auth = request.getAuthorization();
-        log.debug( "supports: " + auth.getScheme() );
+        log.trace( "supports: " + auth.getScheme() );
         return auth.getScheme().equals( Scheme.BASIC );
     }
 
     public Object authenticate( Resource resource, Request request ) {
-        log.debug( "authenticate" );
+        log.trace( "authenticate" );
         Auth auth = request.getAuthorization();
         Object o = resource.authenticate( auth.getUser(), auth.getPassword() );
-        log.debug( "result: " + o);
+        log.trace( "result: " + o);
         return o;
     }
 
