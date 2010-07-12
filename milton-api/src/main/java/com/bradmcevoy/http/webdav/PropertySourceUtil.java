@@ -4,7 +4,7 @@ import com.bradmcevoy.property.BeanPropertySource;
 import com.bradmcevoy.property.CustomPropertySource;
 import com.bradmcevoy.property.MultiNamespaceCustomPropertySource;
 import com.bradmcevoy.property.PropertySource;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,10 +20,13 @@ public class PropertySourceUtil {
      * @return
      */
     public static List<PropertySource> createDefaultSources(ResourceTypeHelper resourceTypeHelper) {
+        List<PropertySource> list = new ArrayList<PropertySource>();
         CustomPropertySource customPropertySource = new CustomPropertySource();
+        list.add( customPropertySource );
         MultiNamespaceCustomPropertySource mncps = new MultiNamespaceCustomPropertySource();
+        list.add( mncps );
         BeanPropertySource beanPropertySource = new BeanPropertySource();
-        List<PropertySource> propertySources = Arrays.asList( customPropertySource, mncps, beanPropertySource );
-        return propertySources;
+        list.add( beanPropertySource);
+        return list;
     }
 }

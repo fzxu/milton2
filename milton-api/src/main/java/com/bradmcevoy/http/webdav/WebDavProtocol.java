@@ -58,6 +58,11 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     private final List<PropertySource> propertySources;
     private final ETagGenerator eTagGenerator;
 
+    private DisplayNameFormatter displayNameFormatter = new DefaultDisplayNameFormatter();
+    //private DisplayNameFormatter displayNameFormatter = new CdataDisplayNameFormatter( new DefaultDisplayNameFormatter());
+
+  
+
 //    public WebDavProtocol( Set<Handler> handlers ) {
 //        this.handlers = handlers;
 //        reports = new HashMap<String, Report>();
@@ -89,7 +94,8 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         log.info( "quotaDataAccessor: " + quotaDataAccessor.getClass() );
         propertyMap.add( new ContentLengthPropertyWriter() );
         propertyMap.add( new ContentTypePropertyWriter() );
-        propertyMap.add( new CreationDatePropertyWriter() );
+        propertyMap.add( new CreationDatePropertyWriter("getcreated") );
+        propertyMap.add( new CreationDatePropertyWriter("creationdate") );
         propertyMap.add( new DisplayNamePropertyWriter() );
         propertyMap.add( new LastModifiedDatePropertyWriter() );
         propertyMap.add( new ResourceTypePropertyWriter() );
@@ -154,6 +160,8 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         return Collections.unmodifiableSet( handlers );
     }
 
+
+
     /**
      * Used as a marker to generate supported locks element in propfind responses
      *
@@ -184,6 +192,23 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         return propertyMap.getAllPropertyNames( r );
     }
 
+    /**
+     * Generates the displayname element text. By default is a CdataDisplayNameFormatter
+     * wrapping a DefaultDisplayNameFormatter so that extended character sets
+     * are supported
+     *
+     * @return
+     */
+    public DisplayNameFormatter getDisplayNameFormatter() {
+        return displayNameFormatter;
+    }
+
+    public void setDisplayNameFormatter( DisplayNameFormatter displayNameFormatter ) {
+        this.displayNameFormatter = displayNameFormatter;
+    }
+
+
+
     class DisplayNamePropertyWriter implements StandardProperty<String> {
 
         public String getValue( PropFindableResource res ) {
@@ -201,8 +226,14 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
     class CreationDatePropertyWriter implements StandardProperty<Date> {
 
+        private final String fieldName;
+
+        public CreationDatePropertyWriter( String fieldName ) {
+            this.fieldName = fieldName;
+        }
+
         public String fieldName() {
-            return "getcreated";
+            return fieldName;
         }
 
         public Date getValue( PropFindableResource res ) {
