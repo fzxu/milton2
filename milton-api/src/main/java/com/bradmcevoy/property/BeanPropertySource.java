@@ -17,12 +17,12 @@ import org.slf4j.LoggerFactory;
 public class BeanPropertySource implements PropertySource {
 
     private static final Logger log = LoggerFactory.getLogger( BeanPropertySource.class );
-
     private static final Object[] NOARGS = new Object[0];
 
     public Object getProperty( QName name, Resource r ) {
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
-        if( pd == null ) throw new IllegalArgumentException("no prop: " + name.getLocalPart() + " on " + r.getClass());
+        if( pd == null )
+            throw new IllegalArgumentException( "no prop: " + name.getLocalPart() + " on " + r.getClass() );
         try {
             return pd.getReadMethod().invoke( r, NOARGS );
         } catch( Exception ex ) {
@@ -31,27 +31,40 @@ public class BeanPropertySource implements PropertySource {
     }
 
     public void setProperty( QName name, Object value, Resource r ) {
+        log.debug( "setProperty: " + name + " = " + value );
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
         try {
             pd.getWriteMethod().invoke( r, value );
         } catch( Exception ex ) {
+            if( value == null ) {
+                log.error( "Exception setting property: " + name.toString() + " to null" );
+            } else {
+                log.error( "Exception setting property: " + name.toString() + " to value: " + value + " class:" + value.getClass() );
+            }
             throw new RuntimeException( name.toString(), ex );
         }
     }
 
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
+        log.debug( "getPropertyMetaData" );
         BeanPropertyResource anno = getAnnotation( r );
         if( anno == null ) {
+            log.debug( " no annotation: " + r.getClass());
             return PropertyMetaData.UNKNOWN;
         }
         if( !name.getNamespaceURI().equals( anno.value() ) ) {
+            log.debug( "different namespace",anno.value(),name.getNamespaceURI());
             return PropertyMetaData.UNKNOWN;
         }
 
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
         if( pd == null || pd.getReadMethod() == null ) {
+            log.debug( "no read method");
             return PropertyMetaData.UNKNOWN;
         } else {
+            if( log.isDebugEnabled() ) {
+                log.debug( "writable: " + anno.writable() + " - " + ( pd.getWriteMethod() != null ) );
+            }
             boolean writable = anno.writable() && ( pd.getWriteMethod() != null );
             if( writable ) {
                 return new PropertyMetaData( PropertyAccessibility.WRITABLE, pd.getPropertyType() );
@@ -69,7 +82,7 @@ public class BeanPropertySource implements PropertySource {
         BeanPropertyResource anno = getAnnotation( r );
         if( anno == null ) return null;
         PropertyDescriptor[] pds = PropertyUtils.getPropertyDescriptors( r );
-        List<QName> list = new ArrayList<QName>();        
+        List<QName> list = new ArrayList<QName>();
         for( PropertyDescriptor pd : pds ) {
             if( pd.getReadMethod() != null ) {
                 list.add( new QName( anno.value(), pd.getName() ) );

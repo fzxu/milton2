@@ -86,6 +86,7 @@ public class ResourceHandlerHelper {
             }
 
             if( !handlerHelper.checkAuthorisation( manager, resource, request ) ) {
+                log.debug( "authorisation failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName());
                 responseHandler.respondUnauthorised( resource, response, request );
                 return;
             }

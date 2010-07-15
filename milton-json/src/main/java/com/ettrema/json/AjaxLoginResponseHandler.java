@@ -10,7 +10,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * To enable ajax authentication we MUST NOT return 401 unauthorised, because
  * this will prompt for a browser login box
@@ -25,12 +24,12 @@ import org.slf4j.LoggerFactory;
 public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
 
     private static final Logger log = LoggerFactory.getLogger( AjaxLoginResponseHandler.class );
-
     private final List<ResourceMatcher> resourceMatchers;
 
     public AjaxLoginResponseHandler( WebDavResponseHandler responseHandler, List<ResourceMatcher> resourceMatchers ) {
         super( responseHandler );
         this.resourceMatchers = resourceMatchers;
+        log.debug( "created" );
     }
 
     /**
@@ -38,10 +37,11 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
      *
      * @param responseHandler
      */
-    public AjaxLoginResponseHandler( WebDavResponseHandler responseHandler) {
+    public AjaxLoginResponseHandler( WebDavResponseHandler responseHandler ) {
         super( responseHandler );
         this.resourceMatchers = new ArrayList<ResourceMatcher>();
-        this.resourceMatchers.add( new TypeResourceMatcher( AjaxLoginResource.class ) );
+        this.resourceMatchers.add( new TypeResourceMatcher( JsonResource.class ) );
+        log.debug( "created" );
     }
 
     /**
@@ -55,20 +55,20 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
      */
     @Override
     public void respondUnauthorised( Resource resource, Response response, Request request ) {
-        if( matches(resource) ) {
-            log.warn("unauthorised on wrapped ajax resource");
+        log.warn( "respondUnauthorised: ", resource.getClass() );
+        if( matches( resource ) ) {
+            log.warn( "unauthorised on wrapped ajax resource" );
             wrapped.respondForbidden( resource, response, request );
         } else {
+            log.warn("using normal unauth");
             wrapped.respondUnauthorised( resource, response, request );
         }
     }
 
-    private boolean matches(Resource r) {
+    private boolean matches( Resource r ) {
         for( ResourceMatcher rm : resourceMatchers ) {
-            if( rm.matches( r )) return true;
+            if( rm.matches( r ) ) return true;
         }
         return false;
     }
-
-
 }

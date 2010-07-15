@@ -17,6 +17,7 @@ public class PropFindResponse {
         super();
         this.href = href;
         this.knownProperties = knownProperties;
+        this.errorProperties = errorProperties;
     }
 
     public String getHref() {
