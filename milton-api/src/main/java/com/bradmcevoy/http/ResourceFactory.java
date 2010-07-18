@@ -31,13 +31,15 @@ public interface ResourceFactory {
      * Note that your implementation should not be sensitive to trailing slashes
      * E.g. these paths should return the same resource /apath and /apath/
      * <P/>
+     * Return null if there is no associated Resource object.
+     * <P/>
      * You should generally avoid using any request information other then that
      * provided in the method arguments. But if you find you need to you can access the
      * request and response objects from HttpManager.request() and HttpManager.response()
      * 
      * @param host
      * @param path
-     * @return
+     * @return the associated Resource object, or null if there is none.
      */
     Resource getResource(String host, String path);
     
