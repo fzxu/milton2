@@ -211,7 +211,10 @@ public class FileUtils {
         String s = mainName + "(" + count + ")";
         if( ext != null) s = s + "." + ext;
         return s;
+
     }
+
+
     
     /**
      * replace spaces with underscores
