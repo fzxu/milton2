@@ -1,6 +1,8 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.http11.DeleteHandler.CantDeleteException;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 /**
  * Supporting functions for the DeleteHandler
@@ -22,5 +24,5 @@ public interface DeleteHelper {
      *
      * @param r
      */
-    void delete(DeletableResource r) throws CantDeleteException;
+    void delete(DeletableResource r) throws NotAuthorizedException, ConflictException, BadRequestException;
 }

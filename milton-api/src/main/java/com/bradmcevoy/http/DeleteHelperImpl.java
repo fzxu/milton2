@@ -1,6 +1,8 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.http11.DeleteHandler.CantDeleteException;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -65,7 +67,7 @@ public class DeleteHelperImpl implements DeleteHelper {
         }
     }
 
-    public void delete(DeletableResource r) throws CantDeleteException {
+    public void delete(DeletableResource r) throws NotAuthorizedException, ConflictException, BadRequestException {
         if (r instanceof DeletableCollectionResource) {
             r.delete();
 
@@ -74,11 +76,16 @@ public class DeleteHelperImpl implements DeleteHelper {
             List<Resource> list = new ArrayList<Resource>();
             list.addAll(col.getChildren());
             for (Resource rChild : list) {
-                if (rChild instanceof DeletableResource) {
-                    DeletableResource rChildDel = (DeletableResource) rChild;
-                    delete(rChildDel);
+                if( rChild == null ) {
+                    log.warn( "got a null item in list");
                 } else {
-                    throw new CantDeleteException(rChild, Response.Status.SC_LOCKED);
+                    if (rChild instanceof DeletableResource) {
+                        DeletableResource rChildDel = (DeletableResource) rChild;
+                        delete(rChildDel);
+                    } else {
+                        log.warn( "Couldnt delete child resource: " + rChild.getName() + " of type; " + rChild.getClass().getName() + " because it does not implement: " + DeletableResource.class.getCanonicalName());
+                        throw new ConflictException( rChild );
+                    }
                 }
             }
             r.delete();

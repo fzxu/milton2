@@ -55,14 +55,9 @@ public class DeleteHandler implements ExistingEntityHandler {
             return;
         }
 
-        try {
-            deleteHelper.delete(r);
-            log.debug("deleted ok");
-            responseHandler.respondNoContent(resource, response, request);
-        } catch (CantDeleteException e) {
-            log.error("failed to delete: " + request.getAbsoluteUrl(), e);
-            responseHandler.respondDeleteFailed(request, response, e.resource, e.status);
-        }
+        deleteHelper.delete(r);
+        log.debug("deleted ok");
+        responseHandler.respondNoContent(resource, response, request);
 
     }
 
@@ -72,18 +67,5 @@ public class DeleteHandler implements ExistingEntityHandler {
 
     public void setDeleteHelper(DeleteHelper deleteHelper) {
         this.deleteHelper = deleteHelper;
-    }
-    
-
-    public static class CantDeleteException extends Exception {
-
-        private static final long serialVersionUID = 1L;
-        public final Resource resource;
-        public final Response.Status status;
-
-        public CantDeleteException(Resource r, Response.Status status) {
-            this.resource = r;
-            this.status = status;
-        }
-    }
+    }   
 }
