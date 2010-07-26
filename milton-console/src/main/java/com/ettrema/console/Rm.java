@@ -3,6 +3,9 @@ package com.ettrema.console;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -40,12 +43,20 @@ public class Rm extends AbstractConsoleCommand {
     }
 
     private Result delete( List<DeletableResource> deletables ) {
-        StringBuilder sb = new StringBuilder( "deleted: " );
-        for( DeletableResource dr : deletables ) {
-            sb.append( dr.getName() ).append( ',' );
-            dr.delete();
+        try {
+            StringBuilder sb = new StringBuilder( "deleted: " );
+            for( DeletableResource dr : deletables ) {
+                sb.append( dr.getName() ).append( ',' );
+                dr.delete();
+            }
+            return result( sb.toString() );
+        } catch( NotAuthorizedException e ) {
+            return result( "not authorised to delete: " + e.getResource().getName());
+        } catch( ConflictException e ) {
+            return result( "conflict error deleting: " + e.getResource().getName());
+        } catch( BadRequestException e ) {
+            return result( "bad request error deleting: " + e.getResource().getName());
         }
-        return result( sb.toString() );
     }
 
     private Result doDelete( List<Resource> list ) {
@@ -66,9 +77,17 @@ public class Rm extends AbstractConsoleCommand {
 
     private Result doDelete( Resource r ) {
         if( r instanceof DeletableResource ) {
-            DeletableResource dr = (DeletableResource) r;
-            dr.delete();
-            return result( "deleted: " + r.getName() );
+            try {
+                DeletableResource dr = (DeletableResource) r;
+                dr.delete();
+                return result( "deleted: " + r.getName() );
+            } catch( NotAuthorizedException e ) {
+                return result( "not authorised to delete: " + e.getResource().getName());
+            } catch( ConflictException e ) {
+                return result( "conflict deleting: " + e.getResource().getName());
+            } catch( BadRequestException e ) {
+                return result( "bad request deleting: " + e.getResource().getName());
+            }
         } else {
             return result( "Can't delete: " + r.getName() );
         }
