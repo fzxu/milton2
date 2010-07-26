@@ -37,10 +37,10 @@
         <module>milton-ftp</module>
         <module>milton-gae</module>
         <module>milton-client</module>
+        <module>milton-filesystem-test</module>
         <!--
         <module>milton-test</module>
-        <module>milton-ajax-demo</module>
-        <module>milton-filesystem-test</module>
+        <module>milton-ajax-demo</module>        
         -->
     </modules>
     <build>
