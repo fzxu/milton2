@@ -194,7 +194,18 @@ public class MiltonFtpFile implements FtpFile {
     public boolean delete() {
         if( r instanceof DeletableResource ) {
             DeletableResource dr = (DeletableResource) r;
-            dr.delete();
+            try {
+                dr.delete();
+            } catch( NotAuthorizedException ex ) {
+                log.warn("can't delete, not authorised");
+                return false;
+            } catch( ConflictException ex ) {
+                log.warn("can't delete, conflct");
+                return false;
+            } catch( BadRequestException ex ) {
+                log.warn("can't delete, bad request");
+                return false;
+            }
             return true;
         } else {
             return false;
