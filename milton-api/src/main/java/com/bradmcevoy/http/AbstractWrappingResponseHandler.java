@@ -143,6 +143,12 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
         wrapped.respondLocked( request, response, existingResource );
     }
 
+    public void respondPreconditionFailed( Request request, Response response, Resource resource ) {
+        wrapped.respondPreconditionFailed( request, response, resource );
+    }
+
+
+
 
 
 

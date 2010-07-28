@@ -26,15 +26,14 @@ public class DeleteHelperImpl implements DeleteHelper {
         this.handlerHelper = handlerHelper;
     }
 
-    public boolean isLockedOut(Request req, DeletableResource r) {
+    public boolean isLockedOut(Request req, Resource r) {
         if (r instanceof DeletableCollectionResource) {
             DeletableCollectionResource dcr = (DeletableCollectionResource) r;
             boolean locked = dcr.isLockedOutRecursive(req);
             if( locked && log.isInfoEnabled()) {
                 log.info("isLocked, as reported by DeletableCollectionResource: " + dcr.getName());
             }
-            return locked;
-            
+            return locked;            
         } else if (r instanceof CollectionResource) {
             CollectionResource col = (CollectionResource) r;
             List<Resource> list = new ArrayList<Resource>();

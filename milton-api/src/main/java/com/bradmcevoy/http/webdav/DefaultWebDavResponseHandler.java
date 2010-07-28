@@ -198,4 +198,10 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
     public void respondLocked( Request request, Response response, Resource existingResource ) {
         response.setStatus( Status.SC_LOCKED );
     }
+
+    public void respondPreconditionFailed( Request request, Response response, Resource resource ) {
+        response.setStatus( Status.SC_PRECONDITION_FAILED );
+    }
+
+
 }

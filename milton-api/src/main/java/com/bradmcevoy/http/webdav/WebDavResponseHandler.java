@@ -28,4 +28,13 @@ public interface WebDavResponseHandler extends Http11ResponseHandler{
     void respondInsufficientStorage( Request request, Response response, StorageErrorReason storageErrorReason );
 
     void respondLocked( Request request, Response response, Resource existingResource );
+
+    /**
+     * Generate a 412 response, 
+     * 
+     * @param request
+     * @param response
+     * @param resource
+     */
+    void respondPreconditionFailed( Request request, Response response, Resource resource );
 }

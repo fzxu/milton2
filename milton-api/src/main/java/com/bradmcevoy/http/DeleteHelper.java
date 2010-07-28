@@ -17,7 +17,7 @@ public interface DeleteHelper {
      * @param r
      * @return
      */
-    boolean isLockedOut(Request req, DeletableResource r);
+    boolean isLockedOut(Request req, Resource r);
 
     /**
      * Delete the resource and any child resources
