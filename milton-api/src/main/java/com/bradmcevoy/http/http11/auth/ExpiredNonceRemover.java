@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class ExpiredNonceRemover implements Runnable {
         this.nonces = nonces;
         this.nonceValiditySeconds = nonceValiditySeconds;
         log.debug( "scheduling checks for expired nonces every " + INTERVAL + " seconds");
-        scheduler = Executors.newScheduledThreadPool( 1 );
+        scheduler = Executors.newScheduledThreadPool( 1, new DaemonThreadFactory() );
         scheduler.scheduleAtFixedRate( this, 10, INTERVAL, SECONDS );
     }
 
@@ -54,4 +55,13 @@ public class ExpiredNonceRemover implements Runnable {
         return dif > nonceValiditySeconds;
     }
 
+    private class DaemonThreadFactory implements ThreadFactory {
+
+        public Thread newThread( Runnable r ) {
+            Thread t = new Thread( r );
+            t.setDaemon( true );
+            return t;
+        }
+
+    }
 }
