@@ -16,14 +16,16 @@ public class MoveHandler implements ExistingEntityHandler {
     
     private Logger log = LoggerFactory.getLogger(MoveHandler.class);
 
-    private final Http11ResponseHandler responseHandler;
+    private final WebDavResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
+    private final DeleteHelper deleteHelper;
 
-    public MoveHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper, ResourceHandlerHelper resourceHandlerHelper ) {
+    public MoveHandler( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, ResourceHandlerHelper resourceHandlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
         this.resourceHandlerHelper = resourceHandlerHelper;
+        this.deleteHelper = new DeleteHelperImpl( handlerHelper );
     }
 
 
@@ -71,13 +73,19 @@ public class MoveHandler implements ExistingEntityHandler {
                 Boolean ow = request.getOverwriteHeader();
                 if( ow == null || !request.getOverwriteHeader().booleanValue() ) {
                     log.debug( "destination resource exists, and overwrite header is not set");
-                    responseHandler.respondConflict( resource, response, request, "A resource exists at the destination");
+                    responseHandler.respondPreconditionFailed( request, response, rExisting );
                     return ;
                 } else {
                     if( rExisting instanceof DeletableResource) {
                         log.debug( "deleting existing resource");
                         DeletableResource drExisting = (DeletableResource) rExisting;
-                        drExisting.delete();
+                        if( deleteHelper.isLockedOut( request, drExisting)) {
+                            log.debug( "destination resource exists but is locked");
+                            responseHandler.respondLocked( request, response, drExisting );
+                            return ;
+                        }
+                        log.debug( "deleting pre-existing destination resource");
+                        deleteHelper.delete( drExisting );
                     } else {
                         log.warn( "destination exists, and overwrite header is set, but destination is not a DeletableResource");
                         responseHandler.respondConflict( resource, response, request, "A resource exists at the destination, and it cannot be deleted");
