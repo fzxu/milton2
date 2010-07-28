@@ -18,20 +18,11 @@ public class AccessControlledResourceTypeHelper implements ResourceTypeHelper {
     private final ResourceTypeHelper wrapped;
 
     public AccessControlledResourceTypeHelper( ResourceTypeHelper wrapped ) {
-        log.debug( "AccessControlledResourceTypeHelper constructed :"+wrapped.getClass().getSimpleName() );
         this.wrapped = wrapped;
     }
 
     public List<QName> getResourceTypes( Resource r ) {
-        log.debug( "getResourceTypes: " + r.getClass() );
         List<QName> list = wrapped.getResourceTypes( r );
-        if( r instanceof AccessControlledResource ) {
-            //TODO: Need to find out what the QNames for accessControlledResources are
-            // BM: maybe there isnt one? its only if it should be added to the
-            // resource-type property in a PROPFIND response
-            //QName qn = new QName( WebDavProtocol.NS_DAV, "collection");
-            //list.add(qn);
-        }
         return list;
     }
 

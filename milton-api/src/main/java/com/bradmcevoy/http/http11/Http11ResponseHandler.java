@@ -111,5 +111,6 @@ public interface Http11ResponseHandler extends ETagGenerator {
      */
     void respondServerError( Request request, Response response, String reason);
 
+
     
 }

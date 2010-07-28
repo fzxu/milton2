@@ -274,6 +274,5 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         } catch( IOException ex ) {
             throw new RuntimeException( ex );
         }
-
     }
 }

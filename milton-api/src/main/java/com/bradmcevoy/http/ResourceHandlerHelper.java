@@ -17,9 +17,10 @@ import org.slf4j.LoggerFactory;
  */
 public class ResourceHandlerHelper {
 
-    private Logger log = LoggerFactory.getLogger( ResourceHandlerHelper.class );
+    private final static Logger log = LoggerFactory.getLogger( ResourceHandlerHelper.class );
     private final HandlerHelper handlerHelper;
     private final Http11ResponseHandler responseHandler;
+    private UrlAdapter urlAdapter = new UrlAdapterImpl();
 
     public ResourceHandlerHelper( HandlerHelper handlerHelper, Http11ResponseHandler responseHandler ) {
         if( responseHandler == null ) throw new IllegalArgumentException( "responseHandler may not be null");
@@ -47,7 +48,7 @@ public class ResourceHandlerHelper {
             return;
         }
         String host = request.getHostHeader();
-        String url = HttpManager.decodeUrl( request.getAbsolutePath() );
+        String url = urlAdapter.getUrl( request );
         //log.debug( "find resource: path: " + url + " host: " + host );
         Resource r = manager.getResourceFactory().getResource( host, url );
         if( r == null ) {
@@ -103,5 +104,13 @@ public class ResourceHandlerHelper {
             t = System.currentTimeMillis() - t;
             manager.onProcessResourceFinish( request, response, resource, t );
         }
+    }
+
+    public UrlAdapter getUrlAdapter() {
+        return urlAdapter;
+    }
+
+    public void setUrlAdapter( UrlAdapter urlAdapter ) {
+        this.urlAdapter = urlAdapter;
     }
 }

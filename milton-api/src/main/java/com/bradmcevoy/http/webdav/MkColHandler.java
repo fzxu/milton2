@@ -7,17 +7,16 @@ import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MkColHandler implements Handler {
 
     private static final Logger log = LoggerFactory.getLogger( MkColHandler.class );
-    private final Http11ResponseHandler responseHandler;
+    private final WebDavResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
 
-    public MkColHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
+    public MkColHandler( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
     }
@@ -38,7 +37,9 @@ public class MkColHandler implements Handler {
         String host = request.getHostHeader();
         String finalurl = HttpManager.decodeUrl( request.getAbsolutePath() );
         String name;
-        log.debug( "process request: host: " + host + " url: " + finalurl );
+        if( log.isDebugEnabled() ) {
+            log.debug( "process request: host: " + host + " url: " + finalurl );
+        }
 
         Path finalpath = Path.path( finalurl ); //this is the parent collection it goes in
         name = finalpath.getName();
@@ -50,14 +51,14 @@ public class MkColHandler implements Handler {
             log.debug( "process: resource: " + parentcol.getClass().getName() );
 
             if( handlerHelper.isLockedOut( request, parentcol ) ) {
-                log.warn("isLockedOut");
+                log.warn( "isLockedOut" );
                 response.setStatus( Status.SC_LOCKED );
                 return;
             }
             Resource dest = manager.getResourceFactory().getResource( host, finalpath.toString() );
 
             if( dest != null && handlerHelper.isLockedOut( request, dest ) ) {
-                response.setStatus( Status.SC_LOCKED ); //notowner_modify wants this code here
+                responseHandler.respondLocked( request, response, dest );
                 return;
             } else if( handlerHelper.missingLock( request, parentcol ) ) {
                 response.setStatus( Status.SC_PRECONDITION_FAILED ); //notowner_modify wants this code here
@@ -68,12 +69,12 @@ public class MkColHandler implements Handler {
                 CollectionResource col = (CollectionResource) parentcol;
                 processMakeCol( manager, request, response, col, name );
             } else {
-                log.warn("parent collection is no a CollectionResource: " + parentcol.getName());
+                log.warn( "parent collection is no a CollectionResource: " + parentcol.getName() );
                 responseHandler.respondConflict( parentcol, response, request, "not a collection" );
             }
-            
+
         } else {
-            log.warn("parent does not exist: " + parenturl);
+            log.warn( "parent does not exist: " + parenturl );
             manager.getResponseHandler().respondConflict( parentcol, response, request, name );
         }
     }
@@ -83,6 +84,8 @@ public class MkColHandler implements Handler {
             responseHandler.respondUnauthorised( resource, response, request );
             return;
         }
+        
+        handlerHelper.checkExpects( responseHandler, request, response );
 
         MakeCollectionableResource existingCol = (MakeCollectionableResource) resource;
         try {
@@ -102,7 +105,7 @@ public class MkColHandler implements Handler {
         }
         CollectionResource made = existingCol.createCollection( newName );
         if( made == null ) {
-            log.warn( "createCollection returned null. In resource class: " + existingCol.getClass());
+            log.warn( "createCollection returned null. In resource class: " + existingCol.getClass() );
             response.setStatus( Response.Status.SC_METHOD_NOT_ALLOWED );
         } else {
             response.setStatus( Response.Status.SC_CREATED );

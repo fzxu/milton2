@@ -1,7 +1,9 @@
 package com.ettrema.http.acl;
 
+import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Handler;
 import com.bradmcevoy.http.HttpExtension;
+import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.webdav.PropertyMap;
@@ -9,6 +11,7 @@ import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.property.PropertySource;
 import com.ettrema.http.AccessControlledResource;
+import com.ettrema.http.AccessControlledResource.Priviledge;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -91,4 +94,26 @@ public class ACLProtocol implements HttpExtension, PropertySource {
         }
     }
 
+    class CurrentUserPrivledges implements StandardProperty<PriviledgeList> {
+
+        public String fieldName() {
+            return "current-user-privilege-set";
+        }
+
+        public PriviledgeList getValue( PropFindableResource res ) {
+            if( res instanceof AccessControlledResource ) {
+                AccessControlledResource acr = (AccessControlledResource) res;
+                Auth auth = HttpManager.request().getAuthorization();
+                List<Priviledge> list = acr.getPriviledges( auth );
+                PriviledgeList privs = new PriviledgeList(list);
+                return privs;
+            } else {
+                return null;
+            }
+        }
+
+        public Class<PriviledgeList> getValueClass() {
+            return PriviledgeList.class;
+        }
+    }
 }

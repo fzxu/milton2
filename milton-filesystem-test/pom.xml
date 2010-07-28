@@ -21,12 +21,12 @@
                 <configuration>
                     <connectors>
                         <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-                            <port>8030</port>
+                            <port>80</port>
                             <maxIdleTime>60000</maxIdleTime>
                         </connector>
                     </connectors>
 
-                    <contextPath>/webdav-fs</contextPath>
+                    <contextPath>/</contextPath>
 #
                     <stopKey>stop</stopKey>
 #

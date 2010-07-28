@@ -36,7 +36,7 @@ public class HandlerHelper {
     public boolean checkExpects( Http11ResponseHandler responseHandler, Request request, Response response ) {
         String s = request.getExpectHeader();
         if( s != null && s.length() > 0 ) {
-            responseHandler.respondExpectationFailed( response, request );
+            response.setStatus( Response.Status.SC_CONTINUE);
             return false;
         } else {
             return true;
@@ -102,11 +102,13 @@ public class HandlerHelper {
         LockToken token = lr.getCurrentLock();
         if( token != null ) {
             Auth auth = inRequest.getAuthorization();
+            Object sUser = null;
+            if( auth != null ) sUser = auth.getUser();
             String lockedByUser = token.info.lockedByUser;
             if( lockedByUser == null ) {
                 log.warn( "Resource is locked with a null user. Ignoring the lock" );
                 return false;
-            } else if( !lockedByUser.equals( auth.getUser() ) ) {
+            } else if( !lockedByUser.equals( sUser ) ) {
                 log.info( "fail: lock owned by: " + lockedByUser + " not by " + auth.getUser() );
                 String value = inRequest.getIfHeader();
                 if( value != null ) {
@@ -123,7 +125,7 @@ public class HandlerHelper {
 
     public boolean missingLock( Request inRequest, Resource inParentcol ) {
         //make sure we are not requiring a lock
-        String value = inRequest.getHeaders().get( "If" );
+        String value = inRequest.getIfHeader();
         if( value != null ) {
             if( value.contains( "(<DAV:no-lock>)" ) ) {
                 log.info( "Contained valid token. so is unlocked" );

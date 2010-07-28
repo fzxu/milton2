@@ -81,6 +81,8 @@ public class LockHandler implements ResourceHandler {
             return;
         }
 
+        handlerHelper.checkExpects( responseHandler, request, response );
+
         LockableResource r = (LockableResource) resource;
         LockTimeout timeout = LockTimeout.parseTimeout( request );
         String ifHeader = request.getIfHeader();

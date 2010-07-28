@@ -47,8 +47,13 @@ public class FsMemoryLockManager implements LockManager {
 
     public synchronized LockResult refresh( String tokenId, LockableResource resource ) {
         CurrentLock curLock = locksByToken.get( tokenId );
-        curLock.token.setFrom( new Date() );
-        return LockResult.success( curLock.token );
+        if( curLock == null ) {
+            log.debug( "can't refresh because no lock");
+            return LockResult.failed( LockResult.FailureReason.PRECONDITION_FAILED );
+        } else {
+            curLock.token.setFrom( new Date() );
+            return LockResult.success( curLock.token );
+        }
     }
 
     public synchronized void unlock( String tokenId, LockableResource r ) throws NotAuthorizedException {

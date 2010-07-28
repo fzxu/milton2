@@ -8,25 +8,21 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bradmcevoy.http.Response.Status;
-import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import java.net.URI;
 
 public class CopyHandler implements ExistingEntityHandler {
     
     private Logger log = LoggerFactory.getLogger(CopyHandler.class);
 
-    private final Http11ResponseHandler responseHandler;
+    private final WebDavResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
 
-    public CopyHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper, ResourceHandlerHelper resourceHandlerHelper ) {
+    public CopyHandler( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, ResourceHandlerHelper resourceHandlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
         this.resourceHandlerHelper = resourceHandlerHelper;
     }
-
-
     
     public String[] getMethods() {
         return new String[]{Method.COPY.code};
@@ -63,20 +59,18 @@ public class CopyHandler implements ExistingEntityHandler {
             log.debug("process: destination exists but is not a collection");
             responseHandler.respondConflict(resource, response,request, "Destination exists but is not a collection: " + sDest);
         } else { 
-            log.debug("process: moving resource to: " + rDest.getName());
+            log.debug("process: copy resource to: " + rDest.getName());
 
             Resource fDest = manager.getResourceFactory().getResource(dest.host, dest.url + "/" + dest.name );        
            	if( handlerHelper.isLockedOut( request, fDest )) {
-        		response.setStatus(Status.SC_LOCKED);
+                responseHandler.respondLocked( request, response, resource);
         		return;
         	}
 
-            
+
+
             r.copyTo( (CollectionResource)rDest, dest.name );
             responseHandler.respondCreated(resource, response, request);
         }
-        log.debug("process: finished");
-    }
-
-    
+    }    
 }

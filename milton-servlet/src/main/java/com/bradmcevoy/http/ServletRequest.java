@@ -51,8 +51,8 @@ public class ServletRequest extends AbstractRequest {
         this.request = r;
         String sMethod = r.getMethod();
         method = Request.Method.valueOf( sMethod );
-        url = r.getRequestURL().toString(); //MiltonUtils.stripContext(r);
-        log.debug( "url: " + url );
+        String s = r.getRequestURL().toString(); //MiltonUtils.stripContext(r);
+        url = s;
         tlRequest.set( r );
     }
 
@@ -91,10 +91,8 @@ public class ServletRequest extends AbstractRequest {
     }
 
     public void parseRequestParameters( Map<String, String> params, Map<String, com.bradmcevoy.http.FileItem> files ) throws RequestParseException {
-        log.debug( "parseRequestParameters" );
         try {
             if( isMultiPart() ) {
-                log.debug( "..is multi" );
                 UploadListener listener = new UploadListener();
                 MonitoredDiskFileItemFactory factory = new MonitoredDiskFileItemFactory( listener );
                 ServletFileUpload upload = new ServletFileUpload( factory );
@@ -111,11 +109,9 @@ public class ServletRequest extends AbstractRequest {
                     }
                 }
             } else {
-                log.debug( "..not multi" );
                 for( Enumeration en = request.getParameterNames(); en.hasMoreElements(); ) {
                     String nm = (String) en.nextElement();
                     String val = request.getParameter( nm );
-                    log.debug( "..param: " + nm + " = " + val );
                     params.put( nm, val );
                 }
             }
