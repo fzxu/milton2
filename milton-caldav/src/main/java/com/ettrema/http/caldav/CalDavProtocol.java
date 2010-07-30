@@ -49,17 +49,18 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
 
     public CalDavProtocol( ResourceFactory resourceFactory, WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, WebDavProtocol webDavProtocol ) {
         propertyMapCalDav = new PropertyMap( CALDAV_NS );
-        propertyMapCalDav.add( new CalenderDescriptionProperty() );
-        propertyMapCalDav.add( new CalendarDataProperty());
-        propertyMapCalDav.add( new CalenderHomeSetProperty());
-        propertyMapCalDav.add( new CalenderUserAddressSetProperty());
-        propertyMapCalDav.add( new ScheduleInboxProperty());
-        propertyMapCalDav.add( new ScheduleOutboxProperty());
+        propertyMapCalDav.add(new CalenderDescriptionProperty());
+        propertyMapCalDav.add(new CalendarDataProperty());
+        propertyMapCalDav.add(new CalenderHomeSetProperty());
+        propertyMapCalDav.add(new CalenderUserAddressSetProperty());
+        propertyMapCalDav.add(new ScheduleInboxProperty());
+        propertyMapCalDav.add(new ScheduleOutboxProperty());
 
         propertyMapCalServer = new PropertyMap( CALSERVER_NS );
-        propertyMapCalServer.add( new CTagProperty());
-        propertyMapCalServer.add( new XMPPProperty());
-        propertyMapCalServer.add( new DropBoxProperty());
+        propertyMapCalServer.add(new CTagProperty());
+        propertyMapCalServer.add(new XMPPProperty());
+        propertyMapCalServer.add(new DropBoxProperty());
+        propertyMapCalServer.add(new NotificationProperty());
 
         handlers = new HashSet<Handler>();
         handlers.add( new ACLHandler( responseHandler, handlerHelper ) );
@@ -138,6 +139,9 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
     }
 
+    /*
+        <calendar-description xmlns='urn:ietf:params:xml:ns:caldav'/>
+     */
     class CalenderDescriptionProperty implements StandardProperty<String> {
 
         public String fieldName() {
@@ -153,6 +157,11 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
     }
 
+    /*
+        <calendar-home-set xmlns='urn:ietf:params:xml:ns:caldav'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin</href>
+        </calendar-home-set>     
+     */
     class CalenderHomeSetProperty implements StandardProperty<String> {
 
         public String fieldName() {
@@ -171,6 +180,14 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
     /* Scheduling support
        see : http://ietfreport.isoc.org/idref/draft-desruisseaux-caldav-sched/
        for details
+     
+        <calendar-user-address-set xmlns='urn:ietf:params:xml:ns:caldav'>
+          <href xmlns='DAV:'>http://polaris.home.j2anywhere.com:8008/principals/users/admin/</href>
+          <href xmlns='DAV:'>urn:uuid:admin</href>
+          <href xmlns='DAV:'>http://polaris.home.j2anywhere.com:8008/principals/__uids__/admin/</href>
+          <href xmlns='DAV:'>/principals/__uids__/admin/</href>
+          <href xmlns='DAV:'>/principals/users/admin/</href>
+        </calendar-user-address-set>
      */
     class CalenderUserAddressSetProperty implements StandardProperty<HrefList> {
 
@@ -204,6 +221,11 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
     }
 
+    /*
+        <schedule-inbox-URL xmlns='urn:ietf:params:xml:ns:caldav'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin/inbox/</href>
+        </schedule-inbox-URL>
+     */
     class ScheduleInboxProperty implements StandardProperty<String> {
 
         public String fieldName() {
@@ -219,6 +241,11 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
     }
 
+    /*
+       <schedule-outbox-URL xmlns='urn:ietf:params:xml:ns:caldav'>
+         <href xmlns='DAV:'>/calendars/__uids__/admin/outbox/</href>
+       </schedule-outbox-URL>
+     */
     class ScheduleOutboxProperty implements StandardProperty<String> {
 
         public String fieldName() {
@@ -233,6 +260,65 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
             return String.class;
         }
     }
+
+    /*
+        <dropbox-home-URL xmlns='http://calendarserver.org/ns/'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin/dropbox/</href>
+        </dropbox-home-URL>
+     */
+    class DropBoxProperty implements StandardProperty<String> {
+
+        public String fieldName() {
+            return "dropbox-home-URL";
+        }
+
+        public String getValue( PropFindableResource res ) {
+            return "http://localhost:7080/caldavdemo/folder1/cal1";
+        }
+
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+    }
+
+    /*
+        <xmpp-uri xmlns='http://calendarserver.org/ns/'/>
+     */
+    class XMPPProperty implements StandardProperty<String> {
+
+        public String fieldName() {
+            return "xmpp-uri";
+        }
+
+        public String getValue( PropFindableResource res ) {
+            return "xmpp:romeo@montague.net";
+        }
+
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+    }
+
+    /*
+        <notification-URL xmlns='http://calendarserver.org/ns/'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin/notification/</href>
+        </notification-URL>
+     */
+    class NotificationProperty implements StandardProperty<String> {
+
+        public String fieldName() {
+            return "notification-URL";
+        }
+
+        public String getValue( PropFindableResource res ) {
+            return "http://localhost:7080/caldavdemo/folder1/cal1";
+        }
+
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+    }
+
 
    /**
      *  CalendarServer support
@@ -281,36 +367,6 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
 
         public String getValue( PropFindableResource res ) {
             return res.getUniqueId();
-        }
-
-        public Class<String> getValueClass() {
-            return String.class;
-        }
-    }
-
-    class DropBoxProperty implements StandardProperty<String> {
-
-        public String fieldName() {
-            return "dropbox-home-URL";
-        }
-
-        public String getValue( PropFindableResource res ) {
-            return "http://localhost:7080/caldavdemo/folder1/cal1";
-        }
-
-        public Class<String> getValueClass() {
-            return String.class;
-        }
-    }
-
-    class XMPPProperty implements StandardProperty<String> {
-
-        public String fieldName() {
-            return "xmpp-uri";
-        }
-
-        public String getValue( PropFindableResource res ) {
-            return "xmpp:romeo@montague.net";
         }
 
         public Class<String> getValueClass() {
