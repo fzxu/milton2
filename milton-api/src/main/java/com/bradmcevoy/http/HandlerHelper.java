@@ -109,7 +109,13 @@ public class HandlerHelper {
                 log.warn( "Resource is locked with a null user. Ignoring the lock" );
                 return false;
             } else if( !lockedByUser.equals( sUser ) ) {
-                log.info( "fail: lock owned by: " + lockedByUser + " not by " + auth.getUser() );
+                if( log.isInfoEnabled() ) {
+                    if( auth == null ) {
+                        log.info( "fail: lock owned by: " + lockedByUser );
+                    } else {
+                        log.info( "fail: lock owned by: " + lockedByUser + " not by " + auth.getUser() );
+                    }
+                }
                 String value = inRequest.getIfHeader();
                 if( value != null ) {
                     if( value.contains( "opaquelocktoken:" + token.tokenId + ">" ) ) {

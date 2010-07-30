@@ -4,6 +4,7 @@ import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,4 +27,11 @@ public class PropFindJsonResource extends JsonResource implements GetableResourc
         //jsonPropFindHandler.sendContent( wrappedResource, encodedUrl, out, range, params, contentType );
         jsonPropFindHandler.sendContent( wrappedResource, encodedUrl, out, range, params, contentType );
     }
+
+    @Override
+    public Method applicableMethod() {
+        return Method.PROPFIND;
+    }
+
+
 }

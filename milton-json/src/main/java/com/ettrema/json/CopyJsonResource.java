@@ -7,6 +7,7 @@ import com.bradmcevoy.http.FileItem;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.exceptions.BadRequestException;
@@ -56,6 +57,11 @@ public class CopyJsonResource extends JsonResource implements PostableResource{
 
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException {
         // nothing to do
+    }
+
+    @Override
+    public Method applicableMethod() {
+        return Method.COPY;
     }
 
 }

@@ -20,6 +20,8 @@ public abstract class JsonResource {
     private final Resource wrappedResource;
     private final String name;
 
+    public abstract Method applicableMethod();
+
     public JsonResource( Resource wrappedResource, String name ) {
         this.wrappedResource = wrappedResource;
         this.name = name;
@@ -68,10 +70,13 @@ public abstract class JsonResource {
         if( auth != null && request.getAuthorization() == null ) {
             log.warn( "got auth, but null request.getAuthorization()!!");
         }
-        boolean b = wrappedResource.authorise( request, Request.Method.PROPFIND, auth );
+        log.warn( "checking on wrapped resource: " + applicableMethod() + " - " + wrappedResource.getClass().getSimpleName());
+        boolean b = wrappedResource.authorise( request, applicableMethod(), auth );
         if( log.isDebugEnabled()) {
             if( !b ) {
-                log.debug( "authorise failed on wrapped resource of type: " + wrappedResource.getClass());
+                log.warn( "authorise failed on wrapped resource of type: " + wrappedResource.getClass());
+            } else {
+                log.warn("all ok");
             }
         }
         return b;

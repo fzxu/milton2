@@ -5,6 +5,7 @@ import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
@@ -42,5 +43,11 @@ public class MkcolJsonResource extends JsonResource implements PostableResource{
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException {
         // nothing to do
     }
+
+    @Override
+    public Method applicableMethod() {
+        return Method.MKCOL;
+    }
+
 
 }

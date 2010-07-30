@@ -4,6 +4,7 @@ import com.bradmcevoy.http.FileItem;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
@@ -68,6 +69,13 @@ public class PropPatchJsonResource extends JsonResource implements PostableResou
         resp = patchHandler.process( wrappedResource, encodedUrl, parameters );
         return null;
     }
+
+    @Override
+    public Method applicableMethod() {
+        return Method.PROPPATCH;
+    }
+
+
 
     public class FieldError {
 

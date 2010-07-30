@@ -5,6 +5,7 @@ import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.FileUtils;
@@ -107,6 +108,13 @@ public class PutJsonResource extends JsonResource implements PostableResource {
         json.write(writer);
         writer.flush();        
     }
+
+    @Override
+    public Method applicableMethod() {
+        return Method.PUT;
+    }
+
+
 
     /**
      * We dont return anything, so best not use json
