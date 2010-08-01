@@ -40,7 +40,7 @@ public class LockInfoSaxHandler extends DefaultHandler {
         elementPath.pop();
         if( localName.equals( "owner" ) ) {
             log.debug( "owner: " + owner.toString());
-            getInfo().owner = owner.toString();
+            getInfo().lockedByUser = owner.toString();
         }
         if( elementPath.size() > 1 ) {
             if( elementPath.get( 1 ).equals( "lockscope" ) ) {
