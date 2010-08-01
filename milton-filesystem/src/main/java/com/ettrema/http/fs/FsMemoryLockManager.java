@@ -39,7 +39,7 @@ public class FsMemoryLockManager implements LockManager {
         }
 
         LockToken newToken = new LockToken( UUID.randomUUID().toString(), lockInfo, timeout );
-        CurrentLock newLock = new CurrentLock( resource.getFile(), newToken, lockInfo.owner, lockInfo.lockedByUser );
+        CurrentLock newLock = new CurrentLock( resource.getFile(), newToken, lockInfo.lockedByUser );
         locksByFile.put( resource.getFile(), newLock );
         locksByToken.put( newToken.tokenId, newLock );
         return LockResult.success( newToken );
@@ -98,7 +98,7 @@ public class FsMemoryLockManager implements LockManager {
         CurrentLock lock = locksByFile.get( resource.getFile() );
         if( lock == null ) return null;
         LockToken token = new LockToken();
-        token.info = new LockInfo( LockInfo.LockScope.EXCLUSIVE, LockInfo.LockType.WRITE, lock.owner, LockInfo.LockDepth.ZERO );
+        token.info = new LockInfo( LockInfo.LockScope.EXCLUSIVE, LockInfo.LockType.WRITE, lock.lockedByUser, LockInfo.LockDepth.ZERO );
         token.info.lockedByUser = lock.lockedByUser;
         token.timeout = lock.token.timeout;
         token.tokenId = lock.token.tokenId;
@@ -109,13 +109,11 @@ public class FsMemoryLockManager implements LockManager {
 
         final File file;
         final LockToken token;
-        final String owner;
         final String lockedByUser;
 
-        public CurrentLock( File file, LockToken token, String owner, String lockedByUser ) {
+        public CurrentLock( File file, LockToken token, String lockedByUser ) {
             this.file = file;
             this.token = token;
-            this.owner = owner;
             this.lockedByUser = lockedByUser;
         }
     }
