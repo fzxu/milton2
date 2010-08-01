@@ -28,17 +28,14 @@ public class PropPatchSaxHandler extends DefaultHandler {
 
     @Override
     public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
-        log.debug( "start: " + localName);
         if(elementPath.size() > 0 ){
             if( attributesCurrent != null ) {
                 if( elementPath.peek().endsWith("prop") ) inProp = true;
             } else {
                 if( elementPath.peek().endsWith("set") ) {
-                    log.debug( "is set");
                     attributesCurrent = attributesSet;
                 }
                 if( elementPath.peek().endsWith("remove") ) {
-                    log.debug( "is remove");
                     attributesCurrent = attributesRemove;
                 }
             }
@@ -57,7 +54,6 @@ public class PropPatchSaxHandler extends DefaultHandler {
 
     @Override
     public void endElement(String uri, String localName, String name) throws SAXException {
-        log.debug( "end: " + localName);
         elementPath.pop();
         if( elementPath.size()>0 ) {
             if( elementPath.peek().endsWith("prop")){
