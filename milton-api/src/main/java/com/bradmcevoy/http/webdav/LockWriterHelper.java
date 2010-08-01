@@ -6,12 +6,16 @@ import com.bradmcevoy.http.LockInfo.LockType;
 import com.bradmcevoy.http.XmlWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author brad
  */
 public class LockWriterHelper {
+
+    private static final Logger log = LoggerFactory.getLogger( LockWriterHelper.class );
 
     private boolean stripHrefOnOwner = true;
 
@@ -25,9 +29,18 @@ public class LockWriterHelper {
 
     }
 
-    public void appendOwner( XmlWriter writer, String owner ) {        
-        boolean validHref = isValidHref( owner );
-        if( !validHref && stripHrefOnOwner ) {
+    public void appendOwner( XmlWriter writer, String owner ) {
+        boolean validHref;
+        if( owner == null ) {
+            log.warn( "owner is null");
+            validHref = false;
+        } else {
+            validHref = isValidHref( owner );
+        }
+        log.debug( "appendOwner: " + validHref + " - " + stripHrefOnOwner);
+        if( !validHref && stripHrefOnOwner ) { // BM: reversed login on validHref - presumably only write href tag for href values???
+            writer.writeProperty( null, "D:owner", owner );
+        } else {
             XmlWriter.Element el = writer.begin( "D:owner" ).open();
             XmlWriter.Element el2 = writer.begin( "D:href" ).open();
             if( owner != null ) {
@@ -35,8 +48,6 @@ public class LockWriterHelper {
             }
             el2.close();
             el.close();
-        } else {
-            writer.writeProperty( null, "D:owner", owner );
         }        
     }
 
@@ -85,10 +96,17 @@ public class LockWriterHelper {
     }
 
     private boolean isValidHref( String owner ) {
-        try {
-            new URI( owner );
-            return true;
-        } catch( URISyntaxException ex ) {
+        log.debug( "isValidHref: " + owner);
+        if(owner.startsWith( "http")) {
+            try {
+                URI u = new URI( owner );
+                log.debug( "uri: " + u);
+                return true;
+            } catch( URISyntaxException ex ) {
+                log.debug( "ex: " + ex);
+                return false;
+            }
+        } else {
             return false;
         }
     }
