@@ -31,7 +31,7 @@ public class LockTokenValueWriter implements ValueWriter {
             lockWriterHelper.appendType( writer, info.type );
             lockWriterHelper.appendScope( writer, info.scope );
             lockWriterHelper.appendDepth( writer, info.depth );
-            lockWriterHelper.appendOwner( writer, info.owner );
+            lockWriterHelper.appendOwner( writer, info.lockedByUser );
             lockWriterHelper.appendTimeout( writer, token.timeout.getSeconds() );
             lockWriterHelper.appendTokenId( writer, token.tokenId );
             lockWriterHelper.appendRoot( writer, href );

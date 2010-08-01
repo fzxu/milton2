@@ -38,7 +38,7 @@ public class SimpleLockManager implements LockManager {
         }
 
         LockToken newToken = new LockToken( UUID.randomUUID().toString(), lockInfo, timeout );
-        CurrentLock newLock = new CurrentLock( r.getUniqueId(), newToken, lockInfo.owner, lockInfo.lockedByUser );
+        CurrentLock newLock = new CurrentLock( r.getUniqueId(), newToken, lockInfo.lockedByUser );
         locksByUniqueId.put( r.getUniqueId(), newLock );
         locksByToken.put( newToken.tokenId, newLock );
         return LockResult.success( newToken );
@@ -90,7 +90,7 @@ public class SimpleLockManager implements LockManager {
         CurrentLock lock = locksByUniqueId.get( r.getUniqueId() );
         if( lock == null ) return null;
         LockToken token = new LockToken();
-        token.info = new LockInfo( LockInfo.LockScope.EXCLUSIVE, LockInfo.LockType.WRITE, lock.owner, LockInfo.LockDepth.ZERO );
+        token.info = new LockInfo( LockInfo.LockScope.EXCLUSIVE, LockInfo.LockType.WRITE, lock.lockedByUser, LockInfo.LockDepth.ZERO );
         token.info.lockedByUser = lock.lockedByUser;
         token.timeout = lock.token.timeout;
         token.tokenId = lock.token.tokenId;
@@ -101,13 +101,11 @@ public class SimpleLockManager implements LockManager {
 
         final String id;
         final LockToken token;
-        final String owner;
         final String lockedByUser;
 
-        public CurrentLock( String id, LockToken token, String owner, String lockedByUser ) {
+        public CurrentLock( String id, LockToken token, String lockedByUser ) {
             this.id = id;
             this.token = token;
-            this.owner = owner;
             this.lockedByUser = lockedByUser;
         }
     }

@@ -2,6 +2,7 @@
 package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.exceptions.PreConditionFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +10,6 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.bradmcevoy.http.http11.Http11ResponseHandler;
 
 public class UnlockHandler implements ExistingEntityHandler {
 
@@ -17,9 +17,9 @@ public class UnlockHandler implements ExistingEntityHandler {
 
     private final ResourceHandlerHelper resourceHandlerHelper;
 
-    private final Http11ResponseHandler responseHandler;
+    private final WebDavResponseHandler responseHandler;
 
-    public UnlockHandler( ResourceHandlerHelper resourceHandlerHelper, Http11ResponseHandler responseHandler ) {
+    public UnlockHandler( ResourceHandlerHelper resourceHandlerHelper, WebDavResponseHandler responseHandler ) {
         this.resourceHandlerHelper = resourceHandlerHelper;
         this.responseHandler = responseHandler;
     }
@@ -52,8 +52,12 @@ public class UnlockHandler implements ExistingEntityHandler {
 
         
         log.debug("unlocking token: " + sToken);
-        r.unlock(sToken);
-        responseHandler.respondNoContent( resource, response, request );
+        try {
+            r.unlock( sToken );
+            responseHandler.respondNoContent( resource, response, request );
+        } catch( PreConditionFailedException ex ) {
+            responseHandler.respondPreconditionFailed( request, response, resource );
+        }
     }
     
     public String[] getMethods() {
