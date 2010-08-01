@@ -54,11 +54,9 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
     }
 
     public PropFindResponse setProperties( String href, ParseResult parseResult, Resource r ) {
-        log.debug( "setProperties: toset: " + parseResult.getFieldsToSet().size() );
         Map<QName, ValueAndType> knownProps = new HashMap<QName, ValueAndType>();
 
         Map<Status, List<NameAndError>> errorProps = new HashMap<Status, List<NameAndError>>();
-        List<QName> list;
         for( Entry<QName, String> entry : parseResult.getFieldsToSet().entrySet() ) {
             QName name = entry.getKey();
             boolean found = false;
@@ -82,11 +80,11 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
                         break;
                     }
                 } else {
-                    log.debug( "not found in: " + source.getClass().getCanonicalName() );
+                    //log.debug( "not found in: " + source.getClass().getCanonicalName() );
                 }
             }
             if( !found ) {
-                log.debug( "property not found" );
+                log.debug( "property not found: " + entry.getKey() );
                 addErrorProp( errorProps, Status.SC_NOT_FOUND, entry.getKey(), "Unknown property" );
             }
         }
