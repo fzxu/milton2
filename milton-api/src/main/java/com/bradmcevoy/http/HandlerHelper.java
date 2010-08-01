@@ -68,7 +68,11 @@ public class HandlerHelper {
             if( log.isWarnEnabled()) {
                 log.warn( "authorisation declined, requesting authentication: " + request.getAbsolutePath() + ". resource type: " + resource.getClass().getCanonicalName());
                 if( auth != null ) {
-                    log.warn("auth: " + auth.getUser() + " tag: " + auth.getTag());
+                    if( log.isTraceEnabled() ) {
+                       log.trace("  - auth: " + auth.getUser() + " tag: " + auth.getTag());
+                    }
+                } else {
+                    log.trace("  - anonymous request");
                 }
             }
             return false;
@@ -111,15 +115,15 @@ public class HandlerHelper {
             } else if( !lockedByUser.equals( sUser ) ) {
                 if( log.isInfoEnabled() ) {
                     if( auth == null ) {
-                        log.info( "fail: lock owned by: " + lockedByUser );
+                        log.trace( "lock owned by: " + lockedByUser );
                     } else {
-                        log.info( "fail: lock owned by: " + lockedByUser + " not by " + auth.getUser() );
+                        log.trace( "lock owned by: " + lockedByUser + " not by " + auth.getUser() );
                     }
                 }
                 String value = inRequest.getIfHeader();
                 if( value != null ) {
                     if( value.contains( "opaquelocktoken:" + token.tokenId + ">" ) ) {
-                        log.info( "Contained valid token. so is unlocked" );
+                        log.trace( "Request contains valid token so operation is permitted" );
                         return false;
                     }
                 }

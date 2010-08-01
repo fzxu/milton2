@@ -3,7 +3,9 @@ package com.bradmcevoy.http.webdav;
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.LockedException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.PreConditionFailedException;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -22,7 +24,7 @@ import com.bradmcevoy.http.Response.Status;
  */
 public class LockHandler implements ResourceHandler {
 
-    private Logger log = LoggerFactory.getLogger( LockHandler.class );
+    private static final Logger log = LoggerFactory.getLogger( LockHandler.class );
     private final WebDavResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
 
@@ -197,11 +199,18 @@ public class LockHandler implements ResourceHandler {
             return;
         }
 
-        // todo: check if already locked and return 423 locked or 412-precondition failed
-        // also must support multi-status. when locking a collection and a DEPTH > 1, must lock all
-        // child elements
         log.debug( "locking: " + r.getName() );
-        LockResult result = r.lock( timeout, lockInfo );
+        LockResult result;
+        try {
+            result = r.lock( timeout, lockInfo );
+        } catch( PreConditionFailedException ex ) {
+            responseHandler.respondPreconditionFailed( request, response, r );
+            return ;
+        } catch( LockedException ex ) {
+            responseHandler.respondLocked( request, response, r );
+            return ;
+        }
+
         if( result.isSuccessful() ) {
             LockToken tok = result.getLockToken();
             log.debug( "..locked ok: " + tok.tokenId );
@@ -215,7 +224,13 @@ public class LockHandler implements ResourceHandler {
     protected void processRefresh( HttpManager milton, Request request, Response response, LockableResource r, LockTimeout timeout, String ifHeader ) throws NotAuthorizedException {
         String token = parseToken( ifHeader );
         log.debug( "refreshing lock: " + token );
-        LockResult result = r.refreshLock( token );
+        LockResult result;
+        try {
+            result = r.refreshLock( token );
+        } catch( PreConditionFailedException ex ) {
+            responseHandler.respondPreconditionFailed( request, response, r );
+            return ;
+        }
         if( result.isSuccessful() ) {
             LockToken tok = result.getLockToken();
             respondWithToken( tok, request, response );
@@ -238,7 +253,7 @@ public class LockHandler implements ResourceHandler {
         lockWriterHelper.appendType( writer, tok.info.type );
         lockWriterHelper.appendScope( writer, tok.info.scope );
         lockWriterHelper.appendDepth( writer, tok.info.depth );
-        lockWriterHelper.appendOwner( writer, tok.info.owner );
+        lockWriterHelper.appendOwner( writer, tok.info.lockedByUser );
         lockWriterHelper.appendTimeout( writer, tok.timeout.getSeconds() );
         lockWriterHelper.appendTokenId( writer, tok.tokenId );
         lockWriterHelper.appendRoot( writer, request.getAbsoluteUrl() );

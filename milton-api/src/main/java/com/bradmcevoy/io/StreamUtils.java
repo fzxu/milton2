@@ -1,5 +1,6 @@
 package com.bradmcevoy.io;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -100,7 +101,7 @@ public class StreamUtils {
      */
     public static long readTo(InputStream in, OutputStream out, boolean closeIn, boolean closeOut) throws ReadingException, WritingException {
         return readTo(in, out,closeIn, closeOut, null, null);
-    }
+            }
     
     private static long readTo(InputStream in, OutputStream out, boolean closeIn, boolean closeOut, Long start, Long finish) throws ReadingException, WritingException {
         long cnt=0;        
