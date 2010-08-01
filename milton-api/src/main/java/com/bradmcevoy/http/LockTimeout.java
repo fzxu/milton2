@@ -119,6 +119,13 @@ public class LockTimeout {
     
 
     /**
+     * Returns a current object which holds the expected end date/time, based
+     * on defaultSeconds and maxSeconds, as well as the actual seconds used
+     * in that calculation.
+     *
+     * This is handy for locking because we generally want to lock a resource
+     * until a specific date/time, but we also want to report back the timeout
+     * actually locked in terms of seconds
      * 
      * @return - the current time + getSeconds()
      */
@@ -145,7 +152,7 @@ public class LockTimeout {
         }
     }
     
-    private DateAndSeconds addSeconds( Long l) {
+    public static DateAndSeconds addSeconds( Long l) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(System.currentTimeMillis());
         int secs = (int)l.longValue();
@@ -155,12 +162,8 @@ public class LockTimeout {
         das.seconds = l;
         return das;
     }
-    
-    private Date getNow() {
-        return new Date();
-    }
-    
-    public class DateAndSeconds {
+        
+    public static class DateAndSeconds {
         public Date date;
         public Long seconds;
     }
