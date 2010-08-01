@@ -139,11 +139,14 @@ public class GetHandler implements ExistingEntityHandler {
             } else {
                 Range range = getRange( request );
                 if( range != null ) {
+                    log.trace( "partial");
                     responseHandler.respondPartialContent( resource, response, request, params, range );
                 } else {
+                    log.trace( "normal content");
                     responseHandler.respondContent( resource, response, request, params );
                 }
             }
+            log.warn( "done");
         } catch( NotAuthorizedException notAuthorizedException ) {
             throw notAuthorizedException;
         } catch( BadRequestException badRequestException ) {
