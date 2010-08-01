@@ -18,8 +18,14 @@ public class Http11Protocol implements HttpExtension{
         this.handlers = handlers;
     }
 
+    /**
+     * OPTIONS authentication is disabled by default
+     *
+     * @param responseHandler
+     * @param handlerHelper
+     */
     public Http11Protocol(Http11ResponseHandler responseHandler, HandlerHelper handlerHelper) {
-        this(responseHandler, handlerHelper, true );
+        this(responseHandler, handlerHelper, false );
     }
 
     public Http11Protocol(Http11ResponseHandler responseHandler, HandlerHelper handlerHelper, boolean enableOptionsAuth) {
