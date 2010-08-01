@@ -56,21 +56,24 @@ public class LockInfo {
     }
     public LockScope scope;
     public LockType type;
-    /**
-     * Contact details for the lock owner. E.g. phone number, website address, or
-     * email address. Generally not used. Can be ignored.
-     */
-    public String owner;
+
     /**
      * The name of the user who has locked this resource.
      */
     public String lockedByUser;
     public LockDepth depth;
 
-    public LockInfo( LockScope scope, LockType type, String owner, LockDepth depth ) {
+    /**
+     *
+     * @param scope
+     * @param type
+     * @param lockedByUser - the identifier of the user, such as a href
+     * @param depth
+     */
+    public LockInfo( LockScope scope, LockType type, String lockedByUser, LockDepth depth ) {
         this.scope = scope;
         this.type = type;
-        this.owner = owner;
+        this.lockedByUser = lockedByUser;
         this.depth = depth;
     }
 
@@ -79,6 +82,6 @@ public class LockInfo {
 
     @Override
     public String toString() {
-        return "scope: " + scope.name() + ", type: " + type.name() + ", owner: " + owner + ", depth:" + depth;
+        return "scope: " + scope.name() + ", type: " + type.name() + ", owner: " + lockedByUser + ", depth:" + depth;
     }
 }
