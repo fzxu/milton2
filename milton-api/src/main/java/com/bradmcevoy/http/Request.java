@@ -69,7 +69,7 @@ public interface Request {
 
         HEAD( "HEAD", false ),
         PROPFIND( "PROPFIND", false ),
-        PROPPATCH( "PROPPATCH", false ),
+        PROPPATCH( "PROPPATCH", true ),
         MKCOL( "MKCOL", true ),
         COPY( "COPY", true ),
         MOVE( "MOVE", true ),
