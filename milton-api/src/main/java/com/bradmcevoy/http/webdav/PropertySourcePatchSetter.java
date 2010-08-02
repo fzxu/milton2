@@ -3,6 +3,7 @@ package com.bradmcevoy.http.webdav;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.values.ValueWriters;
 import com.bradmcevoy.http.webdav.PropFindResponse.NameAndError;
@@ -69,6 +70,9 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
                         try {
                             source.setProperty( name, val, r );
                             knownProps.put( name, new ValueAndType( null, meta.getValueType() ) );
+                            break;
+                        } catch(NotAuthorizedException e) {
+                            addErrorProp( errorProps, Response.Status.SC_UNAUTHORIZED, name, "Not authorised" );
                             break;
                         } catch( PropertySetException ex ) {
                             addErrorProp( errorProps, ex.getStatus(), name, ex.getErrorNotes() );

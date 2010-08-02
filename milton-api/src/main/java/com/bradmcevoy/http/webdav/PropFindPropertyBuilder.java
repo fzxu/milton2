@@ -5,6 +5,7 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.Utils;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropFindResponse.NameAndError;
 import com.bradmcevoy.property.PropertySource;
@@ -70,7 +71,7 @@ public class PropFindPropertyBuilder {
         return propFindResponses;
     }
 
-    public ValueAndType getProperty(QName field, Resource resource) {
+    public ValueAndType getProperty(QName field, Resource resource) throws NotAuthorizedException {
         log.debug("num property sources: " + propertySources.size());
         for (PropertySource source : propertySources) {
             PropertyMetaData meta = source.getPropertyMetaData(field, resource);
@@ -121,8 +122,13 @@ public class PropFindPropertyBuilder {
                 for (PropertySource source : propertySources) {
                     PropertyMetaData meta = source.getPropertyMetaData(field, resource);
                     if (meta != null && !meta.isUnknown()) {
-                        Object val = source.getProperty(field, resource);
-                        knownProperties.put(field, new ValueAndType(val, meta.getValueType()));
+                        Object val;
+                        try {
+                            val = source.getProperty( field, resource );
+                            knownProperties.put(field, new ValueAndType(val, meta.getValueType()));
+                        } catch( NotAuthorizedException ex ) {
+                            unknownProperties.add(new NameAndError(field, "Not authorised"));
+                        }
                         found = true;
                         break;
                     }

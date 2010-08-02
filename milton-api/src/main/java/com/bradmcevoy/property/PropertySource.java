@@ -3,6 +3,7 @@ package com.bradmcevoy.property;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -50,9 +51,9 @@ public interface PropertySource {
     }
 
 
-    Object getProperty( QName name, Resource r );
+    Object getProperty( QName name, Resource r ) throws NotAuthorizedException;
 
-    void setProperty( QName name, Object value, Resource r ) throws PropertySetException;
+    void setProperty( QName name, Object value, Resource r ) throws PropertySetException, NotAuthorizedException;
 
     /**
      * Check to see if the property is known, and if it is writable.
@@ -77,7 +78,7 @@ public interface PropertySource {
      * @param name
      * @param r
      */
-    void clearProperty( QName name, Resource r ) throws PropertySetException;
+    void clearProperty( QName name, Resource r ) throws PropertySetException, NotAuthorizedException;
 
     /**
      *
@@ -93,6 +94,7 @@ public interface PropertySource {
      * Exception from setting a field
      */
     public class PropertySetException extends Exception {
+        private static final long serialVersionUID = 1L;
         private Response.Status status;
         private QName field;
         private String notes;

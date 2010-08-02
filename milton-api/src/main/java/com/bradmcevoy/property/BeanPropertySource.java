@@ -1,6 +1,7 @@
 package com.bradmcevoy.property;
 
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -11,6 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * A read/write source of properties which uses getter/setter style properties
+ * on the resource class.
+ *
+ * This is similar in concept to form variable binding in web frameworks like
+ * struts and MVC.
  *
  * @author brad
  */
@@ -19,29 +25,40 @@ public class BeanPropertySource implements PropertySource {
     private static final Logger log = LoggerFactory.getLogger( BeanPropertySource.class );
     private static final Object[] NOARGS = new Object[0];
 
-    public Object getProperty( QName name, Resource r ) {
+    public Object getProperty( QName name, Resource r ) throws NotAuthorizedException {
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
-        if( pd == null )
+        if( pd == null ) {
             throw new IllegalArgumentException( "no prop: " + name.getLocalPart() + " on " + r.getClass() );
+        }
         try {
             return pd.getReadMethod().invoke( r, NOARGS );
         } catch( Exception ex ) {
-            throw new RuntimeException( name.toString(), ex );
+            if( ex.getCause() instanceof NotAuthorizedException ) {
+                NotAuthorizedException na = (NotAuthorizedException) ex.getCause();
+                throw na;
+            } else {
+                throw new RuntimeException( name.toString(), ex );
+            }
         }
     }
 
-    public void setProperty( QName name, Object value, Resource r ) {
+    public void setProperty( QName name, Object value, Resource r ) throws NotAuthorizedException {
         log.debug( "setProperty: " + name + " = " + value );
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
         try {
             pd.getWriteMethod().invoke( r, value );
         } catch( Exception ex ) {
-            if( value == null ) {
-                log.error( "Exception setting property: " + name.toString() + " to null" );
+            if( ex.getCause() instanceof NotAuthorizedException ) {
+                NotAuthorizedException na = (NotAuthorizedException) ex.getCause();
+                throw na;
             } else {
-                log.error( "Exception setting property: " + name.toString() + " to value: " + value + " class:" + value.getClass() );
+                if( value == null ) {
+                    log.error( "Exception setting property: " + name.toString() + " to null" );
+                } else {
+                    log.error( "Exception setting property: " + name.toString() + " to value: " + value + " class:" + value.getClass() );
+                }
+                throw new RuntimeException( name.toString(), ex );
             }
-            throw new RuntimeException( name.toString(), ex );
         }
     }
 
@@ -74,7 +91,7 @@ public class BeanPropertySource implements PropertySource {
         }
     }
 
-    public void clearProperty( QName name, Resource r ) {
+    public void clearProperty( QName name, Resource r ) throws NotAuthorizedException {
         setProperty( name, null, r );
     }
 

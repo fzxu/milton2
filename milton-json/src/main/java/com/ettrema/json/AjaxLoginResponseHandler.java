@@ -40,7 +40,7 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
     public AjaxLoginResponseHandler( WebDavResponseHandler responseHandler ) {
         super( responseHandler );
         this.resourceMatchers = new ArrayList<ResourceMatcher>();
-        this.resourceMatchers.add( new TypeResourceMatcher( JsonResource.class ) );
+        this.resourceMatchers.add( new TypeResourceMatcher( AjaxLoginResource.class ) );
         log.debug( "created" );
     }
 
