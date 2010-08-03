@@ -169,7 +169,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public String getValue( PropFindableResource res ) {
-            return "http://localhost:7080/caldavdemo/folder1/cal1";
+            return "http://localhost:7080/caldavdemo/calendarHome";
         }
 
         public Class<String> getValueClass() {
@@ -196,23 +196,19 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         /**
-         * How can I return an array here ?
-         *
-
           <C:calendar-user-address-set xmlns:D="DAV:"
                                 xmlns:C="urn:ietf:params:xml:ns:caldav">
             <D:href>mailto:bernard@example.com</D:href>
             <D:href>mailto:bernard.desruisseaux@example.com</D:href>
           </C:calendar-user-address-set>
-
          * @param res
          * @return
          */
 
         public HrefList getValue( PropFindableResource res ) {
             HrefList list = new HrefList();
-            list.add("a1@b.com");
-            list.add("a2@b.com");
+            list.add("mailto:a1@b.com");
+            list.add("mailto:a2@b.com");
             return list;
         }
 
