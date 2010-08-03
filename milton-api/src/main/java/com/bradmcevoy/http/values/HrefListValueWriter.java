@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @author brad
  */
-public class HrefListValueWriter {
+public class HrefListValueWriter implements ValueWriter {
     public boolean supports( String nsUri, String localName, Class c ) {
         return HrefList.class.isAssignableFrom( c );
     }
