@@ -216,4 +216,8 @@ public class HttpManager {
     public Http11ResponseHandler getResponseHandler() {
         return responseHandler;
     }
+
+    public ProtocolHandlers getHandlers() {
+        return handlers;
+    }
 }
