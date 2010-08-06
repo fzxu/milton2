@@ -17,14 +17,16 @@ public class HrefListValueWriter implements ValueWriter {
     }
 
     public void writeValue( XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes ) {
-        HrefList list = (HrefList) val;
-        if( list != null ) {
-            for( String s : list) {
-                Element hrefEl = writer.begin( "href" ).open();
-                hrefEl.writeText( s );
-                hrefEl.close();
-            }
-        }
+      writer.open(prefix, localName);
+      HrefList list = (HrefList) val;
+      if( list != null ) {
+          for( String s : list) {
+              Element hrefEl = writer.begin( "href" ).open();
+              hrefEl.writeText( s );
+              hrefEl.close();
+          }
+      }
+      writer.close(prefix, localName);
     }
 
     public Object parse( String namespaceURI, String localPart, String value ) {
