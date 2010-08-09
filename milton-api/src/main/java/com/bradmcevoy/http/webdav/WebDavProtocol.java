@@ -212,7 +212,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     class DisplayNamePropertyWriter implements StandardProperty<String> {
 
         public String getValue( PropFindableResource res ) {
-            return res.getName();
+            return displayNameFormatter.formatDisplayName( res );
         }
 
         public String fieldName() {
