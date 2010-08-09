@@ -146,7 +146,6 @@ public class GetHandler implements ExistingEntityHandler {
                     responseHandler.respondContent( resource, response, request, params );
                 }
             }
-            log.warn( "done");
         } catch( NotAuthorizedException notAuthorizedException ) {
             throw notAuthorizedException;
         } catch( BadRequestException badRequestException ) {
