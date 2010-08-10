@@ -6,6 +6,7 @@ import com.bradmcevoy.http.HttpExtension;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.values.WrappedHref;
 import com.bradmcevoy.http.webdav.PropertyMap;
 import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
@@ -32,6 +33,7 @@ public class ACLProtocol implements HttpExtension, PropertySource {
     public ACLProtocol(WebDavProtocol webDavProtocol) {
         propertyMap = new PropertyMap( WebDavProtocol.NS_DAV );
         propertyMap.add( new PrincipalUrl() );
+        propertyMap.add( new PrincipalCollectionSetProperty() );
         log.debug( "registering the ACLProtocol as a property source");
         webDavProtocol.addPropertySource( this );
     }
@@ -91,6 +93,26 @@ public class ACLProtocol implements HttpExtension, PropertySource {
 
         public Class<String> getValueClass() {
             return String.class;
+        }
+    }
+
+    /*
+        <principal-collection-set>
+          <href>/principals/</href>
+        </principal-collection-set>
+     */
+    class PrincipalCollectionSetProperty implements StandardProperty<WrappedHref> {
+
+        public String fieldName() {
+            return "principal-collection-set";
+        }
+
+        public WrappedHref getValue( PropFindableResource res ) {
+            return new WrappedHref("/principals");
+        }
+
+        public Class<WrappedHref> getValueClass() {
+            return WrappedHref.class;
         }
     }
 
