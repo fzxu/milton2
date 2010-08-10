@@ -9,6 +9,7 @@ import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.values.CData;
 import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.http.values.ValueWriters;
+import com.bradmcevoy.http.values.WrappedHref;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindXmlGenerator;
 import com.bradmcevoy.http.webdav.PropertyMap;
@@ -162,18 +163,18 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
           <href xmlns='DAV:'>/calendars/__uids__/admin</href>
         </calendar-home-set>     
      */
-    class CalenderHomeSetProperty implements StandardProperty<String> {
+    class CalenderHomeSetProperty implements StandardProperty<WrappedHref> {
 
         public String fieldName() {
             return "calendar-home-set";
         }
 
-        public String getValue( PropFindableResource res ) {
-            return "http://localhost:7080/caldavdemo/calendarHome";
+        public WrappedHref getValue( PropFindableResource res ) {
+            return new WrappedHref("/caldavdemo/calendarHome");
         }
 
-        public Class<String> getValueClass() {
-            return String.class;
+        public Class<WrappedHref> getValueClass() {
+            return WrappedHref.class;
         }
     }
 
@@ -207,8 +208,8 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
 
         public HrefList getValue( PropFindableResource res ) {
             HrefList list = new HrefList();
-            list.add("mailto:a1@b.com");
-            list.add("mailto:a2@b.com");
+            list.add("/caldav/users");
+            list.add("/caldav/staff");
             return list;
         }
 
@@ -222,18 +223,18 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
           <href xmlns='DAV:'>/calendars/__uids__/admin/inbox/</href>
         </schedule-inbox-URL>
      */
-    class ScheduleInboxProperty implements StandardProperty<String> {
+    class ScheduleInboxProperty implements StandardProperty<WrappedHref> {
 
         public String fieldName() {
             return "schedule-inbox-URL";
         }
 
-        public String getValue( PropFindableResource res ) {
-            return "http://localhost:7080/caldavdemo/folder1/cal1";
+        public WrappedHref getValue( PropFindableResource res ) {
+            return new WrappedHref("http://localhost:7080/caldavdemo/schduleInBoxUrl");
         }
 
-        public Class<String> getValueClass() {
-            return String.class;
+        public Class<WrappedHref> getValueClass() {
+            return WrappedHref.class;
         }
     }
 
@@ -242,18 +243,18 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
          <href xmlns='DAV:'>/calendars/__uids__/admin/outbox/</href>
        </schedule-outbox-URL>
      */
-    class ScheduleOutboxProperty implements StandardProperty<String> {
+    class ScheduleOutboxProperty implements StandardProperty<WrappedHref> {
 
         public String fieldName() {
             return "schedule-outbox-URL";
         }
 
-        public String getValue( PropFindableResource res ) {
-            return "http://localhost:7080/caldavdemo/folder1/cal1";
+        public WrappedHref getValue( PropFindableResource res ) {
+            return new WrappedHref("http://localhost:7080/caldavdemo/scheduleOutBoxUrl");
         }
 
-        public Class<String> getValueClass() {
-            return String.class;
+        public Class<WrappedHref> getValueClass() {
+            return WrappedHref.class;
         }
     }
 
@@ -262,18 +263,18 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
           <href xmlns='DAV:'>/calendars/__uids__/admin/dropbox/</href>
         </dropbox-home-URL>
      */
-    class DropBoxProperty implements StandardProperty<String> {
+    class DropBoxProperty implements StandardProperty<WrappedHref> {
 
         public String fieldName() {
             return "dropbox-home-URL";
         }
 
-        public String getValue( PropFindableResource res ) {
-            return "http://localhost:7080/caldavdemo/folder1/cal1";
+        public WrappedHref getValue( PropFindableResource res ) {
+            return new WrappedHref("http://localhost:7080/caldavdemo/dropBoxHomeUrl");
         }
 
-        public Class<String> getValueClass() {
-            return String.class;
+        public Class<WrappedHref> getValueClass() {
+            return WrappedHref.class;
         }
     }
 
@@ -300,18 +301,18 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
           <href xmlns='DAV:'>/calendars/__uids__/admin/notification/</href>
         </notification-URL>
      */
-    class NotificationProperty implements StandardProperty<String> {
+    class NotificationProperty implements StandardProperty<WrappedHref> {
 
         public String fieldName() {
             return "notification-URL";
         }
 
-        public String getValue( PropFindableResource res ) {
-            return "http://localhost:7080/caldavdemo/folder1/cal1";
+        public WrappedHref getValue( PropFindableResource res ) {
+            return new WrappedHref("http://localhost:7080/caldavdemo/notificationUrl");
         }
 
-        public Class<String> getValueClass() {
-            return String.class;
+        public Class<WrappedHref> getValueClass() {
+            return WrappedHref.class;
         }
     }
 
