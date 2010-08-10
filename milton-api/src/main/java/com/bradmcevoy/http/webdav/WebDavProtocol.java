@@ -18,7 +18,6 @@ import com.bradmcevoy.http.http11.DefaultETagGenerator;
 import com.bradmcevoy.http.http11.ETagGenerator;
 import com.bradmcevoy.http.quota.DefaultQuotaDataAccessor;
 import com.bradmcevoy.http.quota.QuotaDataAccessor;
-import com.bradmcevoy.http.values.PrincipalCollectionSetList;
 import com.bradmcevoy.http.values.SupportedReportSetList;
 import com.bradmcevoy.http.values.ValueWriters;
 import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
@@ -111,7 +110,6 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         propertyMap.add( new QuotaAvailableBytesPropertyWriter() );
         propertyMap.add( new QuotaUsedBytesPropertyWriter() );
 
-        propertyMap.add( new PrincipalCollectionSetPropertyWriter() );
         propertyMap.add( new SupportedReportSetProperty() );
 
         ResourceHandlerHelper resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
@@ -439,25 +437,6 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
         public Class getValueClass() {
             return Boolean.class;
-        }
-    }
-
-
-    class PrincipalCollectionSetPropertyWriter implements StandardProperty<PrincipalCollectionSetList> {
-
-        @Override
-        public String fieldName() {
-            return "principal-collection-set";
-        }
-
-        public PrincipalCollectionSetList getValue( PropFindableResource res ) {
-            PrincipalCollectionSetList principalCollectionSet = new PrincipalCollectionSetList();
-            principalCollectionSet.add("http://localhost:7080/caldavdemo/folder1/cal1");
-            return principalCollectionSet;
-        }
-
-        public Class getValueClass() {
-            return PrincipalCollectionSetList.class;
         }
     }
 

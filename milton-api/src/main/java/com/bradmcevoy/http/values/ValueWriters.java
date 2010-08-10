@@ -29,6 +29,8 @@ public class ValueWriters {
         writers.add(new CDataValueWriter());
         writers.add(new CDataValueWriter());
         writers.add(new UUIDValueWriter());
+        writers.add(new HrefListValueWriter());
+        writers.add(new WrappedHrefWriter());
         writers.add(new ToStringValueWriter());
     }
 
