@@ -42,6 +42,7 @@
         <principal-URL>
           <href>/principals/__uids__/admin/</href>
         </principal-URL>
+
         <supported-report-set>
           <supported-report>
             <report>
@@ -64,6 +65,7 @@
             </report>
           </supported-report>
         </supported-report-set>
+        
       </prop>
       <status>HTTP/1.1 200 OK</status>
     </propstat>
