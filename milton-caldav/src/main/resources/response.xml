@@ -5,34 +5,46 @@
     <D:propstat>
       <D:prop>
         <ns1:schedule-outbox-URL>
-          <DAV::href>http://localhost:7080/caldavdemo/scheduleOutBoxUrl</DAV::href>
+          <D:href>
+http://localhost:7080/caldavdemo/scheduleOutBoxUrl
+          </D:href>
         </ns1:schedule-outbox-URL>
-
         <D:supported-report-set>[calendar-multiget]</D:supported-report-set>
         <ns1:calendar-user-address-set>
-          <href>/caldav/users</href>
-          <href>/caldav/staff</href>
+          <D:href>
+/caldav/users
+          </D:href>
+          <D:href>
+/caldav/staff
+          </D:href>
         </ns1:calendar-user-address-set>
-
-
         <ns1:calendar-home-set>
-          <DAV::href>/caldavdemo/calendarHome</DAV::href>
+          <D:href>
+/caldavdemo/calendarHome
+          </D:href>
         </ns1:calendar-home-set>
-
         <ns2:notification-URL>
-          <DAV::href>http://localhost:7080/caldavdemo/notificationUrl</DAV::href>
+          <D:href>
+http://localhost:7080/caldavdemo/notificationUrl
+          </D:href>
         </ns2:notification-URL>
         <ns2:dropbox-home-URL>
-          <DAV::href>http://localhost:7080/caldavdemo/dropBoxHomeUrl</DAV::href>
+          <D:href>
+http://localhost:7080/caldavdemo/dropBoxHomeUrl
+          </D:href>
         </ns2:dropbox-home-URL>
         <ns1:schedule-inbox-URL>
-          <DAV::href>http://localhost:7080/caldavdemo/schduleInBoxUrl</DAV::href>
+          <D:href>
+http://localhost:7080/caldavdemo/schduleInBoxUrl
+          </D:href>
         </ns1:schedule-inbox-URL>
         <D:displayname>http://localhost:7080/caldavdemo</D:displayname>
         <D:principal-URL/>
         <ns2:xmpp-uri>xmpp:romeo@montague.net</ns2:xmpp-uri>
         <D:principal-collection-set>
-          <DAV::href>/principals</DAV::href>
+          <D:href>
+/principals
+          </D:href>
         </D:principal-collection-set>
       </D:prop>
       <D:status>HTTP/1.1 200</D:status>
