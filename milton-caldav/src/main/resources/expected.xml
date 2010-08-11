@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<multistatus xmlns='DAV:'>
+  <response>
+    <href>/principals/__uids__/admin/</href>
+    <propstat>
+      <prop>
+
+        <calendar-home-set xmlns='urn:ietf:params:xml:ns:caldav'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin</href>
+        </calendar-home-set>
+
+        <calendar-user-address-set xmlns='urn:ietf:params:xml:ns:caldav'>
+          <href xmlns='DAV:'>http://polaris.home.j2anywhere.com:8008/principals/users/admin/</href>
+          <href xmlns='DAV:'>urn:uuid:admin</href>
+          <href xmlns='DAV:'>http://polaris.home.j2anywhere.com:8008/principals/__uids__/admin/</href>
+          <href xmlns='DAV:'>/principals/__uids__/admin/</href>
+          <href xmlns='DAV:'>/principals/users/admin/</href>
+        </calendar-user-address-set>
+
+        <schedule-inbox-URL xmlns='urn:ietf:params:xml:ns:caldav'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin/inbox/</href>
+        </schedule-inbox-URL>
+
+        <schedule-outbox-URL xmlns='urn:ietf:params:xml:ns:caldav'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin/outbox/</href>
+        </schedule-outbox-URL>
+
+        <dropbox-home-URL xmlns='http://calendarserver.org/ns/'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin/dropbox/</href>
+        </dropbox-home-URL>
+
+        <notification-URL xmlns='http://calendarserver.org/ns/'>
+          <href xmlns='DAV:'>/calendars/__uids__/admin/notification/</href>
+        </notification-URL>
+
+        <displayname>Super User</displayname>
+
+        <principal-collection-set>
+          <href>/principals/</href>
+        </principal-collection-set>
+
+        <principal-URL>
+          <href>/principals/__uids__/admin/</href>
+        </principal-URL>
+        <supported-report-set>
+          <supported-report>
+            <report>
+              <acl-principal-prop-set/>
+            </report>
+          </supported-report>
+          <supported-report>
+            <report>
+              <principal-match/>
+            </report>
+          </supported-report>
+          <supported-report>
+            <report>
+              <principal-property-search/>
+            </report>
+          </supported-report>
+          <supported-report>
+            <report>
+              <expand-property/>
+            </report>
+          </supported-report>
+        </supported-report-set>
+      </prop>
+      <status>HTTP/1.1 200 OK</status>
+    </propstat>
+    <propstat>
+      <prop>
+        <xmpp-uri xmlns='http://calendarserver.org/ns/'/>
+      </prop>
+      <status>HTTP/1.1 404 Not Found</status>
+    </propstat>
+  </response>
+</multistatus>
