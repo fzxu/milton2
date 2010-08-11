@@ -866,13 +866,7 @@ Content-Type: text/xml
 Content-Length: 209
 Connection: keep-alive
 
-
-17:42:32.651394 IP 127.0.0.1.8008 > 127.0.0.1.55470: Flags [.], ack 495, win 40583, options [nop,nop,TS val 504427406 ecr 504427406], length 0
-..N...g.....(........H..
-........
-17:42:32.651416 IP 127.0.0.1.55470 > 127.0.0.1.8008: Flags [P.], seq 495:704, ack 1, win 40830, options [nop,nop,TS val 504427406 ecr 504427406], length 209
-..N...~................H...g
-........<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <x0:propfind xmlns:x0="DAV:" xmlns:x1="http://calendarserver.org/ns/">
  <x0:prop>
   <x0:getetag/>
@@ -880,12 +874,8 @@ Connection: keep-alive
   <x1:notificationtype/>
  </x0:prop>
 </x0:propfind>
-17:42:32.651429 IP 127.0.0.1.8008 > 127.0.0.1.55470: Flags [.], ack 704, win 40478, options [nop,nop,TS val 504427406 ecr 504427406], length 0
-..N...8.....(........H..
-........
-17:42:32.705902 IP 127.0.0.1.8008 > 127.0.0.1.55470: Flags [P.], seq 1:1685, ack 704, win 40830, options [nop,nop,TS val 504427406 ecr 504427406], length 1684
-..N...8...~..........H..
-........HTTP/1.1 207 Multi-Status
+
+HTTP/1.1 207 Multi-Status
 Content-Length: 1115
 Accept-Ranges: bytes
 Server: CalendarServer/trunk(r5958) Twisted/10.0.0 TwistedWeb/9.0.0+r5958
@@ -933,41 +923,10 @@ Content-Type: text/xml
     </propstat>
   </response>
 </multistatus>
-17:42:32.705928 IP 127.0.0.1.55470 > 127.0.0.1.8008: Flags [.], ack 1685, win 39988, options [nop,nop,TS val 504427406 ecr 504427406], length 0
-. ....4.(..............H...8
-........
-17:42:32.706754 IP 127.0.0.1.55470 > 127.0.0.1.8008: Flags [F.], seq 704, ack 1685, win 40830, options [nop,nop,TS val 504427406 ecr 504427406], length 0
-E..4f
-. ....~.(........H...8
-........
-17:42:32.706773 IP 127.0.0.1.8008 > 127.0.0.1.55470: Flags [.], ack 705, win 40830, options [nop,nop,TS val 504427406 ecr 504427406], length 0
-. ....9...~.(........H..
-........
-17:42:32.706781 IP 127.0.0.1.55470 > 127.0.0.1.8008: Flags [.], ack 1685, win 40830, options [nop,nop,TS val 504427406 ecr 504427406], length 0
-. ....~.(..............H...9
-........
-17:42:32.721060 IP6 ::1.55471 > ::1.8008: Flags [S], seq 3427163550, win 65535, options [mss 16324,nop,wscale 1,nop,nop,TS val 504427407 ecr 0,sackOK,eol], length 0
-`....,.@...................................H.F]..........r....?........
-............
-17:42:32.721085 IP6 ::1.8008 > ::1.55471: Flags [R.], seq 0, ack 3427163551, win 0, length 0
-`......@.................................H.......F].P.......
-17:42:32.721261 IP6 fe80::1.55472 > fe80::1.8008: Flags [S], seq 2471802702, win 65535, options [mss 16324,nop,wscale 1,nop,nop,TS val 504427407 ecr 0,sackOK,eol], length 0
-`....,.@...................................H.T.N..............?........
-............
-17:42:32.721272 IP6 fe80::1.8008 > fe80::1.55472: Flags [R.], seq 0, ack 2471802703, win 0, length 0
-`......@.................................H.......T.OP...p0..
-17:42:32.721401 IP 127.0.0.1.55473 > 127.0.0.1.8008: Flags [S], seq 3589607035, win 65535, options [mss 16344,nop,wscale 1,nop,nop,TS val 504427407 ecr 0,sackOK,eol], length 0
-E..@:s@.@..............H...{.........4....?........
-............
-17:42:32.721445 IP 127.0.0.1.8008 > 127.0.0.1.55473: Flags [S.], seq 1926958670, ack 3589607036, win 65535, options [mss 16344,nop,wscale 1,nop,nop,TS val 504427407 ecr 504427407,sackOK,eol], length 0
-E..@.3@.@............H..r..N...|.....4....?........
-............
-17:42:32.721456 IP 127.0.0.1.55473 > 127.0.0.1.8008: Flags [.], ack 1, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4>.@.@..............H...|r..O...~.(.....
-........
-17:42:32.721624 IP 127.0.0.1.55473 > 127.0.0.1.8008: Flags [P.], seq 1:503, ack 1, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 502
-E..*.R@.@..............H...|r..O...~.......
-........PROPFIND /calendars/__uids__/admin/notification/ HTTP/1.1
+
+=========================================================================================================================================
+
+PROPFIND /calendars/__uids__/admin/notification/ HTTP/1.1
 Host: localhost:8008
 User-Agent: DAVKit/4.0.3 (732); CalendarStore/4.0.3 (991); iCal/4.0.3 (1388); Mac OS X/10.6.4 (10F569)
 Authorization: Digest username="admin", realm="Test Realm", nonce="575425224305052965475086383985441016335015555656425296365", uri="/calendars/__uids__/admin/notification/", response="1df93ddb784797af8536f83e5bc36fd2", algorithm="md5"
@@ -976,13 +935,7 @@ Content-Type: text/xml
 Content-Length: 209
 Connection: keep-alive
 
-
-17:42:32.721637 IP 127.0.0.1.8008 > 127.0.0.1.55473: Flags [.], ack 503, win 40579, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4.g@.@............H..r..O...r.....(.....
-........
-17:42:32.721686 IP 127.0.0.1.55473 > 127.0.0.1.8008: Flags [P.], seq 503:712, ack 1, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 209
-E...dk@.@..............H...rr..O...~.......
-........<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <x0:propfind xmlns:x0="DAV:" xmlns:x1="http://calendarserver.org/ns/">
  <x0:prop>
   <x0:getetag/>
@@ -990,12 +943,8 @@ E...dk@.@..............H...rr..O...~.......
   <x1:notificationtype/>
  </x0:prop>
 </x0:propfind>
-17:42:32.721698 IP 127.0.0.1.8008 > 127.0.0.1.55473: Flags [.], ack 712, win 40474, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4..@.@............H..r..O...C.....(.....
-........
-17:42:32.754427 IP 127.0.0.1.8008 > 127.0.0.1.55473: Flags [P.], seq 1:1203, ack 712, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 1202
-E....!@.@............H..r..O...C...~.......
-........HTTP/1.1 207 Multi-Status
+
+HTTP/1.1 207 Multi-Status
 Content-Length: 634
 Accept-Ranges: bytes
 Server: CalendarServer/trunk(r5958) Twisted/10.0.0 TwistedWeb/9.0.0+r5958
@@ -1027,40 +976,10 @@ Content-Type: text/xml
     </propstat>
   </response>
 </multistatus>
-17:42:32.754472 IP 127.0.0.1.55473 > 127.0.0.1.8008: Flags [.], ack 1203, win 40229, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..471@.@..............H...Cr......%.(.....
-........
-17:42:32.755804 IP 127.0.0.1.55473 > 127.0.0.1.8008: Flags [F.], seq 712, ack 1203, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4z @.@..............H...Cr......~.(.....
-........
-17:42:32.755821 IP 127.0.0.1.8008 > 127.0.0.1.55473: Flags [.], ack 713, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4.'@.@............H..r......D...~.(.....
-........
-17:42:32.755830 IP 127.0.0.1.55473 > 127.0.0.1.8008: Flags [.], ack 1203, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4..@.@..............H...Dr......~.(.....
-........
-17:42:32.803234 IP6 ::1.55474 > ::1.8008: Flags [S], seq 509585401, win 65535, options [mss 16324,nop,wscale 1,nop,nop,TS val 504427407 ecr 0,sackOK,eol], length 0
-`....,.@...................................H._..........,.....?........
-............
-17:42:32.803257 IP6 ::1.8008 > ::1.55474: Flags [R.], seq 0, ack 509585402, win 0, length 0
-`......@.................................H......._..P....z..
-17:42:32.803364 IP6 fe80::1.55475 > fe80::1.8008: Flags [S], seq 3011977718, win 65535, options [mss 16324,nop,wscale 1,nop,nop,TS val 504427407 ecr 0,sackOK,eol], length 0
-`....,.@...................................H..!......... .....?........
-............
-17:42:32.803378 IP6 fe80::1.8008 > fe80::1.55475: Flags [R.], seq 0, ack 3011977719, win 0, length 0
-`......@.................................H........!.P....R..
-17:42:32.803477 IP 127.0.0.1.55476 > 127.0.0.1.8008: Flags [S], seq 675805864, win 65535, options [mss 16344,nop,wscale 1,nop,nop,TS val 504427407 ecr 0,sackOK,eol], length 0
-E..@mw@.@..............H(G...........4....?........
-............
-17:42:32.803515 IP 127.0.0.1.8008 > 127.0.0.1.55476: Flags [S.], seq 1224434966, ack 675805865, win 65535, options [mss 16344,nop,wscale 1,nop,nop,TS val 504427407 ecr 504427407,sackOK,eol], length 0
-E..@.U@.@............H..H.e.(G.......4....?........
-............
-17:42:32.803524 IP 127.0.0.1.55476 > 127.0.0.1.8008: Flags [.], ack 1, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4.d@.@..............H(G..H.e....~.(.....
-........
-17:42:32.803665 IP 127.0.0.1.55476 > 127.0.0.1.8008: Flags [P.], seq 1:477, ack 1, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 476
-E...7@@.@..............H(G..H.e....~.......
-........REPORT /principals/__uids__/admin/ HTTP/1.1
+
+=========================================================================================================================================
+
+REPORT /principals/__uids__/admin/ HTTP/1.1
 Host: localhost:8008
 User-Agent: DAVKit/4.0.3 (732); CalendarStore/4.0.3 (991); iCal/4.0.3 (1388); Mac OS X/10.6.4 (10F569)
 Authorization: Digest username="admin", realm="Test Realm", nonce="575425224305052965475086383985441016335015555656425296365", uri="/principals/__uids__/admin/", response="1cbc4973958fcc7cca4906f49c786884", algorithm="md5"
@@ -1069,20 +988,7 @@ Content-Type: text/xml
 Content-Length: 612
 Connection: keep-alive
 
-
-17:42:32.803678 IP 127.0.0.1.8008 > 127.0.0.1.55476: Flags [.], ack 477, win 40592, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4vb@.@............H..H.e.(G.......(.....
-........
-17:42:32.803724 IP 127.0.0.1.55476 > 127.0.0.1.8008: Flags [P.], seq 477:1089, ack 1, win 40830, options [nop,nop,TS val 504427407 ecr 504427407], length 612
-E....Q@.@..............H(G..H.e....~.......
-........<?xml version="1.0" encoding="utf-8" ?>
-<x0:expand-property xmlns:x0="DAV:"><x0:property name="calendar-proxy-write-for" namespace="http://calendarserver.org/ns/"><x0:property name="displayname"/><x0:property name="principal-URL"/><x0:property name="calendar-user-address-set" namespace="urn:ietf:params:xml:ns:caldav"/></x0:property><x0:property name="calendar-proxy-read-for" namespace="http://calendarserver.org/ns/"><x0:property name="displayname"/><x0:property name="principal-URL"/><x0:property name="calendar-user-address-set" namespace="urn:ietf:params:xml:ns:caldav"/></x0:property></x0:expand-property>
-17:42:32.803736 IP 127.0.0.1.8008 > 127.0.0.1.55476: Flags [.], ack 1089, win 40286, options [nop,nop,TS val 504427407 ecr 504427407], length 0
-E..4..@.@............H..H.e.(G.....^.(.....
-........
-17:42:32.812243 IP 127.0.0.1.8008 > 127.0.0.1.55476: Flags [P.], seq 1:948, ack 1089, win 40830, options [nop,nop,TS val 504427408 ecr 504427407], length 947
-E....v@.@............H..H.e.(G.....~.......
-........HTTP/1.1 207 Multi-Status
+HTTP/1.1 207 Multi-Status
 Content-Length: 407
 Accept-Ranges: bytes
 Server: CalendarServer/trunk(r5958) Twisted/10.0.0 TwistedWeb/9.0.0+r5958
@@ -1104,6 +1010,9 @@ Content-Type: text/xml
     </propstat>
   </response>
 </multistatus>
+
+=========================================================================================================================================
+
 17:42:32.812263 IP 127.0.0.1.55476 > 127.0.0.1.8008: Flags [.], ack 948, win 40356, options [nop,nop,TS val 504427408 ecr 504427408], length 0
 E..4SX@.@..............H(G..H.h......(.....
 ........
