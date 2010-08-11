@@ -4,48 +4,44 @@
     <D:href>http://localhost:7080/caldavdemo/</D:href>
     <D:propstat>
       <D:prop>
-        <ns1:schedule-outbox-URL>
-          <D:href>
-http://localhost:7080/caldavdemo/scheduleOutBoxUrl
-          </D:href>
-        </ns1:schedule-outbox-URL>
-        <D:supported-report-set>[calendar-multiget]</D:supported-report-set>
-        <ns1:calendar-user-address-set>
-          <D:href>
-/caldav/users
-          </D:href>
-          <D:href>
-/caldav/staff
-          </D:href>
-        </ns1:calendar-user-address-set>
+
         <ns1:calendar-home-set>
-          <D:href>
-/caldavdemo/calendarHome
-          </D:href>
+          <D:href>/caldavdemo/calendarHome</D:href>
         </ns1:calendar-home-set>
-        <ns2:notification-URL>
-          <D:href>
-http://localhost:7080/caldavdemo/notificationUrl
-          </D:href>
-        </ns2:notification-URL>
-        <ns2:dropbox-home-URL>
-          <D:href>
-http://localhost:7080/caldavdemo/dropBoxHomeUrl
-          </D:href>
-        </ns2:dropbox-home-URL>
+
+        <ns1:calendar-user-address-set>
+          <D:href>/caldav/users</D:href>
+          <D:href>/caldav/staff</D:href>
+        </ns1:calendar-user-address-set>
+
         <ns1:schedule-inbox-URL>
-          <D:href>
-http://localhost:7080/caldavdemo/schduleInBoxUrl
-          </D:href>
+          <D:href>http://localhost:7080/caldavdemo/schduleInBoxUrl</D:href>
         </ns1:schedule-inbox-URL>
+
+        <ns1:schedule-outbox-URL>
+          <D:href>http://localhost:7080/caldavdemo/scheduleOutBoxUrl</D:href>
+        </ns1:schedule-outbox-URL>
+
+        <D:supported-report-set>[calendar-multiget]</D:supported-report-set>
+
+        <ns2:notification-URL>
+          <D:href>http://localhost:7080/caldavdemo/notificationUrl</D:href>
+        </ns2:notification-URL>
+
+        <ns2:dropbox-home-URL>
+          <D:href>http://localhost:7080/caldavdemo/dropBoxHomeUrl</D:href>
+        </ns2:dropbox-home-URL>
+
         <D:displayname>http://localhost:7080/caldavdemo</D:displayname>
+        
         <D:principal-URL/>
+
         <ns2:xmpp-uri>xmpp:romeo@montague.net</ns2:xmpp-uri>
+
         <D:principal-collection-set>
-          <D:href>
-/principals
-          </D:href>
+          <D:href>/principals</D:href>
         </D:principal-collection-set>
+
       </D:prop>
       <D:status>HTTP/1.1 200</D:status>
     </D:propstat>
