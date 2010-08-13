@@ -8,7 +8,7 @@ import java.util.Map;
  *
  * @author alex
  */
-public class SupportedReportSetWriter {
+public class SupportedReportSetWriter  implements ValueWriter {
 
     public boolean supports( String nsUri, String localName, Class c ) {
         return SupportedReportSetList.class.isAssignableFrom( c );
