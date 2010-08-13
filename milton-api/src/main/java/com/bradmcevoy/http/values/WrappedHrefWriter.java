@@ -18,7 +18,8 @@ public class WrappedHrefWriter  implements ValueWriter {
       writer.open(prefix, localName);
       WrappedHref wrappedHref = (WrappedHref) val;
       if( wrappedHref.getValue() != null ) {
-            Element hrefEl = writer.begin(WebDavProtocol.NS_DAV, "href" ).open();
+            //TODO: Replace explicit namespace declaration with reference to constant
+            Element hrefEl = writer.begin("D","href" ).open();
             hrefEl.writeText( wrappedHref.getValue() );
             hrefEl.close();
       }
