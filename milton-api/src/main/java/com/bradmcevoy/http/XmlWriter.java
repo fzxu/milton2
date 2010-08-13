@@ -93,6 +93,11 @@ public class XmlWriter {
         writeElement(namespace, name, Type.NO_CONTENT);
     }
 
+    public void writeProperty(String name) {
+        writeElement(null, name, Type.NO_CONTENT);
+    }
+
+
     public void writeElement(String namespace, String name, Type type) {
         writeElement(namespace, null, name, type);
     }

@@ -21,9 +21,11 @@ public class SupportedReportSetWriter  implements ValueWriter {
         Element reportSet = writer.begin( "supported-report-set" ).open();
         if( list != null ) {
             for( String s : list) {
-                Element report = writer.begin( "supported-report" ).open();
-                report.writeText( s );
+                Element supportedReport = writer.begin( "supported-report" ).open();
+                Element report = writer.begin( "report" ).open();
+                writer.writeProperty( s );
                 report.close();
+                supportedReport.close();
             }
         }
         reportSet.close();

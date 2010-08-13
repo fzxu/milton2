@@ -21,7 +21,7 @@ public class HrefListValueWriter implements ValueWriter {
       HrefList list = (HrefList) val;
       if( list != null ) {
           for( String s : list) {
-              Element hrefEl = writer.begin( "href" ).open();
+              Element hrefEl = writer.begin( "D:href" ).open();
               hrefEl.writeText( s );
               hrefEl.close();
           }
