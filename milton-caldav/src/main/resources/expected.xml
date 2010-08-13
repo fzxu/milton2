@@ -69,6 +69,7 @@
       </prop>
       <status>HTTP/1.1 200 OK</status>
     </propstat>
+    
     <propstat>
       <prop>
         <xmpp-uri xmlns='http://calendarserver.org/ns/'/>
