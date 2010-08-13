@@ -70,8 +70,13 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         PropFindXmlGenerator gen = new PropFindXmlGenerator( valueWriters );
         webDavProtocol.addPropertySource( this );
         PropFindPropertyBuilder propertyBuilder = new PropFindPropertyBuilder( webDavProtocol.getPropertySources() );
-        log.debug( "registering MultiGetReport");
+
+        //Adding supported reports
         webDavProtocol.addReport( new MultiGetReport(resourceFactory, propertyBuilder, gen ));
+        webDavProtocol.addReport( new ACLPrincipalPropSetReport());
+        webDavProtocol.addReport( new PrincipalMatchReport());
+        webDavProtocol.addReport( new PrincipalPropertySearchReport());
+        webDavProtocol.addReport( new ExpandPropertyReport());
     }
 
     public Set<Handler> getHandlers() {
