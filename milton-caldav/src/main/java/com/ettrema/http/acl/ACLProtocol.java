@@ -108,7 +108,7 @@ public class ACLProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("/principals");
+            return new WrappedHref("/caldavdemo/principals");
         }
 
         public Class<WrappedHref> getValueClass() {
