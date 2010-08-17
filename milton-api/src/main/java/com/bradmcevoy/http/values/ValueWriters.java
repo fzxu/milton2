@@ -7,6 +7,11 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 /**
+ * Default list of value writers. These are used to format strongly types
+ * property values (eg Date, Boolean, Locks) into the appropriate XML
+ *
+ * They also parse string values in PROPPATCH requests into the strongly
+ * typed values.
  *
  * @author brad
  */
@@ -14,10 +19,19 @@ public class ValueWriters {
 
     private final List<ValueWriter> writers;
 
+    /**
+     * Allows the set of value writers to be injected
+     *
+     * @param valueWriters
+     */
     public ValueWriters(List<ValueWriter> valueWriters) {
         this.writers = valueWriters;
     }
 
+    /**
+     * Initialised the default set of writers
+     *
+     */
     public ValueWriters() {
         writers = new ArrayList<ValueWriter>();
         writers.add(new LockTokenValueWriter());
@@ -35,6 +49,17 @@ public class ValueWriters {
         writers.add(new ToStringValueWriter());
     }
 
+    /**
+     * Find the first value writer which supports the given property and use it
+     * to output the XML.
+     *
+     * @param writer
+     * @param qname
+     * @param prefix
+     * @param vat
+     * @param href
+     * @param nsPrefixes
+     */
     public void writeValue(XmlWriter writer, QName qname, String prefix, ValueAndType vat, String href, Map<String, String> nsPrefixes) {
         for (ValueWriter vw : writers) {
             if (vw.supports(qname.getNamespaceURI(), qname.getLocalPart(), vat.getType())) {
@@ -48,6 +73,15 @@ public class ValueWriters {
         return writers;
     }
 
+    /**
+     * Find the first ValueWriter which supports the given property and use it
+     * to parse the value
+     *
+     * @param qname
+     * @param valueType
+     * @param value
+     * @return
+     */
     public Object parse(QName qname, Class valueType, String value) {
         for (ValueWriter vw : writers) {
             if (vw.supports(qname.getNamespaceURI(), qname.getLocalPart(), valueType)) {
