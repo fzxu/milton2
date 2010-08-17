@@ -1,14 +1,16 @@
 package com.bradmcevoy.http;
 
 /**
- * (from the spec)
- * 7.4 Write Locks and Null Resources
+ * (from the spec)<BR/>
+ * <B>7.4 Write Locks and Null Resources</B>
  * <P/>
  * It is possible to assert a write lock on a null resource in order to lock the name.
  * <P/>
  * A write locked null resource, referred to as a lock-null resource, MUST respond with
  * a 404 (Not Found) or 405 (Method Not Allowed) to any HTTP/1.1 or DAV methods except
- * for PUT, MKCOL, OPTIONS, PROPFIND, LOCK, and UNLOCK. A lock-null resource MUST appear
+ * for PUT, MKCOL, OPTIONS, PROPFIND, LOCK, and UNLOCK.
+ * <P/>
+ * A lock-null resource MUST appear
  * as a member of its parent collection. Additionally the lock-null resource MUST have
  * defined on it all mandatory DAV properties. Most of these properties, such as all
  * the get* properties, will have no value as a lock-null resource does not support the GET method.

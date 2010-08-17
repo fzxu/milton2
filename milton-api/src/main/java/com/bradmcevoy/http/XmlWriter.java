@@ -16,7 +16,7 @@ import com.bradmcevoy.io.FileUtils;
 /**
  * Lightweight XML generation. Gives the programmer fine grained control
  * of the generated xml, including whitespace.
- *
+ * <P/>
  * The XML is not guaranteed to be parseable.
  *
  * @author brad
