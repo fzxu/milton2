@@ -9,7 +9,7 @@
      <!-- Alternatively, use MiltonServlet further below-->
     <filter>
         <filter-name>CustomFilter</filter-name>
-        <filter-class>com.bradmcevoy.http.CustomFilter</filter-class>
+        <filter-class>com.mycompany.CustomFilter</filter-class>
     </filter>
 
     <filter-mapping>
@@ -33,7 +33,7 @@
         <servlet-class>com.bradmcevoy.http.MiltonServlet</servlet-class>
         <init-param>
             <param-name>resource.factory.class</param-name>
-            <param-value>com.bradmcevoy.http.TResourceFactory</param-value>
+            <param-value>com.mycompany.TResourceFactory</param-value>
         </init-param>
 <!--
 To disable digest authentication uncomment the following. To completely disable

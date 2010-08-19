@@ -79,7 +79,17 @@
 <!--
         <property name="filters">
             <list>
+            	<!-- This filter will save one file per request. Having
+            	it enabled by default causes problems when taking
+            	milton-fileserver-test for a spin as the system runs
+            	slower and slower until it fails.
+            	
+            	Another manifistation of problems with this filter is
+            	that Office 2010 will not put up the authentication 
+            	requester, nor list the files in a folder.
+            	
                 <ref bean="milton.debug.filter" />
+                -->
             </list>
         </property>
 -->
