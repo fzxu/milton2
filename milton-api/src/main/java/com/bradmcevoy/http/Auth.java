@@ -36,7 +36,8 @@ public class Auth {
     public enum Scheme {
 
         BASIC,
-        DIGEST
+        DIGEST,
+        NEGOTIATE 
     };
     private Scheme scheme;
     private String user;
