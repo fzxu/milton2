@@ -22,10 +22,17 @@ public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManage
 
     private String realm;
     private Map<String,String> nameAndPasswords;
+    private DigestGenerator digestGenerator;
 
     public SimpleSecurityManager() {
+        digestGenerator = new DigestGenerator();
     }
 
+    public SimpleSecurityManager( DigestGenerator digestGenerator ) {
+        this.digestGenerator = digestGenerator;
+    }
+
+   
     public SimpleSecurityManager( String realm, Map<String,String> nameAndPasswords ) {
         this.realm = realm;
         this.nameAndPasswords = nameAndPasswords;
@@ -61,13 +68,9 @@ public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManage
     }
 
     public Object authenticate( DigestResponse digestRequest ) {
-        DigestGenerator dg = new DigestGenerator();
         String actualPassword = nameAndPasswords.get( digestRequest.getUser() );
-        String serverResponse = dg.generateDigest( digestRequest, actualPassword );
+        String serverResponse = digestGenerator.generateDigest( digestRequest, actualPassword );
         String clientResponse = digestRequest.getResponseDigest();
-
-        log.debug( "server resp: " + serverResponse );
-        log.debug( "given response: " + clientResponse );
 
         if( serverResponse.equals( clientResponse ) ) {
             return "ok";
@@ -79,7 +82,6 @@ public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManage
 
 
     public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
-        log.debug( "authorise");
         return auth != null && auth.getTag() != null;
     }
 
@@ -106,3 +108,4 @@ public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManage
 //        return new MiltonUser( name, name, domain );
 //    }
 }
+

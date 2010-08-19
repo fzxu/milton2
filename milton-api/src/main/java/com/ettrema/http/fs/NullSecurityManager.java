@@ -35,3 +35,4 @@ public class NullSecurityManager implements com.bradmcevoy.http.SecurityManager 
         this.realm = realm;
     }   
 }
+

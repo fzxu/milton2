@@ -21,3 +21,4 @@ public interface  LockManager {
     LockToken getCurrentToken(LockableResource resource);
 
 }
+
