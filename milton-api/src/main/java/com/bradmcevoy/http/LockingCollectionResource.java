@@ -25,8 +25,10 @@ public interface  LockingCollectionResource extends CollectionResource, Lockable
      * lock it.
      * <P/>
      * It is suggested that the implementor have a specific Resource class to act
-     * as the lock null resource. You should consider using the LockNullResource
+     * as the lock null resource. You should consider using the {@see LockNullResource}
      * interface.
+     *
+     * @see  LockNullResource
      * 
      * @param name - the name of the resource to create
      * @param timeout - in seconds
