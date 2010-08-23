@@ -43,7 +43,7 @@ public class MsPropFindRequestFieldParser implements PropFindRequestFieldParser{
     }
 
     private void add( Set<QName> set, String name ) {
-        QName qname = new QName( WebDavProtocol.NS_DAV, name);
+        QName qname = new QName( WebDavProtocol.NS_DAV.getName(), name);
         set.add( qname );
     }
 

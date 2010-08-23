@@ -1,5 +1,6 @@
 package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.common.NameSpace;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.DateUtils;
 import com.bradmcevoy.http.GetableResource;
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
 public class WebDavProtocol implements HttpExtension, PropertySource {
 
     private static final Logger log = LoggerFactory.getLogger( WebDavProtocol.class );
-    public static final String NS_DAV = "DAV:";
+    public static final NameSpace NS_DAV = new NameSpace("DAV:","D");
     private final Set<Handler> handlers;
     private final Map<String, Report> reports;
     private final ResourceTypeHelper resourceTypeHelper;
@@ -87,7 +88,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         handlers = new HashSet<Handler>();
         this.resourceTypeHelper = resourceTypeHelper;
         this.quotaDataAccessor = quotaDataAccessor;
-        this.propertyMap = new PropertyMap( WebDavProtocol.NS_DAV );
+        this.propertyMap = new PropertyMap( WebDavProtocol.NS_DAV.getName() );
 
         log.info( "resourceTypeHelper: " + resourceTypeHelper.getClass() );
         log.info( "quotaDataAccessor: " + quotaDataAccessor.getClass() );

@@ -71,7 +71,7 @@ public class PropertyMap {
     public List<QName> getAllPropertyNames( Resource r ) {
         List<QName> list = new ArrayList<QName>();
         for( String nm : this.writersMap.keySet() ) {
-            QName qname = new QName( WebDavProtocol.NS_DAV, nm );
+            QName qname = new QName( WebDavProtocol.NS_DAV.getName(), nm );
             list.add( qname );
         }
         return list;

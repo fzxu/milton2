@@ -43,10 +43,10 @@ public class PropFindXmlGenerator {
         ByteArrayOutputStream generatedXml = new ByteArrayOutputStream();
         XmlWriter writer = new XmlWriter( generatedXml );
         writer.writeXMLHeader();
-        writer.open( "D:multistatus" + helper.generateNamespaceDeclarations( mapOfNamespaces ) );
+        writer.open(WebDavProtocol.NS_DAV.getPrefix() ,"multistatus" + helper.generateNamespaceDeclarations( mapOfNamespaces ) );
         writer.newLine();
         helper.appendResponses( writer, propFindResponses, mapOfNamespaces );
-        writer.close( "D:multistatus" );
+        writer.close(WebDavProtocol.NS_DAV.getPrefix(),"multistatus" );
         writer.flush();
 //        log.debug( generatedXml.toString() );
         helper.write( generatedXml, responseOutput );
@@ -69,7 +69,7 @@ public class PropFindXmlGenerator {
             Map<String, String> map = new HashMap<String, String>();
             
             // always add webdav namespace
-            map.put( WebDavProtocol.NS_DAV, "D" );
+            map.put( WebDavProtocol.NS_DAV.getName(), WebDavProtocol.NS_DAV.getPrefix() );
 
             for( PropFindResponse r : propFindResponses ) {
                 for( QName p : r.getKnownProperties().keySet() ) {
@@ -95,9 +95,9 @@ public class PropFindXmlGenerator {
         void appendResponses( XmlWriter writer, List<PropFindResponse> propFindResponses, Map<String, String> mapOfNamespaces ) {
 //            log.debug( "appendResponses: " + propFindResponses.size() );
             for( PropFindResponse r : propFindResponses ) {
-                XmlWriter.Element el = writer.begin( "D:response" );
+                XmlWriter.Element el = writer.begin(WebDavProtocol.NS_DAV.getPrefix(), "response" );
                 el.open();
-                writer.writeProperty( "D", "href", r.getHref() );
+                writer.writeProperty( WebDavProtocol.NS_DAV.getPrefix(), "href", r.getHref() );
                 sendKnownProperties( writer, mapOfNamespaces, r.getKnownProperties(), r.getHref() );
                 if( r.getErrorProperties() != null ) {
                     for( Status status : r.getErrorProperties().keySet()) {
@@ -115,15 +115,15 @@ public class PropFindXmlGenerator {
 
         private void sendProperties( Response.Status status, XmlWriter writer, Map<String, String> mapOfNamespaces, Map<QName, ValueAndType> properties, String href ) {
             if( !properties.isEmpty() ) {
-                XmlWriter.Element elPropStat = writer.begin( "D:propstat" ).open();
-                XmlWriter.Element elProp = writer.begin( "D:prop" ).open();
+                XmlWriter.Element elPropStat = writer.begin(WebDavProtocol.NS_DAV.getPrefix(), "propstat" ).open();
+                XmlWriter.Element elProp = writer.begin(WebDavProtocol.NS_DAV.getPrefix(), "prop" ).open();
                 for( QName qname : properties.keySet() ) {
                     String prefix = mapOfNamespaces.get( qname.getNamespaceURI() );
                     ValueAndType val = properties.get( qname );
                     valueWriters.writeValue( writer, qname, prefix, val, href, mapOfNamespaces );
                 }
                 elProp.close();
-                writer.writeProperty( "D", "status", status.toString() );
+                writer.writeProperty( WebDavProtocol.NS_DAV.getPrefix(), "status", status.toString() );
                 elPropStat.close();
             }
         }
@@ -131,15 +131,15 @@ public class PropFindXmlGenerator {
         private void sendErrorProperties( Response.Status status, XmlWriter writer, Map<String, String> mapOfNamespaces, List<NameAndError> properties ) {
 //            log.debug( "sendUnknownProperties: " + properties.size() );
             if( !properties.isEmpty() ) {
-                XmlWriter.Element elPropStat = writer.begin( "D:propstat" ).open();
-                XmlWriter.Element elProp = writer.begin( "D:prop" ).open();
+                XmlWriter.Element elPropStat = writer.begin(WebDavProtocol.NS_DAV.getPrefix(), "propstat" ).open();
+                XmlWriter.Element elProp = writer.begin(WebDavProtocol.NS_DAV.getPrefix(), "prop" ).open();
                 for( NameAndError ne : properties ) {
                     QName qname = ne.getName();
                     String prefix = mapOfNamespaces.get( qname.getNamespaceURI() );
                     writer.writeProperty( prefix, qname.getLocalPart() );
                 }
                 elProp.close();
-                writer.writeProperty( "D", "status", status.toString() );
+                writer.writeProperty( WebDavProtocol.NS_DAV.getPrefix(), "status", status.toString() );
                 elPropStat.close();
             }
         }
