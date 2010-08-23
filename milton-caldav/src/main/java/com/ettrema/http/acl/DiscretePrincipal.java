@@ -11,7 +11,7 @@ import javax.xml.namespace.QName;
  */
 public class DiscretePrincipal implements Principal{
 
-    private static final QName ID_TYPE = new QName( WebDavProtocol.NS_DAV, "href");
+    private static final QName ID_TYPE = new QName( WebDavProtocol.NS_DAV.getName(), "href");
 
     private final String url;
 

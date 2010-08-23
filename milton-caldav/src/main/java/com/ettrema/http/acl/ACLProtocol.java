@@ -31,7 +31,7 @@ public class ACLProtocol implements HttpExtension, PropertySource {
     private final PropertyMap propertyMap;
 
     public ACLProtocol(WebDavProtocol webDavProtocol) {
-        propertyMap = new PropertyMap( WebDavProtocol.NS_DAV );
+        propertyMap = new PropertyMap( WebDavProtocol.NS_DAV.getName() );
         propertyMap.add( new PrincipalUrl() );
         propertyMap.add( new PrincipalCollectionSetProperty() );
         log.debug( "registering the ACLProtocol as a property source");

@@ -31,7 +31,7 @@ public class MultiGetReport implements Report {
     private final PropFindPropertyBuilder propertyBuilder;
     private final PropFindXmlGenerator xmlGenerator;
 
-    private final Namespace NS_DAV = Namespace.getNamespace( "D", WebDavProtocol.NS_DAV );
+    private final Namespace NS_DAV = Namespace.getNamespace( WebDavProtocol.NS_DAV.getPrefix(), WebDavProtocol.NS_DAV.getName() );
 
     public MultiGetReport( ResourceFactory resourceFactory, PropFindPropertyBuilder propertyBuilder, PropFindXmlGenerator xmlGenerator ) {
         this.resourceFactory = resourceFactory;

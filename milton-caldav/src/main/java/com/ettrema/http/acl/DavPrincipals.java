@@ -25,7 +25,7 @@ public class DavPrincipals {
         private final QName qname;
 
         public AbstractDavPrincipal( String name ) {
-            this.qname = new QName( WebDavProtocol.NS_DAV, name );
+            this.qname = new QName( WebDavProtocol.NS_DAV.getName(), name );
             this.id = new PrincipleId() {
 
                 public QName getIdType() {
