@@ -165,6 +165,18 @@ Content-Type: text/xml
 Content-Length: 91
 Connection: keep-alive
 
+[
+REPORT /caldavdemo/principals/ HTTP/1.1
+content-type: text/xml
+connection: close
+host: localhost:7080
+content-length: 91
+user-agent: DAVKit/4.0.3 (732); CalendarStore/4.0.3 (991); iCal/4.0.3 (1388); Mac OS X/10.6.4 (10F569)
+depth: 0
+<?xml version="1.0" encoding="utf-8" ?>
+<x0:principal-search-property-set xmlns:x0="DAV:"/>
+]
+
 HTTP/1.1 200 OK
 Content-Length: 1362
 Accept-Ranges: bytes

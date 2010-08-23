@@ -1,12 +1,45 @@
+HTTP/1.1 207
+Content-Length: 1681
+Content-Type: text/xml; charset=UTF-8
+
 <?xml version="1.0" encoding="utf-8" ?>
-<D:multistatus xmlns:ns2="http://calendarserver.org/ns/" xmlns:D="DAV:" xmlns:ns1="urn:ietf:params:xml:ns:caldav">
-  <D:response>
-    <D:href>http://localhost:7080/caldavdemo/</D:href>
-    <D:propstat>
-      <D:prop>
+<multistatus xmlns:ns2="http://calendarserver.org/ns/" xmlns="DAV:" xmlns:ns1="urn:ietf:params:xml:ns:caldav">
+  <response>
+    <href>http://localhost:7080/caldavdemo/</href>
+    <propstat>
+      <prop>
+
+        <ns1:calendar-home-set>
+          <href>/caldavdemo/calendarHome</href>
+        </ns1:calendar-home-set>
+
+        <ns1:calendar-user-address-set>
+          <href>/caldav/users</href>
+          <href>/caldav/staff</href>
+        </ns1:calendar-user-address-set>
+
+        <ns1:schedule-inbox-URL>
+          <href>http://localhost:7080/caldavdemo/schduleInBoxUrl</href>
+        </ns1:schedule-inbox-URL>
+
         <ns1:schedule-outbox-URL>
-          <D:href>http://localhost:7080/caldavdemo/scheduleOutBoxUrl</D:href>
+          <href>http://localhost:7080/caldavdemo/scheduleOutBoxUrl</href>
         </ns1:schedule-outbox-URL>
+
+        <ns2:dropbox-home-URL>
+          <href>http://localhost:7080/caldavdemo/dropBoxHomeUrl</href>
+        </ns2:dropbox-home-URL>
+
+        <ns2:notification-URL>
+          <href>http://localhost:7080/caldavdemo/notificationUrl</href>
+        </ns2:notification-URL>
+
+        <displayname>http://localhost:7080/caldavdemo</displayname>
+
+        <principal-collection-set>
+          <href>/principals</href>
+        </principal-collection-set>
+
         <supported-report-set>
           <supported-report>
             <report>
@@ -34,30 +67,12 @@
             </report>
           </supported-report>
         </supported-report-set>
-        <ns1:calendar-user-address-set>
-          <D:href>/caldav/users</D:href>
-          <D:href>/caldav/staff</D:href>
-        </ns1:calendar-user-address-set>
-        <ns1:calendar-home-set>
-          <D:href>/caldavdemo/calendarHome</D:href>
-        </ns1:calendar-home-set>
-        <ns2:notification-URL>
-          <D:href>http://localhost:7080/caldavdemo/notificationUrl</D:href>
-        </ns2:notification-URL>
-        <ns2:dropbox-home-URL>
-          <D:href>http://localhost:7080/caldavdemo/dropBoxHomeUrl</D:href>
-        </ns2:dropbox-home-URL>
-        <ns1:schedule-inbox-URL>
-          <D:href>http://localhost:7080/caldavdemo/schduleInBoxUrl</D:href>
-        </ns1:schedule-inbox-URL>
-        <D:displayname>http://localhost:7080/caldavdemo</D:displayname>
-        <D:principal-URL/>
+        
+        
+        <principal-URL/>
         <ns2:xmpp-uri>xmpp:romeo@montague.net</ns2:xmpp-uri>
-        <D:principal-collection-set>
-          <D:href>/principals</D:href>
-        </D:principal-collection-set>
-      </D:prop>
-      <D:status>HTTP/1.1 200</D:status>
-    </D:propstat>
-  </D:response>
-</D:multistatus>
+      </prop>
+      <status>HTTP/1.1 200</status>
+    </propstat>
+  </response>
+</multistatus>
