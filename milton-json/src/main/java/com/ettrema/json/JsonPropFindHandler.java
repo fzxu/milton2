@@ -145,7 +145,7 @@ public class JsonPropFindHandler {
             return new QName(nsUri, localName);
         } else {
             // name is simple form E.g. displayname, default nsUri to DAV
-            return new QName(WebDavProtocol.NS_DAV, field);
+            return new QName(WebDavProtocol.NS_DAV.getPrefix(), field);
         }
 
     }
