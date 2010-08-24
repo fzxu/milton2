@@ -45,7 +45,7 @@ public class JsonPropPatchHandler {
                 qn = new QName(nsUri, localName);
             } else {
                 // name is simple form E.g. displayname, default nsUri to DAV
-                qn = new QName(WebDavProtocol.NS_DAV, fieldName);
+                qn = new QName(WebDavProtocol.NS_DAV.getPrefix(), fieldName);
             }
             log.debug("field: " + qn);
             fields.put(qn, sFieldValue);
