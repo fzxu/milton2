@@ -47,6 +47,12 @@ public abstract class AbstractRequest implements Request {
         return getRequestHeader( Request.Header.ACCEPT_ENCODING );
     }
 
+    public String getUserAgentHeader() {
+        return getRequestHeader( Header.USER_AGENT );
+    }
+
+
+
     public int getDepthHeader() {
         String depthStr = getRequestHeader( Request.Header.DEPTH );
         if( depthStr == null ) {

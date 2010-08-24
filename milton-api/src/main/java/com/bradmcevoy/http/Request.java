@@ -8,6 +8,7 @@ import java.util.Map;
 
 public interface Request {
 
+
     enum Depth {
 
         ZERO,
@@ -53,6 +54,7 @@ public interface Request {
         LOCK_TOKEN( "Lock-Token" ),
         EXPECT( "Expect" ),
         OVERWRITE( "Overwrite" ),
+        USER_AGENT( "User-Agent" ),
         /**
          * For compatibility with macOS finder from 10.5.3
          */
@@ -164,6 +166,12 @@ public interface Request {
      * should be deleted
      */
     Boolean getOverwriteHeader();
+
+    /**
+     * 
+     * @return - the user agent header field
+     */
+    String getUserAgentHeader();
 
     /**
      * Return a writable map of arbitrary values to be associated with the request
