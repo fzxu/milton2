@@ -1,78 +1,51 @@
-HTTP/1.1 207
-Content-Length: 1681
-Content-Type: text/xml; charset=UTF-8
 
+REPORT /caldavdemo/principals/ HTTP/1.1
+content-type: text/xml
+connection: close
+host: localhost:7080
+content-length: 91
+user-agent: DAVKit/4.0.3 (732); CalendarStore/4.0.3 (991); iCal/4.0.3 (1388); Mac OS X/10.6.4 (10F569)
+depth: 0
 <?xml version="1.0" encoding="utf-8" ?>
-<multistatus xmlns:ns2="http://calendarserver.org/ns/" xmlns="DAV:" xmlns:ns1="urn:ietf:params:xml:ns:caldav">
-  <response>
-    <href>http://localhost:7080/caldavdemo/</href>
-    <propstat>
-      <prop>
+<x0:principal-search-property-set xmlns:x0="DAV:"/>
 
-        <ns1:calendar-home-set>
-          <href>/caldavdemo/calendarHome</href>
-        </ns1:calendar-home-set>
-
-        <ns1:calendar-user-address-set>
-          <href>/caldav/users</href>
-          <href>/caldav/staff</href>
-        </ns1:calendar-user-address-set>
-
-        <ns1:schedule-inbox-URL>
-          <href>http://localhost:7080/caldavdemo/schduleInBoxUrl</href>
-        </ns1:schedule-inbox-URL>
-
-        <ns1:schedule-outbox-URL>
-          <href>http://localhost:7080/caldavdemo/scheduleOutBoxUrl</href>
-        </ns1:schedule-outbox-URL>
-
-        <ns2:dropbox-home-URL>
-          <href>http://localhost:7080/caldavdemo/dropBoxHomeUrl</href>
-        </ns2:dropbox-home-URL>
-
-        <ns2:notification-URL>
-          <href>http://localhost:7080/caldavdemo/notificationUrl</href>
-        </ns2:notification-URL>
-
-        <displayname>http://localhost:7080/caldavdemo</displayname>
-
-        <principal-collection-set>
-          <href>/principals</href>
-        </principal-collection-set>
-
-        <supported-report-set>
-          <supported-report>
-            <report>
-              <calendar-multiget/>
-            </report>
-          </supported-report>
-          <supported-report>
-            <report>
-              <expand-property/>
-            </report>
-          </supported-report>
-          <supported-report>
-            <report>
-              <principal-property-search/>
-            </report>
-          </supported-report>
-          <supported-report>
-            <report>
-              <acl-principal-prop-set/>
-            </report>
-          </supported-report>
-          <supported-report>
-            <report>
-              <principal-match/>
-            </report>
-          </supported-report>
-        </supported-report-set>
-        
-        
-        <principal-URL/>
-        <ns2:xmpp-uri>xmpp:romeo@montague.net</ns2:xmpp-uri>
-      </prop>
-      <status>HTTP/1.1 200</status>
-    </propstat>
-  </response>
-</multistatus>
+HTTP/1.1 207
+<?xml version='1.0' encoding='UTF-8'?>
+<principal-search-property-set xmlns='DAV:'>
+  <principal-search-property>
+    <prop>
+      <displayname/>
+    </prop>
+    <description xml:lang='en'>Display Name</description>
+  </principal-search-property>
+  <principal-search-property>
+    <prop>
+      <email-address-set xmlns='http://calendarserver.org/ns/'/>
+    </prop>
+    <description xml:lang='en'>Email Addresses</description>
+  </principal-search-property>
+  <principal-search-property>
+    <prop>
+      <last-name xmlns='http://calendarserver.org/ns/'/>
+    </prop>
+    <description xml:lang='en'>Last Name</description>
+  </principal-search-property>
+  <principal-search-property>
+    <prop>
+      <calendar-user-type xmlns='urn:ietf:params:xml:ns:caldav'/>
+    </prop>
+    <description xml:lang='en'>Calendar User Type</description>
+  </principal-search-property>
+  <principal-search-property>
+    <prop>
+      <first-name xmlns='http://calendarserver.org/ns/'/>
+    </prop>
+    <description xml:lang='en'>First Name</description>
+  </principal-search-property>
+  <principal-search-property>
+    <prop>
+      <calendar-user-address-set xmlns='urn:ietf:params:xml:ns:caldav'/>
+    </prop>
+    <description xml:lang='en'>Calendar User Address Set</description>
+  </principal-search-property>
+</principal-search-property-set>
