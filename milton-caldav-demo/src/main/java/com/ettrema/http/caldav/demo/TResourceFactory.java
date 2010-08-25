@@ -11,7 +11,8 @@ public class TResourceFactory implements ResourceFactory {
 
     static {
         TFolderResource folder = new TFolderResource( ROOT, "folder1" );
-        TCalendarResource cal1 = new TCalendarResource( folder, "cal1" );
+        TReportableResource principals = new TReportableResource( ROOT, "principals" );
+        TCalendarResource cal1 = new TCalendarResource( folder, "calenderOne" );
     }
 
     public Resource getResource( String host, String url ) {
@@ -22,14 +23,14 @@ public class TResourceFactory implements ResourceFactory {
         return r;
     }
 
-    private TResource find( Path path ) {
+    private Resource find( Path path ) {
         if( isRoot( path ) ) return ROOT;
-        TResource r = find( path.getParent() );
+        Resource r = find( path.getParent() );
         if( r == null ) return null;
         if( r instanceof TFolderResource ) {
             TFolderResource folder = (TFolderResource) r;
             for( Resource rChild : folder.getChildren() ) {
-                TResource r2 = (TResource) rChild;
+                Resource r2 = (Resource) rChild;
                 if( r2.getName().equals( path.getName() ) ) {
                     return r2;
                 } else {

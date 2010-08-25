@@ -25,7 +25,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 public class TFolderResource extends TResource implements PutableResource, MakeCollectionableResource {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TResource.class );
-    ArrayList<TResource> children = new ArrayList<TResource>();
+    ArrayList<Resource> children = new ArrayList<Resource>();
 
     public TFolderResource( TFolderResource parent, String name ) {
         super( parent, name );
