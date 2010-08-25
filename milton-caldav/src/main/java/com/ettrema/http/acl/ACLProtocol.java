@@ -13,6 +13,7 @@ import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.property.PropertySource;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.AccessControlledResource.Priviledge;
+import com.ettrema.http.caldav.PrincipalSearchPropertySetReport;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +37,8 @@ public class ACLProtocol implements HttpExtension, PropertySource {
         propertyMap.add( new PrincipalCollectionSetProperty() );
         log.debug( "registering the ACLProtocol as a property source");
         webDavProtocol.addPropertySource( this );
+        //Adding supported reports
+        webDavProtocol.addReport(new PrincipalSearchPropertySetReport());
     }
 
     /**
@@ -108,7 +111,9 @@ public class ACLProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("/caldavdemo/principals");
+            WrappedHref wrappedHref = new WrappedHref("/caldavdemo/principals");
+            log.error("HREF : "+wrappedHref.getValue());
+            return wrappedHref;
         }
 
         public Class<WrappedHref> getValueClass() {

@@ -72,11 +72,11 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         PropFindPropertyBuilder propertyBuilder = new PropFindPropertyBuilder( webDavProtocol.getPropertySources() );
 
         //Adding supported reports
-        webDavProtocol.addReport( new MultiGetReport(resourceFactory, propertyBuilder, gen ));
-        webDavProtocol.addReport( new ACLPrincipalPropSetReport());
-        webDavProtocol.addReport( new PrincipalMatchReport());
-        webDavProtocol.addReport( new PrincipalPropertySearchReport());
-        webDavProtocol.addReport( new ExpandPropertyReport());
+        webDavProtocol.addReport(new MultiGetReport(resourceFactory, propertyBuilder, gen ));
+        webDavProtocol.addReport(new ACLPrincipalPropSetReport());
+        webDavProtocol.addReport(new PrincipalMatchReport());
+        webDavProtocol.addReport(new PrincipalPropertySearchReport());
+        webDavProtocol.addReport(new ExpandPropertyReport());       
     }
 
     public Set<Handler> getHandlers() {
@@ -235,7 +235,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("http://localhost:7080/caldavdemo/schduleInBoxUrl");
+            return new WrappedHref("http://localhost:7080/caldavdemo/scheduleInBoxUrl");
         }
 
         public Class<WrappedHref> getValueClass() {
