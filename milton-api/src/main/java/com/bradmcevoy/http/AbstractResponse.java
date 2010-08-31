@@ -135,6 +135,12 @@ public abstract class AbstractResponse implements Response {
         setResponseHeader(Header.DAV, supportedLevels);
     }
 
+    public void setVaryHeader( String value ) {
+        setResponseHeader( Header.VARY, value);
+    }
+
+
+
     public void close() {
     }
 

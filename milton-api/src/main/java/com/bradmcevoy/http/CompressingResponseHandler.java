@@ -29,7 +29,6 @@ import java.util.Date;
 public class CompressingResponseHandler extends AbstractWrappingResponseHandler {
 
     private static final Logger log = LoggerFactory.getLogger( CompressingResponseHandler.class );
-
     /**
      * The size to buffer in memory before switching to disk cache.
      */
@@ -39,9 +38,8 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
     }
 
     public CompressingResponseHandler( WebDavResponseHandler wrapped ) {
-        super(wrapped);
+        super( wrapped );
     }
-
 
     @Override
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
@@ -55,22 +53,23 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
 
                 // get the zipped content before sending so we can determine its
                 // compressed size
-                BufferingOutputStream tempOut = new BufferingOutputStream(maxMemorySize);
+                BufferingOutputStream tempOut = new BufferingOutputStream( maxMemorySize );
                 try {
                     OutputStream gzipOut = new GZIPOutputStream( tempOut );
-                    r.sendContent(gzipOut,null,params, contentType);
+                    r.sendContent( gzipOut, null, params, contentType );
                     gzipOut.flush();
                     gzipOut.close();
                     tempOut.flush();
-                } catch (Exception ex) {
+                } catch( Exception ex ) {
                     throw new RuntimeException( ex );
                 } finally {
-                    FileUtils.close( tempOut);
+                    FileUtils.close( tempOut );
                 }
 
                 log.trace( "respondContent-compressed: " + resource.getClass() );
-                setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK );
+                setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK, request.getAuthorization() );
                 response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
+                response.setVaryHeader("Accept-Encoding");
                 Long contentLength = tempOut.getSize();
                 response.setContentLengthHeader( contentLength );
                 response.setContentTypeHeader( contentType );
@@ -80,24 +79,22 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 } catch( ReadingException ex ) {
                     throw new RuntimeException( ex );
                 } catch( WritingException ex ) {
-                    log.warn("exception writing, client probably closed connection", ex);
+                    log.warn( "exception writing, client probably closed connection", ex );
                 }
-                return ;
+                return;
             }
         }
         wrapped.respondContent( resource, response, request, params );
     }
 
-    protected void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status ) {
+    protected void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status, Auth auth ) {
         response.setStatus( status );
         response.setDateHeader( new Date() );
         String etag = wrapped.generateEtag( resource );
         if( etag != null ) {
             response.setEtag( etag );
         }
-        if( resource.getModifiedDate() != null ) {
-            response.setLastModifiedHeader( resource.getModifiedDate() );
-        }
+        DefaultHttp11ResponseHandler.setModifiedDate( response, resource, auth );
     }
 
     private boolean canCompress( GetableResource r, String contentType, String acceptableEncodings ) {
