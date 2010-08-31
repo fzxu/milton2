@@ -84,6 +84,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 return;
             }
         }
+        response.setVaryHeader("Accept-Encoding");
         wrapped.respondContent( resource, response, request, params );
     }
 

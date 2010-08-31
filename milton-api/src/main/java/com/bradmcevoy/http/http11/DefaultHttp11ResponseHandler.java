@@ -153,12 +153,13 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     public void respondHead( Resource resource, Response response, Request request ) {
-        setRespondContentCommonHeaders( response, resource, Response.Status.SC_NO_CONTENT );
+        setRespondContentCommonHeaders( response, resource, Response.Status.SC_NO_CONTENT, request.getAuthorization() );
     }
 
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
 //        log.debug( "respondContent: " + resource.getClass() );
-        setRespondContentCommonHeaders( response, resource );
+        Auth auth = request.getAuthorization();
+        setRespondContentCommonHeaders( response, resource, auth );
         if( resource instanceof GetableResource ) {
             GetableResource gr = (GetableResource) resource;
             Long contentLength = gr.getContentLength();
@@ -183,10 +184,8 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         if( etag != null ) {
             response.setEtag( etag );
         }
-        Date mod = resource.getModifiedDate();
-        if( mod != null ) {
-            response.setLastModifiedHeader( resource.getModifiedDate() );
-        }
+        
+        setModifiedDate(response, resource, request.getAuthorization() );
         setCacheControl( resource, response, request.getAuthorization() );
     }
 
@@ -200,7 +199,10 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
             } else {
                 response.setCacheControlMaxAgeHeader( delta );
             }
-            Date expiresAt = calcExpiresAt( resource.getModifiedDate(), delta.longValue() );
+            Date expiresAt = calcExpiresAt( new Date(), delta.longValue() );
+            if( log.isTraceEnabled() ) {
+                log.trace("set expires: " + expiresAt);
+            }
             response.setExpiresHeader( expiresAt );
         } else {
             response.setCacheControlNoCacheHeader();
@@ -234,19 +236,36 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         pw.flush();
     }
 
-    protected void setRespondContentCommonHeaders( Response response, Resource resource ) {
-        setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK );
+    protected void setRespondContentCommonHeaders( Response response, Resource resource, Auth auth ) {
+        setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK, auth );
     }
 
-    protected void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status ) {
+    protected void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status, Auth auth ) {
         response.setStatus( status );
         response.setDateHeader( new Date() );
         String etag = eTagGenerator.generateEtag( resource );
         if( etag != null ) {
             response.setEtag( etag );
         }
-        if( resource.getModifiedDate() != null ) {
-            response.setLastModifiedHeader( resource.getModifiedDate() );
+        setModifiedDate(response, resource,auth);
+    }
+
+    public static void setModifiedDate(Response response, Resource resource,Auth auth) {
+        Date modDate = resource.getModifiedDate();
+        if( modDate != null ) {
+            // The modified date response header is used by the client for content
+            // caching. It seems obvious that if we have a modified date on the resource
+            // we should set it.
+            // BUT, because of the interaction with max-age we should always set it
+            // to the current date if we have max-age
+            if( resource instanceof GetableResource) {
+                GetableResource gr = (GetableResource) resource;
+                Long maxAge = gr.getMaxAgeSeconds( auth );
+                if( maxAge != null ) {
+                    modDate = new Date(); // have max-age, so use current date
+                }
+            }
+            response.setLastModifiedHeader( modDate );
         }
     }
 
