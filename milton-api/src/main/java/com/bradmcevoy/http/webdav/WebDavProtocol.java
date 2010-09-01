@@ -236,7 +236,8 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         }
 
         public Date getValue( PropFindableResource res ) {
-            return res.getModifiedDate();
+            // BM: was getModifiedDate(), presume that was wrong??
+            return res.getCreateDate();
         }
 
         public Class<Date> getValueClass() {
