@@ -13,19 +13,15 @@ import org.slf4j.LoggerFactory;
  */
 public class MsOfficeResponseHandler extends AbstractWrappingResponseHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultHttp11ResponseHandler.class);
+    private static final Logger log = LoggerFactory.getLogger( DefaultHttp11ResponseHandler.class );
 
-    public MsOfficeResponseHandler(WebDavResponseHandler wrapped) {
-        super(wrapped );
+    public MsOfficeResponseHandler( WebDavResponseHandler wrapped ) {
+        super( wrapped );
     }
 
-    public MsOfficeResponseHandler(AuthenticationService authenticationService) {
-        super( new DefaultWebDavResponseHandler(authenticationService));
+    public MsOfficeResponseHandler( AuthenticationService authenticationService ) {
+        super( new DefaultWebDavResponseHandler( authenticationService ) );
     }
-
-
-
-
 
     /**
      * Overrides the default behaviour to set the status to Response.Status.SC_NOT_IMPLEMENTED
@@ -37,7 +33,7 @@ public class MsOfficeResponseHandler extends AbstractWrappingResponseHandler {
      * @param request
      */
     @Override
-    public void respondMethodNotAllowed(Resource res, Response response, Request request) {
+    public void respondMethodNotAllowed( Resource res, Response response, Request request ) {
         wrapped.respondMethodNotImplemented( res, response, request );
     }
 }
