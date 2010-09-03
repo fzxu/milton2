@@ -20,7 +20,6 @@ public class GetHandler implements ExistingEntityHandler {
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
 
-
     public GetHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
@@ -29,23 +28,29 @@ public class GetHandler implements ExistingEntityHandler {
 
     @Override
     public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        log.debug( "process" );
         this.resourceHandlerHelper.process( manager, request, response, this );
     }
 
     @Override
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
         manager.onGet( request, response, r, request.getParams() );
-        resourceHandlerHelper.processResource( manager, request, response, r, this, true, request.getParams(), null);
+        resourceHandlerHelper.processResource( manager, request, response, r, this, true, request.getParams(), null );
     }
 
-    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, BadRequestException, ConflictException {
-//        log.debug( "process: " + request.getAbsolutePath() );
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
+        if( log.isTraceEnabled() ) {
+            log.trace( "process: " + request.getAbsolutePath() );
+        }
         GetableResource r = (GetableResource) resource;
         if( checkConditional( r, request ) ) {
+            if( log.isTraceEnabled() ) {
+                log.trace( "respond not modified with: " + responseHandler.getClass().getCanonicalName() );
+            }
             responseHandler.respondNotModified( r, response, request );
             return;
         }
-        
+
         sendContent( manager, request, response, r, request.getParams() );
     }
 
@@ -64,13 +69,15 @@ public class GetHandler implements ExistingEntityHandler {
      */
     private boolean checkConditional( GetableResource resource, Request request ) {
         // If maxAgeSeconds is null then we do not cache
-        if( resource.getMaxAgeSeconds( request.getAuthorization()) == null ) {
+        if( resource.getMaxAgeSeconds( request.getAuthorization() ) == null ) {
+            log.trace( "resource has null max age, so not modified response is disabled" );
             return false;
         }
         if( checkIfMatch( resource, request ) ) {
             return true;
         }
         if( checkIfModifiedSince( resource, request ) ) {
+            log.trace( "is not modified since" );
             return true;
         }
         if( checkIfNoneMatch( resource, request ) ) {
@@ -78,7 +85,6 @@ public class GetHandler implements ExistingEntityHandler {
         }
         return false;
     }
-
 
     private boolean checkIfMatch( GetableResource handler, Request requestInfo ) {
         return false;   // TODO: not implemented
@@ -91,27 +97,41 @@ public class GetHandler implements ExistingEntityHandler {
      * @return - true if the resource has NOT been modified since that date in the request
      */
     private boolean checkIfModifiedSince( GetableResource resource, Request requestInfo ) {
-        Long maxAgeSecs = resource.getMaxAgeSeconds( requestInfo.getAuthorization());
+        log.trace( "checkIfModifiedSince" );
+        Long maxAgeSecs = resource.getMaxAgeSeconds( requestInfo.getAuthorization() );
 
-        if( maxAgeSecs == null  ) {
+        if( maxAgeSecs == null ) {
+            log.trace( "checkIfModifiedSince: null max age" );
             return false; // if null, always generate a fresh response
         } else {
+            log.trace( "checkIfModifiedSince with maxAge" );
             Date dtRequest = requestInfo.getIfModifiedHeader();
-            if( dtRequest == null ) return false;
-            Date dtCurrent = resource.getModifiedDate();
-            if( dtCurrent == null ) return true;
+            if( dtRequest == null ) {
+                log.trace( " no modified date header" );
+                return false;
+            }
             long timeNow = System.currentTimeMillis();
             long timeRequest = dtRequest.getTime() + 1000; // allow for rounding to nearest second
             long timeElapsed = timeNow - timeRequest;
-            if( timeElapsed > maxAgeSecs) {
-                // its been longer then the max age period, so generate fresh response
+            if( timeElapsed > maxAgeSecs ) {
+                log.trace( "its been longer then the max age period, so generate fresh response" );
                 return false;
             } else {
+                Date dtCurrent = resource.getModifiedDate();
+                if( dtCurrent == null ) {
+                    if( log.isTraceEnabled() ) {
+                        log.trace( "no modified date on resource: " + resource.getClass().getCanonicalName() );
+                    }
+                    return true;
+                }
+
                 long timeActual = dtCurrent.getTime();
-        //        log.debug("times as long: " + dtCurrent.getTime() + " - " + dtRequest.getTime());
                 boolean unchangedSince = ( timeRequest >= timeActual );
-        //        log.debug("checkModifiedSince: actual: " + dtCurrent + " - request:" + dtRequest + " = " + unchangedSince  + " (true indicates no change)");
-                
+                if( log.isTraceEnabled() ) {
+                    log.trace( "times as long: " + dtCurrent.getTime() + " - " + dtRequest.getTime() );
+                    log.trace( "checkModifiedSince: actual: " + dtCurrent + " - request:" + dtRequest + " = " + unchangedSince + " (true indicates no change)" );
+                }
+
                 // If the modified time requested is greater or equal then the actual modified time, do not generate response
                 return unchangedSince;
             }
@@ -139,10 +159,10 @@ public class GetHandler implements ExistingEntityHandler {
             } else {
                 Range range = getRange( request );
                 if( range != null ) {
-                    log.trace( "partial");
+                    log.trace( "partial" );
                     responseHandler.respondPartialContent( resource, response, request, params, range );
                 } else {
-                    log.trace( "normal content");
+                    log.trace( "normal content" );
                     responseHandler.respondContent( resource, response, request, params );
                 }
             }
@@ -150,8 +170,8 @@ public class GetHandler implements ExistingEntityHandler {
             throw notAuthorizedException;
         } catch( BadRequestException badRequestException ) {
             throw badRequestException;
-        } catch(Throwable e) {
-            log.error( "Exception sending content for:" + request.getAbsolutePath() + " of resource type: " + resource.getClass().getCanonicalName());
+        } catch( Throwable e ) {
+            log.error( "Exception sending content for:" + request.getAbsolutePath() + " of resource type: " + resource.getClass().getCanonicalName() );
             throw new RuntimeException( e );
         }
     }
