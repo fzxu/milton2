@@ -15,7 +15,6 @@ import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.WritingException;
 import com.bradmcevoy.http.ReportableResource;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import org.jdom.JDOMException;
