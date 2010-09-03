@@ -21,6 +21,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -28,33 +30,34 @@ import java.util.Map;
  */
 public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
 
+    private static final Logger log = LoggerFactory.getLogger( DefaultWebDavResponseHandler.class );
     protected final Http11ResponseHandler wrapped;
     protected final ResourceTypeHelper resourceTypeHelper;
     protected final PropFindXmlGenerator propFindXmlGenerator;
 
-    public DefaultWebDavResponseHandler(AuthenticationService authenticationService) {
+    public DefaultWebDavResponseHandler( AuthenticationService authenticationService ) {
         ValueWriters valueWriters = new ValueWriters();
-        wrapped = new DefaultHttp11ResponseHandler(authenticationService);
+        wrapped = new DefaultHttp11ResponseHandler( authenticationService );
         resourceTypeHelper = new WebDavResourceTypeHelper();
         propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
     }
 
-    public DefaultWebDavResponseHandler(AuthenticationService authenticationService, ResourceTypeHelper resourceTypeHelper) {
+    public DefaultWebDavResponseHandler( AuthenticationService authenticationService, ResourceTypeHelper resourceTypeHelper ) {
         ValueWriters valueWriters = new ValueWriters();
-        wrapped = new DefaultHttp11ResponseHandler(authenticationService);
+        wrapped = new DefaultHttp11ResponseHandler( authenticationService );
         this.resourceTypeHelper = resourceTypeHelper;
         propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
 
     }
 
     public DefaultWebDavResponseHandler( ValueWriters valueWriters, AuthenticationService authenticationService ) {
-        wrapped = new DefaultHttp11ResponseHandler(authenticationService);
+        wrapped = new DefaultHttp11ResponseHandler( authenticationService );
         resourceTypeHelper = new WebDavResourceTypeHelper();
         propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
     }
 
     public DefaultWebDavResponseHandler( ValueWriters valueWriters, AuthenticationService authenticationService, ResourceTypeHelper resourceTypeHelper ) {
-        wrapped = new DefaultHttp11ResponseHandler(authenticationService);
+        wrapped = new DefaultHttp11ResponseHandler( authenticationService );
         this.resourceTypeHelper = resourceTypeHelper;
         propFindXmlGenerator = new PropFindXmlGenerator( valueWriters );
     }
@@ -68,8 +71,6 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
     public String generateEtag( Resource r ) {
         return wrapped.generateEtag( r );
     }
-
-
 
     public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
         wrapped.respondWithOptions( resource, response, request, methodsAllowed );
@@ -135,6 +136,9 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
     }
 
     public void respondNotModified( GetableResource resource, Response response, Request request ) {
+        if( log.isTraceEnabled() ) {
+            log.trace( "respondNotModified: " + wrapped.getClass().getCanonicalName() );
+        }
         wrapped.respondNotModified( resource, response, request );
     }
 
@@ -158,13 +162,9 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         wrapped.respondForbidden( resource, response, request );
     }
 
-
-
     public void respondServerError( Request request, Response response, String reason ) {
         wrapped.respondServerError( request, response, reason );
     }
-
-
 
     public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
         List<HrefStatus> statii = new ArrayList<HrefStatus>();
@@ -183,7 +183,7 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         } catch( UnsupportedEncodingException ex ) {
             throw new RuntimeException( ex );
         }
-        response.setContentLengthHeader( (long)arr.length );
+        response.setContentLengthHeader( (long) arr.length );
         try {
             response.getOutputStream().write( arr );
         } catch( IOException ex ) {
@@ -202,6 +202,4 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
     public void respondPreconditionFailed( Request request, Response response, Resource resource ) {
         response.setStatus( Status.SC_PRECONDITION_FAILED );
     }
-
-
 }
