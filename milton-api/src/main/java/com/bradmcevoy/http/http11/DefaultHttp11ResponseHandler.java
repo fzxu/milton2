@@ -26,7 +26,6 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
     public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
     public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
-
     private final AuthenticationService authenticationService;
     private final ETagGenerator eTagGenerator;
 
@@ -43,8 +42,6 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public String generateEtag( Resource r ) {
         return eTagGenerator.generateEtag( r );
     }
-
-
 
     public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
         response.setStatus( Response.Status.SC_OK );
@@ -177,21 +174,28 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     public void respondNotModified( GetableResource resource, Response response, Request request ) {
-//        log.debug( "not modified" );
+        log.trace( "respondNotModified" );
         response.setStatus( Response.Status.SC_NOT_MODIFIED );
         response.setDateHeader( new Date() );
         String etag = eTagGenerator.generateEtag( resource );
         if( etag != null ) {
             response.setEtag( etag );
         }
-        
-        setModifiedDate(response, resource, request.getAuthorization() );
+
+        // Note that we use a simpler modified date handling here then when
+        // responding with content, because in a not-modified situation the
+        // modified date MUST be that of the actual resource
+        Date modDate = resource.getModifiedDate();
+        response.setLastModifiedHeader( modDate );
+
         setCacheControl( resource, response, request.getAuthorization() );
     }
 
     public static void setCacheControl( final GetableResource resource, final Response response, Auth auth ) {
         Long delta = resource.getMaxAgeSeconds( auth );
-//        log.debug( "setCacheControl: " + delta + " - " + resource.getClass() );
+        if( log.isTraceEnabled() ) {
+            log.trace( "setCacheControl: " + delta + " - " + resource.getClass() );
+        }
         if( delta != null ) {
             if( auth != null ) {
                 response.setCacheControlPrivateMaxAgeHeader( delta );
@@ -201,7 +205,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
             }
             Date expiresAt = calcExpiresAt( new Date(), delta.longValue() );
             if( log.isTraceEnabled() ) {
-                log.trace("set expires: " + expiresAt);
+                log.trace( "set expires: " + expiresAt );
             }
             response.setExpiresHeader( expiresAt );
         } else {
@@ -216,6 +220,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     protected void sendContent( Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType ) throws NotAuthorizedException, BadRequestException {
+        log.trace( "sendContent" );
         OutputStream out = outputStreamForResponse( request, response, resource );
         try {
             resource.sendContent( out, null, params, contentType );
@@ -247,18 +252,31 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         if( etag != null ) {
             response.setEtag( etag );
         }
-        setModifiedDate(response, resource,auth);
+        setModifiedDate( response, resource, auth );
     }
 
-    public static void setModifiedDate(Response response, Resource resource,Auth auth) {
+    /**
+            The modified date response header is used by the client for content
+            caching. It seems obvious that if we have a modified date on the resource
+            we should set it.
+            BUT, because of the interaction with max-age we should always set it
+            to the current date if we have max-age
+            The problem, is that if we find that a condition GET has an expired mod-date
+            (based on maxAge) then we want to respond with content (even if our mod-date
+            hasnt changed. But if we use the actual mod-date in that case, then the
+            browser will continue to use the old mod-date, so will forever more respond
+            with content. So we send a mod-date of now to ensure that future requests
+            will be given a 304 not modified.*
+     *
+     * @param response
+     * @param resource
+     * @param auth
+     */
+    public static void setModifiedDate( Response response, Resource resource, Auth auth ) {
         Date modDate = resource.getModifiedDate();
         if( modDate != null ) {
-            // The modified date response header is used by the client for content
-            // caching. It seems obvious that if we have a modified date on the resource
-            // we should set it.
-            // BUT, because of the interaction with max-age we should always set it
-            // to the current date if we have max-age
-            if( resource instanceof GetableResource) {
+
+            if( resource instanceof GetableResource ) {
                 GetableResource gr = (GetableResource) resource;
                 Long maxAge = gr.getMaxAgeSeconds( auth );
                 if( maxAge != null ) {
