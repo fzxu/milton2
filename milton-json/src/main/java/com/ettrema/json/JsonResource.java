@@ -64,19 +64,12 @@ public abstract class JsonResource {
     }
 
     public boolean authorise( Request request, Method method, Auth auth ) {
-        if( log.isDebugEnabled()) {
-            log.debug( "authorise: " + request.getAuthorization());
-        }
-        if( auth != null && request.getAuthorization() == null ) {
-            log.warn( "got auth, but null request.getAuthorization()!!");
-        }
-        log.warn( "checking on wrapped resource: " + applicableMethod() + " - " + wrappedResource.getClass().getSimpleName());
         boolean b = wrappedResource.authorise( request, applicableMethod(), auth );
         if( log.isDebugEnabled()) {
             if( !b ) {
-                log.warn( "authorise failed on wrapped resource of type: " + wrappedResource.getClass());
+                log.trace( "authorise failed on wrapped resource of type: " + wrappedResource.getClass());
             } else {
-                log.warn("all ok");
+                log.trace("all ok");
             }
         }
         return b;

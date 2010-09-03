@@ -55,12 +55,14 @@ public class AjaxLoginResponseHandler extends AbstractWrappingResponseHandler {
      */
     @Override
     public void respondUnauthorised( Resource resource, Response response, Request request ) {
-        log.warn( "respondUnauthorised: ", resource.getClass() );
+        if( log.isWarnEnabled() ) {
+            log.warn( "respondUnauthorised: ", resource.getClass() );
+        }
         if( matches( resource ) ) {
             log.warn( "unauthorised on wrapped ajax resource" );
             wrapped.respondForbidden( resource, response, request );
         } else {
-            log.warn("using normal unauth");
+            log.warn( "using normal unauth" );
             wrapped.respondUnauthorised( resource, response, request );
         }
     }
