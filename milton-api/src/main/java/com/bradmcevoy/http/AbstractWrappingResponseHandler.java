@@ -21,7 +21,6 @@ import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 public abstract class AbstractWrappingResponseHandler implements WebDavResponseHandler {
 
     private static final Logger log = LoggerFactory.getLogger( AbstractWrappingResponseHandler.class );
-
     /**
      * The underlying respond handler which takes care of actually generating
      * content
@@ -31,7 +30,6 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
     public AbstractWrappingResponseHandler() {
     }
 
-
     public AbstractWrappingResponseHandler( WebDavResponseHandler wrapped ) {
         this.wrapped = wrapped;
     }
@@ -40,12 +38,9 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
         return wrapped.generateEtag( r );
     }
 
-
-
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
         wrapped.respondContent( resource, response, request, params );
     }
-
 
     public void setWrapped( WebDavResponseHandler wrapped ) {
         this.wrapped = wrapped;
@@ -92,6 +87,7 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
     }
 
     public void respondNotModified( GetableResource resource, Response response, Request request ) {
+        log.trace( "respondNotModified" );
         wrapped.respondNotModified( resource, response, request );
     }
 
@@ -146,10 +142,4 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
     public void respondPreconditionFailed( Request request, Response response, Resource resource ) {
         wrapped.respondPreconditionFailed( request, response, resource );
     }
-
-
-
-
-
-
 }
