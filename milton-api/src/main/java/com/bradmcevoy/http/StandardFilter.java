@@ -1,7 +1,6 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.exceptions.BadRequestException;
-import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,10 @@ public class StandardFilter implements Filter {
             Request.Method method = request.getMethod();
             
             Handler handler = manager.getMethodHandler( method );
-            if( handler == null ) throw new RuntimeException("No handler for method: " + method.code);        
+            if( handler == null ) throw new RuntimeException("No handler for method: " + method.code);
+            if( log.isTraceEnabled()) {
+                log.trace( "delegate to method handler: " + handler.getClass().getCanonicalName());
+            }
             
             handler.process(manager,request,response);
 
