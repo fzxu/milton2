@@ -1,5 +1,6 @@
 package com.ettrema.json;
 
+import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.FileItem;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.Range;
@@ -64,6 +65,14 @@ public class PropPatchJsonResource extends JsonResource implements PostableResou
         json.write( writer );
         writer.flush();
     }
+
+    @Override
+    public boolean authorise( Request request, Method method, Auth auth ) {
+        // leave authorisation to the proppatch processing
+        return true;
+    }
+
+
 
     public String processForm( Map<String, String> parameters, Map<String, FileItem> files ) throws BadRequestException, NotAuthorizedException {
         resp = patchHandler.process( wrappedResource, encodedUrl, parameters );
