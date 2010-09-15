@@ -1,5 +1,7 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.HandlerHelper.AuthStatus;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
@@ -18,13 +20,23 @@ import org.slf4j.LoggerFactory;
 public class ResourceHandlerHelper {
 
     private final static Logger log = LoggerFactory.getLogger( ResourceHandlerHelper.class );
+    /**
+     * request attribute name for the parameters map
+     */
+    public static final String ATT_NAME_PARAMS = "_params";
+    /**
+     * request attribute name for the files map
+     */
+    public static final String ATT_NAME_FILES = "_files";
     private final HandlerHelper handlerHelper;
     private final Http11ResponseHandler responseHandler;
     private UrlAdapter urlAdapter = new UrlAdapterImpl();
 
     public ResourceHandlerHelper( HandlerHelper handlerHelper, Http11ResponseHandler responseHandler ) {
-        if( responseHandler == null ) throw new IllegalArgumentException( "responseHandler may not be null");
-        if( handlerHelper == null ) throw new IllegalArgumentException( "handlerHelper may not be null");
+        if( responseHandler == null )
+            throw new IllegalArgumentException( "responseHandler may not be null" );
+        if( handlerHelper == null )
+            throw new IllegalArgumentException( "handlerHelper may not be null" );
         this.handlerHelper = handlerHelper;
         this.responseHandler = responseHandler;
     }
@@ -41,8 +53,8 @@ public class ResourceHandlerHelper {
             log.warn( "exception parsing request. probably interrupted upload", ex );
             return;
         }
-        request.getAttributes().put( "_params", params);
-        request.getAttributes().put( "_files", files);
+        request.getAttributes().put( ATT_NAME_PARAMS, params );
+        request.getAttributes().put( ATT_NAME_FILES, files );
 
         if( !handlerHelper.checkExpects( responseHandler, request, response ) ) {
             return;
@@ -58,13 +70,12 @@ public class ResourceHandlerHelper {
         handler.processResource( manager, request, response, r );
     }
 
-    
     public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        processResource( manager, request, response, resource, handler, false,null, null );
+        processResource( manager, request, response, resource, handler, false, null, null );
     }
 
     public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler, Map<String, String> params, Map<String, FileItem> files ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        processResource( manager, request, response, resource, handler, false,params, files );
+        processResource( manager, request, response, resource, handler, false, params, files );
     }
 
     public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler, boolean allowRedirect, Map<String, String> params, Map<String, FileItem> files ) throws NotAuthorizedException, ConflictException, BadRequestException {
@@ -79,15 +90,14 @@ public class ResourceHandlerHelper {
                 }
             }
 
-
-            if( handlerHelper.isNotCompatible( resource, request.getMethod()) || !handler.isCompatible( resource ) ) {
+            if( handlerHelper.isNotCompatible( resource, request.getMethod() ) || !handler.isCompatible( resource ) ) {
                 log.debug( "resource not compatible. Resource class: " + resource.getClass() + " handler: " + handler.getClass() );
                 responseHandler.respondMethodNotImplemented( resource, response, request );
                 return;
             }
 
             if( !handlerHelper.checkAuthorisation( manager, resource, request ) ) {
-                log.debug( "authorisation failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName());
+                log.debug( "authorisation failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
                 responseHandler.respondUnauthorised( resource, response, request );
                 return;
             }
@@ -104,6 +114,18 @@ public class ResourceHandlerHelper {
             t = System.currentTimeMillis() - t;
             manager.onProcessResourceFinish( request, response, resource, t );
         }
+    }
+
+    public boolean isNotCompatible(Resource r, Method m) {
+        return handlerHelper.isNotCompatible( r, m );
+    }
+
+    public boolean isLockedOut( Request inRequest, Resource inResource ) {
+        return handlerHelper.isLockedOut( inRequest, inResource );
+    }
+
+    public AuthStatus checkAuthentication(HttpManager manager, Resource resource, Request request ) {
+        return handlerHelper.checkAuthentication( manager, resource, request );
     }
 
     public UrlAdapter getUrlAdapter() {

@@ -183,7 +183,7 @@ public class PropFindPropertyBuilder {
         return s;
     }
 
-    private Set<QName> findAllProps(PropFindableResource resource) {
+    public Set<QName> findAllProps(PropFindableResource resource) {
         Set<QName> names = new LinkedHashSet<QName>();
         for (PropertySource source : this.propertySources) {
             List<QName> allprops = source.getAllPropertyNames(resource);

@@ -17,10 +17,8 @@ public class ResourceTypeValueWriter implements ValueWriter {
     }
 
     public void writeValue( XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes ) {
-        log.trace( "writeValue" );
         List<QName> list = (List<QName>) val;
         if( list != null && list.size() > 0 ) {
-            log.trace( "writeValue: " + list.size() );
             Element rt = writer.begin( prefix, localName );
             for( QName name : list ) {
                 String childNsUri = name.getNamespaceURI();

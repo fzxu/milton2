@@ -3,6 +3,8 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
+import com.bradmcevoy.property.PropertyHandler;
+import com.bradmcevoy.property.PropertyAuthoriser;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,6 +44,7 @@ public class HttpManager {
     protected final ResourceFactory resourceFactory;
     protected final Http11ResponseHandler responseHandler;
     private SessionAuthenticationHandler sessionAuthenticationHandler;
+    private PropertyAuthoriser propertyPermissionService;
 
     /**
      * Creates the manager with a DefaultResponseHandler
@@ -99,6 +102,7 @@ public class HttpManager {
                 }
             }
         }
+        // The standard filter must always be there, its what invokes the main milton processing
         filters.add( createStandardFilter() );
     }
 
@@ -210,5 +214,21 @@ public class HttpManager {
 
     public ProtocolHandlers getHandlers() {
         return handlers;
+    }
+
+    public PropertyAuthoriser getPropertyPermissionService() {
+        return propertyPermissionService;
+    }
+
+    public void setPropertyPermissionService( PropertyAuthoriser propertyPermissionService ) {
+        log.trace( "setPropertyPermissionService: " + propertyPermissionService.getClass().getCanonicalName() );
+        this.propertyPermissionService = propertyPermissionService;
+        for( Handler h : methodHandlers.values() ) {
+            if( h instanceof PropertyHandler ) {
+                PropertyHandler ph = (PropertyHandler) h;
+                log.trace( "set propertyPermissionService on: " + ph.getClass().getCanonicalName() );
+                ph.setPermissionService( propertyPermissionService );
+            }
+        }
     }
 }

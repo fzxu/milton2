@@ -43,14 +43,14 @@ public class HandlerHelper {
         }
     }
 
-    public boolean checkAuthorisation( HttpManager manager, Resource resource, Request request ) {
+    public AuthStatus checkAuthentication(HttpManager manager, Resource resource, Request request ) {
         Auth auth = request.getAuthorization();
         if( auth != null ) {
             if( auth.getTag() == null ) {  // don't do double authentication
                 Object authTag = authenticationService.authenticate( resource, request ); //handler.authenticate( auth.user, auth.password );
                 if( authTag == null ) {
                     log.warn( "failed to authenticate - authenticationService:" + authenticationService.getClass() + " resource type:" + resource.getClass() );
-                    return false;
+                    return new AuthStatus( null, true);
                 } else {
                     log.trace( "got authenticated tag: " + authTag.getClass() );
                     auth.setTag( authTag );
@@ -61,8 +61,25 @@ public class HandlerHelper {
         } else {
             auth = manager.getSessionAuthentication( request );
         }
+        return new AuthStatus( auth, false);
+    }
 
+    public class AuthStatus {
+        public final Auth auth;
+        public final boolean loginFailed;
 
+        public AuthStatus( Auth auth, boolean loginFailed ) {
+            this.auth = auth;
+            this.loginFailed = loginFailed;
+        }
+    }
+
+    public boolean checkAuthorisation( HttpManager manager, Resource resource, Request request ) {
+        AuthStatus authStatus = checkAuthentication( manager, resource, request );
+        if( authStatus.loginFailed ) {
+            return false;
+        }
+        Auth auth = authStatus.auth;
         boolean authorised = resource.authorise( request, request.getMethod(), auth );
         if( !authorised ) {
             if( log.isWarnEnabled()) {

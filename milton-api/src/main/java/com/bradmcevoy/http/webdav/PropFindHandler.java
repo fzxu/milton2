@@ -12,20 +12,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.Request.Method;
-
+import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.webdav.PropFindRequestFieldParser.ParseResult;
+import com.bradmcevoy.property.DefaultPropertyAuthoriser;
+import com.bradmcevoy.property.PropertyHandler;
+import com.bradmcevoy.property.PropertyAuthoriser;
+import java.util.HashSet;
+import java.util.Set;
+import javax.xml.namespace.QName;
 
 /**
  *
  * @author brad
  */
-public class PropFindHandler implements ExistingEntityHandler {
+public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
 
     private static final Logger log = LoggerFactory.getLogger( PropFindHandler.class );
-
     private final ResourceHandlerHelper resourceHandlerHelper;
-    private final PropFindRequestFieldParser requestFieldParser;    
+    private final PropFindRequestFieldParser requestFieldParser;
     private final WebDavResponseHandler responseHandler;
     private final PropFindPropertyBuilder propertyBuilder;
+    private PropertyAuthoriser permissionService = new DefaultPropertyAuthoriser();
 
     /**
      * 
@@ -37,10 +44,10 @@ public class PropFindHandler implements ExistingEntityHandler {
         this.resourceHandlerHelper = resourceHandlerHelper;
 
         DefaultPropFindRequestFieldParser defaultFieldParse = new DefaultPropFindRequestFieldParser();
-        this.requestFieldParser = new MsPropFindRequestFieldParser(defaultFieldParse); // use MS decorator for windows support
+        this.requestFieldParser = new MsPropFindRequestFieldParser( defaultFieldParse ); // use MS decorator for windows support
         this.responseHandler = responseHandler;
 
-        this.propertyBuilder = new PropFindPropertyBuilder(propertySources);
+        this.propertyBuilder = new PropFindPropertyBuilder( propertySources );
     }
 
     /**
@@ -57,9 +64,6 @@ public class PropFindHandler implements ExistingEntityHandler {
         this.propertyBuilder = propertyBuilder;
     }
 
-
-
-
     public String[] getMethods() {
         return new String[]{Method.PROPFIND.code};
     }
@@ -73,12 +77,41 @@ public class PropFindHandler implements ExistingEntityHandler {
         resourceHandlerHelper.process( httpManager, request, response, this );
     }
 
-    public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        resourceHandlerHelper.processResource( manager, request, response, r, this );
+    public void processResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        long t = System.currentTimeMillis();
+        try {
+
+            manager.onProcessResourceStart( request, response, resource );
+
+            if( resourceHandlerHelper.isNotCompatible( resource, request.getMethod() ) || !isCompatible( resource ) ) {
+                log.debug( "resource not compatible. Resource class: " + resource.getClass() + " handler: " + getClass() );
+                responseHandler.respondMethodNotImplemented( resource, response, request );
+                return;
+            }
+
+            HandlerHelper.AuthStatus authStatus = resourceHandlerHelper.checkAuthentication( manager, resource, request );
+            if( authStatus.loginFailed ) {
+                log.debug( "authentication failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
+                responseHandler.respondUnauthorised( resource, response, request );
+                return;
+            }
+
+            if( request.getMethod().isWrite ) {
+                if( resourceHandlerHelper.isLockedOut( request, resource ) ) {
+                    response.setStatus( Status.SC_LOCKED ); // replace with responsehandler method
+                    return;
+                }
+            }
+
+            processExistingResource( manager, request, response, resource );
+        } finally {
+            t = System.currentTimeMillis() - t;
+            manager.onProcessResourceFinish( request, response, resource, t );
+        }
     }
 
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
-        log.debug( "propfind");
+        log.debug( "propfind" );
         PropFindableResource pfr = (PropFindableResource) resource;
         int depth = request.getDepthHeader();
         response.setStatus( Response.Status.SC_MULTI_STATUS );
@@ -91,10 +124,33 @@ public class PropFindHandler implements ExistingEntityHandler {
         }
         String url = request.getAbsoluteUrl();
 
-        List<PropFindResponse> propFindResponses = propertyBuilder.buildProperties(pfr, depth, parseResult, url);
-        log.debug("responses: " + propFindResponses.size());
-        responseHandler.respondPropFind(propFindResponses, response, request, pfr);
+        // Check that the current user has permission to write requested fields
+        Set<QName> allFields = getAllFields( parseResult, pfr );
+        Set<PropertyAuthoriser.CheckResult> errorFields = permissionService.checkPermissions( request, request.getMethod(), PropertyAuthoriser.PropertyPermission.READ, allFields, resource );
+        if( errorFields != null && errorFields.size() > 0 ) {
+            responseHandler.respondUnauthorised( resource, response, request );
+        } else {
+            List<PropFindResponse> propFindResponses = propertyBuilder.buildProperties( pfr, depth, parseResult, url );
+            log.debug( "responses: " + propFindResponses.size() );
+            responseHandler.respondPropFind( propFindResponses, response, request, pfr );
+        }
     }
 
+    private Set<QName> getAllFields( ParseResult parseResult, PropFindableResource resource ) {
+        Set<QName> set = new HashSet<QName>();
+        if( parseResult.isAllProp() ) {
+            set.addAll( propertyBuilder.findAllProps( resource ) );
+        } else {
+            set.addAll( parseResult.getNames() );
+        }
+        return set;
+    }
 
+    public PropertyAuthoriser getPermissionService() {
+        return permissionService;
+    }
+
+    public void setPermissionService( PropertyAuthoriser permissionService ) {
+        this.permissionService = permissionService;
+    }
 }
