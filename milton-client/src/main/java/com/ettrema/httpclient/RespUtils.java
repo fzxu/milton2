@@ -16,7 +16,7 @@ public class RespUtils {
 
     public static Long asLong( Element el, String name ) {
         String s = asString( el, name );
-        if( s == null ) return null;
+        if( s == null || s.length()==0 ) return null;
         long l = Long.parseLong( s );
         return l;
     }

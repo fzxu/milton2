@@ -121,6 +121,10 @@ public class Folder extends Resource {
     }
 
     protected void uploadFolder( File folder, ProgressListener listener ) {
+        if( folder.getName().startsWith( ".") ) {
+            System.out.println( "uploadFolder: not uploading hidden file: " + folder.getAbsolutePath() );
+            return ;
+        }
         Folder newFolder = createFolder( folder.getName() );
         for( File f : folder.listFiles() ) {
             System.out.println( "newFolder.href: " + newFolder.href() );
