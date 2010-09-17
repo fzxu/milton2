@@ -26,10 +26,11 @@ public class JsonPropPatchHandler {
 
     private static final Logger log = LoggerFactory.getLogger( JsonPropPatchHandler.class );
     private final PropPatchSetter patchSetter;
-    private PropertyAuthoriser permissionService = new DefaultPropertyAuthoriser();
+    private final PropertyAuthoriser permissionService;
 
-    public JsonPropPatchHandler( PropPatchSetter patchSetter ) {
+    public JsonPropPatchHandler( PropPatchSetter patchSetter, PropertyAuthoriser permissionService ) {
         this.patchSetter = patchSetter;
+        this.permissionService = permissionService;
     }
 
     /**
@@ -37,9 +38,11 @@ public class JsonPropPatchHandler {
      */
     public JsonPropPatchHandler() {
         this.patchSetter = new PropPatchableSetter();
+        this.permissionService = new DefaultPropertyAuthoriser();
     }
 
     public PropFindResponse process( Resource wrappedResource, String encodedUrl, Map<String, String> params ) throws NotAuthorizedException {
+        log.trace( "process" );
         Map<QName, String> fields = new HashMap<QName, String>();
         for( String fieldName : params.keySet() ) {
             String sFieldValue = params.get( fieldName );
@@ -60,11 +63,15 @@ public class JsonPropPatchHandler {
 
         ParseResult parseResult = new ParseResult( fields, null );
 
-        Set<PropertyAuthoriser.CheckResult> errorFields = permissionService.checkPermissions(HttpManager.request(),Method.PROPPATCH , PropertyAuthoriser.PropertyPermission.WRITE, fields.keySet(), wrappedResource );
+        if( log.isTraceEnabled() ) {
+            log.trace("check permissions with: " + permissionService.getClass());
+        }
+        Set<PropertyAuthoriser.CheckResult> errorFields = permissionService.checkPermissions( HttpManager.request(), Method.PROPPATCH, PropertyAuthoriser.PropertyPermission.WRITE, fields.keySet(), wrappedResource );
         if( errorFields != null && errorFields.size() > 0 ) {
             log.trace( "authorisation errors" );
             throw new NotAuthorizedException( wrappedResource );
         } else {
+            log.trace( "setting properties" );
             return patchSetter.setProperties( encodedUrl, parseResult, wrappedResource );
         }
     }
@@ -72,10 +79,4 @@ public class JsonPropPatchHandler {
     public PropertyAuthoriser getPermissionService() {
         return permissionService;
     }
-
-    public void setPermissionService( PropertyAuthoriser permissionService ) {
-        this.permissionService = permissionService;
-    }
-
-    
 }

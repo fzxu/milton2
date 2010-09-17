@@ -12,6 +12,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropPatchSetter;
+import com.bradmcevoy.property.PropertyAuthoriser;
 import com.bradmcevoy.property.PropertySource;
 import java.util.List;
 import org.slf4j.Logger;
@@ -35,11 +36,11 @@ public class JsonResourceFactory implements ResourceFactory {
         log.debug("created with: " + propFindHandler.getClass().getCanonicalName());
     }
 
-    public JsonResourceFactory(ResourceFactory wrapped,List<PropertySource> propertySources, PropPatchSetter patchSetter) {
+    public JsonResourceFactory(ResourceFactory wrapped,List<PropertySource> propertySources, PropPatchSetter patchSetter, PropertyAuthoriser permissionService) {
         this.wrapped = wrapped;
         log.debug("using property sources: " + propertySources.size());
         this.propFindHandler = new JsonPropFindHandler(new PropFindPropertyBuilder(propertySources));
-        this.propPatchHandler = new JsonPropPatchHandler(patchSetter);
+        this.propPatchHandler = new JsonPropPatchHandler(patchSetter, permissionService );
     }
 
 
