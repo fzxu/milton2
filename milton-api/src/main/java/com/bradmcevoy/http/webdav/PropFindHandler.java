@@ -84,14 +84,18 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
             manager.onProcessResourceStart( request, response, resource );
 
             if( resourceHandlerHelper.isNotCompatible( resource, request.getMethod() ) || !isCompatible( resource ) ) {
-                log.debug( "resource not compatible. Resource class: " + resource.getClass() + " handler: " + getClass() );
+                if( log.isTraceEnabled() ) {
+                    log.trace( "resource not compatible. Resource class: " + resource.getClass() + " handler: " + getClass() );
+                }
                 responseHandler.respondMethodNotImplemented( resource, response, request );
                 return;
             }
 
             HandlerHelper.AuthStatus authStatus = resourceHandlerHelper.checkAuthentication( manager, resource, request );
             if( authStatus.loginFailed ) {
-                log.debug( "authentication failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
+                if( log.isTraceEnabled() ) {
+                    log.trace( "authentication failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
+                }
                 responseHandler.respondUnauthorised( resource, response, request );
                 return;
             }
@@ -111,7 +115,7 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
     }
 
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
-        log.debug( "propfind" );
+        log.trace( "propfind" );
         PropFindableResource pfr = (PropFindableResource) resource;
         int depth = request.getDepthHeader();
         response.setStatus( Response.Status.SC_MULTI_STATUS );
@@ -128,10 +132,15 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
         Set<QName> allFields = getAllFields( parseResult, pfr );
         Set<PropertyAuthoriser.CheckResult> errorFields = permissionService.checkPermissions( request, request.getMethod(), PropertyAuthoriser.PropertyPermission.READ, allFields, resource );
         if( errorFields != null && errorFields.size() > 0 ) {
+            if( log.isTraceEnabled() ) {
+                log.trace( "permissionService denied access: " + permissionService.getClass().getCanonicalName() );
+            }
             responseHandler.respondUnauthorised( resource, response, request );
         } else {
             List<PropFindResponse> propFindResponses = propertyBuilder.buildProperties( pfr, depth, parseResult, url );
-            log.debug( "responses: " + propFindResponses.size() );
+            if( log.isTraceEnabled() ) {
+                log.trace( "responses: " + propFindResponses.size() );
+            }
             responseHandler.respondPropFind( propFindResponses, response, request, pfr );
         }
     }
