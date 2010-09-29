@@ -169,6 +169,9 @@ public class LockHandler implements ResourceHandler {
 
             log.debug( "Creating lock on unmapped resource: " + name );
             LockToken tok = lockingParent.createAndLock( name, timeout, lockInfo );
+            if( tok == null ) {
+                throw new RuntimeException( "createAndLock returned null, from resource of type: " + lockingParent.getClass().getCanonicalName());
+            }
             response.setStatus( Status.SC_CREATED );
             response.setLockTokenHeader( "<opaquelocktoken:" + tok.tokenId + ">" );  // spec says to set response header. See 8.10.1
             respondWithToken( tok, request, response );
