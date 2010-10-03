@@ -1,5 +1,7 @@
 package com.ettrema.httpclient;
 
+import com.bradmcevoy.http.DateUtils;
+import com.bradmcevoy.http.DateUtils.DateParseException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -9,6 +11,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
+import java.util.Date;
 
 /**
  *
@@ -26,8 +29,8 @@ public class Resource {
     public Folder parent;
     public String name;
     public String displayName;
-    public String modifiedDate;
-    public String createdDate;
+    private Date modifiedDate;
+    private Date createdDate;
     final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
 
     /**
@@ -37,20 +40,30 @@ public class Resource {
         this.parent = null;
         this.name = "";
         this.displayName = "";
-        this.createdDate = "";
-        this.modifiedDate = "";
+        this.createdDate = null;
+        this.modifiedDate = null;
     }
 
     public Resource( Folder parent, Response resp ) {
-        if( parent == null ) throw new NullPointerException( "parent" );
-        this.parent = parent;
-        name = resp.name;
-        displayName = resp.displayName;
-        createdDate = resp.createdDate;
-        modifiedDate = resp.modifiedDate;
+        try {
+            if( parent == null ) throw new NullPointerException( "parent" );
+            this.parent = parent;
+            name = resp.name;
+            displayName = resp.displayName;
+            System.out.println( "dates: " + resp.createdDate + " - " + resp.modifiedDate );
+            createdDate = DateUtils.parseWebDavDate( resp.createdDate );
+            if( resp.modifiedDate.endsWith( "Z" ) ) {
+                modifiedDate = DateUtils.parseWebDavDate( resp.modifiedDate );
+            } else {
+                modifiedDate = DateUtils.parseDate( resp.modifiedDate );
+            }
+            System.out.println( "done" );
+        } catch( DateParseException ex ) {
+            throw new RuntimeException( ex );
+        }
     }
 
-    public Resource( Folder parent, String name, String displayName, String href, String modifiedDate, String createdDate ) {
+    public Resource( Folder parent, String name, String displayName, String href, Date modifiedDate, Date createdDate ) {
         if( parent == null ) throw new NullPointerException( "parent" );
         this.parent = parent;
         this.name = name;
@@ -64,8 +77,8 @@ public class Resource {
         this.parent = parent;
         this.name = name;
         this.displayName = name;
-        this.modifiedDate = "";
-        this.createdDate = "";
+        this.modifiedDate = null;
+        this.createdDate = null;
     }
 
     public void addListener( ResourceListener l ) {
@@ -171,5 +184,13 @@ public class Resource {
 
     public String href() {
         return parent.href() + name;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
     }
 }

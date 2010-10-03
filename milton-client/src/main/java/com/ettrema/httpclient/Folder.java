@@ -65,13 +65,11 @@ public class Folder extends Resource {
     }
 
     public List<? extends Resource> children() {
-        System.out.println( "Folder: children: " + list.size() + " - loaded: " + childrenLoaded );
         if( childrenLoaded ) return list;
 
         List<Response> responses = host().doPropFind( href(), 1 );
         childrenLoaded = true;
         if( responses != null ) {
-            System.out.println( "  responses: " + responses.size() );
             for( Response resp : responses ) {
                 if( !resp.href.equals( this.href() ) ) {
                     Resource r = Resource.fromResponse( this, resp );
@@ -80,7 +78,7 @@ public class Folder extends Resource {
                 }
             }
         } else {
-            System.out.println( "  null responses" );
+            
         }
         return list;
     }
