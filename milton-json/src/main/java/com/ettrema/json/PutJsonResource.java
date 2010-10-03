@@ -6,6 +6,7 @@ import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.FileUtils;
@@ -41,46 +42,48 @@ import org.slf4j.LoggerFactory;
  */
 public class PutJsonResource extends JsonResource implements PostableResource {
 
-    private static final Logger log = LoggerFactory.getLogger(PutJsonResource.class);
-
+    private static final Logger log = LoggerFactory.getLogger( PutJsonResource.class );
     public static final String PARAM_AUTONAME = "_autoname";
-
     private final PutableResource wrapped;
     private final String href;
     private List<NewFile> newFiles;
 
-    public PutJsonResource(PutableResource putableResource, String href) {
-        super(putableResource, Request.Method.PUT.code);
+    public PutJsonResource( PutableResource putableResource, String href ) {
+        super( putableResource, Request.Method.PUT.code );
         this.wrapped = putableResource;
         this.href = href;
     }
 
-    public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws ConflictException {
-        if (files.isEmpty()) {
-            log.debug("no files uploaded");
+    public String processForm( Map<String, String> parameters, Map<String, FileItem> files ) throws ConflictException {
+        if( files.isEmpty() ) {
+            log.debug( "no files uploaded" );
             return null;
         }
         newFiles = new ArrayList<NewFile>();
-        for (FileItem file : files.values()) {
+        for( FileItem file : files.values() ) {
             NewFile nf = new NewFile();
-            nf.setOriginalName(file.getName());
-            nf.setContentType(file.getContentType());
-            nf.setLength(file.getSize());
-            String newName = getName(file, parameters);
-            String newHref = buildNewHref(href,newName);
-            nf.setHref(newHref);
-            newFiles.add(nf);
-            log.debug("creating resource: " + newName + " size: " + file.getSize());
+            nf.setOriginalName( file.getName() );
+            nf.setContentType( file.getContentType() );
+            nf.setLength( file.getSize() );
+            String newName = getName( file, parameters );
+            String newHref = buildNewHref( href, newName );
+            nf.setHref( newHref );
+            newFiles.add( nf );
+            log.debug( "creating resource: " + newName + " size: " + file.getSize() );
             InputStream in = null;
             try {
                 in = file.getInputStream();
-                wrapped.createNew(newName, in, file.getSize(), file.getContentType());                
-            } catch (ConflictException ex) {
-                throw new RuntimeException(ex);
-            } catch (IOException ex) {
-                throw new RuntimeException("Exception creating resource", ex);
+                wrapped.createNew( newName, in, file.getSize(), file.getContentType() );
+            } catch( NotAuthorizedException ex ) {
+                throw new RuntimeException( ex );
+            } catch( BadRequestException ex ) {
+                throw new RuntimeException( ex );
+            } catch( ConflictException ex ) {
+                throw new RuntimeException( ex );
+            } catch( IOException ex ) {
+                throw new RuntimeException( "Exception creating resource", ex );
             } finally {
-                FileUtils.close(in);
+                FileUtils.close( in );
             }
         }
         return null;
@@ -96,25 +99,23 @@ public class PutJsonResource extends JsonResource implements PostableResource {
      * @throws IOException
      * @throws NotAuthorizedException
      */
-    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException {
+    public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
         JsonConfig cfg = new JsonConfig();
-        cfg.setIgnoreTransientFields(true);
-        cfg.setCycleDetectionStrategy(CycleDetectionStrategy.LENIENT);
+        cfg.setIgnoreTransientFields( true );
+        cfg.setCycleDetectionStrategy( CycleDetectionStrategy.LENIENT );
 
         NewFile[] arr = new NewFile[newFiles.size()];
-        arr = newFiles.toArray(arr);
-        Writer writer = new PrintWriter(out);
-        JSON json = JSONSerializer.toJSON(arr, cfg);
-        json.write(writer);
-        writer.flush();        
+        arr = newFiles.toArray( arr );
+        Writer writer = new PrintWriter( out );
+        JSON json = JSONSerializer.toJSON( arr, cfg );
+        json.write( writer );
+        writer.flush();
     }
 
     @Override
     public Method applicableMethod() {
         return Method.PUT;
     }
-
-
 
     /**
      * We dont return anything, so best not use json
@@ -126,57 +127,57 @@ public class PutJsonResource extends JsonResource implements PostableResource {
 //    public String getContentType(String accepts) {
 //        return "text/html";
 //    }
-
-    private String getName(FileItem file, Map<String, String> parameters) throws ConflictException {
+    private String getName( FileItem file, Map<String, String> parameters ) throws ConflictException {
         String initialName = file.getName();
         boolean nonBlankName = initialName == null && initialName.trim().length() == 0;
 
-        if( nonBlankName && wrapped.child(initialName) == null  )  {
+        if( nonBlankName && wrapped.child( initialName ) == null ) {
             return file.getName();
         } else {
-            String autoname = parameters.get(PARAM_AUTONAME);
+            String autoname = parameters.get( PARAM_AUTONAME );
             if( autoname != null ) {
-                return findAcceptableName(initialName);
+                return findAcceptableName( initialName );
             } else {
-                log.warn("Conflict: Can't create resource with name " + initialName + " because it already exists. To rename automatically use request parameter: " + autoname);
-                throw new ConflictException(this);
+                log.warn( "Conflict: Can't create resource with name " + initialName + " because it already exists. To rename automatically use request parameter: " + autoname );
+                throw new ConflictException( this );
             }
         }
     }
 
-    private String findAcceptableName(String initialName) throws ConflictException {
-        String baseName = FileUtils.stripExtension(initialName);
-        String ext = FileUtils.getExtension(initialName);
-        return findAcceptableName(baseName, ext, 1);
+    private String findAcceptableName( String initialName ) throws ConflictException {
+        String baseName = FileUtils.stripExtension( initialName );
+        String ext = FileUtils.getExtension( initialName );
+        return findAcceptableName( baseName, ext, 1 );
     }
 
-    private String findAcceptableName(String baseName, String ext, int i) throws ConflictException {
+    private String findAcceptableName( String baseName, String ext, int i ) throws ConflictException {
         String candidateName = baseName + "_" + i;
         if( ext != null && ext.length() > 0 ) {
             candidateName += "." + ext;
         }
-        if( wrapped.child(candidateName) == null ) {
+        if( wrapped.child( candidateName ) == null ) {
             return candidateName;
         } else {
-            if( i < 100) {
-                return findAcceptableName(baseName, ext, i+1);
+            if( i < 100 ) {
+                return findAcceptableName( baseName, ext, i + 1 );
             } else {
-                log.warn("Too many files with similar names: " + candidateName);
-                throw new ConflictException(this);
+                log.warn( "Too many files with similar names: " + candidateName );
+                throw new ConflictException( this );
             }
         }
     }
 
-    private String buildNewHref(String href, String newName) {
+    private String buildNewHref( String href, String newName ) {
         String s = href;
-        int pos = href.lastIndexOf("_DAV");
-        s = s.substring(0, pos-1);
-        if( !s.endsWith("/")) s += "/";
+        int pos = href.lastIndexOf( "_DAV" );
+        s = s.substring( 0, pos - 1 );
+        if( !s.endsWith( "/" ) ) s += "/";
         s += newName;
         return s;
     }
 
     public class NewFile {
+
         private String href;
         private String originalName;
         private long length;
@@ -186,7 +187,7 @@ public class PutJsonResource extends JsonResource implements PostableResource {
             return href;
         }
 
-        public void setHref(String href) {
+        public void setHref( String href ) {
             this.href = href;
         }
 
@@ -194,7 +195,7 @@ public class PutJsonResource extends JsonResource implements PostableResource {
             return originalName;
         }
 
-        public void setOriginalName(String originalName) {
+        public void setOriginalName( String originalName ) {
             this.originalName = originalName;
         }
 
@@ -202,7 +203,7 @@ public class PutJsonResource extends JsonResource implements PostableResource {
             return length;
         }
 
-        public void setLength(long length) {
+        public void setLength( long length ) {
             this.length = length;
         }
 
@@ -210,11 +211,8 @@ public class PutJsonResource extends JsonResource implements PostableResource {
             return contentType;
         }
 
-        public void setContentType(String contentType) {
+        public void setContentType( String contentType ) {
             this.contentType = contentType;
         }
-
     }
-
-
 }
