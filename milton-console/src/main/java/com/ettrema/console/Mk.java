@@ -4,12 +4,12 @@ package com.ettrema.console;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.PutableResource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Mk extends AbstractConsoleCommand {
 
@@ -36,6 +36,10 @@ public class Mk extends AbstractConsoleCommand {
                 putable.createNew( newName, inputStream, (long) content.length(), newName );
                 Path newPath = cursor.getPath().child( newName );
                 return result( "created <a href='" + newPath + "'>" + newName + "</a>");
+            } catch(BadRequestException e) {
+                return result("bad request exception");
+            } catch(NotAuthorizedException ex) {
+                return result("not authorised");
             } catch( ConflictException ex ) {
                 return result("ConflictException writing content");
             } catch( IOException ex ) {
