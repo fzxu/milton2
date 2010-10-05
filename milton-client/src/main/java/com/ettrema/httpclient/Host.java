@@ -5,10 +5,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.NTCredentials;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.DeleteMethod;
@@ -16,12 +14,16 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author mcevoyb
  */
 public class Host extends Folder {
+
+    private static final Logger log = LoggerFactory.getLogger( Host.class );
 
     public final String server;
     public final int port;
@@ -72,6 +74,7 @@ public class Host extends Folder {
             if( child instanceof Folder ) {
                 return _find( (Folder) child, arr, i + 1 );
             } else {
+                log.trace( "not found: " + childName);
                 return null;
             }
         }
@@ -86,14 +89,14 @@ public class Host extends Folder {
         }
     }
 
-    PropFindMethod createPropFind( int depth, String href ) {
+    synchronized PropFindMethod createPropFind( int depth, String href ) {
         PropFindMethod m = new PropFindMethod( urlEncode( href ) );
         m.addRequestHeader( new Header( "Depth", depth + "" ) );
         m.setDoAuthentication( true );
         return m;
     }
 
-    int doMkCol( String newUri ) {
+    synchronized int doMkCol( String newUri ) {
         notifyStartRequest();
         MkColMethod p = new MkColMethod( urlEncode( newUri ) );
         try {
@@ -109,13 +112,15 @@ public class Host extends Folder {
 
     }
 
-    int doPut( String newUri, InputStream content, Long contentLength, String contentType ) {
+    synchronized int doPut( String newUri, InputStream content, Long contentLength, String contentType ) {
         notifyStartRequest();
         String s = urlEncode( newUri );
+        log.trace( "doPut: " + s + " - size:" + contentLength);
         PutMethod p = new PutMethod( s );
         try {
             RequestEntity requestEntity;
             if( contentLength == null ) {
+                log.trace( "no content length");
                 requestEntity = new InputStreamRequestEntity( content, contentType );
             } else {
                 requestEntity = new InputStreamRequestEntity( content, contentLength, contentType );
@@ -133,12 +138,11 @@ public class Host extends Folder {
         }
     }
 
-    int doCopy( String from, String newUri ) {
+    synchronized int doCopy( String from, String newUri ) {
         notifyStartRequest();
         CopyMethod m = new CopyMethod( urlEncode( from ), urlEncode( newUri ) );
         try {
             int res = host().client.executeMethod( m );
-            System.out.println( "result: " + res );
             Utils.processResultCode( res, from );
             return res;
         } catch( HttpException ex ) {
@@ -152,7 +156,7 @@ public class Host extends Folder {
 
     }
 
-    int doDelete( String href ) {
+    synchronized int doDelete( String href ) {
         notifyStartRequest();
         DeleteMethod m = new DeleteMethod( urlEncode( href ) );
         try {
@@ -169,12 +173,11 @@ public class Host extends Folder {
         }
     }
 
-    int doMove( String href, String newUri ) {
+    synchronized int doMove( String href, String newUri ) {
         notifyStartRequest();
         MoveMethod m = new MoveMethod( urlEncode( href ), urlEncode( newUri ) );
         try {
             int res = host().client.executeMethod( m );
-            System.out.println( "result: " + res );
             Utils.processResultCode( res, href );
             return res;
         } catch( HttpException ex ) {
@@ -188,7 +191,8 @@ public class Host extends Folder {
 
     }
 
-    List<PropFindMethod.Response> doPropFind( String url, int depth ) {
+    synchronized List<PropFindMethod.Response> doPropFind( String url, int depth ) {
+        log.trace( "doPropFind: " + url);
         notifyStartRequest();
         PropFindMethod m = createPropFind( depth, url );
         try {
@@ -209,7 +213,7 @@ public class Host extends Folder {
         }
     }
 
-    void doGet( String url, StreamReceiver receiver ) {
+    synchronized void doGet( String url, StreamReceiver receiver ) {
         notifyStartRequest();
         GetMethod m = new GetMethod( urlEncode( url ) );
         InputStream in = null;

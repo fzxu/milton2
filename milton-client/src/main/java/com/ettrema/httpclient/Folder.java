@@ -9,13 +9,15 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author mcevoyb
  */
 public class Folder extends Resource {
-
+    private static final Logger log = LoggerFactory.getLogger( Folder.class );
     private boolean childrenLoaded = false;
     private final List<Resource> list = new ArrayList<Resource>();
     final List<FolderListener> folderListeners = new ArrayList<FolderListener>();
@@ -52,8 +54,7 @@ public class Folder extends Resource {
         return thisDir;
     }
 
-    public void flush() {
-        System.out.println( "Folder: flush" );
+    public void flush() {        
         if( list != null ) {
             for( Resource r : list ) {
                 notifyOnChildRemoved( r );
@@ -70,6 +71,7 @@ public class Folder extends Resource {
         List<Response> responses = host().doPropFind( href(), 1 );
         childrenLoaded = true;
         if( responses != null ) {
+            log.trace( "responses: {}", responses.size());
             for( Response resp : responses ) {
                 if( !resp.href.equals( this.href() ) ) {
                     Resource r = Resource.fromResponse( this, resp );
@@ -78,7 +80,7 @@ public class Folder extends Resource {
                 }
             }
         } else {
-            
+            log.trace( "null responses");
         }
         return list;
     }
@@ -109,9 +111,9 @@ public class Folder extends Resource {
         try {
             in = new NotifyingFileInputStream( f, listener );
             upload( f.getName(), in, f.length() );
+            flush();
             listener.onComplete( in.fileName );
         } catch( Throwable ex ) {
-            System.out.println( "Failed to upload: " + f.getAbsolutePath() );
             throw new RuntimeException( f.getAbsolutePath(), ex );
         } finally {
             Utils.close( in );
@@ -120,12 +122,10 @@ public class Folder extends Resource {
 
     protected void uploadFolder( File folder, ProgressListener listener ) {
         if( folder.getName().startsWith( ".") ) {
-            System.out.println( "uploadFolder: not uploading hidden file: " + folder.getAbsolutePath() );
             return ;
         }
         Folder newFolder = createFolder( folder.getName() );
         for( File f : folder.listFiles() ) {
-            System.out.println( "newFolder.href: " + newFolder.href() );
             newFolder.upload( f, listener );
         }
     }
@@ -134,6 +134,7 @@ public class Folder extends Resource {
         children(); // ensure children are loaded
         String newUri = href() + name;
         String contentType = URLConnection.guessContentTypeFromName( name );
+        log.trace( "upload: " + newUri);
         host().doPut( newUri, content, contentLength, contentType );
         com.ettrema.httpclient.File child = new com.ettrema.httpclient.File( this, name, contentType, contentLength );
         com.ettrema.httpclient.Resource oldChild = this.child( child.name );
@@ -146,7 +147,6 @@ public class Folder extends Resource {
     }
 
     public Folder createFolder( String name ) {
-        System.out.println( "Folder: createFolder: " + name );
         children(); // ensure children are loaded
         String newUri = href() + name;
         host().doMkCol( newUri );
@@ -164,21 +164,16 @@ public class Folder extends Resource {
     }
 
     void notifyOnChildAdded( Resource child ) {
-        System.out.println( "Folder: notifyOnChildAdded" );
         List<FolderListener> l2 = new ArrayList<FolderListener>( folderListeners );
         for( FolderListener l : l2 ) {
-            FolderListener fol = (FolderListener) l;
-            System.out.println( "  notifying: " + fol );
-            fol.onChildAdded( this, child );
+            l.onChildAdded( this, child );
         }
     }
 
     void notifyOnChildRemoved( Resource child ) {
-        System.out.println( "Folder: notifyOnChildRemoved: " + child.name );
         List<FolderListener> l2 = new ArrayList<FolderListener>( folderListeners );
         for( FolderListener l : l2 ) {
-            FolderListener fol = (FolderListener) l;
-            fol.onChildRemoved( this, child );
+            l.onChildRemoved( this, child );
         }
     }
 
@@ -224,7 +219,6 @@ public class Folder extends Resource {
 
         void notifyListener() {
             if( totalLength <= 0 ) {
-                System.out.println( "warning, zero length resource" );
                 listener.onProgress( 100, fileName );
                 nextNotify += pos;
             } else {

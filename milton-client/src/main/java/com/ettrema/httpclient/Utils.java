@@ -53,7 +53,6 @@ class Utils {
                 case 302:
                     throw new RedirectException(result, href);
                 case 304:
-                    System.out.println("not modified");
                     break;
                 default:
                     throw new RedirectException(result, href);

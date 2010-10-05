@@ -12,12 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author mcevoyb
  */
 public class Resource {
+
+    private static final Logger log = LoggerFactory.getLogger( Resource.class );
 
     static Resource fromResponse( Folder parent, Response resp ) {
         if( resp.isCollection ) {
@@ -50,14 +54,21 @@ public class Resource {
             this.parent = parent;
             name = resp.name;
             displayName = resp.displayName;
-            System.out.println( "dates: " + resp.createdDate + " - " + resp.modifiedDate );
             createdDate = DateUtils.parseWebDavDate( resp.createdDate );
             if( resp.modifiedDate.endsWith( "Z" ) ) {
                 modifiedDate = DateUtils.parseWebDavDate( resp.modifiedDate );
+                if( resp.serverDate != null ) {
+                    // calc difference and use that as delta on local time
+                    Date serverDate = DateUtils.parseDate( resp.serverDate);
+                    long delta = serverDate.getTime() - modifiedDate.getTime();
+                    modifiedDate = new Date(System.currentTimeMillis() - delta);
+                } else {
+                    log.debug( "no server date");
+                }
             } else {
                 modifiedDate = DateUtils.parseDate( resp.modifiedDate );
             }
-            System.out.println( "done" );
+            //log.debug( "parsed mod date: " + modifiedDate);
         } catch( DateParseException ex ) {
             throw new RuntimeException( ex );
         }
@@ -82,7 +93,6 @@ public class Resource {
     }
 
     public void addListener( ResourceListener l ) {
-        System.out.println( "Resource: addListener: " + l.getClass() + " listening to " + this.href() );
         listeners.add( l );
     }
 
@@ -148,29 +158,24 @@ public class Resource {
     }
 
     public void delete() {
-        System.out.println( "Resource: deleting: " + href() );
         host().doDelete( href() );
         notifyOnDelete();
     }
 
     void notifyOnDelete() {
-        System.out.println( "notifyOnDelete: " + href() );
         if( this.parent != null ) {
             this.parent.notifyOnChildRemoved( this );
         }
         List<ResourceListener> l2 = new ArrayList<ResourceListener>( listeners );
         for( ResourceListener l : l2 ) {
-            System.out.println( "  l: " + l );
             l.onDeleted( this );
         }
     }
 
     void notifyOnMove( Folder folder ) {
-        System.out.println( "notifyOnMove" );
 
         List<ResourceListener> l2 = new ArrayList<ResourceListener>( listeners );
         for( ResourceListener l : l2 ) {
-            System.out.println( "  l: " + l );
             l.onDeleted( this );
         }
         folder.notifyOnChildAdded( this );
