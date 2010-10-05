@@ -316,9 +316,9 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
                         return "";
                     }
                 case 4:
-                    return r.createdDate;
+                    return r.getCreatedDate();
                 case 5:
-                    return r.modifiedDate;
+                    return r.getModifiedDate();
                 case 6:
                     return "?";
                 default:

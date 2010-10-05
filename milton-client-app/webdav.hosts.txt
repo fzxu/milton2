@@ -1,7 +1,9 @@
-#Sat Sep 11 23:49:22 NZST 2010
+#Sat Sep 25 20:54:02 NZST 2010
 host.www.aucklandcanoepolo.co.nz=www.aucklandcanoepolo.co.nz,80,brad@www.ettrema.com,fred
 host.dav.messagingengine.com=dav.messagingengine.com,80,bradmcevoy@fastmail.fm,rogerdodger
+host.test.shmego.com=test.shmego.com,80,test,fredfred
 host.www.shmego.com=www.shmego.com,80,brad,fred
 host.milton.ettrema.com=milton.ettrema.com,80,brad@www.ettrema.com,fred
 host.birkenhead.beergroup.net=birkenhead.beergroup.net,80,brad@www.ettrema.com,fred
+host.brad8.bradsphotobackup.com=brad8.bradsphotobackup.com,80,brad8,fredfred
 host.www.bradmcevoy.com=www.bradmcevoy.com,80,brad@www.ettrema.com,fred
