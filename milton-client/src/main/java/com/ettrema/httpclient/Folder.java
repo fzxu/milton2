@@ -9,6 +9,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,11 @@ public class Folder extends Resource {
         }
         folderListeners.add( l );
     }
+
+    public String post(String relativePath, Map<String,String> params) {
+        return host().doPost(href() + relativePath, params);
+    }
+
 
     @Override
     public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException {

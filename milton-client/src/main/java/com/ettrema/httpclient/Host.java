@@ -1,19 +1,25 @@
 package com.ettrema.httpclient;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +55,13 @@ public class Host extends Folder {
         this.password = password;
         client = new HttpClient();
         client.getHttpConnectionManager().getParams().setConnectionTimeout( 10000 );
-        client.getState().setCredentials( AuthScope.ANY, new UsernamePasswordCredentials( user, password ) );
+        if( user != null ) {
+            client.getState().setCredentials( AuthScope.ANY, new UsernamePasswordCredentials( user, password ) );
+        }
         //client.getState().setProxyCredentials(AuthScope.ANY, new NTCredentials("xxx", "yyy", "", "zzz"));
 
         client.getParams().setAuthenticationPreemptive( true );
+        client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
 //    HostConfiguration hostConfig = client.getHostConfiguration();
 //    hostConfig.setProxy("aproxy", 80);
     }
@@ -233,6 +242,40 @@ public class Host extends Folder {
         }
     }
 
+    /**
+     * POSTs the variables and returns the body
+     *
+     * @param url
+     * @param params
+     * @return
+     */
+    String doPost( String url, Map<String, String> params ) {
+        notifyStartRequest();
+        PostMethod m = new PostMethod( urlEncode( url ) );
+        for( Entry<String, String> entry : params.entrySet()) {
+            m.addParameter( entry.getKey(), entry.getValue());
+        }
+        InputStream in = null;
+        try {
+            int res = client.executeMethod( m );
+            Utils.processResultCode( res, url );
+            in = m.getResponseBodyAsStream();
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            IOUtils.copy( in, bout);
+            return bout.toString();
+        } catch( HttpException ex ) {
+            throw new RuntimeException( ex );
+        } catch( IOException ex ) {
+            throw new RuntimeException( ex );
+        } finally {
+            Utils.close( in );
+            m.releaseConnection();
+            notifyFinishRequest();
+        }
+    }
+
+
+
     @Override
     public Host host() {
         return this;
@@ -259,4 +302,6 @@ public class Host extends Folder {
             l.onFinishRequest();
         }
     }
+
+
 }

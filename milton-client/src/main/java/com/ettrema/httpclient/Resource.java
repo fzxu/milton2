@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
 import java.util.Date;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +95,10 @@ public class Resource {
 
     public void addListener( ResourceListener l ) {
         listeners.add( l );
+    }
+
+    public String post(Map<String,String> params) {
+        return host().doPost(href(), params);
     }
 
     public void copyTo( Folder folder ) {
