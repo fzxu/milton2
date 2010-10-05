@@ -97,4 +97,5 @@ public interface Resource {
      */
     abstract String checkRedirect(Request request);
 
+
 }

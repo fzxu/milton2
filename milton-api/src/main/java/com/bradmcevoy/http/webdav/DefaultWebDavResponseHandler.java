@@ -19,6 +19,7 @@ import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -82,6 +83,7 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
 
     public void responseMultiStatus( Resource resource, Response response, Request request, List<HrefStatus> statii ) {
         response.setStatus( Response.Status.SC_MULTI_STATUS );
+        response.setDateHeader( new Date() );
         response.setContentTypeHeader( Response.XML );
 
         XmlWriter writer = new XmlWriter( response.getOutputStream() );
@@ -175,6 +177,7 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
 
     public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, Resource r ) {
         response.setStatus( Status.SC_MULTI_STATUS );
+        response.setDateHeader( new Date() );
         response.setContentTypeHeader( Response.XML );
         String xml = propFindXmlGenerator.generate( propFindResponses );
         byte[] arr;

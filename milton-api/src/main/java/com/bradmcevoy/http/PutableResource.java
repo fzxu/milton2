@@ -1,6 +1,8 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -40,6 +42,7 @@ public interface PutableResource extends CollectionResource {
      * @return - a reference to the new resource
      * @throws IOException
      * @throws ConflictException
+     * @throws NotAuthorizedException
      */
-    Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException, ConflictException;
+    Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException, ConflictException, NotAuthorizedException, BadRequestException;
 }

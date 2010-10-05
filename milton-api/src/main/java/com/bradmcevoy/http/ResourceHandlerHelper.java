@@ -1,6 +1,6 @@
 package com.bradmcevoy.http;
 
-import com.bradmcevoy.http.HandlerHelper.AuthStatus;
+import com.bradmcevoy.http.AuthenticationService.AuthStatus;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
@@ -102,7 +102,9 @@ public class ResourceHandlerHelper {
                 return;
             }
 
-            if( request.getMethod().isWrite ) {
+            // Do not lock on POST requests. It is up to the application to decide whether or not
+            // a POST requires a lock
+            if( request.getMethod().isWrite && request.getMethod() != Method.POST ) {
                 if( handlerHelper.isLockedOut( request, resource ) ) {
                     response.setStatus( Status.SC_LOCKED ); // replace with responsehandler method
                     return;

@@ -31,6 +31,9 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
 
     public boolean supports( Resource r, Request request ) {
         Auth auth = request.getAuthorization();
+        if( auth == null ) {
+            return false;
+        }
         boolean b;
         if( r instanceof DigestResource ) {
             b = Auth.Scheme.DIGEST.equals( auth.getScheme() );

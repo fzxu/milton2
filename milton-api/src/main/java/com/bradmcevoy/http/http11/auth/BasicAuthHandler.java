@@ -18,6 +18,9 @@ public class BasicAuthHandler implements AuthenticationHandler {
 
     public boolean supports( Resource r, Request request ) {
         Auth auth = request.getAuthorization();
+        if( auth == null ) {
+            return false;
+        }
         log.trace( "supports: " + auth.getScheme() );
         return auth.getScheme().equals( Scheme.BASIC );
     }

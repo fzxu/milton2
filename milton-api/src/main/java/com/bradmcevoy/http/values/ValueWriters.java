@@ -36,7 +36,9 @@ public class ValueWriters {
         writers = new ArrayList<ValueWriter>();
         writers.add(new LockTokenValueWriter());
         writers.add(new SupportedLockValueWriter());
-        writers.add(new ModifiedDateValueWriter());
+
+        // BM: I'm not sure why this is here and whether or not it should be
+//        writers.add(new ModifiedDateValueWriter());
         writers.add(new DateValueWriter());
         writers.add(new ResourceTypeValueWriter());
         writers.add(new BooleanValueWriter());

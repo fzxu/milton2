@@ -1,6 +1,7 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.AuthenticationService.AuthStatus;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import com.bradmcevoy.http.quota.StorageChecker;
@@ -24,7 +25,6 @@ public class HandlerHelper {
         this.storageCheckers = storageCheckers;
     }
 
-
     /**
      * Checks the expect header, and responds if necessary
      *
@@ -36,60 +36,47 @@ public class HandlerHelper {
     public boolean checkExpects( Http11ResponseHandler responseHandler, Request request, Response response ) {
         String s = request.getExpectHeader();
         if( s != null && s.length() > 0 ) {
-            response.setStatus( Response.Status.SC_CONTINUE);
+            response.setStatus( Response.Status.SC_CONTINUE );
             return false;
         } else {
             return true;
         }
     }
 
-    public AuthStatus checkAuthentication(HttpManager manager, Resource resource, Request request ) {
-        Auth auth = request.getAuthorization();
-        if( auth != null ) {
-            if( auth.getTag() == null ) {  // don't do double authentication
-                Object authTag = authenticationService.authenticate( resource, request ); //handler.authenticate( auth.user, auth.password );
-                if( authTag == null ) {
-                    log.warn( "failed to authenticate - authenticationService:" + authenticationService.getClass() + " resource type:" + resource.getClass() );
-                    return new AuthStatus( null, true);
-                } else {
-                    log.trace( "got authenticated tag: " + authTag.getClass() );
-                    auth.setTag( authTag );
-                }
-            } else {
-                log.trace("request is pre-authenticated");
-            }
+    public AuthStatus checkAuthentication( HttpManager manager, Resource resource, Request request ) {
+        log.trace( "checkAuthentication" );
+        AuthStatus authStatus = authenticationService.authenticate( resource, request ); //handler.authenticate( auth.user, auth.password );
+        if( authStatus == null ) {
+            return null;
         } else {
-            auth = manager.getSessionAuthentication( request );
-        }
-        return new AuthStatus( auth, false);
-    }
-
-    public class AuthStatus {
-        public final Auth auth;
-        public final boolean loginFailed;
-
-        public AuthStatus( Auth auth, boolean loginFailed ) {
-            this.auth = auth;
-            this.loginFailed = loginFailed;
+            return authStatus;
         }
     }
 
     public boolean checkAuthorisation( HttpManager manager, Resource resource, Request request ) {
         AuthStatus authStatus = checkAuthentication( manager, resource, request );
-        if( authStatus.loginFailed ) {
+        // a null authStatus means that no authentication was attempted, eg an anonymous request
+        // it is up to the implementation to decide whether or not to allow anonymous access
+        // however a failed login must always be rejected
+        if( authStatus != null && authStatus.loginFailed ) {
             return false;
         }
-        Auth auth = authStatus.auth;
+        Auth auth;
+        if( authStatus != null ) {
+            auth = authStatus.auth;
+        } else {
+            auth = null;
+        }
         boolean authorised = resource.authorise( request, request.getMethod(), auth );
         if( !authorised ) {
-            if( log.isWarnEnabled()) {
-                log.warn( "authorisation declined, requesting authentication: " + request.getAbsolutePath() + ". resource type: " + resource.getClass().getCanonicalName());
+            if( log.isWarnEnabled() ) {
+                log.warn( "authorisation declined, requesting authentication: " + request.getAbsolutePath() + ". resource type: " + resource.getClass().getCanonicalName() );
                 if( auth != null ) {
                     if( log.isTraceEnabled() ) {
-                       log.trace("  - auth: " + auth.getUser() + " tag: " + auth.getTag());
+                        log.trace( "  - auth: " + auth.getUser() + " tag: " + auth.getTag() );
                     }
                 } else {
-                    log.trace("  - anonymous request");
+                    log.trace( "  - anonymous request" );
                 }
             }
             return false;
@@ -163,8 +150,8 @@ public class HandlerHelper {
         return false;
     }
 
-    public StorageErrorReason checkStorageOnReplace(Request request, CollectionResource parentCol, Resource replaced, String host) {
-        for( StorageChecker sc : storageCheckers) {
+    public StorageErrorReason checkStorageOnReplace( Request request, CollectionResource parentCol, Resource replaced, String host ) {
+        for( StorageChecker sc : storageCheckers ) {
             StorageErrorReason res = sc.checkStorageOnReplace( request, parentCol, replaced, host );
             if( res != null ) {
                 log.warn( "insufficient storage reason: " + res + " reported by: " + sc.getClass() );
@@ -174,8 +161,8 @@ public class HandlerHelper {
         return null;
     }
 
-    public StorageErrorReason checkStorageOnAdd(Request request, CollectionResource nearestParent, Path parentPath, String host) {
-        for( StorageChecker sc : storageCheckers) {
+    public StorageErrorReason checkStorageOnAdd( Request request, CollectionResource nearestParent, Path parentPath, String host ) {
+        for( StorageChecker sc : storageCheckers ) {
             StorageErrorReason res = sc.checkStorageOnAdd( request, nearestParent, parentPath, host );
             if( res != null ) {
                 log.warn( "insufficient storage reason: " + res + " reported by: " + sc.getClass() );
@@ -195,9 +182,9 @@ public class HandlerHelper {
      * @param m - the HTTP request method
      * @return - true to indicate the resource must not handle method m
      */
-    public boolean isNotCompatible(Resource r, Method m) {
-        if( r instanceof ConditionalCompatibleResource ){
-            ConditionalCompatibleResource  ccr = (ConditionalCompatibleResource) r;
+    public boolean isNotCompatible( Resource r, Method m ) {
+        if( r instanceof ConditionalCompatibleResource ) {
+            ConditionalCompatibleResource ccr = (ConditionalCompatibleResource) r;
             return !ccr.isCompatible( m );
         }
         return false;

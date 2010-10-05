@@ -33,11 +33,16 @@ public class Auth {
      */
     private Object tag;
 
+    /**
+     * Common HTTP authentication schemes, and some non-http specified but common
+     * ones
+     */
     public enum Scheme {
-
         BASIC,
         DIGEST,
-        NEGOTIATE 
+        NEGOTIATE,
+        FORM,
+        SESSION
     };
     private Scheme scheme;
     private String user;
@@ -80,6 +85,14 @@ public class Auth {
         this.password = null;
         this.tag = userTag;
     }
+
+    public Auth( Scheme scheme, String user, Object userTag ) {
+        this.scheme = scheme;
+        this.user = user;
+        this.password = null;
+        this.tag = userTag;
+    }
+
 
     /**
      *

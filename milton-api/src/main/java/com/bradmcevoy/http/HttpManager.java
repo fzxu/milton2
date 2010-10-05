@@ -123,6 +123,7 @@ public class HttpManager {
     }
 
     /**
+     * @deprecated - use an AuthenticationHandler instead
      * 
      * @param request
      * @return - if no SessionAuthenticationHandler has been set returns null. Otherwise,
@@ -130,6 +131,7 @@ public class HttpManager {
      * 
      * 
      */
+    @Deprecated
     public Auth getSessionAuthentication( Request request ) {
         if( this.sessionAuthenticationHandler == null ) return null;
         return this.sessionAuthenticationHandler.getSessionAuthentication( request );

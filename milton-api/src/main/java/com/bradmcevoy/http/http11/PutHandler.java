@@ -144,7 +144,7 @@ public class PutHandler implements Handler {
         }
     }
 
-    private void processCreate( HttpManager manager, Request request, Response response, PutableResource folder, String newName ) throws ConflictException, BadRequestException {
+    private void processCreate( HttpManager manager, Request request, Response response, PutableResource folder, String newName ) throws ConflictException, BadRequestException, NotAuthorizedException {
         if( !handlerHelper.checkAuthorisation( manager, folder, request ) ) {
             responseHandler.respondUnauthorised( folder, response, request );
             return;

@@ -2,6 +2,7 @@ package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.property.PropertySource;
 import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.AuthenticationService.AuthStatus;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
@@ -91,7 +92,7 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
                 return;
             }
 
-            HandlerHelper.AuthStatus authStatus = resourceHandlerHelper.checkAuthentication( manager, resource, request );
+            AuthStatus authStatus = resourceHandlerHelper.checkAuthentication( manager, resource, request );
             if( authStatus.loginFailed ) {
                 if( log.isTraceEnabled() ) {
                     log.trace( "authentication failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );

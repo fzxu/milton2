@@ -74,8 +74,6 @@ public class AuthenticationService {
         return disableBasic;
     }
 
-
-
     public void setDisableDigest( boolean b ) {
         if( b ) {
             Iterator<AuthenticationHandler> it = this.authenticationHandlers.iterator();
@@ -92,7 +90,6 @@ public class AuthenticationService {
     public boolean isDisableDigest() {
         return disableDigest;
     }
-    
 
     /**
      * Looks for an AuthenticationHandler which supports the given resource and
@@ -103,19 +100,35 @@ public class AuthenticationService {
      *
      * @param resource
      * @param request
-     * @return
+     * @return - null if no authentication was attempted. Otherwise, an AuthStatus
+     * object containing the Auth object and a boolean indicating whether the
+     * login succeeded
      */
-    public Object authenticate( Resource resource, Request request ) {
+    public AuthStatus authenticate( Resource resource, Request request ) {
+        log.trace( "authenticate" );
+        Auth auth = request.getAuthorization();
+        boolean preAuthenticated = ( auth != null && auth.getTag() != null );
+        if( preAuthenticated ) {
+            log.trace( "request is pre-authenticated" );
+            return new AuthStatus( auth, false );
+        }
         for( AuthenticationHandler h : authenticationHandlers ) {
             if( h.supports( resource, request ) ) {
-                Object o = h.authenticate( resource, request );
-                if( o == null ) {
+                Object loginToken = h.authenticate( resource, request );
+                if( loginToken == null ) {
                     log.warn( "authentication failed by AuthenticationHandler:" + h.getClass() );
+                    return new AuthStatus( auth, true );
+                } else {
+                    if( log.isTraceEnabled() ) {
+                        log.trace( "authentication passed by: " + h.getClass() );
+                    }
+                    if( auth == null ) { // some authentication handlers do not require an Auth object
+                        auth = new Auth( Auth.Scheme.FORM, null, loginToken );
+                    }
                 }
-                return o;
+                return new AuthStatus( auth, false );
             }
         }
-        log.warn( "No AuthenticationHandler supports scheme:" + request.getAuthorization().getScheme() + " and resource type: " + resource.getClass() );
         return null;
     }
 
@@ -143,5 +156,16 @@ public class AuthenticationService {
 
     public List<AuthenticationHandler> getAuthenticationHandlers() {
         return Collections.unmodifiableList( authenticationHandlers );
+    }
+
+    public static class AuthStatus {
+
+        public final Auth auth;
+        public final boolean loginFailed;
+
+        public AuthStatus( Auth auth, boolean loginFailed ) {
+            this.auth = auth;
+            this.loginFailed = loginFailed;
+        }
     }
 }
