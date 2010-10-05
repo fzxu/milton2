@@ -94,23 +94,30 @@ public interface Request {
         }
     };
 
-    public Map<String, String> getHeaders();
+    Map<String, String> getHeaders();
 
-    public String getFromAddress();
+    String getFromAddress();
 
-    public String getLockTokenHeader();
+    String getLockTokenHeader();
 
-    public String getRequestHeader( Request.Header header );
+    String getRequestHeader( Request.Header header );
 
-    public Method getMethod();
+    Method getMethod();
 
-    public Auth getAuthorization();
+    Auth getAuthorization();
 
-    public String getRefererHeader();
+    /**
+     * Maybe called by the milton framework after successful non-http authentication
+     *
+     * @param auth - the new auth object
+     */
+    void setAuthorization(Auth auth);
 
-    public String getTimeoutHeader();
+    String getRefererHeader();
 
-    public String getIfHeader();
+    String getTimeoutHeader();
+
+    String getIfHeader();
 
     Date getIfModifiedHeader();
 
@@ -156,7 +163,7 @@ public interface Request {
      *
      * @return
      */
-    public String getContentRangeHeader();
+    String getContentRangeHeader();
 
     /**
      * Used for MOVE method. If true it indicates that any existing resource
@@ -215,7 +222,7 @@ public interface Request {
     *
     * @return this returns a cookie object from the header or null
     */
-   public Cookie getCookie(String name);
+   Cookie getCookie(String name);
 
    /**
     * This is used to acquire all cookies that were sent in the header.
@@ -226,5 +233,5 @@ public interface Request {
     *
     * @return this returns all cookie objects from the HTTP header
     */
-   public List<Cookie> getCookies();   
+   List<Cookie> getCookies();   
 }

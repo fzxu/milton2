@@ -124,6 +124,7 @@ public class AuthenticationService {
                     }
                     if( auth == null ) { // some authentication handlers do not require an Auth object
                         auth = new Auth( Auth.Scheme.FORM, null, loginToken );
+                        request.setAuthorization( auth );
                     }
                 }
                 return new AuthStatus( auth, false );

@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class FtpRequest extends AbstractRequest{
     private final Method method;
-    private final Auth auth;
+    private Auth auth;
     private final String url;
 
     public FtpRequest( Method method, Auth auth, String url ) {
@@ -50,6 +50,12 @@ public class FtpRequest extends AbstractRequest{
     public Auth getAuthorization() {
         return auth;
     }
+
+    public void setAuthorization( Auth auth ) {
+        this.auth = auth;
+    }
+
+
 
     public String getAbsoluteUrl() {
         return url;

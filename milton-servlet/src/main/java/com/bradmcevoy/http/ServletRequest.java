@@ -86,6 +86,10 @@ public class ServletRequest extends AbstractRequest {
         return auth;
     }
 
+    public void setAuthorization(Auth auth) {
+        this.auth = auth;
+    }
+
     public InputStream getInputStream() throws IOException {
         return request.getInputStream();
     }
