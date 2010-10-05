@@ -145,7 +145,7 @@ public class PropPatchHandler implements ExistingEntityHandler, PropertyHandler 
             }
 
             AuthStatus authStatus = resourceHandlerHelper.checkAuthentication( manager, resource, request );
-            if( authStatus.loginFailed ) {
+            if( authStatus != null && authStatus.loginFailed ) {
                 log.debug( "authentication failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
                 responseHandler.respondUnauthorised( resource, response, request );
                 return;

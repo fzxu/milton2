@@ -1,5 +1,8 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
@@ -18,7 +21,7 @@ import com.bradmcevoy.http.Request.Method;
  * item
  *
  */
-public class SimpleResource implements GetableResource{
+public class SimpleResource implements GetableResource, PostableResource{
     private static final Logger log = LoggerFactory.getLogger(SimpleResource.class);
 
     final String name;
@@ -101,6 +104,10 @@ public class SimpleResource implements GetableResource{
     }
 
     public String checkRedirect(Request request) {
+        return null;
+    }
+
+    public String processForm( Map<String, String> parameters, Map<String, FileItem> files ) throws BadRequestException, NotAuthorizedException, ConflictException {
         return null;
     }
     

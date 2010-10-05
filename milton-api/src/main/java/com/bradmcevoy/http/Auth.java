@@ -204,7 +204,13 @@ public class Auth {
         qop = (String) headerMap.get( "qop" ); // RFC 2617 extension
         nc = (String) headerMap.get( "nc" ); // RFC 2617 extension
         cnonce = (String) headerMap.get( "cnonce" ); // RFC 2617 extension
-
     }
+
+    @Override
+    public String toString() {
+        return "scheme: " + scheme + " user:" + user + " tag:" + tag;
+    }
+
+
 
 }

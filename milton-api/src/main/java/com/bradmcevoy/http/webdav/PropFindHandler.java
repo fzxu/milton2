@@ -93,7 +93,7 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
             }
 
             AuthStatus authStatus = resourceHandlerHelper.checkAuthentication( manager, resource, request );
-            if( authStatus.loginFailed ) {
+            if( authStatus != null && authStatus.loginFailed ) {
                 if( log.isTraceEnabled() ) {
                     log.trace( "authentication failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
                 }

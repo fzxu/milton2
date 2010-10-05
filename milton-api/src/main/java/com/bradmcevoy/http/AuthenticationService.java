@@ -126,6 +126,7 @@ public class AuthenticationService {
                         auth = new Auth( Auth.Scheme.FORM, null, loginToken );
                         request.setAuthorization( auth );
                     }
+                    auth.setTag( loginToken );
                 }
                 return new AuthStatus( auth, false );
             }
