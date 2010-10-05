@@ -194,6 +194,12 @@ public class DebugFilter implements Filter{
             return r.getAuthorization();
         }
 
+        public void setAuthorization( Auth auth ) {
+            r.setAuthorization( auth );
+        }
+
+
+
         public String getAbsoluteUrl() {
             return r.getAbsoluteUrl();
         }
