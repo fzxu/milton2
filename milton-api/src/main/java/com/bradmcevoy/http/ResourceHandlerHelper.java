@@ -93,21 +93,26 @@ public class ResourceHandlerHelper {
                 return;
             }
 
-            if( !handlerHelper.checkAuthorisation( manager, resource, request ) ) {
-                if( log.isInfoEnabled() ) {
-                    log.info( "authorisation failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
-                }
-                responseHandler.respondUnauthorised( resource, response, request );
-                return;
-            }
+            boolean authorised = handlerHelper.checkAuthorisation( manager, resource, request );
 
             // redirect check must be after authorisation, because the check redirect
             // logic might depend on logged in user
+            // but the actual redirection must be before we respond unathorised, because
+            // in some cases we might want to pre-empt the unauthorised status and redirect
+            // to a login page
             if( allowRedirect ) {
                 log.trace( "check redirect" );
                 if( handlerHelper.doCheckRedirect( responseHandler, request, response, resource ) ) {
                     return;
                 }
+            }
+
+            if( !authorised ) {
+                if( log.isInfoEnabled() ) {
+                    log.info( "authorisation failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
+                }
+                responseHandler.respondUnauthorised( resource, response, request );
+                return;
             }
 
 
