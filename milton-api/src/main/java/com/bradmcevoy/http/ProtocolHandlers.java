@@ -18,20 +18,24 @@ public class ProtocolHandlers implements Iterable<HttpExtension> {
 
     private final List<HttpExtension> handlers;
 
+    private final HandlerHelper handlerHelper;
+    
     public ProtocolHandlers( List<HttpExtension> handlers ) {
         this.handlers = handlers;
+        this.handlerHelper = null;
     }
 
     public ProtocolHandlers( WebDavResponseHandler responseHandler, AuthenticationService authenticationService ) {
         this.handlers = new ArrayList<HttpExtension>();
         List<StorageChecker> quotaCheckers = new ArrayList<StorageChecker>();
         quotaCheckers.add( new DefaultStorageChecker() );
-        HandlerHelper handlerHelper = new HandlerHelper( authenticationService, quotaCheckers );
+        this.handlerHelper = new HandlerHelper( authenticationService, quotaCheckers );
         this.handlers.add( new Http11Protocol( responseHandler, handlerHelper ) );
         this.handlers.add( new WebDavProtocol( responseHandler, handlerHelper ) );
     }
 
     public ProtocolHandlers( WebDavResponseHandler responseHandler, HandlerHelper handlerHelper ) {
+        this.handlerHelper = handlerHelper;
         this.handlers = new ArrayList<HttpExtension>();
         this.handlers.add( new Http11Protocol( responseHandler, handlerHelper ) );
         this.handlers.add( new WebDavProtocol( responseHandler, handlerHelper ) );
@@ -41,7 +45,7 @@ public class ProtocolHandlers implements Iterable<HttpExtension> {
         this.handlers = new ArrayList<HttpExtension>();
         AuthenticationService authenticationService = new AuthenticationService();
         WebDavResponseHandler responseHandler = new DefaultWebDavResponseHandler( authenticationService );
-        HandlerHelper handlerHelper = new HandlerHelper( authenticationService, new ArrayList<StorageChecker>() );
+        this.handlerHelper = new HandlerHelper( authenticationService, new ArrayList<StorageChecker>() );
         this.handlers.add( new Http11Protocol( responseHandler, handlerHelper ) );
         this.handlers.add( new WebDavProtocol( responseHandler, handlerHelper ) );
     }
@@ -49,4 +53,19 @@ public class ProtocolHandlers implements Iterable<HttpExtension> {
     public Iterator<HttpExtension> iterator() {
         return handlers.iterator();
     }
+
+    public boolean isEnableExpectContinue() {
+        if( handlerHelper == null ) {
+            throw new RuntimeException( "handlerHelper is not set. Read the appropriate property directly on injected HttpExtension implementations");
+        }
+        return handlerHelper.isEnableExpectContinue();
+    }
+
+    public void setEnableExpectContinue( boolean enableExpectContinue ) {
+        if( handlerHelper == null ) {
+            throw new RuntimeException( "handlerHelper is not set. Set the appropriate property directly on injected HttpExtension implementations");
+        }
+        handlerHelper.setEnableExpectContinue( enableExpectContinue );
+    }
+
 }

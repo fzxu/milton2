@@ -14,8 +14,11 @@ public class Http11Protocol implements HttpExtension{
 
     private final Set<Handler> handlers;
 
-    public Http11Protocol( Set<Handler> handlers ) {
+    private final HandlerHelper handlerHelper;
+
+    public Http11Protocol( Set<Handler> handlers, HandlerHelper handlerHelper ) {
         this.handlers = handlers;
+        this.handlerHelper = handlerHelper;
     }
 
     /**
@@ -30,6 +33,7 @@ public class Http11Protocol implements HttpExtension{
 
     public Http11Protocol(Http11ResponseHandler responseHandler, HandlerHelper handlerHelper, boolean enableOptionsAuth) {
         this.handlers = new HashSet<Handler>();
+        this.handlerHelper = handlerHelper;
         handlers.add(new OptionsHandler(responseHandler, handlerHelper, enableOptionsAuth));
         handlers.add(new GetHandler(responseHandler, handlerHelper));
         handlers.add(new PostHandler(responseHandler, handlerHelper));
@@ -39,5 +43,9 @@ public class Http11Protocol implements HttpExtension{
 
     public Set<Handler> getHandlers() {
         return handlers;
+    }
+
+    public HandlerHelper getHandlerHelper() {
+        return handlerHelper;
     }
 }

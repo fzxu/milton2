@@ -57,6 +57,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     private final PropertyMap propertyMap;
     private final List<PropertySource> propertySources;
     private final ETagGenerator eTagGenerator;
+    private final HandlerHelper handlerHelper;
 
     private DisplayNameFormatter displayNameFormatter = new DefaultDisplayNameFormatter();
     //private DisplayNameFormatter displayNameFormatter = new CdataDisplayNameFormatter( new DefaultDisplayNameFormatter());
@@ -84,6 +85,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     }
 
     public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> propertySources, QuotaDataAccessor quotaDataAccessor, PropPatchSetter patchSetter ) {
+        this.handlerHelper = handlerHelper;
         this.eTagGenerator = new DefaultETagGenerator();
         handlers = new HashSet<Handler>();
         this.resourceTypeHelper = resourceTypeHelper;
@@ -472,5 +474,29 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
     void sendDateProp( XmlWriter writer, String name, Date date ) {
         sendStringProp( writer, name, ( date == null ? null : DateUtils.formatDate( date ) ) );
+    }
+
+    public HandlerHelper getHandlerHelper() {
+        return handlerHelper;
+    }
+
+    public QuotaDataAccessor getQuotaDataAccessor() {
+        return quotaDataAccessor;
+    }
+
+    public Map<String, Report> getReports() {
+        return reports;
+    }
+
+    public ResourceTypeHelper getResourceTypeHelper() {
+        return resourceTypeHelper;
+    }
+
+    public ETagGenerator geteTagGenerator() {
+        return eTagGenerator;
+    }
+
+    public PropertyMap getPropertyMap() {
+        return propertyMap;
     }
 }

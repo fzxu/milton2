@@ -20,6 +20,8 @@ public class HandlerHelper {
     private AuthenticationService authenticationService;
     private final List<StorageChecker> storageCheckers;
 
+    private boolean enableExpectContinue = false;
+
     public HandlerHelper( AuthenticationService authenticationService, List<StorageChecker> storageCheckers ) {
         this.authenticationService = authenticationService;
         this.storageCheckers = storageCheckers;
@@ -31,13 +33,18 @@ public class HandlerHelper {
      * @param resource
      * @param request
      * @param response
-     * @return - true if the expect header is ok
+     * @return - true if the expect header is ok. ie process normally. false means that we
+     * have sent a CONTINUE status and processing should stop until the request body is sent
      */
     public boolean checkExpects( Http11ResponseHandler responseHandler, Request request, Response response ) {
-        String s = request.getExpectHeader();
-        if( s != null && s.length() > 0 ) {
-            response.setStatus( Response.Status.SC_CONTINUE );
-            return false;
+        if( enableExpectContinue ) {
+            String s = request.getExpectHeader();
+            if( s != null && s.length() > 0 ) {
+                response.setStatus( Response.Status.SC_CONTINUE );
+                return false;
+            } else {
+                return true;
+            }
         } else {
             return true;
         }
@@ -190,5 +197,13 @@ public class HandlerHelper {
             return !ccr.isCompatible( m );
         }
         return false;
+    }
+
+    public boolean isEnableExpectContinue() {
+        return enableExpectContinue;
+    }
+
+    public void setEnableExpectContinue( boolean enableExpectContinue ) {
+        this.enableExpectContinue = enableExpectContinue;
     }
 }

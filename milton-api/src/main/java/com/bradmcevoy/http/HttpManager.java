@@ -37,6 +37,7 @@ public class HttpManager {
     public static Response response() {
         return tlResponse.get();
     }
+
     private final ProtocolHandlers handlers;
     private Map<String, Handler> methodHandlers = new ConcurrentHashMap<String, Handler>();
     List<Filter> filters = new ArrayList<Filter>();
@@ -233,4 +234,13 @@ public class HttpManager {
             }
         }
     }
+
+    public boolean isEnableExpectContinue() {
+        return handlers.isEnableExpectContinue();
+    }
+
+    public void setEnableExpectContinue( boolean enableExpectContinue ) {
+        handlers.setEnableExpectContinue( enableExpectContinue );
+    }
+
 }
