@@ -20,7 +20,7 @@ public class HandlerHelper {
     private AuthenticationService authenticationService;
     private final List<StorageChecker> storageCheckers;
 
-    private boolean enableExpectContinue = false;
+    private boolean enableExpectContinue = true;
 
     public HandlerHelper( AuthenticationService authenticationService, List<StorageChecker> storageCheckers ) {
         this.authenticationService = authenticationService;
