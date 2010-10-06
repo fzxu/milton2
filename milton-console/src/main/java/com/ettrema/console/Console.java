@@ -63,11 +63,12 @@ public class Console implements GetableResource, PostableResource {
     }
 
     public String getContentType(String accepts) {
-        if( result != null ) {
-            return "text/plain";
-        } else {
-            return "text/html";
-        }
+        return "application/x-javascript; charset=utf-8";
+//        if( result != null ) {
+//            return "text/plain";
+//        } else {
+//            return "text/html";
+//        }
     }
 
     public Long getContentLength() {
