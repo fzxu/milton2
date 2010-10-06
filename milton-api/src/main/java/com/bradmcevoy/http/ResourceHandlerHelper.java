@@ -79,28 +79,37 @@ public class ResourceHandlerHelper {
     }
 
     public void processResource( HttpManager manager, Request request, Response response, Resource resource, ExistingEntityHandler handler, boolean allowRedirect, Map<String, String> params, Map<String, FileItem> files ) throws NotAuthorizedException, ConflictException, BadRequestException {
+        log.trace( "processResource" );
         long t = System.currentTimeMillis();
         try {
 
             manager.onProcessResourceStart( request, response, resource );
 
-            if( allowRedirect ) {
-                if( handlerHelper.doCheckRedirect( responseHandler, request, response, resource ) ) {
-                    return;
-                }
-            }
-
             if( handlerHelper.isNotCompatible( resource, request.getMethod() ) || !handler.isCompatible( resource ) ) {
-                log.debug( "resource not compatible. Resource class: " + resource.getClass() + " handler: " + handler.getClass() );
+                if( log.isInfoEnabled() ) {
+                    log.info( "resource not compatible. Resource class: " + resource.getClass() + " handler: " + handler.getClass() );
+                }
                 responseHandler.respondMethodNotImplemented( resource, response, request );
                 return;
             }
 
             if( !handlerHelper.checkAuthorisation( manager, resource, request ) ) {
-                log.debug( "authorisation failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
+                if( log.isInfoEnabled() ) {
+                    log.info( "authorisation failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
+                }
                 responseHandler.respondUnauthorised( resource, response, request );
                 return;
             }
+
+            // redirect check must be after authorisation, because the check redirect
+            // logic might depend on logged in user
+            if( allowRedirect ) {
+                log.trace( "check redirect" );
+                if( handlerHelper.doCheckRedirect( responseHandler, request, response, resource ) ) {
+                    return;
+                }
+            }
+
 
             // Do not lock on POST requests. It is up to the application to decide whether or not
             // a POST requires a lock
@@ -118,7 +127,7 @@ public class ResourceHandlerHelper {
         }
     }
 
-    public boolean isNotCompatible(Resource r, Method m) {
+    public boolean isNotCompatible( Resource r, Method m ) {
         return handlerHelper.isNotCompatible( r, m );
     }
 
@@ -126,7 +135,7 @@ public class ResourceHandlerHelper {
         return handlerHelper.isLockedOut( inRequest, inResource );
     }
 
-    public AuthStatus checkAuthentication(HttpManager manager, Resource resource, Request request ) {
+    public AuthStatus checkAuthentication( HttpManager manager, Resource resource, Request request ) {
         return handlerHelper.checkAuthentication( manager, resource, request );
     }
 
