@@ -178,6 +178,8 @@ public class MiltonFtpFile implements FtpFile {
                 } catch( NotAuthorizedException ex ) {
                     log.debug( "no authorised" );
                     return false;
+                } catch( BadRequestException ex ) {
+                    return false;
                 } catch( ConflictException ex ) {
                     log.debug( "conflict" );
                     return false;
