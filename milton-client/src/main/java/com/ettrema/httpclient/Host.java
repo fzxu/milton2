@@ -110,7 +110,7 @@ public class Host extends Folder {
         MkColMethod p = new MkColMethod( urlEncode( newUri ) );
         try {
             int result = host().client.executeMethod( p );
-            Utils.processResultCode( result, href() );
+            Utils.processResultCode( result, newUri );
             return result;
         } catch( IOException ex ) {
             throw new RuntimeException( ex );

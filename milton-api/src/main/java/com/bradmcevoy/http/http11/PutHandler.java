@@ -16,6 +16,8 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.RandomFileOutputStream;
+import com.ettrema.event.NewFolderEvent;
+import com.ettrema.event.PutEvent;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -155,7 +157,8 @@ public class PutHandler implements Handler {
             Long l = putHelper.getContentLength( request );
             String ct = putHelper.findContentTypes( request, newName );
             log.debug( "PutHandler: creating resource of type: " + ct );
-            folder.createNew( newName, request.getInputStream(), l, ct );
+            Resource newlyCreated = folder.createNew( newName, request.getInputStream(), l, ct );
+            manager.getEventManager().fireEvent( new PutEvent( newlyCreated ) );
         } catch( IOException ex ) {
             log.warn( "IOException reading input stream. Probably interrupted upload: " + ex.getMessage() );
             return;
@@ -163,7 +166,7 @@ public class PutHandler implements Handler {
         manager.getResponseHandler().respondCreated( folder, response, request );
     }
 
-    private CollectionResource findOrCreateFolders( HttpManager manager, String host, Path path ) throws NotAuthorizedException, ConflictException {
+    private CollectionResource findOrCreateFolders( HttpManager manager, String host, Path path ) throws NotAuthorizedException, ConflictException, BadRequestException {
         if( path == null ) return null;
 
         Resource thisResource = manager.getResourceFactory().getResource( host, path.toString() );
@@ -183,11 +186,14 @@ public class PutHandler implements Handler {
         }
 
         Resource r = parent.child( path.getName() );
+
         if( r == null ) {
             if( parent instanceof MakeCollectionableResource ) {
                 MakeCollectionableResource mkcol = (MakeCollectionableResource) parent;
                 log.debug( "autocreating new folder: " + path.getName() );
-                return mkcol.createCollection( path.getName() );
+                CollectionResource newCol = mkcol.createCollection( path.getName() );
+                manager.getEventManager().fireEvent( new NewFolderEvent( newCol ) );
+                return newCol;
             } else {
                 log.debug( "parent folder isnt a MakeCollectionableResource: " + parent.getName() );
                 return null;
@@ -199,7 +205,6 @@ public class PutHandler implements Handler {
             return null;
         }
     }
-
 
     /**
      * "If an existing resource is modified, either the 200 (OK) or 204 (No Content) response codes SHOULD be sent to indicate successful completion of the request."
@@ -214,54 +219,54 @@ public class PutHandler implements Handler {
             return;
         }
         try {
-            Range range = putHelper.parseContentRange(replacee, request);
+            Range range = putHelper.parseContentRange( replacee, request );
             if( range != null ) {
-                log.debug("partial put: " + range);
+                log.debug( "partial put: " + range );
                 if( replacee instanceof PartialllyUpdateableResource ) {
-                    log.debug("doing partial put on a PartialllyUpdateableResource");
+                    log.debug( "doing partial put on a PartialllyUpdateableResource" );
                     PartialllyUpdateableResource partialllyUpdateableResource = (PartialllyUpdateableResource) replacee;
-                    partialllyUpdateableResource.replacePartialContent(range, request.getInputStream());
-                } else if( replacee instanceof GetableResource) {
-                    log.debug("doing partial put on a GetableResource");
-                    File tempFile = File.createTempFile("milton-partial",null );
+                    partialllyUpdateableResource.replacePartialContent( range, request.getInputStream() );
+                } else if( replacee instanceof GetableResource ) {
+                    log.debug( "doing partial put on a GetableResource" );
+                    File tempFile = File.createTempFile( "milton-partial", null );
                     RandomAccessFile randomAccessFile = null;
-                    
+
                     // The new length of the resource
                     long length;
                     try {
-                        randomAccessFile = new RandomAccessFile(tempFile, "rw");
-                        RandomFileOutputStream tempOut = new RandomFileOutputStream(tempFile);
+                        randomAccessFile = new RandomAccessFile( tempFile, "rw" );
+                        RandomFileOutputStream tempOut = new RandomFileOutputStream( tempFile );
                         GetableResource gr = (GetableResource) replacee;
                         // Update the content with the supplied partial content, and get the result as an inputstream
-                        gr.sendContent(tempOut, null, null, null);
+                        gr.sendContent( tempOut, null, null, null );
 
                         // Calculate new length, if the partial put is extending it
                         length = randomAccessFile.length();
-                        if( range.getFinish()+1 > length ) {
-                            length = range.getFinish()+1;
+                        if( range.getFinish() + 1 > length ) {
+                            length = range.getFinish() + 1;
                         }
 
-                        randomAccessFile.setLength(length);
-                        randomAccessFile.seek(range.getStart());
+                        randomAccessFile.setLength( length );
+                        randomAccessFile.seek( range.getStart() );
 
                         int numBytesRead;
                         byte[] copyBuffer = new byte[1024];
                         InputStream newContent = request.getInputStream();
 
-                        while ((numBytesRead = newContent.read(copyBuffer)) != -1) {
-                            randomAccessFile.write(copyBuffer, 0, numBytesRead);
+                        while( ( numBytesRead = newContent.read( copyBuffer ) ) != -1 ) {
+                            randomAccessFile.write( copyBuffer, 0, numBytesRead );
                         }
                     } finally {
-                        FileUtils.close(randomAccessFile);
+                        FileUtils.close( randomAccessFile );
                     }
-                    
-                    InputStream updatedContent = new FileInputStream(tempFile);
-                    BufferedInputStream bufin = new BufferedInputStream(updatedContent);
+
+                    InputStream updatedContent = new FileInputStream( tempFile );
+                    BufferedInputStream bufin = new BufferedInputStream( updatedContent );
 
                     // Now, finally, we can just do a normal update
-                    replacee.replaceContent(bufin, length);
+                    replacee.replaceContent( bufin, length );
                 } else {
-                    throw new BadRequestException(replacee, "Cant apply partial update. Resource does not support PartialllyUpdateableResource or GetableResource");
+                    throw new BadRequestException( replacee, "Cant apply partial update. Resource does not support PartialllyUpdateableResource or GetableResource" );
                 }
             } else {
                 Long l = request.getContentLengthHeader();

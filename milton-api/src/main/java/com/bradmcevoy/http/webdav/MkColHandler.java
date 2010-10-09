@@ -7,6 +7,7 @@ import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.ettrema.event.NewFolderEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +80,7 @@ public class MkColHandler implements Handler {
         }
     }
 
-    protected void processMakeCol( HttpManager manager, Request request, Response response, CollectionResource resource, String newName ) throws ConflictException, NotAuthorizedException {
+    protected void processMakeCol( HttpManager manager, Request request, Response response, CollectionResource resource, String newName ) throws ConflictException, NotAuthorizedException, BadRequestException {
         if( !handlerHelper.checkAuthorisation( manager, resource, request ) ) {
             responseHandler.respondUnauthorised( resource, response, request );
             return;
@@ -108,6 +109,7 @@ public class MkColHandler implements Handler {
             log.warn( "createCollection returned null. In resource class: " + existingCol.getClass() );
             response.setStatus( Response.Status.SC_METHOD_NOT_ALLOWED );
         } else {
+            manager.getEventManager().fireEvent( new NewFolderEvent( resource));
             response.setStatus( Response.Status.SC_CREATED );
         }
     }

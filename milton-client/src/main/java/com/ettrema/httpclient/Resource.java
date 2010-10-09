@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -29,6 +31,34 @@ public class Resource {
             return new Folder( parent, resp );
         } else {
             return new com.ettrema.httpclient.File( parent, resp );
+        }
+    }
+
+    /**
+     * does percentage decoding on a path portion of a url
+     *
+     * E.g. /foo  > /foo
+     * /with%20space -> /with space
+     *
+     * @param href
+     */
+    public static String decodePath( String href ) {
+        // For IPv6
+        href = href.replace( "[", "%5B" ).replace( "]", "%5D" );
+
+        // Seems that some client apps send spaces.. maybe..
+        href = href.replace( " ", "%20" );
+        try {
+            if( href.startsWith( "/" ) ) {
+                URI uri = new URI( "http://anything.com" + href );
+                return uri.getPath();
+            } else {
+                URI uri = new URI( "http://anything.com/" + href );
+                String s = uri.getPath();
+                return s.substring( 1 );
+            }
+        } catch( URISyntaxException ex ) {
+            throw new RuntimeException( ex );
         }
     }
     public Folder parent;
@@ -53,18 +83,18 @@ public class Resource {
         try {
             if( parent == null ) throw new NullPointerException( "parent" );
             this.parent = parent;
-            name = resp.name;
-            displayName = resp.displayName;
+            name = Resource.decodePath( resp.name );
+            displayName = Resource.decodePath( resp.displayName );
             createdDate = DateUtils.parseWebDavDate( resp.createdDate );
             if( resp.modifiedDate.endsWith( "Z" ) ) {
                 modifiedDate = DateUtils.parseWebDavDate( resp.modifiedDate );
                 if( resp.serverDate != null ) {
                     // calc difference and use that as delta on local time
-                    Date serverDate = DateUtils.parseDate( resp.serverDate);
+                    Date serverDate = DateUtils.parseDate( resp.serverDate );
                     long delta = serverDate.getTime() - modifiedDate.getTime();
-                    modifiedDate = new Date(System.currentTimeMillis() - delta);
+                    modifiedDate = new Date( System.currentTimeMillis() - delta );
                 } else {
-                    log.debug( "no server date");
+                    log.debug( "no server date" );
                 }
             } else {
                 modifiedDate = DateUtils.parseDate( resp.modifiedDate );
@@ -97,8 +127,8 @@ public class Resource {
         listeners.add( l );
     }
 
-    public String post(Map<String,String> params) {
-        return host().doPost(href(), params);
+    public String post( Map<String, String> params ) {
+        return host().doPost( href(), params );
     }
 
     public void copyTo( Folder folder ) {

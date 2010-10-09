@@ -14,6 +14,7 @@ import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropPatchSetter;
 import com.bradmcevoy.property.PropertyAuthoriser;
 import com.bradmcevoy.property.PropertySource;
+import com.ettrema.event.EventManager;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class JsonResourceFactory implements ResourceFactory {
     private final ResourceFactory wrapped;
     private JsonPropFindHandler propFindHandler;
     private JsonPropPatchHandler propPatchHandler;
+    private EventManager eventManager;
     private static final String DAV_FOLDER = "_DAV";
 
     public JsonResourceFactory(ResourceFactory wrapped, JsonPropFindHandler propFindHandler, JsonPropPatchHandler propPatchHandler) {
@@ -96,9 +98,9 @@ public class JsonResourceFactory implements ResourceFactory {
         if (Request.Method.MKCOL.code.equals(method)) {
             if (wrappedResource instanceof MakeCollectionableResource) {
                 if (wrappedResource instanceof DigestResource) {
-                    return new DigestMkcolJsonResource((MakeCollectionableResource) wrappedResource, href);
+                    return new DigestMkcolJsonResource((MakeCollectionableResource) wrappedResource, href, eventManager);
                 } else {
-                    return new MkcolJsonResource((MakeCollectionableResource) wrappedResource, href);
+                    return new MkcolJsonResource((MakeCollectionableResource) wrappedResource, href, eventManager);
                 }
             }
         }
@@ -129,5 +131,13 @@ public class JsonResourceFactory implements ResourceFactory {
 
     public JsonPropPatchHandler getPropPatchHandler() {
         return propPatchHandler;
+    }
+
+    public EventManager getEventManager() {
+        return eventManager;
+    }
+
+    public void setEventManager( EventManager eventManager ) {
+        this.eventManager = eventManager;
     }
 }

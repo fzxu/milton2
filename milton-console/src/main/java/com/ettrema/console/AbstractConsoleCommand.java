@@ -4,6 +4,7 @@ package com.ettrema.console;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.ettrema.event.EventManager;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ public abstract class AbstractConsoleCommand implements ConsoleCommand{
     protected final List<String> args;
     protected final Cursor cursor;
     protected final ResourceFactory resourceFactory;
+    protected EventManager eventManager;
 
     AbstractConsoleCommand(List<String> args, String host, String currentDir, ResourceFactory resourceFactory) {
         this.args = args;
@@ -36,7 +38,13 @@ public abstract class AbstractConsoleCommand implements ConsoleCommand{
     
     protected Resource host() {
         return cursor.host();
-    }    
+    }
 
+    public EventManager getEventManager() {
+        return eventManager;
+    }
 
+    public void setEventManager( EventManager eventManager ) {
+        this.eventManager = eventManager;
+    }
 }

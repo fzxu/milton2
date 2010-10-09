@@ -5,6 +5,8 @@ import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import com.bradmcevoy.property.PropertyHandler;
 import com.bradmcevoy.property.PropertyAuthoriser;
+import com.ettrema.event.EventManager;
+import com.ettrema.event.EventManagerImpl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,6 +48,7 @@ public class HttpManager {
     protected final Http11ResponseHandler responseHandler;
     private SessionAuthenticationHandler sessionAuthenticationHandler;
     private PropertyAuthoriser propertyPermissionService;
+    private EventManager eventManager = new EventManagerImpl();
 
     /**
      * Creates the manager with a DefaultResponseHandler
@@ -242,5 +245,14 @@ public class HttpManager {
     public void setEnableExpectContinue( boolean enableExpectContinue ) {
         handlers.setEnableExpectContinue( enableExpectContinue );
     }
+
+    public EventManager getEventManager() {
+        return eventManager;
+    }
+
+    public void setEventManager( EventManager eventManager ) {
+        this.eventManager = eventManager;
+    }
+
 
 }

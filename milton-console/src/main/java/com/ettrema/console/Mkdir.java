@@ -4,8 +4,10 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.ettrema.event.NewFolderEvent;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,9 @@ public class Mkdir extends AbstractConsoleCommand {
                 CollectionResource newCol;
                 try {
                     newCol = doCreate( mcr, newName );
+                } catch( BadRequestException ex) {
+                    log.debug( "ex", ex );
+                    return result( "BadRequestException exception: " + ex.getMessage() );
                 } catch( ConflictException ex ) {
                     log.debug( "ex", ex );
                     return result( "conflict exception: " + ex.getMessage() );
@@ -50,8 +55,12 @@ public class Mkdir extends AbstractConsoleCommand {
         }
     }
 
-    protected CollectionResource doCreate( MakeCollectionableResource parent, String newName ) throws ConflictException, NotAuthorizedException {
-        return parent.createCollection( newName );
+    protected CollectionResource doCreate(MakeCollectionableResource parent, String newName ) throws ConflictException, NotAuthorizedException, BadRequestException {
+        CollectionResource col = parent.createCollection( newName );
+        if( eventManager != null ) {
+            eventManager.fireEvent( new NewFolderEvent( col));
+        }
+        return col;
     }
 
     protected Result validate( CollectionResource cur, String newName ) {
