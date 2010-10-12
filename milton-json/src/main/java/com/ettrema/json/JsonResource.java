@@ -19,18 +19,20 @@ public abstract class JsonResource {
 
     private final Resource wrappedResource;
     private final String name;
+    private final Long maxAgeSecs;
 
     public abstract Method applicableMethod();
 
-    public JsonResource( Resource wrappedResource, String name ) {
+    public JsonResource( Resource wrappedResource, String name, Long maxAgeSecs ) {
         this.wrappedResource = wrappedResource;
         this.name = name;
+        this.maxAgeSecs = maxAgeSecs;
     }
 
 
 
     public Long getMaxAgeSeconds( Auth auth ) {
-        return 0L;
+        return maxAgeSecs;
     }
 
     public String getContentType( String accepts ) {

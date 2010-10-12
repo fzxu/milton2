@@ -49,7 +49,7 @@ public class PutJsonResource extends JsonResource implements PostableResource {
     private List<NewFile> newFiles;
 
     public PutJsonResource( PutableResource putableResource, String href ) {
-        super( putableResource, Request.Method.PUT.code );
+        super( putableResource, Request.Method.PUT.code, null );
         this.wrapped = putableResource;
         this.href = href;
     }

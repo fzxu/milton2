@@ -13,8 +13,8 @@ public class DigestPropFindJsonResource extends PropFindJsonResource implements 
 
     private final DigestResource digestResource;
 
-    public DigestPropFindJsonResource( PropFindableResource wrappedResource, JsonPropFindHandler jsonPropFindHandler, String encodedUrl ) {
-        super(wrappedResource, jsonPropFindHandler, encodedUrl );
+    public DigestPropFindJsonResource( PropFindableResource wrappedResource, JsonPropFindHandler jsonPropFindHandler, String encodedUrl, Long maxAgeSecs ) {
+        super(wrappedResource, jsonPropFindHandler, encodedUrl, maxAgeSecs );
         this.digestResource = (DigestResource) wrappedResource;
     }
 

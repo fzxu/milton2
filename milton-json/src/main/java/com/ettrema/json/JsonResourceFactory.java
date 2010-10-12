@@ -29,6 +29,7 @@ public class JsonResourceFactory implements ResourceFactory {
     private JsonPropFindHandler propFindHandler;
     private JsonPropPatchHandler propPatchHandler;
     private EventManager eventManager;
+    private Long maxAgeSecsPropFind = null;
     private static final String DAV_FOLDER = "_DAV";
 
     public JsonResourceFactory(ResourceFactory wrapped, JsonPropFindHandler propFindHandler, JsonPropPatchHandler propPatchHandler) {
@@ -73,9 +74,9 @@ public class JsonResourceFactory implements ResourceFactory {
         if (Request.Method.PROPFIND.code.equals(method)) {
             if (wrappedResource instanceof PropFindableResource) {
                 if (wrappedResource instanceof DigestResource) {
-                    return new DigestPropFindJsonResource((PropFindableResource) wrappedResource, propFindHandler, href);
+                    return new DigestPropFindJsonResource((PropFindableResource) wrappedResource, propFindHandler, href, maxAgeSecsPropFind);
                 } else {
-                    return new PropFindJsonResource((PropFindableResource) wrappedResource, propFindHandler, href);
+                    return new PropFindJsonResource((PropFindableResource) wrappedResource, propFindHandler, href, maxAgeSecsPropFind);
                 }
             }
         }
@@ -139,5 +140,13 @@ public class JsonResourceFactory implements ResourceFactory {
 
     public void setEventManager( EventManager eventManager ) {
         this.eventManager = eventManager;
+    }
+
+    public Long getMaxAgeSecsPropFind() {
+        return maxAgeSecsPropFind;
+    }
+
+    public void setMaxAgeSecsPropFind( Long maxAgeSecsPropFind ) {
+        this.maxAgeSecsPropFind = maxAgeSecsPropFind;
     }
 }

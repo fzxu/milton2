@@ -31,7 +31,7 @@ public class CopyJsonResource extends JsonResource implements PostableResource{
     private final CopyableResource wrapped;
 
     public CopyJsonResource( String host, CopyableResource copyableResource, ResourceFactory resourceFactory ) {
-        super(copyableResource, Request.Method.COPY.code);
+        super(copyableResource, Request.Method.COPY.code, null);
         this.host = host;
         this.wrapped = copyableResource;
         this.resourceFactory = resourceFactory;

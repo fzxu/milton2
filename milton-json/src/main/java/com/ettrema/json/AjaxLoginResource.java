@@ -20,7 +20,7 @@ public class AjaxLoginResource extends JsonResource implements GetableResource{
     private final GetableResource wrapped;
 
     public AjaxLoginResource( String name, GetableResource wrapped ) {
-        super(wrapped, name );
+        super(wrapped, name, null );
         this.name = name;
         this.wrapped = wrapped;
     }

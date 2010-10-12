@@ -34,7 +34,7 @@ public class PropPatchJsonResource extends JsonResource implements PostableResou
     private PropFindResponse resp;
 
     public PropPatchJsonResource( Resource wrappedResource, JsonPropPatchHandler patchHandler, String encodedUrl ) {
-        super( wrappedResource, Request.Method.PROPPATCH.code );
+        super( wrappedResource, Request.Method.PROPPATCH.code, null );
         this.wrappedResource = wrappedResource;
         this.encodedUrl = encodedUrl;
         this.patchHandler = patchHandler;

@@ -16,8 +16,8 @@ public class PropFindJsonResource extends JsonResource implements GetableResourc
     private final JsonPropFindHandler jsonPropFindHandler;
     private final String encodedUrl;
 
-    public PropFindJsonResource( PropFindableResource wrappedResource, JsonPropFindHandler jsonPropFindHandler, String encodedUrl ) {
-        super(wrappedResource, Request.Method.PROPFIND.code);
+    public PropFindJsonResource( PropFindableResource wrappedResource, JsonPropFindHandler jsonPropFindHandler, String encodedUrl, Long maxAgeSecs ) {
+        super(wrappedResource, Request.Method.PROPFIND.code, maxAgeSecs);
         this.wrappedResource = wrappedResource;
         this.encodedUrl = encodedUrl;
         this.jsonPropFindHandler = jsonPropFindHandler;

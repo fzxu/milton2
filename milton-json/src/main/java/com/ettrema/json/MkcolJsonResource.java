@@ -32,7 +32,7 @@ public class MkcolJsonResource extends JsonResource implements PostableResource 
     private final EventManager eventManager;
 
     public MkcolJsonResource( MakeCollectionableResource makeCollectionableResource, String href, EventManager eventManager ) {
-        super( makeCollectionableResource, Request.Method.PUT.code );
+        super( makeCollectionableResource, Request.Method.PUT.code, null );
         this.eventManager = eventManager;
         this.wrapped = makeCollectionableResource;
         this.href = href;
