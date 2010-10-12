@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ import org.slf4j.LoggerFactory;
 public class Folder extends Resource {
     private static final Logger log = LoggerFactory.getLogger( Folder.class );
     private boolean childrenLoaded = false;
-    private final List<Resource> list = new ArrayList<Resource>();
+    private final List<Resource> list = new CopyOnWriteArrayList<Resource>();
     final List<FolderListener> folderListeners = new ArrayList<FolderListener>();
 
     /**
@@ -38,7 +39,7 @@ public class Folder extends Resource {
         super( parent, name );
     }
 
-    public void addListener( FolderListener l ) {
+    public void addListener( FolderListener l ) throws IOException {
         for( Resource r : this.children() ) {
             l.onChildAdded( r.parent, r );
         }
@@ -51,7 +52,7 @@ public class Folder extends Resource {
 
 
     @Override
-    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException {
+    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException {
         File thisDir = new File( destFolder, this.name );
         thisDir.mkdir();
         for( Resource r : this.children() ) {
@@ -60,7 +61,7 @@ public class Folder extends Resource {
         return thisDir;
     }
 
-    public void flush() {        
+    public void flush() throws IOException {
         if( list != null ) {
             for( Resource r : list ) {
                 notifyOnChildRemoved( r );
@@ -71,7 +72,7 @@ public class Folder extends Resource {
         children();
     }
 
-    public List<? extends Resource> children() {
+    public List<? extends Resource> children() throws IOException {
         if( childrenLoaded ) return list;
 
         List<Response> responses = host().doPropFind( href(), 1 );
@@ -100,11 +101,11 @@ public class Folder extends Resource {
         return href() + " (is a folder)";
     }
 
-    public void upload( File f ) {
+    public void upload( File f ) throws IOException {
         upload( f, null );
     }
 
-    public void upload( File f, ProgressListener listener ) {
+    public void upload( File f, ProgressListener listener ) throws IOException {
         if( f.isDirectory() ) {
             uploadFolder( f, listener );
         } else {
@@ -126,7 +127,7 @@ public class Folder extends Resource {
         }
     }
 
-    protected void uploadFolder( File folder, ProgressListener listener ) {
+    protected void uploadFolder( File folder, ProgressListener listener ) throws IOException {
         if( folder.getName().startsWith( ".") ) {
             return ;
         }
@@ -136,7 +137,7 @@ public class Folder extends Resource {
         }
     }
 
-    public com.ettrema.httpclient.File upload( String name, InputStream content, Long contentLength ) {
+    public com.ettrema.httpclient.File upload( String name, InputStream content, Long contentLength ) throws IOException {
         children(); // ensure children are loaded
         String newUri = href() + name;
         String contentType = URLConnection.guessContentTypeFromName( name );
@@ -152,7 +153,7 @@ public class Folder extends Resource {
         return child;
     }
 
-    public Folder createFolder( String name ) {
+    public Folder createFolder( String name ) throws IOException {
         children(); // ensure children are loaded
         String newUri = href() + name;
         host().doMkCol( newUri );
@@ -162,7 +163,7 @@ public class Folder extends Resource {
         return child;
     }
 
-    public Resource child( String childName ) {
+    public Resource child( String childName ) throws IOException {
         for( Resource r : children() ) {
             if( r.name.equals( childName ) ) return r;
         }

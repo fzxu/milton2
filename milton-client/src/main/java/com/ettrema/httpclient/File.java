@@ -1,6 +1,7 @@
 package com.ettrema.httpclient;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 /**
  *
@@ -23,7 +24,7 @@ public class File extends Resource {
         this.contentLength = contentLength;
     }
 
-    public void setContent(ByteArrayInputStream in, Long contentLength) {
+    public void setContent(ByteArrayInputStream in, Long contentLength) throws IOException {
         this.parent.upload(this.name,in, contentLength);
     }
 

@@ -131,12 +131,12 @@ public class Resource {
         return host().doPost( href(), params );
     }
 
-    public void copyTo( Folder folder ) {
+    public void copyTo( Folder folder ) throws IOException {
         host().doCopy( href(), folder.href() + this.name );
         folder.flush();
     }
 
-    public void moveTo( Folder folder ) {
+    public void moveTo( Folder folder ) throws IOException {
         int res = host().doMove( href(), folder.href() + this.name );
         if( res == 201 ) {
             notifyOnMove( folder );
@@ -147,7 +147,7 @@ public class Resource {
         listeners.remove( l );
     }
 
-    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException {
+    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException {
         if( !destFolder.exists() )
             throw new FileNotFoundException( destFolder.getAbsolutePath() );
         File dest = new File( destFolder, name );
@@ -192,7 +192,7 @@ public class Resource {
         return href() + "(" + displayName + ")";
     }
 
-    public void delete() {
+    public void delete() throws IOException {
         host().doDelete( href() );
         notifyOnDelete();
     }

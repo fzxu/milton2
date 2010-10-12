@@ -66,7 +66,7 @@ public class Host extends Folder {
 //    hostConfig.setProxy("aproxy", 80);
     }
 
-    public Resource find( String path ) {
+    public Resource find( String path ) throws IOException {
         if( path == null || path.length() == 0 || path.equals( "/" ) )
             return this;
         String[] arr = path.split( "/" );
@@ -74,7 +74,7 @@ public class Host extends Folder {
 
     }
 
-    public static Resource _find( Folder parent, String[] arr, int i ) {
+    public static Resource _find( Folder parent, String[] arr, int i ) throws IOException {
         String childName = arr[i];
         Resource child = parent.child( childName );
         if( i == arr.length - 1 ) {
@@ -89,7 +89,7 @@ public class Host extends Folder {
         }
     }
 
-    public Folder getFolder( String path ) {
+    public Folder getFolder( String path ) throws IOException {
         Resource res = find( path );
         if( res instanceof Folder ) {
             return (Folder) res;
@@ -165,7 +165,7 @@ public class Host extends Folder {
 
     }
 
-    synchronized int doDelete( String href ) {
+    synchronized int doDelete( String href ) throws IOException {
         notifyStartRequest();
         DeleteMethod m = new DeleteMethod( urlEncode( href ) );
         try {
@@ -174,15 +174,13 @@ public class Host extends Folder {
             return res;
         } catch( HttpException ex ) {
             throw new RuntimeException( ex );
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
         } finally {
             m.releaseConnection();
             notifyFinishRequest();
         }
     }
 
-    synchronized int doMove( String href, String newUri ) {
+    synchronized int doMove( String href, String newUri ) throws IOException {
         notifyStartRequest();
         MoveMethod m = new MoveMethod( urlEncode( href ), urlEncode( newUri ) );
         try {
@@ -191,8 +189,6 @@ public class Host extends Folder {
             return res;
         } catch( HttpException ex ) {
             throw new RuntimeException( ex );
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
         } finally {
             m.releaseConnection();
             notifyFinishRequest();
@@ -200,7 +196,7 @@ public class Host extends Folder {
 
     }
 
-    synchronized List<PropFindMethod.Response> doPropFind( String url, int depth ) {
+    synchronized List<PropFindMethod.Response> doPropFind( String url, int depth ) throws IOException {
         log.trace( "doPropFind: " + url);
         notifyStartRequest();
         PropFindMethod m = createPropFind( depth, url );
@@ -213,8 +209,6 @@ public class Host extends Folder {
                 return null;
             }
         } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
-        } catch( IOException ex ) {
             throw new RuntimeException( ex );
         } finally {
             m.releaseConnection();
