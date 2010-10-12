@@ -220,7 +220,7 @@ public class LockHandler implements ResourceHandler {
             response.setLockTokenHeader( "<opaquelocktoken:" + tok.tokenId + ">" );  // spec says to set response header. See 8.10.1
             respondWithToken( tok, request, response );
         } else {
-            responseWithLockFailure( result, request, response );
+            respondWithLockFailure( result, request, response );
         }
     }
 
@@ -238,7 +238,7 @@ public class LockHandler implements ResourceHandler {
             LockToken tok = result.getLockToken();
             respondWithToken( tok, request, response );
         } else {
-            responseWithLockFailure( result, request, response );
+            respondWithLockFailure( result, request, response );
         }
     }
 
@@ -289,7 +289,8 @@ public class LockHandler implements ResourceHandler {
     }
 
 
-    private void responseWithLockFailure( LockResult result, Request request, Response response ) {
+    private void respondWithLockFailure( LockResult result, Request request, Response response ) {
+        log.info("respondWithLockFailure: " + result.getFailureReason().name());
         response.setStatus( result.getFailureReason().status );
 
     }
