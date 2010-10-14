@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author mcevoyb
  */
-public class PropFindMethod extends HttpMethodBase {
+public class PropFindMethod extends EntityEnclosingMethod {
 
     private static final Logger log = LoggerFactory.getLogger( PropFindMethod.class );
 
@@ -79,6 +79,8 @@ public class PropFindMethod extends HttpMethodBase {
         final String serverDate;
         final String contentType;
         final Long contentLength;
+        final Long quotaAvailableBytes;
+        final Long quotaUsedBytes;
         final boolean isCollection;
 
         public Response( String serverDate, Element elResponse ) {
@@ -100,6 +102,8 @@ public class PropFindMethod extends HttpMethodBase {
             modifiedDate = RespUtils.asString( el, "getlastmodified" );
             contentType = RespUtils.asString( el, "getcontenttype" );
             contentLength = RespUtils.asLong( el, "getcontentlength" );
+            quotaAvailableBytes = RespUtils.asLong( el, "quota-available-bytes" );
+            quotaUsedBytes = RespUtils.asLong( el, "quota-used-bytes" );
             isCollection = RespUtils.hasChild( el.element( "resourcetype" ), "collection" );
         }
     }

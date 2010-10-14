@@ -19,6 +19,7 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +30,23 @@ import org.slf4j.LoggerFactory;
  */
 public class Host extends Folder {
 
-    private static final Logger log = LoggerFactory.getLogger( Host.class );
+    private static String PROPFIND_XML = "<?xml version=\"1.0\"?>"
+        + "<d:propfind xmlns:d='DAV:'><d:prop>"
+        + "<d:resourcetype/><d:displayname/><d:getcontentlength/><d:creationdate/><d:getlastmodified/><d:iscollection/>"
+        + "<d:quota-available-bytes/><d:quota-used-bytes/>"
+        + "</d:prop></d:propfind>";
 
+
+
+    private static final Logger log = LoggerFactory.getLogger( Host.class );
     public final String server;
     public final int port;
     public final String user;
     public final String password;
     final HttpClient client;
     public final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
+
+    private String propFindXml = PROPFIND_XML;
 
     static {
         //  System.setProperty("java.net.useSystemProxies", "true");
@@ -61,7 +71,7 @@ public class Host extends Folder {
         //client.getState().setProxyCredentials(AuthScope.ANY, new NTCredentials("xxx", "yyy", "", "zzz"));
 
         client.getParams().setAuthenticationPreemptive( true );
-        client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
+        client.getParams().setCookiePolicy( CookiePolicy.IGNORE_COOKIES );
 //    HostConfiguration hostConfig = client.getHostConfiguration();
 //    hostConfig.setProxy("aproxy", 80);
     }
@@ -83,7 +93,7 @@ public class Host extends Folder {
             if( child instanceof Folder ) {
                 return _find( (Folder) child, arr, i + 1 );
             } else {
-                log.trace( "not found: " + childName);
+                log.trace( "not found: " + childName );
                 return null;
             }
         }
@@ -124,12 +134,12 @@ public class Host extends Folder {
     synchronized int doPut( String newUri, InputStream content, Long contentLength, String contentType ) {
         notifyStartRequest();
         String s = urlEncode( newUri );
-        log.trace( "doPut: " + s + " - size:" + contentLength);
+        log.trace( "doPut: " + s + " - size:" + contentLength );
         PutMethod p = new PutMethod( s );
         try {
             RequestEntity requestEntity;
             if( contentLength == null ) {
-                log.trace( "no content length");
+                log.trace( "no content length" );
                 requestEntity = new InputStreamRequestEntity( content, contentType );
             } else {
                 requestEntity = new InputStreamRequestEntity( content, contentLength, contentType );
@@ -197,10 +207,16 @@ public class Host extends Folder {
     }
 
     synchronized List<PropFindMethod.Response> doPropFind( String url, int depth ) throws IOException {
-        log.trace( "doPropFind: " + url);
+        log.trace( "doPropFind: " + url );
         notifyStartRequest();
         PropFindMethod m = createPropFind( depth, url );
+
         try {
+            if( propFindXml != null ) {
+                RequestEntity requestEntity = new StringRequestEntity( propFindXml, "text/xml", "UTF-8" );
+                m.setRequestEntity( requestEntity );
+            }
+
             int res = client.executeMethod( m );
             Utils.processResultCode( res, url );
             if( res == 207 ) {
@@ -246,8 +262,8 @@ public class Host extends Folder {
     String doPost( String url, Map<String, String> params ) {
         notifyStartRequest();
         PostMethod m = new PostMethod( urlEncode( url ) );
-        for( Entry<String, String> entry : params.entrySet()) {
-            m.addParameter( entry.getKey(), entry.getValue());
+        for( Entry<String, String> entry : params.entrySet() ) {
+            m.addParameter( entry.getKey(), entry.getValue() );
         }
         InputStream in = null;
         try {
@@ -255,7 +271,7 @@ public class Host extends Folder {
             Utils.processResultCode( res, url );
             in = m.getResponseBodyAsStream();
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            IOUtils.copy( in, bout);
+            IOUtils.copy( in, bout );
             return bout.toString();
         } catch( HttpException ex ) {
             throw new RuntimeException( ex );
@@ -267,8 +283,6 @@ public class Host extends Folder {
             notifyFinishRequest();
         }
     }
-
-
 
     @Override
     public Host host() {
@@ -297,5 +311,13 @@ public class Host extends Folder {
         }
     }
 
+    public String getPropFindXml() {
+        return propFindXml;
+    }
 
+    public void setPropFindXml( String propFindXml ) {
+        this.propFindXml = propFindXml;
+    }
+
+    
 }

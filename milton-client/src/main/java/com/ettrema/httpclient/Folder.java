@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
  * @author mcevoyb
  */
 public class Folder extends Resource {
+
     private static final Logger log = LoggerFactory.getLogger( Folder.class );
     private boolean childrenLoaded = false;
     private final List<Resource> list = new CopyOnWriteArrayList<Resource>();
@@ -46,10 +47,9 @@ public class Folder extends Resource {
         folderListeners.add( l );
     }
 
-    public String post(String relativePath, Map<String,String> params) {
-        return host().doPost(href() + relativePath, params);
+    public String post( String relativePath, Map<String, String> params ) {
+        return host().doPost( href() + relativePath, params );
     }
-
 
     @Override
     public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException {
@@ -78,7 +78,7 @@ public class Folder extends Resource {
         List<Response> responses = host().doPropFind( href(), 1 );
         childrenLoaded = true;
         if( responses != null ) {
-            log.trace( "responses: {}", responses.size());
+            log.trace( "responses: {}", responses.size() );
             for( Response resp : responses ) {
                 if( !resp.href.equals( this.href() ) ) {
                     Resource r = Resource.fromResponse( this, resp );
@@ -87,7 +87,7 @@ public class Folder extends Resource {
                 }
             }
         } else {
-            log.trace( "null responses");
+            log.trace( "null responses" );
         }
         return list;
     }
@@ -114,6 +114,8 @@ public class Folder extends Resource {
     }
 
     protected void uploadFile( File f, ProgressListener listener ) {
+        log.warn( "uploadFile: " + f.getAbsolutePath());
+        log.trace( "uploadFile: " + listener);
         NotifyingFileInputStream in = null;
         try {
             in = new NotifyingFileInputStream( f, listener );
@@ -128,8 +130,8 @@ public class Folder extends Resource {
     }
 
     protected void uploadFolder( File folder, ProgressListener listener ) throws IOException {
-        if( folder.getName().startsWith( ".") ) {
-            return ;
+        if( folder.getName().startsWith( "." ) ) {
+            return;
         }
         Folder newFolder = createFolder( folder.getName() );
         for( File f : folder.listFiles() ) {
@@ -141,7 +143,7 @@ public class Folder extends Resource {
         children(); // ensure children are loaded
         String newUri = href() + name;
         String contentType = URLConnection.guessContentTypeFromName( name );
-        log.trace( "upload: " + newUri);
+        log.trace( "upload: " + newUri );
         host().doPut( newUri, content, contentLength, contentType );
         com.ettrema.httpclient.File child = new com.ettrema.httpclient.File( this, name, contentType, contentLength );
         com.ettrema.httpclient.Resource oldChild = this.child( child.name );
@@ -190,13 +192,17 @@ public class Folder extends Resource {
         final String fileName;
         long pos;
         long totalLength;
-        long nextNotify;
+
+        // the system time we last notified the progress listener
+        long timeLastNotify;
+        long bytesSinceLastNotify;
 
         public NotifyingFileInputStream( File f, ProgressListener listener ) throws FileNotFoundException {
             super( f );
             this.listener = listener;
             this.totalLength = f.length();
             this.fileName = f.getAbsolutePath();
+            this.timeLastNotify = System.currentTimeMillis();
         }
 
         @Override
@@ -219,23 +225,26 @@ public class Folder extends Resource {
 
         private void increment( int len ) {
             pos += len;
-            if( pos >= nextNotify ) {
-                notifyListener();
-            }
+            notifyListener(len);
         }
 
-        void notifyListener() {
-            if( totalLength <= 0 ) {
-                listener.onProgress( 100, fileName );
-                nextNotify += pos;
-            } else {
-                nextNotify = pos + totalLength / 50;
-                if( nextNotify > totalLength ) nextNotify = totalLength;
+        void notifyListener( int numBytes ) {
+            bytesSinceLastNotify += numBytes;
+            int timeDiff = (int) ( System.currentTimeMillis() - timeLastNotify );
+            log.trace( "notify progrss listener: " + timeDiff);
+            if( timeDiff > 100 ) {
+                timeLastNotify = System.currentTimeMillis();
+                int bytesPerSec = (int) ( bytesSinceLastNotify / timeDiff );
+                if( totalLength <= 0 ) {
+                    listener.onProgress( 100, fileName, bytesPerSec );
+                } else {
+                    int percent = (int) ( ( pos * 100 / totalLength ) );
+                    if( percent > 100 ) percent = 100;
+                    listener.onProgress( percent, fileName, bytesPerSec );
+                }
 
-                int percent = (int) ( ( pos * 100 / totalLength ) );
-                if( percent > 100 ) percent = 100;
-                listener.onProgress( percent, fileName );
             }
+
         }
     }
 

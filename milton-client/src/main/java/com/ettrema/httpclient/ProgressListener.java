@@ -6,7 +6,7 @@ package com.ettrema.httpclient;
  */
 public interface ProgressListener {
 
-    void onProgress( int percent, String fileName );
+    void onProgress( int percent, String fileName, int bytesPerSec );
 
     void onComplete( String fileName );
 }

@@ -66,6 +66,8 @@ public class Resource {
     public String displayName;
     private Date modifiedDate;
     private Date createdDate;
+    private final Long quotaAvailableBytes;
+    private final Long quotaUsedBytes;
     final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
 
     /**
@@ -77,6 +79,8 @@ public class Resource {
         this.displayName = "";
         this.createdDate = null;
         this.modifiedDate = null;
+        quotaAvailableBytes = null;
+        quotaUsedBytes = null;
     }
 
     public Resource( Folder parent, Response resp ) {
@@ -86,6 +90,9 @@ public class Resource {
             name = Resource.decodePath( resp.name );
             displayName = Resource.decodePath( resp.displayName );
             createdDate = DateUtils.parseWebDavDate( resp.createdDate );
+            quotaAvailableBytes = resp.quotaAvailableBytes;
+            quotaUsedBytes = resp.quotaUsedBytes;
+
             if( resp.modifiedDate.endsWith( "Z" ) ) {
                 modifiedDate = DateUtils.parseWebDavDate( resp.modifiedDate );
                 if( resp.serverDate != null ) {
@@ -112,6 +119,8 @@ public class Resource {
         this.displayName = displayName;
         this.modifiedDate = modifiedDate;
         this.createdDate = createdDate;
+        quotaAvailableBytes = null;
+        quotaUsedBytes = null;
     }
 
     public Resource( Folder parent, String name ) {
@@ -121,6 +130,8 @@ public class Resource {
         this.displayName = name;
         this.modifiedDate = null;
         this.createdDate = null;
+        quotaAvailableBytes = null;
+        quotaUsedBytes = null;
     }
 
     public void addListener( ResourceListener l ) {
@@ -165,7 +176,7 @@ public class Resource {
 
     public void download( final OutputStream out, ProgressListener listener ) {
         if( listener != null ) {
-            listener.onProgress( 0, this.name );
+            listener.onProgress( 0, this.name, -1 );
         }
         try {
             host().doGet( href(), new StreamReceiver() {
@@ -182,7 +193,7 @@ public class Resource {
             Utils.close( out );
         }
         if( listener != null ) {
-            listener.onProgress( 100, this.name );
+            listener.onProgress( 100, this.name, -1 );
             listener.onComplete( this.name );
         }
     }
@@ -233,4 +244,14 @@ public class Resource {
     public Date getCreatedDate() {
         return createdDate;
     }
+
+    public Long getQuotaAvailableBytes() {
+        return quotaAvailableBytes;
+    }
+
+    public Long getQuotaUsedBytes() {
+        return quotaUsedBytes;
+    }
+
+    
 }
