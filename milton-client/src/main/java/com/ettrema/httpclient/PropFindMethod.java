@@ -50,7 +50,6 @@ public class PropFindMethod extends EntityEnclosingMethod {
             if( serverDateHeader != null ) {
                 serverDate = serverDateHeader.getValue();
             }
-            log.debug( "serverDate: " + serverDate);
             Document document = getResponseAsDocument();
             if( document == null ) {
                 return responses;

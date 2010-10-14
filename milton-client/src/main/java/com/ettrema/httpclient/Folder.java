@@ -78,7 +78,6 @@ public class Folder extends Resource {
         List<Response> responses = host().doPropFind( href(), 1 );
         childrenLoaded = true;
         if( responses != null ) {
-            log.trace( "responses: {}", responses.size() );
             for( Response resp : responses ) {
                 if( !resp.href.equals( this.href() ) ) {
                     Resource r = Resource.fromResponse( this, resp );
@@ -102,23 +101,30 @@ public class Folder extends Resource {
     }
 
     public void upload( File f ) throws IOException {
-        upload( f, null );
+        upload( f, null, null );
     }
 
-    public void upload( File f, ProgressListener listener ) throws IOException {
+    /**
+     *
+     * @param f
+     * @param listener
+     * @param throttle - optional, can be used to slow down the transfer
+     * @throws IOException
+     */
+    public void upload( File f, ProgressListener listener, Throttle throttle ) throws IOException {
         if( f.isDirectory() ) {
-            uploadFolder( f, listener );
+            uploadFolder( f, listener, throttle );
         } else {
-            uploadFile( f, listener );
+            uploadFile( f, listener, throttle );
         }
     }
 
-    protected void uploadFile( File f, ProgressListener listener ) {
-        log.warn( "uploadFile: " + f.getAbsolutePath());
-        log.trace( "uploadFile: " + listener);
+    protected void uploadFile( File f, ProgressListener listener, Throttle throttle ) {
+        log.warn( "uploadFile: " + f.getAbsolutePath() );
+        log.trace( "uploadFile: " + listener );
         NotifyingFileInputStream in = null;
         try {
-            in = new NotifyingFileInputStream( f, listener );
+            in = new NotifyingFileInputStream( f, listener, throttle );
             upload( f.getName(), in, f.length() );
             flush();
             listener.onComplete( in.fileName );
@@ -129,13 +135,13 @@ public class Folder extends Resource {
         }
     }
 
-    protected void uploadFolder( File folder, ProgressListener listener ) throws IOException {
+    protected void uploadFolder( File folder, ProgressListener listener, Throttle throttle ) throws IOException {
         if( folder.getName().startsWith( "." ) ) {
             return;
         }
         Folder newFolder = createFolder( folder.getName() );
         for( File f : folder.listFiles() ) {
-            newFolder.upload( f, listener );
+            newFolder.upload( f, listener, throttle );
         }
     }
 
@@ -189,16 +195,17 @@ public class Folder extends Resource {
     private class NotifyingFileInputStream extends FileInputStream {
 
         final ProgressListener listener;
+        final Throttle throttle;
         final String fileName;
         long pos;
         long totalLength;
-
         // the system time we last notified the progress listener
         long timeLastNotify;
         long bytesSinceLastNotify;
 
-        public NotifyingFileInputStream( File f, ProgressListener listener ) throws FileNotFoundException {
+        public NotifyingFileInputStream( File f, ProgressListener listener, Throttle throttle ) throws FileNotFoundException {
             super( f );
+            this.throttle = throttle;
             this.listener = listener;
             this.totalLength = f.length();
             this.fileName = f.getAbsolutePath();
@@ -225,26 +232,31 @@ public class Folder extends Resource {
 
         private void increment( int len ) {
             pos += len;
-            notifyListener(len);
+            notifyListener( len );
+            if( throttle != null ) {
+                throttle.onRead( len );
+            }
         }
 
-        void notifyListener( int numBytes ) {
+        void notifyListener( int numBytes ) {            
             bytesSinceLastNotify += numBytes;
+            if( bytesSinceLastNotify < 1000 ) {
+                log.trace( "notifyListener: not enough bytes: " + bytesSinceLastNotify);
+                return ;
+            }
             int timeDiff = (int) ( System.currentTimeMillis() - timeLastNotify );
-            log.trace( "notify progrss listener: " + timeDiff);
-            if( timeDiff > 100 ) {
+            if( timeDiff > 50 ) {
                 timeLastNotify = System.currentTimeMillis();
-                int bytesPerSec = (int) ( bytesSinceLastNotify / timeDiff );
+                log.trace("notifyListener: name: " + fileName);
                 if( totalLength <= 0 ) {
-                    listener.onProgress( 100, fileName, bytesPerSec );
+                    listener.onProgress( 100, fileName );
                 } else {
                     int percent = (int) ( ( pos * 100 / totalLength ) );
                     if( percent > 100 ) percent = 100;
-                    listener.onProgress( percent, fileName, bytesPerSec );
+                    listener.onProgress( percent, fileName );
                 }
-
+                bytesSinceLastNotify = 0;
             }
-
         }
     }
 

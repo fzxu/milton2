@@ -176,7 +176,7 @@ public class Resource {
 
     public void download( final OutputStream out, ProgressListener listener ) {
         if( listener != null ) {
-            listener.onProgress( 0, this.name, -1 );
+            listener.onProgress( 0, this.name );
         }
         try {
             host().doGet( href(), new StreamReceiver() {
@@ -193,7 +193,7 @@ public class Resource {
             Utils.close( out );
         }
         if( listener != null ) {
-            listener.onProgress( 100, this.name, -1 );
+            listener.onProgress( 100, this.name );
             listener.onComplete( this.name );
         }
     }
