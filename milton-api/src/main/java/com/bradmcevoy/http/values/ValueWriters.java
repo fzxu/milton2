@@ -37,8 +37,9 @@ public class ValueWriters {
         writers.add(new LockTokenValueWriter());
         writers.add(new SupportedLockValueWriter());
 
-        // BM: I'm not sure why this is here and whether or not it should be
-//        writers.add(new ModifiedDateValueWriter());
+        // BM: Note that windows explorer is picky about its date format. This
+        // property writer supports it explicitly
+        writers.add(new ModifiedDateValueWriter());
         writers.add(new DateValueWriter());
         writers.add(new ResourceTypeValueWriter());
         writers.add(new BooleanValueWriter());

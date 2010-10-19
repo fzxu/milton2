@@ -7,9 +7,10 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * BM: not sure if we want or need this. Must be here for a reason, but i
- * cant see anywhere that the modified date should be in a different format
- *  to the creation date
+ * Windows explorer is VERY picky about the format of its modified date, which
+ * this class supports
+ *
+ * Only applies to the getlastmodified field
  *
  * @author brad
  */
