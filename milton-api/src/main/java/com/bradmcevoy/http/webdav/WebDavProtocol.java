@@ -376,7 +376,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         }
 
         public String fieldName() {
-            return "supportedlock";
+            return "lockdiscovery";
         }
 
         public Class getValueClass() {
