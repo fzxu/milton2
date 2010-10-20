@@ -244,6 +244,12 @@ public class DateUtils {
         return formatter.format( date );
     }
 
+    /**
+     * Use the long date form required for MS windows explorer
+     *
+     * @param date
+     * @return
+     */
     public static String formatForWebDavModifiedDate( Date date ) {
         return formatDate( date, PATTERN_RFC1123 );
     }
