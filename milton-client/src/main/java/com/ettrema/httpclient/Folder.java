@@ -69,7 +69,7 @@ public class Folder extends Resource {
             list.clear();
             childrenLoaded = false;
         }
-        children();
+//        children();
     }
 
     public List<? extends Resource> children() throws IOException {
@@ -241,13 +241,13 @@ public class Folder extends Resource {
         void notifyListener( int numBytes ) {            
             bytesSinceLastNotify += numBytes;
             if( bytesSinceLastNotify < 1000 ) {
-                log.trace( "notifyListener: not enough bytes: " + bytesSinceLastNotify);
+//                log.trace( "notifyListener: not enough bytes: " + bytesSinceLastNotify);
                 return ;
             }
             int timeDiff = (int) ( System.currentTimeMillis() - timeLastNotify );
-            if( timeDiff > 50 ) {
+            if( timeDiff > 10 ) {
                 timeLastNotify = System.currentTimeMillis();
-                log.trace("notifyListener: name: " + fileName);
+//                log.trace("notifyListener: name: " + fileName);
                 if( totalLength <= 0 ) {
                     listener.onProgress( 100, fileName );
                 } else {

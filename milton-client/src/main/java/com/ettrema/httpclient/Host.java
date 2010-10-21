@@ -35,9 +35,6 @@ public class Host extends Folder {
         + "<d:resourcetype/><d:displayname/><d:getcontentlength/><d:creationdate/><d:getlastmodified/><d:iscollection/>"
         + "<d:quota-available-bytes/><d:quota-used-bytes/>"
         + "</d:prop></d:propfind>";
-
-
-
     private static final Logger log = LoggerFactory.getLogger( Host.class );
     public final String server;
     public final int port;
@@ -45,7 +42,6 @@ public class Host extends Folder {
     public final String password;
     final HttpClient client;
     public final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
-
     private String propFindXml = PROPFIND_XML;
 
     static {
@@ -70,7 +66,9 @@ public class Host extends Folder {
         }
         //client.getState().setProxyCredentials(AuthScope.ANY, new NTCredentials("xxx", "yyy", "", "zzz"));
 
-        client.getParams().setAuthenticationPreemptive( true );
+        if( user != null && user.length() > 0 ) {
+            client.getParams().setAuthenticationPreemptive( true );
+        }
         client.getParams().setCookiePolicy( CookiePolicy.IGNORE_COOKIES );
 //    HostConfiguration hostConfig = client.getHostConfiguration();
 //    hostConfig.setProxy("aproxy", 80);
@@ -134,7 +132,6 @@ public class Host extends Folder {
     synchronized int doPut( String newUri, InputStream content, Long contentLength, String contentType ) {
         notifyStartRequest();
         String s = urlEncode( newUri );
-        log.trace( "doPut: " + s + " - size:" + contentLength );
         PutMethod p = new PutMethod( s );
         try {
             RequestEntity requestEntity;
@@ -252,6 +249,37 @@ public class Host extends Folder {
         }
     }
 
+    public synchronized void options( String path ) throws NotFoundException, java.net.ConnectException, Unauthorized {
+        String url = this.href() + path;
+        log.debug( "options: " + url);
+        doOptions( url );
+    }
+
+    private synchronized void doOptions( String url ) throws NotFoundException, java.net.ConnectException, Unauthorized {
+        notifyStartRequest();
+        GetMethod m = new GetMethod( urlEncode( url ) );
+        InputStream in = null;
+        try {
+            int res = client.executeMethod( m );
+            log.trace( "result code: " + res);
+            Utils.processResultCode( res, url );
+        } catch(java.net.ConnectException e) {
+            throw e;
+        } catch( NotFoundException e ) {
+            throw e;
+        } catch( Unauthorized e ) {
+            throw e;
+        } catch( HttpException ex ) {
+            throw new RuntimeException( ex );
+        } catch( IOException ex ) {
+            throw new RuntimeException( ex );
+        } finally {
+            Utils.close( in );
+            m.releaseConnection();
+            notifyFinishRequest();
+        }
+    }
+
     /**
      * POSTs the variables and returns the body
      *
@@ -318,6 +346,4 @@ public class Host extends Folder {
     public void setPropFindXml( String propFindXml ) {
         this.propFindXml = propFindXml;
     }
-
-    
 }

@@ -63,6 +63,8 @@ class Utils {
                     throw new BadRequestException(result, href);
                 case 401:
                     throw new Unauthorized(result, href);
+                case 403:
+                    throw new Unauthorized(result, href);
                 case 404:
                     throw new NotFoundException(result, href);
                 case 405:
