@@ -68,6 +68,7 @@ public class Resource {
     private Date createdDate;
     private final Long quotaAvailableBytes;
     private final Long quotaUsedBytes;
+    private final Long crc;
     final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
 
     /**
@@ -81,6 +82,7 @@ public class Resource {
         this.modifiedDate = null;
         quotaAvailableBytes = null;
         quotaUsedBytes = null;
+        crc = null;
     }
 
     public Resource( Folder parent, Response resp ) {
@@ -92,6 +94,7 @@ public class Resource {
             createdDate = DateUtils.parseWebDavDate( resp.createdDate );
             quotaAvailableBytes = resp.quotaAvailableBytes;
             quotaUsedBytes = resp.quotaUsedBytes;
+            crc = resp.crc; 
 
             if( resp.modifiedDate.endsWith( "Z" ) ) {
                 modifiedDate = DateUtils.parseWebDavDate( resp.modifiedDate );
@@ -121,6 +124,7 @@ public class Resource {
         this.createdDate = createdDate;
         quotaAvailableBytes = null;
         quotaUsedBytes = null;
+        crc = null;
     }
 
     public Resource( Folder parent, String name ) {
@@ -132,6 +136,7 @@ public class Resource {
         this.createdDate = null;
         quotaAvailableBytes = null;
         quotaUsedBytes = null;
+        crc = null;
     }
 
     public void addListener( ResourceListener l ) {
@@ -145,6 +150,19 @@ public class Resource {
     public void copyTo( Folder folder ) throws IOException {
         host().doCopy( href(), folder.href() + this.name );
         folder.flush();
+    }
+
+    public void rename( String newName ) throws IOException {
+        String dest = "";
+        if( parent != null ) {
+            dest = parent.href();
+        }
+        dest = dest + newName;
+        int res = host().doMove( href(), dest );
+        if( res == 201 ) {
+            this.name = newName;
+            notifyOnMove( this.parent );
+        }
     }
 
     public void moveTo( Folder folder ) throws IOException {
@@ -234,7 +252,11 @@ public class Resource {
     }
 
     public String href() {
-        return parent.href() + name;
+        if( parent == null ) {
+            return name;
+        } else {
+            return parent.href() + name;
+        }
     }
 
     public Date getModifiedDate() {
@@ -251,6 +273,10 @@ public class Resource {
 
     public Long getQuotaUsedBytes() {
         return quotaUsedBytes;
+    }
+
+    public Long getCrc() {
+        return crc;
     }
 
     

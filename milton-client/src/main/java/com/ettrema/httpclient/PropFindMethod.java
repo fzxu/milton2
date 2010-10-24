@@ -80,6 +80,7 @@ public class PropFindMethod extends EntityEnclosingMethod {
         final Long contentLength;
         final Long quotaAvailableBytes;
         final Long quotaUsedBytes;
+        final Long crc;
         final boolean isCollection;
 
         public Response( String serverDate, Element elResponse ) {
@@ -103,6 +104,7 @@ public class PropFindMethod extends EntityEnclosingMethod {
             contentLength = RespUtils.asLong( el, "getcontentlength" );
             quotaAvailableBytes = RespUtils.asLong( el, "quota-available-bytes" );
             quotaUsedBytes = RespUtils.asLong( el, "quota-used-bytes" );
+            crc = RespUtils.asLong( el, "crc" );
             isCollection = RespUtils.hasChild( el.element( "resourcetype" ), "collection" );
         }
     }

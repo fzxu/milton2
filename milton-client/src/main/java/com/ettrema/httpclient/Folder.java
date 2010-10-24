@@ -120,18 +120,16 @@ public class Folder extends Resource {
     }
 
     protected void uploadFile( File f, ProgressListener listener, Throttle throttle ) {
-        log.warn( "uploadFile: " + f.getAbsolutePath() );
-        log.trace( "uploadFile: " + listener );
         NotifyingFileInputStream in = null;
         try {
             in = new NotifyingFileInputStream( f, listener, throttle );
             upload( f.getName(), in, f.length() );
-            flush();
-            listener.onComplete( in.fileName );
+            flush();            
         } catch( Throwable ex ) {
             throw new RuntimeException( f.getAbsolutePath(), ex );
         } finally {
             Utils.close( in );
+            listener.onComplete( f.getName() );
         }
     }
 

@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 public class Host extends Folder {
 
     private static String PROPFIND_XML = "<?xml version=\"1.0\"?>"
-        + "<d:propfind xmlns:d='DAV:'><d:prop>"
+        + "<d:propfind xmlns:d='DAV:' xmlns:c='clyde'><d:prop>"
         + "<d:resourcetype/><d:displayname/><d:getcontentlength/><d:creationdate/><d:getlastmodified/><d:iscollection/>"
-        + "<d:quota-available-bytes/><d:quota-used-bytes/>"
+        + "<d:quota-available-bytes/><d:quota-used-bytes/><c:crc/>"
         + "</d:prop></d:propfind>";
     private static final Logger log = LoggerFactory.getLogger( Host.class );
     public final String server;
