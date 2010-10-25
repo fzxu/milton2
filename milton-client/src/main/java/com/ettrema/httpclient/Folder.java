@@ -22,7 +22,7 @@ public class Folder extends Resource {
 
     private static final Logger log = LoggerFactory.getLogger( Folder.class );
     private boolean childrenLoaded = false;
-    private final List<Resource> list = new CopyOnWriteArrayList<Resource>();
+    private final List<Resource> children = new CopyOnWriteArrayList<Resource>();
     final List<FolderListener> folderListeners = new ArrayList<FolderListener>();
 
     /**
@@ -62,18 +62,18 @@ public class Folder extends Resource {
     }
 
     public void flush() throws IOException {
-        if( list != null ) {
-            for( Resource r : list ) {
+        if( children != null ) {
+            for( Resource r : children ) {
                 notifyOnChildRemoved( r );
             }
-            list.clear();
+            children.clear();
             childrenLoaded = false;
         }
 //        children();
     }
 
     public List<? extends Resource> children() throws IOException {
-        if( childrenLoaded ) return list;
+        if( childrenLoaded ) return children;
 
         List<Response> responses = host().doPropFind( href(), 1 );
         childrenLoaded = true;
@@ -81,14 +81,14 @@ public class Folder extends Resource {
             for( Response resp : responses ) {
                 if( !resp.href.equals( this.href() ) ) {
                     Resource r = Resource.fromResponse( this, resp );
-                    list.add( r );
+                    children.add( r );
                     this.notifyOnChildAdded( r );
                 }
             }
         } else {
             log.trace( "null responses" );
         }
-        return list;
+        return children;
     }
 
     public void removeListener( FolderListener folderListener ) {
@@ -152,9 +152,9 @@ public class Folder extends Resource {
         com.ettrema.httpclient.File child = new com.ettrema.httpclient.File( this, name, contentType, contentLength );
         com.ettrema.httpclient.Resource oldChild = this.child( child.name );
         if( oldChild != null ) {
-            this.list.remove( oldChild );
+            this.children.remove( oldChild );
         }
-        this.list.add( child );
+        this.children.add( child );
         notifyOnChildAdded( child );
         return child;
     }
@@ -164,12 +164,13 @@ public class Folder extends Resource {
         String newUri = href() + name;
         host().doMkCol( newUri );
         Folder child = new Folder( this, name );
-        this.list.add( child );
+        this.children.add( child );
         notifyOnChildAdded( child );
         return child;
     }
 
     public Resource child( String childName ) throws IOException {
+        log.trace( "child: current children: " + children().size());
         for( Resource r : children() ) {
             if( r.name.equals( childName ) ) return r;
         }

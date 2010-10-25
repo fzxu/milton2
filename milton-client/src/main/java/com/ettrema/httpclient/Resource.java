@@ -161,14 +161,14 @@ public class Resource {
         int res = host().doMove( href(), dest );
         if( res == 201 ) {
             this.name = newName;
-            notifyOnMove( this.parent );
         }
     }
 
     public void moveTo( Folder folder ) throws IOException {
         int res = host().doMove( href(), folder.href() + this.name );
         if( res == 201 ) {
-            notifyOnMove( folder );
+            this.parent.flush();
+            folder.flush();
         }
     }
 
@@ -236,26 +236,21 @@ public class Resource {
         }
     }
 
-    void notifyOnMove( Folder folder ) {
-
-        List<ResourceListener> l2 = new ArrayList<ResourceListener>( listeners );
-        for( ResourceListener l : l2 ) {
-            l.onDeleted( this );
-        }
-        folder.notifyOnChildAdded( this );
-    }
-
     public Host host() {
         Host h = parent.host();
         if( h == null ) throw new NullPointerException( "no host" );
         return h;
     }
 
+    private String encodedName() {
+        return com.bradmcevoy.http.Utils.percentEncode( name );
+    }
+
     public String href() {
         if( parent == null ) {
-            return name;
+            return encodedName();
         } else {
-            return parent.href() + name;
+            return parent.href() + encodedName();
         }
     }
 
