@@ -36,7 +36,7 @@ public class Utils {
         href = href.replace( "[", "%5B" ).replace( "]", "%5D" );
 
         // Seems that some client apps send spaces.. maybe..
-        href = href.replace( " ", "%20");
+        href = href.replace( " ", "%20" );
         try {
             if( href.startsWith( "/" ) ) {
                 URI uri = new URI( "http://anything.com" + href );
@@ -116,29 +116,13 @@ public class Utils {
      */
     public static String percentEncode( String s ) {
         s = _percentEncode( s ); // the original method, from java.net
-        s = s.replace( ":", "%3A");
-        s = s.replace( ";", "%3B");
-        s = s.replace( "=", "%3D");
-        s = s.replace( "?", "%3F");
-        s = s.replace( "@", "%40");
         return s;
     }
-    
+
     private static String _percentEncode( String s ) {
         int n = s.length();
         if( n == 0 ) {
             return s;
-        }
-
-        // First check whether we actually need to encode
-        for( int i = 0;; ) {
-            char b = s.charAt( i );
-            if( b >= '\u0080' || b <= (char) 48 || isSquareBracket( b ) ) {
-                break;
-            }
-            if( ++i >= n ) {
-                return s;
-            }
         }
 
         String ns = normalize( s );
@@ -148,13 +132,48 @@ public class Utils {
         StringBuilder sb = new StringBuilder();
         while( bb.hasRemaining() ) {
             int b = bb.get() & 0xff;
-            if( ( b >= 0x80 || b < (char) 48 || isSquareBracket( b ) ) && ( b != '.' && b != '-' ) ) {
-                appendEscape( sb, (byte) b );
-            } else {
+            // **ONLY** unreserved characters can be added unencoded
+            if( isUnReserved( b ) ) {
                 sb.append( (char) b );
+            } else {
+                appendEscape( sb, (byte) b );
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * Range 1 - dec 65 - 90
+     * A 	B 	C 	D 	E 	F 	G 	H 	I 	J 	K 	L 	M 	N 	O 	P 	Q 	R 	S 	T 	U 	V 	W 	X 	Y 	Z
+     *
+     * Range 2 - dec 97 - 122
+     * a 	b 	c 	d 	e 	f 	g 	h 	i 	j 	k 	l 	m 	n 	o 	p 	q 	r 	s 	t 	u 	v 	w 	x 	y 	z
+     *
+     * Range 3 - dec 48 - 57
+     * 0 	1 	2 	3 	4 	5 	6 	7 	8 	9
+     *
+     * 45  46 95  126
+     * -   .  _    ~
+     * 
+     * @param b
+     * @return
+     */
+    private static boolean isUnReserved( int b ) {
+        return inRange( b, 65, 90 )
+                || inRange( b, 97, 122 )
+                || inRange( b, 48, 57 )
+                || inList(b, 45, 46, 95, 126);
+    }
+
+    private static boolean inRange( int b, int lower, int upper ) {
+        return b >= lower && b <= upper;
+    }
+
+    private static boolean inList( int b, int... nums ) {
+        for( int i : nums ) {
+            if( b == i ) return true;
+        }
+        return false;
     }
 
     private static boolean isSquareBracket( int b ) {
@@ -164,7 +183,7 @@ public class Utils {
     private static void appendEscape( StringBuilder sb, byte b ) {
         sb.append( '%' );
         sb.append( hexDigits[( b >> 4 ) & 0x0f] );
-        sb.append( hexDigits[( b >> 0 ) & 0x0f] );
+        sb.append( hexDigits[( b ) & 0x0f] );
     }
 
     public static Date mostRecent( Date... dates ) {
@@ -198,10 +217,10 @@ public class Utils {
      *
      * @param list
      */
-    public static String toCsv(List<String> list) {
+    public static String toCsv( List<String> list ) {
         String res = "";
         Iterator<String> it = list.iterator();
-        while(it.hasNext()) {
+        while( it.hasNext() ) {
             res += it.next();
             if( it.hasNext() ) res += ", ";
         }

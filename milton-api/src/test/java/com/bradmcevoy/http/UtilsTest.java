@@ -20,6 +20,8 @@ public class UtilsTest extends TestCase {
         assertEquals( "", Utils.percentEncode( "" ) );
         assertEquals( "abc", Utils.percentEncode( "abc" ) );
         assertEquals( "%20", Utils.percentEncode( " " ) );
+        assertEquals( "A%26B", Utils.percentEncode( "A&B" ) );
+        assertEquals( "%7B%7D", Utils.percentEncode( "{}" ) );
 
         // check reserved characters
         System.out.println( "? test: " + Utils.percentEncode( "$&+,/:;=?@") );
