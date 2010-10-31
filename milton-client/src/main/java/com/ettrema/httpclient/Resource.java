@@ -48,6 +48,8 @@ public class Resource {
 
         // Seems that some client apps send spaces.. maybe..
         href = href.replace( " ", "%20" );
+        // ok, this is milton's bad. Older versions don't encode curly braces
+        href = href.replace( "{", "%7B" ).replace( "}", "%7D" );
         try {
             if( href.startsWith( "/" ) ) {
                 URI uri = new URI( "http://anything.com" + href );
