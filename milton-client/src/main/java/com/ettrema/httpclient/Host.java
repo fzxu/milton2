@@ -69,15 +69,17 @@ public class Host extends Folder {
             client.getParams().setAuthenticationPreemptive( true );
         }
         client.getParams().setCookiePolicy( CookiePolicy.IGNORE_COOKIES );
-        if( proxyDetails != null ) {
-            HostConfiguration hostConfig = client.getHostConfiguration();
+        if( proxyDetails != null ) {            
             if( proxyDetails.isUseSystemProxy() ) {
                 System.setProperty( "java.net.useSystemProxies", "true" );
             } else {
                 System.setProperty( "java.net.useSystemProxies", "false" );
-                hostConfig.setProxy( proxyDetails.getProxyHost(), proxyDetails.getProxyPort() );
-                if( proxyDetails.hasAuth() ) {
-                    client.getState().setProxyCredentials( AuthScope.ANY, new UsernamePasswordCredentials(proxyDetails.getUserName(), proxyDetails.getPassword()) );
+                if( proxyDetails.getProxyHost() != null && proxyDetails.getProxyHost().length() > 0 ) {
+                    HostConfiguration hostConfig = client.getHostConfiguration();
+                    hostConfig.setProxy( proxyDetails.getProxyHost(), proxyDetails.getProxyPort() );
+                    if( proxyDetails.hasAuth() ) {
+                        client.getState().setProxyCredentials( AuthScope.ANY, new UsernamePasswordCredentials( proxyDetails.getUserName(), proxyDetails.getPassword() ) );
+                    }
                 }
             }
         }
