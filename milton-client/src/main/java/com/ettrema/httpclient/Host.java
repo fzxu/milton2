@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.ProxyHost;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
@@ -45,15 +47,13 @@ public class Host extends Folder {
     private String propFindXml = PROPFIND_XML;
 
     static {
-        //  System.setProperty("java.net.useSystemProxies", "true");
-        System.setProperty( "java.net.useSystemProxies", "false" );
 //    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
 //    System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
 //    System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire.header", "debug");
 //    System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "debug");    
     }
 
-    public Host( String server, int port, String user, String password ) {
+    public Host( String server, int port, String user, String password, ProxyDetails proxyDetails ) {
         super();
         this.server = server;
         this.port = port;
@@ -64,14 +64,23 @@ public class Host extends Folder {
         if( user != null ) {
             client.getState().setCredentials( AuthScope.ANY, new UsernamePasswordCredentials( user, password ) );
         }
-        //client.getState().setProxyCredentials(AuthScope.ANY, new NTCredentials("xxx", "yyy", "", "zzz"));
 
         if( user != null && user.length() > 0 ) {
             client.getParams().setAuthenticationPreemptive( true );
         }
         client.getParams().setCookiePolicy( CookiePolicy.IGNORE_COOKIES );
-//    HostConfiguration hostConfig = client.getHostConfiguration();
-//    hostConfig.setProxy("aproxy", 80);
+        if( proxyDetails != null ) {
+            HostConfiguration hostConfig = client.getHostConfiguration();
+            if( proxyDetails.isUseSystemProxy() ) {
+                System.setProperty( "java.net.useSystemProxies", "true" );
+            } else {
+                System.setProperty( "java.net.useSystemProxies", "false" );
+                hostConfig.setProxy( proxyDetails.getProxyHost(), proxyDetails.getProxyPort() );
+                if( proxyDetails.hasAuth() ) {
+                    client.getState().setProxyCredentials( AuthScope.ANY, new UsernamePasswordCredentials(proxyDetails.getUserName(), proxyDetails.getPassword()) );
+                }
+            }
+        }
     }
 
     public Resource find( String path ) throws IOException {
@@ -251,7 +260,7 @@ public class Host extends Folder {
 
     public synchronized void options( String path ) throws NotFoundException, java.net.ConnectException, Unauthorized {
         String url = this.href() + path;
-        log.debug( "options: " + url);
+        log.debug( "options: " + url );
         doOptions( url );
     }
 
@@ -261,9 +270,9 @@ public class Host extends Folder {
         InputStream in = null;
         try {
             int res = client.executeMethod( m );
-            log.trace( "result code: " + res);
+            log.trace( "result code: " + res );
             Utils.processResultCode( res, url );
-        } catch(java.net.ConnectException e) {
+        } catch( java.net.ConnectException e ) {
             throw e;
         } catch( NotFoundException e ) {
             throw e;
