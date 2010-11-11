@@ -189,6 +189,11 @@ public class Resource {
         if( destFile.exists() )
             throw new RuntimeException( "file already exists: " + destFile.getAbsolutePath() );
         File dest = destFile;
+        if( !dest.getParentFile().exists()) {
+            if( !dest.getParentFile().mkdirs() ) {
+                throw new FileNotFoundException( "Couldnt create target directory: " + dest.getParentFile().getAbsolutePath());
+            }
+        }
         final FileOutputStream out = new FileOutputStream( dest );
         download( out, listener );
         return dest;

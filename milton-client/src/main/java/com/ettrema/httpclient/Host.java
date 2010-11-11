@@ -3,6 +3,8 @@ package com.ettrema.httpclient;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +13,6 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.ProxyHost;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
@@ -42,6 +43,10 @@ public class Host extends Folder {
     public final int port;
     public final String user;
     public final String password;
+    /**
+     * time in milliseconds to be used for all timeout parameters
+     */
+    public final int timeout;
     final HttpClient client;
     public final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
     private String propFindXml = PROPFIND_XML;
@@ -54,7 +59,12 @@ public class Host extends Folder {
     }
 
     public Host( String server, int port, String user, String password, ProxyDetails proxyDetails ) {
+        this( server, port, user, password, proxyDetails, 30000 ); // defaul timeout of 30sec
+    }
+
+    public Host( String server, int port, String user, String password, ProxyDetails proxyDetails, int timeout ) {
         super();
+        this.timeout = timeout;
         this.server = server;
         this.port = port;
         this.user = user;
@@ -69,7 +79,9 @@ public class Host extends Folder {
             client.getParams().setAuthenticationPreemptive( true );
         }
         client.getParams().setCookiePolicy( CookiePolicy.IGNORE_COOKIES );
-        if( proxyDetails != null ) {            
+        client.getParams().setSoTimeout( timeout );
+        client.getParams().setConnectionManagerTimeout( timeout );
+        if( proxyDetails != null ) {
             if( proxyDetails.isUseSystemProxy() ) {
                 System.setProperty( "java.net.useSystemProxies", "true" );
             } else {
@@ -95,11 +107,14 @@ public class Host extends Folder {
 
     public static Resource _find( Folder parent, String[] arr, int i ) throws IOException {
         String childName = arr[i];
+        log.trace( "find: " + childName );
         Resource child = parent.child( childName );
         if( i == arr.length - 1 ) {
+            log.trace( " found" );
             return child;
         } else {
             if( child instanceof Folder ) {
+                log.trace( " recurse" );
                 return _find( (Folder) child, arr, i + 1 );
             } else {
                 log.trace( "not found: " + childName );
@@ -260,13 +275,14 @@ public class Host extends Folder {
         }
     }
 
-    public synchronized void options( String path ) throws NotFoundException, java.net.ConnectException, Unauthorized {
+    public synchronized void options( String path ) throws NotFoundException, java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException {
+        log.warn( "hi!" );
         String url = this.href() + path;
         log.debug( "options: " + url );
         doOptions( url );
     }
 
-    private synchronized void doOptions( String url ) throws NotFoundException, java.net.ConnectException, Unauthorized {
+    private synchronized void doOptions( String url ) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException {
         notifyStartRequest();
         GetMethod m = new GetMethod( urlEncode( url ) );
         InputStream in = null;
@@ -282,6 +298,10 @@ public class Host extends Folder {
             throw e;
         } catch( HttpException ex ) {
             throw new RuntimeException( ex );
+        } catch( java.net.UnknownHostException e ) {
+            throw e;
+        } catch( java.net.SocketTimeoutException e ) {
+            throw e;
         } catch( IOException ex ) {
             throw new RuntimeException( ex );
         } finally {
