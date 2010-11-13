@@ -98,8 +98,12 @@ public class Host extends Folder {
     }
 
     public Resource find( String path ) throws IOException {
-        if( path == null || path.length() == 0 || path.equals( "/" ) )
+        if( path == null || path.length() == 0 || path.equals( "/" ) ) {
             return this;
+        }
+        if( path.startsWith( "/")) {
+            path = path.substring( 1);
+        }
         String[] arr = path.split( "/" );
         return _find( this, arr, 0 );
 
@@ -276,9 +280,7 @@ public class Host extends Folder {
     }
 
     public synchronized void options( String path ) throws NotFoundException, java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException {
-        log.warn( "hi!" );
         String url = this.href() + path;
-        log.debug( "options: " + url );
         doOptions( url );
     }
 
