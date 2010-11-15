@@ -185,16 +185,19 @@ public class Resource {
         return downloadToFile( dest, listener );
     }
 
-    public File downloadToFile( File destFile, ProgressListener listener ) throws FileNotFoundException {
-        if( destFile.exists() )
-            throw new RuntimeException( "file already exists: " + destFile.getAbsolutePath() );
-        File dest = destFile;
+    public File downloadToFile( File dest, ProgressListener listener ) throws FileNotFoundException {
+        final FileOutputStream out;
+        if( dest.exists() ){
+            out = new FileOutputStream( dest, true );
+        } else {
+            out = new FileOutputStream( dest );
+        }
         if( !dest.getParentFile().exists()) {
             if( !dest.getParentFile().mkdirs() ) {
                 throw new FileNotFoundException( "Couldnt create target directory: " + dest.getParentFile().getAbsolutePath());
             }
         }
-        final FileOutputStream out = new FileOutputStream( dest );
+        
         download( out, listener );
         return dest;
     }
