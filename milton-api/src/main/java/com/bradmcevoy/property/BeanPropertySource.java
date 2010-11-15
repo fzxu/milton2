@@ -25,6 +25,8 @@ public class BeanPropertySource implements PropertySource {
     private static final Logger log = LoggerFactory.getLogger( BeanPropertySource.class );
     private static final Object[] NOARGS = new Object[0];
 
+
+
     public Object getProperty( QName name, Resource r ) throws NotAuthorizedException {
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
         if( pd == null ) {
@@ -79,6 +81,22 @@ public class BeanPropertySource implements PropertySource {
             log.debug( "no read method");
             return PropertyMetaData.UNKNOWN;
         } else {
+            BeanPropertyAccess propAnno = pd.getReadMethod().getAnnotation( BeanPropertyAccess.class );
+            if( propAnno != null ) {
+                if (!propAnno.value()) {
+                    log.trace("property is annotated and value is false, so do not allow access");
+                    return PropertyMetaData.UNKNOWN;
+                } else {
+                    log.trace("property is annotated and value is true, so allow access");
+                }
+            } else {
+                if( anno.enableByDefault() ) {
+                    log.trace("no property annotation, property annotation is enable by default so allow access");
+                } else {
+                    log.trace("no property annotation, class annotation says disable by default, decline access");
+                    return PropertyMetaData.UNKNOWN;
+                }
+            }
             if( log.isDebugEnabled() ) {
                 log.debug( "writable: " + anno.writable() + " - " + ( pd.getWriteMethod() != null ) );
             }

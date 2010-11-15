@@ -1,5 +1,6 @@
 package com.bradmcevoy.property;
 
+import com.bradmcevoy.property.PropertySource.PropertyAccessibility;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -34,9 +35,10 @@ public @interface BeanPropertyResource {
     boolean writable() default true;
 
     /**
-     *
-     * @return - a list of property names which cannot be accessed
+     * If true, indicates that properties on the resource should be accessible
+     * unless otherwise specified
+     * 
+     * @return
      */
-    // todo
-//    String[] excludes() default {};
+    boolean enableByDefault() default true;
 }

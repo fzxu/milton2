@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 public class WebDavProtocol implements HttpExtension, PropertySource {
 
     private static final Logger log = LoggerFactory.getLogger( WebDavProtocol.class );
-    public static final NameSpace NS_DAV = new NameSpace("DAV:","D");
+    public static final NameSpace NS_DAV = new NameSpace( "DAV:", "D" );
     private final Set<Handler> handlers;
     private final Map<String, Report> reports;
     private final ResourceTypeHelper resourceTypeHelper;
@@ -58,11 +58,8 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     private final List<PropertySource> propertySources;
     private final ETagGenerator eTagGenerator;
     private final HandlerHelper handlerHelper;
-
     private DisplayNameFormatter displayNameFormatter = new DefaultDisplayNameFormatter();
     //private DisplayNameFormatter displayNameFormatter = new CdataDisplayNameFormatter( new DefaultDisplayNameFormatter());
-
-  
 
 //    public WebDavProtocol( Set<Handler> handlers ) {
 //        this.handlers = handlers;
@@ -81,7 +78,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     }
 
     public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> extraPropertySources, QuotaDataAccessor quotaDataAccessor ) {
-        this(handlerHelper, resourceTypeHelper, responseHandler, extraPropertySources, quotaDataAccessor, null);
+        this( handlerHelper, resourceTypeHelper, responseHandler, extraPropertySources, quotaDataAccessor, null );
     }
 
     public WebDavProtocol( HandlerHelper handlerHelper, ResourceTypeHelper resourceTypeHelper, WebDavResponseHandler responseHandler, List<PropertySource> propertySources, QuotaDataAccessor quotaDataAccessor, PropPatchSetter patchSetter ) {
@@ -93,11 +90,15 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         this.propertyMap = new PropertyMap( WebDavProtocol.NS_DAV.getName() );
 
         log.info( "resourceTypeHelper: " + resourceTypeHelper.getClass() );
-        log.info( "quotaDataAccessor: " + quotaDataAccessor.getClass() );
+        if( quotaDataAccessor == null ) {
+            log.info("no quota data");
+        } else {
+            log.info( "quotaDataAccessor: " + quotaDataAccessor.getClass() );
+        }
         propertyMap.add( new ContentLengthPropertyWriter() );
         propertyMap.add( new ContentTypePropertyWriter() );
-        propertyMap.add( new CreationDatePropertyWriter("getcreated") );
-        propertyMap.add( new CreationDatePropertyWriter("creationdate") );
+        propertyMap.add( new CreationDatePropertyWriter( "getcreated" ) );
+        propertyMap.add( new CreationDatePropertyWriter( "creationdate" ) );
         propertyMap.add( new DisplayNamePropertyWriter() );
         propertyMap.add( new LastModifiedDatePropertyWriter() );
         propertyMap.add( new ResourceTypePropertyWriter() );
@@ -128,7 +129,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         log.debug( "adding webdav as a property source" );
         addPropertySource( this );
         if( patchSetter == null ) {
-            log.info("creating default patcheSetter: " + PropertySourcePatchSetter.class);
+            log.info( "creating default patcheSetter: " + PropertySourcePatchSetter.class );
             patchSetter = new PropertySourcePatchSetter( propertySources, valueWriters );
         }
         handlers.add( new PropFindHandler( resourceHandlerHelper, resourceTypeHelper, responseHandler, propertySources ) );
@@ -161,8 +162,6 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         return Collections.unmodifiableSet( handlers );
     }
 
-
-
     /**
      * Used as a marker to generate supported locks element in propfind responses
      *
@@ -181,7 +180,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     }
 
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
-        PropertyMetaData propertyMetaData= propertyMap.getPropertyMetaData( name, r );
+        PropertyMetaData propertyMetaData = propertyMap.getPropertyMetaData( name, r );
         return propertyMetaData;
     }
 
@@ -207,8 +206,6 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     public void setDisplayNameFormatter( DisplayNameFormatter displayNameFormatter ) {
         this.displayNameFormatter = displayNameFormatter;
     }
-
-
 
     class DisplayNamePropertyWriter implements StandardProperty<String> {
 
@@ -452,8 +449,8 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
         public SupportedReportSetList getValue( PropFindableResource res ) {
             SupportedReportSetList reportSet = new SupportedReportSetList();
-            for (String reportName : reports.keySet()) {
-              reportSet.add(reportName);
+            for( String reportName : reports.keySet() ) {
+                reportSet.add( reportName );
             }
             return reportSet;
         }
