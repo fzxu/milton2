@@ -24,4 +24,10 @@ public class SimpleDigestResource extends SimpleResource implements DigestResour
     public Object authenticate( DigestResponse digestRequest ) {
         return digestResource.authenticate( digestRequest );
     }
+
+    public boolean isDigestAllowed() {
+        return true;
+    }
+
+
 }

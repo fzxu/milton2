@@ -36,9 +36,15 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         }
         boolean b;
         if( r instanceof DigestResource ) {
-            b = Auth.Scheme.DIGEST.equals( auth.getScheme() );
+            DigestResource dr = (DigestResource) r;
+            if( dr.isDigestAllowed()) {
+                b = Auth.Scheme.DIGEST.equals( auth.getScheme() );
+            } else {
+                log.trace("digest auth is not allowed");
+                b = false;
+            }
         } else {
-            log.debug( "resource is not an instanceof " + DigestResource.class );
+            log.trace( "resource is not an instanceof DigestResource" );
             b = false;
         }
         return b;

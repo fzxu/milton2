@@ -33,4 +33,10 @@ public interface DigestResource extends Resource {
      * @return - if credentials are accepted, some object to attach to the Auth object. otherwise null
      */
     Object authenticate(DigestResponse digestRequest);
+
+    /**
+     *
+     * @return - true if this resource actually allows digest authentication.
+     */
+    boolean isDigestAllowed();
 }

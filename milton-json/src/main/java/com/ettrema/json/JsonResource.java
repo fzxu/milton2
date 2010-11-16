@@ -1,9 +1,11 @@
 package com.ettrema.json;
 
 import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.DigestResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +15,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author brad
  */
-public abstract class JsonResource {
+public abstract class JsonResource implements DigestResource {
 
     private static final Logger log = LoggerFactory.getLogger( JsonResource.class );
 
@@ -64,6 +66,22 @@ public abstract class JsonResource {
         }
         return o;
     }
+
+    public Object authenticate( DigestResponse digestRequest ) {
+        if( wrappedResource instanceof DigestResource) {
+            return ((DigestResource)wrappedResource).authenticate( digestRequest );
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isDigestAllowed() {
+        return wrappedResource instanceof DigestResource;
+    }
+
+
+
+
 
     public boolean authorise( Request request, Method method, Auth auth ) {
         boolean b = wrappedResource.authorise( request, applicableMethod(), auth );

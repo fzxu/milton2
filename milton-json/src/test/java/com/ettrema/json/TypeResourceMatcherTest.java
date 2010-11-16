@@ -15,7 +15,7 @@ public class TypeResourceMatcherTest extends TestCase {
     public void testMatches() {
         TypeResourceMatcher trm = new TypeResourceMatcher( JsonResource.class);
         assertTrue( trm.matches( new CopyJsonResource( null, null, null)));
-        assertTrue( trm.matches( new DigestPropPatchJsonResource( null, null, null)));
+        assertTrue( trm.matches( new PropPatchJsonResource( null, null, null)));
     }
 
 }

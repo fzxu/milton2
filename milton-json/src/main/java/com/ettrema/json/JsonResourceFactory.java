@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JsonResourceFactory implements ResourceFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(JsonResourceFactory.class);
+    private static final Logger log = LoggerFactory.getLogger( JsonResourceFactory.class );
     private final ResourceFactory wrapped;
     private JsonPropFindHandler propFindHandler;
     private JsonPropPatchHandler propPatchHandler;
@@ -32,92 +32,70 @@ public class JsonResourceFactory implements ResourceFactory {
     private Long maxAgeSecsPropFind = null;
     private static final String DAV_FOLDER = "_DAV";
 
-    public JsonResourceFactory(ResourceFactory wrapped, JsonPropFindHandler propFindHandler, JsonPropPatchHandler propPatchHandler) {
+    public JsonResourceFactory( ResourceFactory wrapped, JsonPropFindHandler propFindHandler, JsonPropPatchHandler propPatchHandler ) {
         this.wrapped = wrapped;
         this.propFindHandler = propFindHandler;
         this.propPatchHandler = propPatchHandler;
-        log.debug("created with: " + propFindHandler.getClass().getCanonicalName());
+        log.debug( "created with: " + propFindHandler.getClass().getCanonicalName() );
     }
 
-    public JsonResourceFactory(ResourceFactory wrapped,List<PropertySource> propertySources, PropPatchSetter patchSetter, PropertyAuthoriser permissionService) {
+    public JsonResourceFactory( ResourceFactory wrapped, List<PropertySource> propertySources, PropPatchSetter patchSetter, PropertyAuthoriser permissionService ) {
         this.wrapped = wrapped;
-        log.debug("using property sources: " + propertySources.size());
-        this.propFindHandler = new JsonPropFindHandler(new PropFindPropertyBuilder(propertySources));
-        this.propPatchHandler = new JsonPropPatchHandler(patchSetter, permissionService );
+        log.debug( "using property sources: " + propertySources.size() );
+        this.propFindHandler = new JsonPropFindHandler( new PropFindPropertyBuilder( propertySources ) );
+        this.propPatchHandler = new JsonPropPatchHandler( patchSetter, permissionService );
     }
 
-
-
-    public Resource getResource(String host, String sPath) {
-        if( log.isTraceEnabled()) {
-            log.trace(host + " :: " + sPath);
+    public Resource getResource( String host, String sPath ) {
+        if( log.isTraceEnabled() ) {
+            log.trace( host + " :: " + sPath );
         }
-        Path path = Path.path(sPath);
+        Path path = Path.path( sPath );
         Path parent = path.getParent();
         String encodedPath = HttpManager.request().getAbsolutePath();
-        if (parent != null && parent.getName() != null && parent.getName().equals(DAV_FOLDER)) {
+        if( parent != null && parent.getName() != null && parent.getName().equals( DAV_FOLDER ) ) {
             Path resourcePath = parent.getParent();
-            if (resourcePath != null) {
+            if( resourcePath != null ) {
                 String method = path.getName();
-                Resource wrappedResource = wrapped.getResource(host, resourcePath.toString());
-                if (wrappedResource != null) {
-                    return wrapResource(host, wrappedResource, method, encodedPath);
+                Resource wrappedResource = wrapped.getResource( host, resourcePath.toString() );
+                if( wrappedResource != null ) {
+                    return wrapResource( host, wrappedResource, method, encodedPath );
                 }
             }
         } else {
-            return wrapped.getResource(host, sPath);
+            return wrapped.getResource( host, sPath );
         }
         return null;
     }
 
-    private Resource wrapResource(String host, Resource wrappedResource, String method, String href) {
-        if (Request.Method.PROPFIND.code.equals(method)) {
-            if (wrappedResource instanceof PropFindableResource) {
-                if (wrappedResource instanceof DigestResource) {
-                    return new DigestPropFindJsonResource((PropFindableResource) wrappedResource, propFindHandler, href, maxAgeSecsPropFind);
-                } else {
-                    return new PropFindJsonResource((PropFindableResource) wrappedResource, propFindHandler, href, maxAgeSecsPropFind);
-                }
+    private Resource wrapResource( String host, Resource wrappedResource, String method, String href ) {
+        if( Request.Method.PROPFIND.code.equals( method ) ) {
+            if( wrappedResource instanceof PropFindableResource ) {
+                return new PropFindJsonResource( (PropFindableResource) wrappedResource, propFindHandler, href, maxAgeSecsPropFind );
             }
         }
-        if (Request.Method.PROPPATCH.code.equals(method)) {
-            if (wrappedResource instanceof DigestResource) {
-                return new DigestPropPatchJsonResource(wrappedResource, propPatchHandler, href);
-            } else {
-                return new PropPatchJsonResource(wrappedResource, propPatchHandler, href);
+        if( Request.Method.PROPPATCH.code.equals( method ) ) {
+            return new PropPatchJsonResource( wrappedResource, propPatchHandler, href );
+        }
+        if( Request.Method.PUT.code.equals( method ) ) {
+            if( wrappedResource instanceof PutableResource ) {
+                return new PutJsonResource( (PutableResource) wrappedResource, href );
             }
         }
-        if (Request.Method.PUT.code.equals(method)) {
-            if (wrappedResource instanceof PutableResource) {
-                if (wrappedResource instanceof DigestResource) {
-                    return new DigestPutJsonResource((PutableResource) wrappedResource, href);
-                } else {
-                    return new PutJsonResource((PutableResource) wrappedResource, href);
-                }
+        if( Request.Method.MKCOL.code.equals( method ) ) {
+            if( wrappedResource instanceof MakeCollectionableResource ) {
+                return new MkcolJsonResource( (MakeCollectionableResource) wrappedResource, href, eventManager );
             }
         }
-        if (Request.Method.MKCOL.code.equals(method)) {
-            if (wrappedResource instanceof MakeCollectionableResource) {
-                if (wrappedResource instanceof DigestResource) {
-                    return new DigestMkcolJsonResource((MakeCollectionableResource) wrappedResource, href, eventManager);
-                } else {
-                    return new MkcolJsonResource((MakeCollectionableResource) wrappedResource, href, eventManager);
-                }
-            }
-        }
-        if (Request.Method.COPY.code.equals(method)) {
-            if (wrappedResource instanceof CopyableResource) {
-                if (wrappedResource instanceof DigestResource) {
-                    return new DigestCopyJsonResource(host, (CopyableResource) wrappedResource, wrapped);
-                } else {
-                    return new CopyJsonResource(host, (CopyableResource) wrappedResource, wrapped);
-                }
+        if( Request.Method.COPY.code.equals( method ) ) {
+            if( wrappedResource instanceof CopyableResource ) {
+                return new CopyJsonResource( host, (CopyableResource) wrappedResource, wrapped );
             }
         }
         return null;
     }
 
-    public void setPropFindHandler(JsonPropFindHandler propFindHandler) {
+    public void setPropFindHandler( JsonPropFindHandler propFindHandler ) {
         this.propFindHandler = propFindHandler;
     }
 
@@ -125,8 +103,7 @@ public class JsonResourceFactory implements ResourceFactory {
         return propFindHandler;
     }
 
-
-    public void setPropPatchHandler(JsonPropPatchHandler propPatchHandler) {
+    public void setPropPatchHandler( JsonPropPatchHandler propPatchHandler ) {
         this.propPatchHandler = propPatchHandler;
     }
 
