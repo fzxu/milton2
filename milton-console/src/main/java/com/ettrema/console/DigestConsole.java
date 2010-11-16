@@ -23,4 +23,10 @@ public class DigestConsole extends Console implements DigestResource{
         return digestResource.authenticate( digestRequest );
     }
 
+    public boolean isDigestAllowed() {
+        return digestResource.isDigestAllowed();
+    }
+
+
+
 }
