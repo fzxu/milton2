@@ -59,6 +59,12 @@ public abstract class FsResource implements Resource, MoveableResource, Copyable
         return factory.getSecurityManager().authenticate(digestRequest);
     }
 
+    public boolean isDigestAllowed() {
+        return true;
+    }
+
+
+
 
     public boolean authorise(Request request, Method method, Auth auth) {
         return factory.getSecurityManager().authorise(request, method, auth, this);
