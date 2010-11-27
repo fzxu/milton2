@@ -21,161 +21,139 @@ import java.util.Date;
 import java.util.UUID;
 
 public abstract class TResource extends AbstractResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource,
-        CopyableResource, DigestResource, AccessControlledResource, LockableResource
-{
+    CopyableResource, DigestResource, AccessControlledResource, LockableResource {
 
-  private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResource.class);
-  private LockToken currentLock;
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TResource.class );
+    private LockToken currentLock;
 
-  public TResource(TFolderResource parent, String name)
-  {
-    super(parent,name);
-  }
-
-  protected abstract Object clone(TFolderResource newParent);
-
-  public String getPrincipalURL()
-  {
-    return user;
-  }
-
-  public void setSecure(String user, String password)
-  {
-    this.user = user;
-    this.password = password;
-  }
-
-  public String getHref()
-  {
-    if (parent == null)
-    {
-      return "/webdav/";
-    }
-    else
-    {
-      String s = parent.getHref();
-      if (!s.endsWith("/"))
-      {
-        s = s + "/";
-      }
-      s = s + name;
-      if (this instanceof CollectionResource)
-      {
-        s = s + "/";
-      }
-      return s;
-    }
-  }
-
-  public Long getContentLength()
-  {
-    return null;
-  }
-
-  public Long getMaxAgeSeconds(Auth auth)
-  {
-    return (long) 10;
-  }
-
-  public void moveTo(CollectionResource rDest, String name)
-  {
-    log.debug("moving..");
-    TFolderResource d = (TFolderResource) rDest;
-    this.parent.children.remove(this);
-    this.parent = d;
-    this.parent.children.add(this);
-    this.name = name;
-  }
-
-  public Date getCreateDate()
-  {
-    return createdDate;
-  }
-
-  public void delete()
-  {
-    if (this.parent == null)
-    {
-      throw new RuntimeException("attempt to delete root");
+    public TResource( TFolderResource parent, String name ) {
+        super( parent, name );
     }
 
-    if (this.parent.children == null)
-    {
-      throw new NullPointerException("children is null");
+    protected abstract Object clone( TFolderResource newParent );
+
+    public String getPrincipalURL() {
+        return user;
     }
-    this.parent.children.remove(this);
-  }
 
-  public void copyTo(CollectionResource toCollection, String name)
-  {
-    TResource rClone;
-    rClone = (TResource) this.clone((TFolderResource) toCollection);
-    rClone.name = name;
-  }
-
-  public int compareTo(Resource o)
-  {
-    if (o instanceof TResource)
-    {
-      TResource res = (TResource) o;
-      return this.getName().compareTo(res.getName());
+    public void setSecure( String user, String password ) {
+        this.user = user;
+        this.password = password;
     }
-    else
-    {
-      return -1;
+
+    public String getHref() {
+        if( parent == null ) {
+            return "/webdav/";
+        } else {
+            String s = parent.getHref();
+            if( !s.endsWith( "/" ) ) {
+                s = s + "/";
+            }
+            s = s + name;
+            if( this instanceof CollectionResource ) {
+                s = s + "/";
+            }
+            return s;
+        }
     }
-  }
 
-  /**
-   * This is required for the PropPatchableResource interface, but should
-   * not be implemented.
-   *
-   * Implement CustomPropertyResource or MultiNamespaceCustomPropertyResource instead
-   *
-   * @param fields
-   */
-  public void setProperties(Fields fields)
-  {
-  }
+    public Long getContentLength() {
+        return null;
+    }
 
-  protected void print(PrintWriter printer, String s)
-  {
-    printer.print(s);
-  }
+    public Long getMaxAgeSeconds( Auth auth ) {
+        return (long) 10;
+    }
 
-  public final LockResult lock(LockTimeout lockTimeout, LockInfo lockInfo)
-  {
-    log.trace("Lock : " + lockTimeout + " info : " + lockInfo + " on resource : " + getName() + " in : " + parent);
-    LockToken token = new LockToken();
-    token.info = lockInfo;
-    token.timeout = LockTimeout.parseTimeout("30");
-    token.tokenId = UUID.randomUUID().toString();
-    currentLock = token;
-    return LockResult.success(token);
-  }
+    public void moveTo( CollectionResource rDest, String name ) {
+        log.debug( "moving.." );
+        TFolderResource d = (TFolderResource) rDest;
+        this.parent.children.remove( this );
+        this.parent = d;
+        this.parent.children.add( this );
+        this.name = name;
+    }
 
-  public final LockResult refreshLock(String tokenId)
-  {
-    log.trace("RefreshLock : " + tokenId + " on resource : " + getName() + " in : " + parent);
-    //throw new UnsupportedOperationException("Not supported yet.");
-    LockToken token = new LockToken();
-    token.info = null;
-    token.timeout = LockTimeout.parseTimeout("30");
-    token.tokenId = currentLock.tokenId;
-    currentLock = token;
-    return LockResult.success(token);
-  }
+    public Date getCreateDate() {
+        return createdDate;
+    }
 
-  public void unlock(String arg0)
-  {
-    log.trace("UnLock : " + arg0 + " on resource : " + getName() + " in : " + parent);
-    currentLock = null;
-    //throw new UnsupportedOperationException("Not supported yet.");
-  }
+    public void delete() {
+        if( this.parent == null ) {
+            throw new RuntimeException( "attempt to delete root" );
+        }
 
-  public final LockToken getCurrentLock()
-  {
-    log.trace("GetCurrentLock");
-    return currentLock;
-  }
+        if( this.parent.children == null ) {
+            throw new NullPointerException( "children is null" );
+        }
+        this.parent.children.remove( this );
+    }
+
+    public void copyTo( CollectionResource toCollection, String name ) {
+        TResource rClone;
+        rClone = (TResource) this.clone( (TFolderResource) toCollection );
+        rClone.name = name;
+    }
+
+    public int compareTo( Resource o ) {
+        if( o instanceof TResource ) {
+            TResource res = (TResource) o;
+            return this.getName().compareTo( res.getName() );
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * This is required for the PropPatchableResource interface, but should
+     * not be implemented.
+     *
+     * Implement CustomPropertyResource or MultiNamespaceCustomPropertyResource instead
+     *
+     * @param fields
+     */
+    public void setProperties( Fields fields ) {
+    }
+
+    protected void print( PrintWriter printer, String s ) {
+        printer.print( s );
+    }
+
+    public final LockResult lock( LockTimeout lockTimeout, LockInfo lockInfo ) {
+        log.trace( "Lock : " + lockTimeout + " info : " + lockInfo + " on resource : " + getName() + " in : " + parent );
+        LockToken token = new LockToken();
+        token.info = lockInfo;
+        token.timeout = LockTimeout.parseTimeout( "30" );
+        token.tokenId = UUID.randomUUID().toString();
+        currentLock = token;
+        return LockResult.success( token );
+    }
+
+    public final LockResult refreshLock( String tokenId ) {
+        log.trace( "RefreshLock : " + tokenId + " on resource : " + getName() + " in : " + parent );
+        //throw new UnsupportedOperationException("Not supported yet.");
+        LockToken token = new LockToken();
+        token.info = null;
+        token.timeout = LockTimeout.parseTimeout( "30" );
+        token.tokenId = currentLock.tokenId;
+        currentLock = token;
+        return LockResult.success( token );
+    }
+
+    public void unlock( String arg0 ) {
+        log.trace( "UnLock : " + arg0 + " on resource : " + getName() + " in : " + parent );
+        currentLock = null;
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public final LockToken getCurrentLock() {
+        log.trace( "GetCurrentLock" );
+        return currentLock;
+    }
+
+    public boolean isDigestAllowed() {
+        return true;
+    }
+
+
 }
