@@ -11,7 +11,7 @@ public class TResourceFactory implements ResourceFactory {
 
     static {
         TFolderResource folder = new TFolderResource( ROOT, "folder1" );
-        TReportableResource principals = new TReportableResource( ROOT, "principals" );
+        TFolderResource principals = new TFolderResource( ROOT, "principals" );
         TCalendarResource cal1 = new TCalendarResource( folder, "calenderOne" );
     }
 

@@ -1,6 +1,7 @@
 package com.ettrema.http.caldav.demo;
 
 import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.ReportableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
@@ -9,10 +10,11 @@ import com.bradmcevoy.http.http11.auth.DigestResponse;
 import java.util.Date;
 
 /**
+ * BM: added reportable so that all these resource classes work with REPORT
  *
  * @author alex
  */
-public class AbstractResource implements Resource
+public class AbstractResource implements Resource, ReportableResource
 {
 
   private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
