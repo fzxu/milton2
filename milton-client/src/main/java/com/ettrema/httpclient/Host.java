@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -13,6 +14,8 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
@@ -101,8 +104,8 @@ public class Host extends Folder {
         if( path == null || path.length() == 0 || path.equals( "/" ) ) {
             return this;
         }
-        if( path.startsWith( "/")) {
-            path = path.substring( 1);
+        if( path.startsWith( "/" ) ) {
+            path = path.substring( 1 );
         }
         String[] arr = path.split( "/" );
         return _find( this, arr, 0 );
@@ -251,6 +254,9 @@ public class Host extends Folder {
             } else {
                 return null;
             }
+        } catch( NotFoundException e) {
+            log.trace("not found: " + url);
+            return Collections.EMPTY_LIST;
         } catch( HttpException ex ) {
             throw new RuntimeException( ex );
         } finally {
@@ -282,6 +288,22 @@ public class Host extends Folder {
     public synchronized void options( String path ) throws NotFoundException, java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException {
         String url = this.href() + path;
         doOptions( url );
+    }
+
+    public synchronized byte[] get( String path ) {
+        String url = this.href() + path;
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        doGet( url, new StreamReceiver() {
+
+            public void receive( InputStream in ) {
+                try {
+                    IOUtils.copy( in, out );
+                } catch( IOException ex ) {
+                    throw new RuntimeException( ex );
+                }
+            }
+        } );
+        return out.toByteArray();
     }
 
     private synchronized void doOptions( String url ) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException {
@@ -355,9 +377,16 @@ public class Host extends Folder {
         return "http://" + server + "/";
     }
 
-    String urlEncode( String s ) {
-        s = s.replace( " ", "%20" );
-        return s;
+    public static String urlEncode( String s ) {
+        try {
+            org.apache.commons.httpclient.URI uri = new URI( s, false );
+            return uri.toString();
+        } catch( URIException ex ) {
+            throw new RuntimeException( s, ex );
+        } catch( NullPointerException ex ) {
+            throw new RuntimeException( s, ex );
+        }
+        //s = s.replace( " ", "%20" );
     }
 
     void notifyStartRequest() {
