@@ -10,6 +10,7 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.ettrema.event.DeleteEvent;
 
 public class DeleteHandler implements ExistingEntityHandler {
 
@@ -55,6 +56,7 @@ public class DeleteHandler implements ExistingEntityHandler {
             return;
         }
 
+        manager.getEventManager().fireEvent( new DeleteEvent( resource ) );
         deleteHelper.delete(r);
         log.debug("deleted ok");
         responseHandler.respondNoContent(resource, response, request);

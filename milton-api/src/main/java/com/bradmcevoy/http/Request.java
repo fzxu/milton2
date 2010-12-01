@@ -84,6 +84,7 @@ public interface Request {
         PUT( "PUT", true ),
         TRACE( "TRACE", false ),
         ACL( "ACL", true ),
+        CONNECT( "CONNECT", true ),
         REPORT( "REPORT", false );
         public String code;
         public boolean isWrite;
@@ -192,7 +193,9 @@ public interface Request {
      * classes and added to the attributes map. If you're extending AbstractRequest
      * this method will already be implemented for you by returning that attribute
      *
-     * If you are not extending AbstractRequest you should return implement this as: return attributes.get( "_params");
+     * If you are not extending AbstractRequest you should implement this as:
+     *
+     *    return attributes.get( "_params");
      *
      * @return - map of querystring or POST parameters, keyed by name
      */

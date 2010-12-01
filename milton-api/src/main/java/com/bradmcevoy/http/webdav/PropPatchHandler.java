@@ -22,6 +22,7 @@ import com.bradmcevoy.io.WritingException;
 import com.bradmcevoy.property.DefaultPropertyAuthoriser;
 import com.bradmcevoy.property.PropertyHandler;
 import com.bradmcevoy.property.PropertyAuthoriser;
+import com.ettrema.event.PropPatchEvent;
 import java.util.HashSet;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -184,6 +185,8 @@ public class PropPatchHandler implements ExistingEntityHandler, PropertyHandler 
                 String href = request.getAbsoluteUrl();
                 List<PropFindResponse> responses = new ArrayList<PropFindResponse>();
                 PropFindResponse resp = patchSetter.setProperties( href, parseResult, resource );
+                log.trace( "fire event" );
+                manager.getEventManager().fireEvent( new PropPatchEvent( resource, resp ) );
                 responses.add( resp );
                 responseHandler.respondPropFind( responses, response, request, resource );
 

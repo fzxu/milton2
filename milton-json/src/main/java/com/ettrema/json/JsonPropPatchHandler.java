@@ -3,6 +3,8 @@ package com.ettrema.json;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.PropPatchRequestParser.ParseResult;
@@ -11,6 +13,8 @@ import com.bradmcevoy.http.webdav.PropPatchableSetter;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.property.DefaultPropertyAuthoriser;
 import com.bradmcevoy.property.PropertyAuthoriser;
+import com.ettrema.event.EventManager;
+import com.ettrema.event.PropPatchEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -27,10 +31,12 @@ public class JsonPropPatchHandler {
     private static final Logger log = LoggerFactory.getLogger( JsonPropPatchHandler.class );
     private final PropPatchSetter patchSetter;
     private final PropertyAuthoriser permissionService;
+    private final EventManager eventManager;
 
-    public JsonPropPatchHandler( PropPatchSetter patchSetter, PropertyAuthoriser permissionService ) {
+    public JsonPropPatchHandler( PropPatchSetter patchSetter, PropertyAuthoriser permissionService, EventManager eventManager ) {
         this.patchSetter = patchSetter;
         this.permissionService = permissionService;
+        this.eventManager = eventManager;
     }
 
     /**
@@ -39,9 +45,10 @@ public class JsonPropPatchHandler {
     public JsonPropPatchHandler() {
         this.patchSetter = new PropPatchableSetter();
         this.permissionService = new DefaultPropertyAuthoriser();
+        this.eventManager = null;
     }
 
-    public PropFindResponse process( Resource wrappedResource, String encodedUrl, Map<String, String> params ) throws NotAuthorizedException {
+    public PropFindResponse process( Resource wrappedResource, String encodedUrl, Map<String, String> params ) throws NotAuthorizedException, ConflictException, BadRequestException {
         log.trace( "process" );
         Map<QName, String> fields = new HashMap<QName, String>();
         for( String fieldName : params.keySet() ) {
@@ -64,7 +71,7 @@ public class JsonPropPatchHandler {
         ParseResult parseResult = new ParseResult( fields, null );
 
         if( log.isTraceEnabled() ) {
-            log.trace("check permissions with: " + permissionService.getClass());
+            log.trace( "check permissions with: " + permissionService.getClass() );
         }
         Set<PropertyAuthoriser.CheckResult> errorFields = permissionService.checkPermissions( HttpManager.request(), Method.PROPPATCH, PropertyAuthoriser.PropertyPermission.WRITE, fields.keySet(), wrappedResource );
         if( errorFields != null && errorFields.size() > 0 ) {
@@ -72,7 +79,15 @@ public class JsonPropPatchHandler {
             throw new NotAuthorizedException( wrappedResource );
         } else {
             log.trace( "setting properties" );
-            return patchSetter.setProperties( encodedUrl, parseResult, wrappedResource );
+            PropFindResponse resp = patchSetter.setProperties( encodedUrl, parseResult, wrappedResource );
+            if( eventManager != null ) {
+                log.trace( "fire event" );
+                eventManager.fireEvent( new PropPatchEvent( wrappedResource, resp ) );
+            } else {
+                log.trace("no event manager");
+            }
+            return resp;
+
         }
     }
 

@@ -1,9 +1,6 @@
 package com.ettrema.json;
 
-import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

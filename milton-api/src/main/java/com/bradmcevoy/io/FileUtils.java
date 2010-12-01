@@ -222,7 +222,7 @@ public class FileUtils {
      * @param s
      * @return
      */
-    public String sanitiseName(String s) {
+    public static String sanitiseName(String s) {
         s = s.replaceAll("[ ]","_");
         return s;
     }

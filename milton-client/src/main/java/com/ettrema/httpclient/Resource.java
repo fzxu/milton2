@@ -252,15 +252,22 @@ public class Resource {
         return h;
     }
 
-    private String encodedName() {
-        return com.bradmcevoy.http.Utils.percentEncode( name );
-    }
+//    private String encodedName() {
+//        return com.bradmcevoy.http.Utils.percentEncode( name );
+//    }
 
+    /**
+     * Returns the UN encoded url
+     * 
+     * @return
+     */
     public String href() {
         if( parent == null ) {
-            return encodedName();
+            return name;
+            //return encodedName();
         } else {
-            return parent.href() + encodedName();
+            //return parent.href() + encodedName();
+            return parent.href() + name;
         }
     }
 

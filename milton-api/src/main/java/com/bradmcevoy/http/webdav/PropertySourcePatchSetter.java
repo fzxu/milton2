@@ -12,6 +12,7 @@ import com.bradmcevoy.property.PropertySource;
 import com.bradmcevoy.property.PropertySource.PropertyMetaData;
 import com.bradmcevoy.property.PropertySource.PropertySetException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
     public PropFindResponse setProperties( String href, ParseResult parseResult, Resource r ) {
         Map<QName, ValueAndType> knownProps = new HashMap<QName, ValueAndType>();
 
-        Map<Status, List<NameAndError>> errorProps = new HashMap<Status, List<NameAndError>>();
+        Map<Status, List<NameAndError>> errorProps = new EnumMap<Status, List<NameAndError>>( Status.class );
         for( Entry<QName, String> entry : parseResult.getFieldsToSet().entrySet() ) {
             QName name = entry.getKey();
             boolean found = false;
@@ -71,7 +72,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
                             source.setProperty( name, val, r );
                             knownProps.put( name, new ValueAndType( null, meta.getValueType() ) );
                             break;
-                        } catch(NotAuthorizedException e) {
+                        } catch( NotAuthorizedException e ) {
                             addErrorProp( errorProps, Response.Status.SC_UNAUTHORIZED, name, "Not authorised" );
                             break;
                         } catch( PropertySetException ex ) {
@@ -92,7 +93,14 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
                 addErrorProp( errorProps, Status.SC_NOT_FOUND, entry.getKey(), "Unknown property" );
             }
         }
-        log.debug( "errorProps: " + errorProps.size() );
+        if( log.isDebugEnabled() ) {
+            if( errorProps.size() > 0 ) {
+                log.debug( "errorProps: " + errorProps.size() + " listing property sources:" );
+                for( PropertySource s : propertySources ) {
+                    log.debug( "  source: " + s.getClass().getCanonicalName() );
+                }
+            }
+        }
         PropFindResponse resp = new PropFindResponse( href, knownProps, errorProps );
         return resp;
     }

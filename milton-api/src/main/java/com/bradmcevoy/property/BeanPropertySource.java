@@ -68,7 +68,7 @@ public class BeanPropertySource implements PropertySource {
         log.debug( "getPropertyMetaData" );
         BeanPropertyResource anno = getAnnotation( r );
         if( anno == null ) {
-            log.debug( " no annotation: " + r.getClass());
+            log.debug( " no annotation: ", r.getClass().getCanonicalName());
             return PropertyMetaData.UNKNOWN;
         }
         if( !name.getNamespaceURI().equals( anno.value() ) ) {

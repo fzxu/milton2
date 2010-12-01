@@ -20,6 +20,7 @@ import com.bradmcevoy.http.Response.ContentType;
 import com.bradmcevoy.http.upload.MonitoredDiskFileItemFactory;
 import com.bradmcevoy.http.upload.UploadListener;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +31,8 @@ public class ServletRequest extends AbstractRequest {
     private final Request.Method method;
     private final String url;
     private Auth auth;
-    private static HashMap<ContentType, String> contentTypes = new HashMap<ContentType, String>();
-    private static HashMap<String, ContentType> typeContents = new HashMap<String, ContentType>();
+    private static final Map<ContentType, String> contentTypes = new EnumMap<ContentType, String>(ContentType.class);
+    private static final Map<String, ContentType> typeContents = new HashMap<String, ContentType>();
 
     static {
         contentTypes.put( ContentType.HTTP, Response.HTTP );
@@ -97,10 +98,12 @@ public class ServletRequest extends AbstractRequest {
     public void parseRequestParameters( Map<String, String> params, Map<String, com.bradmcevoy.http.FileItem> files ) throws RequestParseException {
         try {
             if( isMultiPart() ) {
+                log.trace("isMultiPart");
                 UploadListener listener = new UploadListener();
                 MonitoredDiskFileItemFactory factory = new MonitoredDiskFileItemFactory( listener );
                 ServletFileUpload upload = new ServletFileUpload( factory );
                 List items = upload.parseRequest( request );
+                log.trace("upload items: " + items.size());
 
                 parseQueryString( params );
 
@@ -112,7 +115,9 @@ public class ServletRequest extends AbstractRequest {
                         files.put( item.getFieldName(), new FileItemWrapper( item ) );
                     }
                 }
+                log.trace("files: " + files.size() );
             } else {
+                log.trace("is not MultiPart");
                 for( Enumeration en = request.getParameterNames(); en.hasMoreElements(); ) {
                     String nm = (String) en.nextElement();
                     String val = request.getParameter( nm );
@@ -152,13 +157,16 @@ public class ServletRequest extends AbstractRequest {
 
     protected Response.ContentType getRequestContentType() {
         String s = request.getContentType();
+        log.trace("request content type", s);
         if( s == null ) return null;
         if( s.contains( Response.MULTIPART ) ) return ContentType.MULTIPART;
         return typeContents.get( s );
     }
 
     protected boolean isMultiPart() {
-        return ( ContentType.MULTIPART.equals( getRequestContentType() ) );
+        ContentType ct = getRequestContentType();
+        log.trace( "content type:", ct);
+        return ( ContentType.MULTIPART.equals( ct ) );
     }
 
     public Map<String, String> getHeaders() {

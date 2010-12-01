@@ -4,9 +4,6 @@ import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,19 +33,6 @@ public class PostHandler implements ExistingEntityHandler {
 
     @Override
     public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException, ConflictException, BadRequestException {
-        // need a linked hash map to preserve ordering of params
-        Map<String, String> params = new LinkedHashMap<String, String>();
-        Map<String, FileItem> files = new HashMap<String, FileItem>();
-        try {
-            request.parseRequestParameters( params, files );
-        } catch( RequestParseException ex ) {
-            log.warn( "exception parsing request. probably interrupted upload", ex );
-            return;
-        }
-
-        request.getAttributes().put( "_params", params );
-        request.getAttributes().put( "_files", files );
-
         this.resourceHandlerHelper.process( manager, request, response, this );
     }
 

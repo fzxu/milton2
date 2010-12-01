@@ -6,6 +6,7 @@ import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
@@ -16,6 +17,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import net.sf.json.JSON;
@@ -71,9 +73,10 @@ public class PutJsonResource extends JsonResource implements PostableResource {
             newFiles.add( nf );
             log.debug( "creating resource: " + newName + " size: " + file.getSize() );
             InputStream in = null;
+            Resource newResource;
             try {
                 in = file.getInputStream();
-                wrapped.createNew( newName, in, file.getSize(), file.getContentType() );
+                newResource = wrapped.createNew( newName, in, file.getSize(), file.getContentType() );
             } catch( NotAuthorizedException ex ) {
                 throw new RuntimeException( ex );
             } catch( BadRequestException ex ) {
@@ -85,7 +88,9 @@ public class PutJsonResource extends JsonResource implements PostableResource {
             } finally {
                 FileUtils.close( in );
             }
+            log.trace( "completed POST processing for file. Created: " + newResource.getName() );
         }
+        log.trace( "completed all POST processing" );
         return null;
     }
 
@@ -104,7 +109,12 @@ public class PutJsonResource extends JsonResource implements PostableResource {
         cfg.setIgnoreTransientFields( true );
         cfg.setCycleDetectionStrategy( CycleDetectionStrategy.LENIENT );
 
-        NewFile[] arr = new NewFile[newFiles.size()];
+        NewFile[] arr;
+        if( newFiles != null ) {
+            arr = new NewFile[newFiles.size()];
+        } else {
+            arr = new NewFile[0];
+        }
         arr = newFiles.toArray( arr );
         Writer writer = new PrintWriter( out );
         JSON json = JSONSerializer.toJSON( arr, cfg );
@@ -129,19 +139,31 @@ public class PutJsonResource extends JsonResource implements PostableResource {
 //    }
     private String getName( FileItem file, Map<String, String> parameters ) throws ConflictException {
         String initialName = file.getName();
-        boolean nonBlankName = initialName == null && initialName.trim().length() == 0;
-
-        if( nonBlankName && wrapped.child( initialName ) == null ) {
-            return file.getName();
-        } else {
-            String autoname = parameters.get( PARAM_AUTONAME );
-            if( autoname != null ) {
-                return findAcceptableName( initialName );
+        boolean nonBlankName = initialName != null && initialName.trim().length() > 0;
+        boolean autoname = ( parameters.get( PARAM_AUTONAME ) != null );
+        if( nonBlankName ) {
+            Resource child = wrapped.child( initialName );
+            if( child == null ) {
+                log.trace( "no existing file with that name" );
+                return initialName;
             } else {
-                log.warn( "Conflict: Can't create resource with name " + initialName + " because it already exists. To rename automatically use request parameter: " + autoname );
-                throw new ConflictException( this );
+                if( !autoname ) {
+                    log.warn( "Conflict: Can't create resource with name " + initialName + " because it already exists. To rename automatically use request parameter: " + autoname );
+                    throw new ConflictException( this );
+                } else {
+                    log.trace( "file exists and autoname is set, so will find acceptable name" );
+                }
             }
+        } else {
+            initialName = getDateAsName( "upload" );
+            log.trace( "no name given in request" );
         }
+        return findAcceptableName( initialName );
+    }
+
+    private String getDateAsName( String base ) {
+        Calendar cal = Calendar.getInstance();
+        return base + "_" + cal.get( Calendar.YEAR ) + "-" + cal.get( Calendar.MONTH ) + "-" + cal.get( Calendar.DAY_OF_MONTH );
     }
 
     private String findAcceptableName( String initialName ) throws ConflictException {

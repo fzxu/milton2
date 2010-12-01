@@ -38,7 +38,9 @@ public interface GetableResource extends Resource {
      * @param range - null for normal GET's, not null for partial GET's. May be ignored
      * @param params - request parameters
      * @param contentType - the contentType selected by negotiation
-     * @throws java.io.IOException
+     * @throws java.io.IOException - if there is an exception writing content to the output stream. This
+     * indicates that the client has disconnected (as frequently occurs with http transfers). DO NOT
+     * throw an IOException if there was an internal error generating the response (eg if reading from a database)
      * @throws com.bradmcevoy.http.exceptions.NotAuthorizedException
      */
     public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException;

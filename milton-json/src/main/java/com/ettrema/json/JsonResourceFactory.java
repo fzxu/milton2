@@ -2,7 +2,6 @@ package com.ettrema.json;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CopyableResource;
-import com.bradmcevoy.http.DigestResource;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.PropFindableResource;
@@ -26,24 +25,26 @@ public class JsonResourceFactory implements ResourceFactory {
 
     private static final Logger log = LoggerFactory.getLogger( JsonResourceFactory.class );
     private final ResourceFactory wrapped;
-    private JsonPropFindHandler propFindHandler;
-    private JsonPropPatchHandler propPatchHandler;
-    private EventManager eventManager;
+    private final JsonPropFindHandler propFindHandler;
+    private final JsonPropPatchHandler propPatchHandler;
+    private final EventManager eventManager;
     private Long maxAgeSecsPropFind = null;
     private static final String DAV_FOLDER = "_DAV";
 
-    public JsonResourceFactory( ResourceFactory wrapped, JsonPropFindHandler propFindHandler, JsonPropPatchHandler propPatchHandler ) {
+    public JsonResourceFactory( ResourceFactory wrapped, EventManager eventManager, JsonPropFindHandler propFindHandler, JsonPropPatchHandler propPatchHandler ) {
         this.wrapped = wrapped;
         this.propFindHandler = propFindHandler;
         this.propPatchHandler = propPatchHandler;
+        this.eventManager = eventManager;
         log.debug( "created with: " + propFindHandler.getClass().getCanonicalName() );
     }
 
-    public JsonResourceFactory( ResourceFactory wrapped, List<PropertySource> propertySources, PropPatchSetter patchSetter, PropertyAuthoriser permissionService ) {
+    public JsonResourceFactory( ResourceFactory wrapped, EventManager eventManager, List<PropertySource> propertySources, PropPatchSetter patchSetter, PropertyAuthoriser permissionService ) {
         this.wrapped = wrapped;
+        this.eventManager = eventManager;
         log.debug( "using property sources: " + propertySources.size() );
         this.propFindHandler = new JsonPropFindHandler( new PropFindPropertyBuilder( propertySources ) );
-        this.propPatchHandler = new JsonPropPatchHandler( patchSetter, permissionService );
+        this.propPatchHandler = new JsonPropPatchHandler( patchSetter, permissionService, eventManager );
     }
 
     public Resource getResource( String host, String sPath ) {
@@ -95,17 +96,12 @@ public class JsonResourceFactory implements ResourceFactory {
         return null;
     }
 
-    public void setPropFindHandler( JsonPropFindHandler propFindHandler ) {
-        this.propFindHandler = propFindHandler;
-    }
 
     public JsonPropFindHandler getPropFindHandler() {
         return propFindHandler;
     }
 
-    public void setPropPatchHandler( JsonPropPatchHandler propPatchHandler ) {
-        this.propPatchHandler = propPatchHandler;
-    }
+
 
     public JsonPropPatchHandler getPropPatchHandler() {
         return propPatchHandler;
@@ -115,9 +111,7 @@ public class JsonResourceFactory implements ResourceFactory {
         return eventManager;
     }
 
-    public void setEventManager( EventManager eventManager ) {
-        this.eventManager = eventManager;
-    }
+
 
     public Long getMaxAgeSecsPropFind() {
         return maxAgeSecsPropFind;
