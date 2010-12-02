@@ -13,13 +13,14 @@ import com.ettrema.httpclient.Resource;
 import com.ettrema.httpclient.ResourceListener;
 import java.awt.Component;
 import java.awt.datatransfer.Transferable;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -33,13 +34,13 @@ import org.jdesktop.application.Task;
  * @author  bradm
  */
 public class FolderPanel extends javax.swing.JPanel implements Addressable, Unloadable {
-    private static final long serialVersionUID = 1L;
 
+    private static final long serialVersionUID = 1L;
     FolderModel model;
     TableResourceTransferHandler tableTransferHandler;
 
     /** Creates new form FolderPanel */
-    public FolderPanel( final Folder folder ) {
+    public FolderPanel( final Folder folder ) throws IOException {
         System.out.println( "FolderPanel: create new" );
         initComponents();
         model = new FolderModel( folder );
@@ -147,7 +148,11 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
           int row = table.getSelectedRow();
           Resource r = model.getResource( row );
           if( r instanceof Folder ) {
-              App.current().view.showDetails( new FolderPanel( (Folder) r ) );
+              try {
+                  App.current().view.showDetails( new FolderPanel( (Folder) r ) );
+              } catch( IOException ex ) {
+                  throw new RuntimeException( ex );
+              }
           } else {
               File f = (File) r;
               if( ( f.contentType != null && f.contentType.equals( "text/html" ) ) || f.name.endsWith( "html" ) ) {
@@ -157,14 +162,15 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
               } else if( f.contentType != null && f.contentType.contains( "text" ) ) {
                   openTextEditor( f );
               } else {
+                  java.io.File dest = new java.io.File( "/home/brad/Desktop" ); // TODO
+                  java.io.File rFile;
                   try {
-                      java.io.File dest = new java.io.File( "/home/brad/Desktop" ); // TODO
-                      java.io.File rFile = r.downloadTo( dest, null );
-                      String url = "file://" + rFile.getAbsolutePath();
-                      BareBonesBrowserLaunch.openURL( url );
-                  } catch( FileNotFoundException ex ) {
+                      rFile = r.downloadTo( dest, null );
+                  } catch( IOException ex ) {
                       throw new RuntimeException( ex );
                   }
+                  String url = "file://" + rFile.getAbsolutePath();
+                  BareBonesBrowserLaunch.openURL( url );
               }
           }
       }
@@ -188,12 +194,12 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
   // End of variables declaration//GEN-END:variables
 
     class FolderModel extends AbstractTableModel implements FolderListener, ResourceListener, Unloadable {
-        private static final long serialVersionUID = 1L;
 
+        private static final long serialVersionUID = 1L;
         final Folder folder;
         List<Resource> children;
 
-        public FolderModel( Folder folder ) {
+        public FolderModel( Folder folder ) throws IOException {
             this.folder = folder;
             this.folder.addListener( (FolderListener) this );
             this.folder.addListener( (ResourceListener) this );
@@ -256,16 +262,20 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
             return children().get( row );
         }
 
-        List<? extends Resource> children() {
-            if( children != null ) {
+        List<? extends Resource> children()  {
+            try {
+                if( children != null ) {
+                    return children;
+                }
+                children = (List<Resource>) folder.children();
+                Collections.sort( children, new ResourceComparator() );
+                for( Resource r : children ) {
+                    r.addListener( this );
+                }
                 return children;
+            } catch( IOException ex ) {
+                throw new RuntimeException( ex );
             }
-            children = (List<Resource>) folder.children();
-            Collections.sort( children, new ResourceComparator() );
-            for( Resource r : children ) {
-                r.addListener( this );
-            }
-            return children;
         }
 
         public int getColumnCount() {
@@ -362,6 +372,7 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
     }
 
     public class MyTableCellRenderer extends DefaultTableCellRenderer {
+
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -388,7 +399,12 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
         public boolean acceptCopyDrop( Transferable transferable ) {
             TransferableResourceList list = (TransferableResourceList) transferable;
             for( Resource r : list ) {
-                r.copyTo( model.folder );
+                try {
+                    r.copyTo( model.folder );
+                } catch( IOException ex ) {
+                    ex.printStackTrace();
+                    break;
+                }
             }
             return true;
         }
@@ -396,7 +412,12 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
         public boolean acceptMoveDrop( Transferable transferable ) {
             TransferableResourceList list = (TransferableResourceList) transferable;
             for( Resource r : list ) {
-                r.moveTo( model.folder );
+                try {
+                    r.moveTo( model.folder );
+                } catch( IOException ex ) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog( table, "Failed to move: " + model.folder.name);
+                }
             }
             return true;
         }

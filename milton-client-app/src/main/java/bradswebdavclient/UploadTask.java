@@ -2,6 +2,7 @@ package bradswebdavclient;
 
 import com.ettrema.httpclient.Folder;
 import com.ettrema.httpclient.ProgressListener;
+import com.ettrema.httpclient.Throttle;
 import java.awt.Component;
 import javax.swing.JOptionPane;
 import org.jdesktop.application.Application;
@@ -36,7 +37,11 @@ public class UploadTask extends Task implements ProgressListener {
                 System.out.println( "not uploading: " + f.getName() );
             } else {
                 try {
-                    folder.upload( f, this );
+                    folder.upload( f, this, new Throttle() {
+
+                        public void onRead( int len ) {
+                        }
+                    } );
                     currentFile++;
                 } catch( Throwable e ) {
                     e.printStackTrace();

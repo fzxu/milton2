@@ -8,6 +8,7 @@ package bradswebdavclient;
 import com.ettrema.httpclient.Folder;
 import com.ettrema.httpclient.Resource;
 import java.awt.Component;
+import java.io.IOException;
 import javax.swing.AbstractListModel;
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -36,7 +37,11 @@ public class FolderPanel2 extends javax.swing.JPanel {
             public void filesDropped( java.io.File[] files ) {
                 for( java.io.File f : files ) {
                     System.out.println( f.getName() );
-                    folder.upload( f );
+                    try {
+                        folder.upload( f );
+                    } catch( IOException ex ) {
+                        throw new RuntimeException( ex );
+                    }
                 }
             }   // end filesDropped
         } ); // end FileDrop.Listener
@@ -93,11 +98,19 @@ public class FolderPanel2 extends javax.swing.JPanel {
         }
 
         Resource getResource( int row ) {
-            return folder.children().get( row );
+            try {
+                return folder.children().get( row );
+            } catch( IOException ex ) {
+                throw new RuntimeException( ex );
+            }
         }
 
         public int getSize() {
-            return folder.children().size();
+            try {
+                return folder.children().size();
+            } catch( IOException ex ) {
+                throw new RuntimeException( ex );
+            }
         }
 
         public Object getElementAt( int index ) {

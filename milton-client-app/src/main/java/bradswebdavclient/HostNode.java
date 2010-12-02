@@ -3,6 +3,7 @@ package bradswebdavclient;
 import com.ettrema.httpclient.ConnectionListener;
 import com.ettrema.httpclient.Host;
 import java.awt.Cursor;
+import java.io.IOException;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
@@ -14,7 +15,7 @@ public class HostNode extends FolderNode {
 
     final Host host;
 
-    public HostNode( AbstractTreeNode parent, Host host ) {
+    public HostNode( AbstractTreeNode parent, Host host ) throws IOException {
         super( parent, host.getFolder( "" ) );
         this.host = host;
         host.connectionListeners.add( new ConnectionListener() {

@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -97,7 +95,13 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
     @Override
     public JPanel createDetails() {
         System.out.println( "FolderNode: creating panel" );
-        return new FolderPanel( folder );
+        try {
+            return new FolderPanel( folder );
+        } catch( IOException ex ) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog( App.current().getMainFrame(), "An error occured connecting to the host");
+            return null;
+        }
     }
 
     @Override

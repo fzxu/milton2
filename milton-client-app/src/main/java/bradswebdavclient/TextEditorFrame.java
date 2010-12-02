@@ -8,6 +8,8 @@ package bradswebdavclient;
 import com.ettrema.httpclient.File;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import javax.swing.JOptionPane;
 import org.jdesktop.application.Action;
 
 /**
@@ -110,7 +112,11 @@ public class TextEditorFrame extends javax.swing.JFrame {
         String s = this.editor.getText();
         System.out.println( "content: " + s );
         ByteArrayInputStream in = new ByteArrayInputStream( s.getBytes() );
-        this.file = this.file.parent.upload( file.name, in, (long) s.length() );
+        try {
+            this.file = this.file.parent.upload( file.name, in, (long) s.length() );
+        } catch( IOException ex ) {
+            JOptionPane.showMessageDialog( this, "An error occurred saving the resource");
+        }
     }//GEN-LAST:event_mnuSaveMouseClicked
 
     @Action
