@@ -80,13 +80,13 @@ public class HandlerHelper {
         if( !authorised ) {
             if( log.isWarnEnabled() ) {
                 log.warn( "authorisation declined, requesting authentication: " + request.getAbsolutePath() + ". resource type: " + resource.getClass().getCanonicalName() );
-                if( auth != null ) {
-                    if( log.isTraceEnabled() ) {
-                        log.trace( "  - auth: " + auth.getUser() + " tag: " + auth.getTag() );
-                    }
-                } else {
-                    log.trace( "  - anonymous request" );
+            }
+            if( auth != null ) {
+                if( log.isTraceEnabled() ) {
+                    log.trace( "  - auth: " + auth.getUser() + " tag: " + auth.getTag() );
                 }
+            } else {
+                log.trace( "  - anonymous request" );
             }
             return false;
         } else {

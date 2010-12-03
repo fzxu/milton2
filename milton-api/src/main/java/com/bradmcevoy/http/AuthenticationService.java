@@ -18,6 +18,8 @@ public class AuthenticationService {
 
     private static final Logger log = LoggerFactory.getLogger( AuthenticationService.class );
     private List<AuthenticationHandler> authenticationHandlers;
+    private List<AuthenticationHandler> extraHandlers;
+    private List<AuthenticationHandler> allHandlers;
     private boolean disableBasic;
     private boolean disableDigest;
 
@@ -29,6 +31,7 @@ public class AuthenticationService {
      */
     public AuthenticationService( List<AuthenticationHandler> authenticationHandlers ) {
         this.authenticationHandlers = authenticationHandlers;
+        setAllHandlers();
     }
 
     /**
@@ -43,6 +46,7 @@ public class AuthenticationService {
         authenticationHandlers = new ArrayList<AuthenticationHandler>();
         authenticationHandlers.add( basic );
         authenticationHandlers.add( digest );
+        setAllHandlers();
     }
 
     /**
@@ -55,6 +59,7 @@ public class AuthenticationService {
         authenticationHandlers = new ArrayList<AuthenticationHandler>();
         authenticationHandlers.add( basic );
         authenticationHandlers.add( digest );
+        setAllHandlers();
     }
 
     public void setDisableBasic( boolean b ) {
@@ -68,6 +73,7 @@ public class AuthenticationService {
             }
         }
         disableBasic = b;
+        setAllHandlers();
     }
 
     public boolean isDisableBasic() {
@@ -85,6 +91,7 @@ public class AuthenticationService {
             }
         }
         disableDigest = b;
+        setAllHandlers();
     }
 
     public boolean isDisableDigest() {
@@ -112,7 +119,7 @@ public class AuthenticationService {
             log.trace( "request is pre-authenticated" );
             return new AuthStatus( auth, false );
         }
-        for( AuthenticationHandler h : authenticationHandlers ) {
+        for( AuthenticationHandler h : allHandlers ) {
             if( h.supports( resource, request ) ) {
                 Object loginToken = h.authenticate( resource, request );
                 if( loginToken == null ) {
@@ -144,7 +151,7 @@ public class AuthenticationService {
      */
     public List<String> getChallenges( Resource resource, Request request ) {
         List<String> challenges = new ArrayList<String>();
-        for( AuthenticationHandler h : authenticationHandlers ) {
+        for( AuthenticationHandler h : allHandlers ) {
             if( h.isCompatible( resource ) ) {
                 log.debug( "challenge for auth: " + h.getClass() );
                 String ch = h.getChallenge( resource, request );
@@ -157,7 +164,30 @@ public class AuthenticationService {
     }
 
     public List<AuthenticationHandler> getAuthenticationHandlers() {
-        return Collections.unmodifiableList( authenticationHandlers );
+        return allHandlers;
+    }
+
+    public List<AuthenticationHandler> getExtraHandlers() {
+        return extraHandlers;
+    }
+
+    public void setExtraHandlers( List<AuthenticationHandler> extraHandlers ) {
+        this.extraHandlers = extraHandlers;
+        setAllHandlers();
+    }
+
+    /**
+     * Merge standard and extra handlers into single list
+     */
+    private void setAllHandlers() {
+        List<AuthenticationHandler> handlers = new ArrayList<AuthenticationHandler>();
+        if( authenticationHandlers != null ) {
+            handlers.addAll( authenticationHandlers );
+        }
+        if( extraHandlers != null ) {
+            handlers.addAll( extraHandlers );
+        }
+        this.allHandlers = Collections.unmodifiableList( handlers );
     }
 
     public static class AuthStatus {
