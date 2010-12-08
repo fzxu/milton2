@@ -87,7 +87,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
 
     //TODO: remove debug logging once it's working
     public Object getProperty( QName name, Resource r ) {
-        log.debug( "getProperty: " + name.getLocalPart() );
+        log.trace( "getProperty: {}", name.getLocalPart() );
         Object o;
         if( propertyMapCalDav.hasProperty( name )) {
             o = propertyMapCalDav.getProperty( name, r );
@@ -99,12 +99,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
     }
 
     public void setProperty( QName name, Object value, Resource r ) {
-        log.debug( "setProperty: " + name.getLocalPart() );
+        log.trace( "setProperty: {}", name.getLocalPart() );
         throw new UnsupportedOperationException( "Not supported yet." );
     }
 
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
-        log.debug( "getPropertyMetaData: " + name.getLocalPart() );
+        log.trace( "getPropertyMetaData: {}", name.getLocalPart() );
         if( propertyMapCalDav.hasProperty( name )) {
             return propertyMapCalDav.getPropertyMetaData( name, r );
         } else {
@@ -117,7 +117,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
     }
 
     public List<QName> getAllPropertyNames( Resource r ) {
-        log.debug( "getAllPropertyNames" );
+        log.trace( "getAllPropertyNames" );
         List<QName> list = new ArrayList<QName>();
         list.addAll( propertyMapCalDav.getAllPropertyNames( r ) );
         list.addAll( propertyMapCalServer.getAllPropertyNames( r ) );
@@ -130,7 +130,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public CData getValue( PropFindableResource res ) {
-            log.debug( "getValue: " + res.getClass());
+            log.trace( "getValue: " + res.getClass());
             if( res instanceof ICalResource) {
                 ICalResource ical = (ICalResource) res;
                 return new CData( ical.getICalData() );
