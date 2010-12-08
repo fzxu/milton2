@@ -13,6 +13,7 @@ import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
+import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler.BUFFERING;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import com.bradmcevoy.http.values.ValueWriters;
 import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
@@ -204,5 +205,21 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
 
     public void respondPreconditionFailed( Request request, Response response, Resource resource ) {
         response.setStatus( Status.SC_PRECONDITION_FAILED );
+    }
+
+    public BUFFERING getBuffering() {
+        if( wrapped instanceof DefaultHttp11ResponseHandler) {
+            return ((DefaultHttp11ResponseHandler)wrapped).getBuffering();
+        } else {
+            throw new RuntimeException( "Wrapped class is not a known type");
+        }
+    }
+
+    public void setBuffering( BUFFERING buffering ) {
+        if( wrapped instanceof DefaultHttp11ResponseHandler) {
+            ((DefaultHttp11ResponseHandler)wrapped).setBuffering( buffering );
+        } else {
+            throw new RuntimeException( "Wrapped class is not a known type");
+        }
     }
 }
