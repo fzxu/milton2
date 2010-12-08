@@ -24,7 +24,9 @@ public class StandardFilter implements Filter {
             Request.Method method = request.getMethod();
             
             Handler handler = manager.getMethodHandler( method );
-            if( handler == null ) throw new RuntimeException("No handler for method: " + method.code);
+            if( handler == null ) {
+                manager.getResponseHandler().respondMethodNotImplemented( null, response, request );
+            }
             if( log.isTraceEnabled()) {
                 log.trace( "delegate to method handler: " + handler.getClass().getCanonicalName());
             }
