@@ -6,6 +6,9 @@ import com.bradmcevoy.http.exceptions.PreConditionFailedException;
 
 /**
  * webDAV LOCK
+ *
+ * You should also implement LockingCollectionResource on your collections for full
+ * locking support
  * 
  * @author brad
  */
