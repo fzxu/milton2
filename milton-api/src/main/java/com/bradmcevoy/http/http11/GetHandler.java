@@ -162,7 +162,9 @@ public class GetHandler implements ExistingEntityHandler {
                     log.trace( "partial" );
                     responseHandler.respondPartialContent( resource, response, request, params, range );
                 } else {
-                    log.trace( "normal content" );
+                    if( log.isTraceEnabled() ) {
+                        log.trace( "normal content: " + responseHandler.getClass().getCanonicalName() );
+                    }
                     responseHandler.respondContent( resource, response, request, params );
                 }
             }
