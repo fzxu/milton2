@@ -14,11 +14,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.io.BufferingOutputStream;
+import com.bradmcevoy.io.ReadingException;
+import com.bradmcevoy.io.StreamUtils;
+import com.bradmcevoy.io.WritingException;
 
 /**
  *
  */
 public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
+
+    public enum BUFFERING {
+        always,
+        never,
+        whenNeeded
+    }
 
     private static final Logger log = LoggerFactory.getLogger( DefaultHttp11ResponseHandler.class );
     public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
@@ -28,6 +38,8 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
     private final AuthenticationService authenticationService;
     private final ETagGenerator eTagGenerator;
+    private int maxMemorySize = 100000;
+    private BUFFERING buffering;
 
     public DefaultHttp11ResponseHandler( AuthenticationService authenticationService ) {
         this.authenticationService = authenticationService;
@@ -154,22 +166,52 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
-//        log.debug( "respondContent: " + resource.getClass() );
+        log.debug( "respondContent: " + resource.getClass() );
         Auth auth = request.getAuthorization();
         setRespondContentCommonHeaders( response, resource, auth );
         if( resource instanceof GetableResource ) {
             GetableResource gr = (GetableResource) resource;
-            Long contentLength = gr.getContentLength();
-            if( contentLength != null ) { // often won't know until rendered
-                response.setContentLengthHeader( contentLength );
-            }
             String acc = request.getAcceptHeader();
             String ct = gr.getContentType( acc );
             if( ct != null ) {
                 response.setContentTypeHeader( ct );
             }
             setCacheControl( gr, response, request.getAuthorization() );
-            sendContent( request, response, (GetableResource) resource, params, null, ct );
+
+            Long contentLength = gr.getContentLength();
+            if( buffering == BUFFERING.always || (contentLength != null && buffering == BUFFERING.whenNeeded) ) { // often won't know until rendered
+                log.trace( "sending content with known content length: " + contentLength);
+                response.setContentLengthHeader( contentLength );
+                sendContent( request, response, (GetableResource) resource, params, null, ct );
+            } else {
+                log.trace( "buffering content...");
+                BufferingOutputStream tempOut = new BufferingOutputStream( maxMemorySize );
+                try {
+                    ( (GetableResource) resource ).sendContent( tempOut, null, params, ct );
+                    tempOut.close();
+                } catch( IOException ex ) {
+                    throw new RuntimeException( "Exception generating buffered content", ex);
+                }
+                Long bufContentLength = tempOut.getSize();
+                if( contentLength != null ) {
+                    if( contentLength != bufContentLength ) {
+                        throw new RuntimeException( "Lengthd dont match: " + contentLength + " != " + bufContentLength);
+                    }
+                }
+                log.trace( "sending buffered content...");
+                response.setContentLengthHeader( bufContentLength );
+                try {
+                    StreamUtils.readTo( tempOut.getInputStream(), response.getOutputStream() );
+                } catch( ReadingException ex ) {
+                    throw new RuntimeException( ex );
+                } catch( WritingException ex ) {
+                    log.warn( "exception writing, client probably closed connection", ex );
+                }
+                return;
+                
+
+            }
+
         }
     }
 
@@ -256,17 +298,17 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     /**
-            The modified date response header is used by the client for content
-            caching. It seems obvious that if we have a modified date on the resource
-            we should set it.
-            BUT, because of the interaction with max-age we should always set it
-            to the current date if we have max-age
-            The problem, is that if we find that a condition GET has an expired mod-date
-            (based on maxAge) then we want to respond with content (even if our mod-date
-            hasnt changed. But if we use the actual mod-date in that case, then the
-            browser will continue to use the old mod-date, so will forever more respond
-            with content. So we send a mod-date of now to ensure that future requests
-            will be given a 304 not modified.*
+    The modified date response header is used by the client for content
+    caching. It seems obvious that if we have a modified date on the resource
+    we should set it.
+    BUT, because of the interaction with max-age we should always set it
+    to the current date if we have max-age
+    The problem, is that if we find that a condition GET has an expired mod-date
+    (based on maxAge) then we want to respond with content (even if our mod-date
+    hasnt changed. But if we use the actual mod-date in that case, then the
+    browser will continue to use the old mod-date, so will forever more respond
+    with content. So we send a mod-date of now to ensure that future requests
+    will be given a 304 not modified.*
      *
      * @param response
      * @param resource
@@ -312,4 +354,30 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
             throw new RuntimeException( ex );
         }
     }
+
+    /**
+     * Maximum size of data to hold in memory per request when buffering output
+     * data.
+     *
+     * @return
+     */
+    public int getMaxMemorySize() {
+        return maxMemorySize;
+    }
+
+    public void setMaxMemorySize( int maxMemorySize ) {
+        this.maxMemorySize = maxMemorySize;
+    }
+
+    public BUFFERING getBuffering() {
+        return buffering;
+    }
+
+    public void setBuffering( BUFFERING buffering ) {
+        this.buffering = buffering;
+    }
+
+
+
+
 }
