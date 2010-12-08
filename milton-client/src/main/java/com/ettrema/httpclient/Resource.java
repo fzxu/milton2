@@ -145,16 +145,16 @@ public class Resource {
         listeners.add( l );
     }
 
-    public String post( Map<String, String> params ) {
+    public String post( Map<String, String> params ) throws HttpException {
         return host().doPost( href(), params );
     }
 
-    public void copyTo( Folder folder ) throws IOException {
+    public void copyTo( Folder folder ) throws IOException, HttpException {
         host().doCopy( href(), folder.href() + this.name );
         folder.flush();
     }
 
-    public void rename( String newName ) throws IOException {
+    public void rename( String newName ) throws IOException, HttpException {
         String dest = "";
         if( parent != null ) {
             dest = parent.href();
@@ -166,7 +166,7 @@ public class Resource {
         }
     }
 
-    public void moveTo( Folder folder ) throws IOException {
+    public void moveTo( Folder folder ) throws IOException, HttpException {
         int res = host().doMove( href(), folder.href() + this.name );
         if( res == 201 ) {
             this.parent.flush();
@@ -178,14 +178,14 @@ public class Resource {
         listeners.remove( l );
     }
 
-    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException {
+    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException, HttpException {
         if( !destFolder.exists() )
             throw new FileNotFoundException( destFolder.getAbsolutePath() );
         File dest = new File( destFolder, name );
         return downloadToFile( dest, listener );
     }
 
-    public File downloadToFile( File dest, ProgressListener listener ) throws FileNotFoundException {
+    public File downloadToFile( File dest, ProgressListener listener ) throws FileNotFoundException, HttpException {
         final FileOutputStream out;
         if( dest.exists() ){
             out = new FileOutputStream( dest, true );
@@ -202,7 +202,7 @@ public class Resource {
         return dest;
     }
 
-    public void download( final OutputStream out, ProgressListener listener ) {
+    public void download( final OutputStream out, ProgressListener listener ) throws HttpException {
         if( listener != null ) {
             listener.onProgress( 0, this.name );
         }
@@ -231,7 +231,7 @@ public class Resource {
         return href() + "(" + displayName + ")";
     }
 
-    public void delete() throws IOException {
+    public void delete() throws IOException, HttpException {
         host().doDelete( href() );
         notifyOnDelete();
     }

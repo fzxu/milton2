@@ -24,7 +24,7 @@ public class File extends Resource {
         this.contentLength = contentLength;
     }
 
-    public void setContent(ByteArrayInputStream in, Long contentLength) throws IOException {
+    public void setContent(ByteArrayInputStream in, Long contentLength) throws IOException, HttpException {
         this.parent.upload(this.name,in, contentLength);
     }
 

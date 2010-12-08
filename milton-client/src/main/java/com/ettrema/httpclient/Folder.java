@@ -40,19 +40,19 @@ public class Folder extends Resource {
         super( parent, name );
     }
 
-    public void addListener( FolderListener l ) throws IOException {
+    public void addListener( FolderListener l ) throws IOException, HttpException {
         for( Resource r : this.children() ) {
             l.onChildAdded( r.parent, r );
         }
         folderListeners.add( l );
     }
 
-    public String post( String relativePath, Map<String, String> params ) {
+    public String post( String relativePath, Map<String, String> params ) throws HttpException {
         return host().doPost( href() + relativePath, params );
     }
 
     @Override
-    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException {
+    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException, HttpException {
         File thisDir = new File( destFolder, this.name );
         thisDir.mkdir();
         for( Resource r : this.children() ) {
@@ -72,7 +72,7 @@ public class Folder extends Resource {
 //        children();
     }
 
-    public List<? extends Resource> children() throws IOException {
+    public List<? extends Resource> children() throws IOException, HttpException {
         if( childrenLoaded ) return children;
 
         List<Response> responses = host().doPropFind( href(), 1 );
@@ -100,7 +100,7 @@ public class Folder extends Resource {
         return href() + " (is a folder)";
     }
 
-    public void upload( File f ) throws IOException {
+    public void upload( File f ) throws IOException, HttpException {
         upload( f, null, null );
     }
 
@@ -111,7 +111,7 @@ public class Folder extends Resource {
      * @param throttle - optional, can be used to slow down the transfer
      * @throws IOException
      */
-    public void upload( File f, ProgressListener listener, Throttle throttle ) throws IOException {
+    public void upload( File f, ProgressListener listener, Throttle throttle ) throws IOException, HttpException {
         if( f.isDirectory() ) {
             uploadFolder( f, listener, throttle );
         } else {
@@ -119,21 +119,19 @@ public class Folder extends Resource {
         }
     }
 
-    protected void uploadFile( File f, ProgressListener listener, Throttle throttle ) {
+    protected void uploadFile( File f, ProgressListener listener, Throttle throttle ) throws FileNotFoundException, IOException, HttpException {
         NotifyingFileInputStream in = null;
         try {
             in = new NotifyingFileInputStream( f, listener, throttle );
             upload( f.getName(), in, f.length() );
             flush();            
-        } catch( Throwable ex ) {
-            throw new RuntimeException( f.getAbsolutePath(), ex );
         } finally {
             Utils.close( in );
             listener.onComplete( f.getName() );
         }
     }
 
-    protected void uploadFolder( File folder, ProgressListener listener, Throttle throttle ) throws IOException {
+    protected void uploadFolder( File folder, ProgressListener listener, Throttle throttle ) throws IOException, HttpException {
         if( folder.getName().startsWith( "." ) ) {
             return;
         }
@@ -143,12 +141,13 @@ public class Folder extends Resource {
         }
     }
 
-    public com.ettrema.httpclient.File upload( String name, InputStream content, Long contentLength ) throws IOException {
+    public com.ettrema.httpclient.File upload( String name, InputStream content, Long contentLength ) throws IOException, HttpException {
         children(); // ensure children are loaded
         String newUri = href() + name;
         String contentType = URLConnection.guessContentTypeFromName( name );
         log.trace( "upload: " + newUri );
-        host().doPut( newUri, content, contentLength, contentType );
+        int result = host().doPut( newUri, content, contentLength, contentType );
+        Utils.processResultCode( result, newUri );
         com.ettrema.httpclient.File child = new com.ettrema.httpclient.File( this, name, contentType, contentLength );
         com.ettrema.httpclient.Resource oldChild = this.child( child.name );
         if( oldChild != null ) {
@@ -159,7 +158,7 @@ public class Folder extends Resource {
         return child;
     }
 
-    public Folder createFolder( String name ) throws IOException {
+    public Folder createFolder( String name ) throws IOException, HttpException {
         children(); // ensure children are loaded
         String newUri = href() + name;
         host().doMkCol( newUri );
@@ -169,7 +168,7 @@ public class Folder extends Resource {
         return child;
     }
 
-    public Resource child( String childName ) throws IOException {
+    public Resource child( String childName ) throws IOException, HttpException {
         log.trace( "child: current children: " + children().size());
         for( Resource r : children() ) {
             if( r.name.equals( childName ) ) return r;

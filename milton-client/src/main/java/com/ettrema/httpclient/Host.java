@@ -100,7 +100,7 @@ public class Host extends Folder {
         }
     }
 
-    public Resource find( String path ) throws IOException {
+    public Resource find( String path ) throws IOException, com.ettrema.httpclient.HttpException {
         if( path == null || path.length() == 0 || path.equals( "/" ) ) {
             return this;
         }
@@ -112,7 +112,7 @@ public class Host extends Folder {
 
     }
 
-    public static Resource _find( Folder parent, String[] arr, int i ) throws IOException {
+    public static Resource _find( Folder parent, String[] arr, int i ) throws IOException, com.ettrema.httpclient.HttpException {
         String childName = arr[i];
         log.trace( "find: " + childName );
         Resource child = parent.child( childName );
@@ -130,7 +130,7 @@ public class Host extends Folder {
         }
     }
 
-    public Folder getFolder( String path ) throws IOException {
+    public Folder getFolder( String path ) throws IOException, com.ettrema.httpclient.HttpException {
         Resource res = find( path );
         if( res instanceof Folder ) {
             return (Folder) res;
@@ -146,7 +146,7 @@ public class Host extends Folder {
         return m;
     }
 
-    synchronized int doMkCol( String newUri ) {
+    synchronized int doMkCol( String newUri ) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         MkColMethod p = new MkColMethod( urlEncode( newUri ) );
         try {
@@ -187,7 +187,7 @@ public class Host extends Folder {
         }
     }
 
-    synchronized int doCopy( String from, String newUri ) {
+    synchronized int doCopy( String from, String newUri ) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         CopyMethod m = new CopyMethod( urlEncode( from ), urlEncode( newUri ) );
         try {
@@ -205,7 +205,7 @@ public class Host extends Folder {
 
     }
 
-    synchronized int doDelete( String href ) throws IOException {
+    synchronized int doDelete( String href ) throws IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         DeleteMethod m = new DeleteMethod( urlEncode( href ) );
         try {
@@ -220,15 +220,13 @@ public class Host extends Folder {
         }
     }
 
-    synchronized int doMove( String href, String newUri ) throws IOException {
+    synchronized int doMove( String href, String newUri ) throws IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         MoveMethod m = new MoveMethod( urlEncode( href ), urlEncode( newUri ) );
         try {
             int res = host().client.executeMethod( m );
             Utils.processResultCode( res, href );
             return res;
-        } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
         } finally {
             m.releaseConnection();
             notifyFinishRequest();
@@ -236,7 +234,7 @@ public class Host extends Folder {
 
     }
 
-    synchronized List<PropFindMethod.Response> doPropFind( String url, int depth ) throws IOException {
+    synchronized List<PropFindMethod.Response> doPropFind( String url, int depth ) throws IOException, com.ettrema.httpclient.HttpException {
         log.trace( "doPropFind: " + url );
         notifyStartRequest();
         PropFindMethod m = createPropFind( depth, url );
@@ -265,7 +263,7 @@ public class Host extends Folder {
         }
     }
 
-    synchronized void doGet( String url, StreamReceiver receiver ) {
+    synchronized void doGet( String url, StreamReceiver receiver ) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         GetMethod m = new GetMethod( urlEncode( url ) );
         InputStream in = null;
@@ -285,12 +283,12 @@ public class Host extends Folder {
         }
     }
 
-    public synchronized void options( String path ) throws NotFoundException, java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException {
+    public synchronized void options( String path ) throws java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
         String url = this.href() + path;
         doOptions( url );
     }
 
-    public synchronized byte[] get( String path ) {
+    public synchronized byte[] get( String path ) throws com.ettrema.httpclient.HttpException {
         String url = this.href() + path;
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         doGet( url, new StreamReceiver() {
@@ -306,7 +304,7 @@ public class Host extends Folder {
         return out.toByteArray();
     }
 
-    private synchronized void doOptions( String url ) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException {
+    private synchronized void doOptions( String url ) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         GetMethod m = new GetMethod( urlEncode( url ) );
         InputStream in = null;
@@ -314,20 +312,6 @@ public class Host extends Folder {
             int res = client.executeMethod( m );
             log.trace( "result code: " + res );
             Utils.processResultCode( res, url );
-        } catch( java.net.ConnectException e ) {
-            throw e;
-        } catch( NotFoundException e ) {
-            throw e;
-        } catch( Unauthorized e ) {
-            throw e;
-        } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
-        } catch( java.net.UnknownHostException e ) {
-            throw e;
-        } catch( java.net.SocketTimeoutException e ) {
-            throw e;
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
         } finally {
             Utils.close( in );
             m.releaseConnection();
@@ -342,7 +326,7 @@ public class Host extends Folder {
      * @param params
      * @return
      */
-    String doPost( String url, Map<String, String> params ) {
+    String doPost( String url, Map<String, String> params ) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         PostMethod m = new PostMethod( urlEncode( url ) );
         for( Entry<String, String> entry : params.entrySet() ) {
