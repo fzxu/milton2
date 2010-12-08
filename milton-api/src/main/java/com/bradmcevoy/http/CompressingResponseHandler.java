@@ -43,13 +43,14 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
 
     @Override
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
-        if( resource instanceof GetableResource ) {
+        if( resource instanceof GetableResource ) {            
             GetableResource r = (GetableResource) resource;
 
             String acceptableContentTypes = request.getAcceptHeader();
             String contentType = r.getContentType( acceptableContentTypes );
 
             if( canCompress( r, contentType, request.getAcceptEncodingHeader() ) ) {
+                log.trace( "respondContent: compressable" );
 
                 // get the zipped content before sending so we can determine its
                 // compressed size
@@ -69,7 +70,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 log.trace( "respondContent-compressed: " + resource.getClass() );
                 setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK, request.getAuthorization() );
                 response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
-                response.setVaryHeader("Accept-Encoding");
+                response.setVaryHeader( "Accept-Encoding" );
                 Long contentLength = tempOut.getSize();
                 response.setContentLengthHeader( contentLength );
                 response.setContentTypeHeader( contentType );
@@ -82,10 +83,14 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                     log.warn( "exception writing, client probably closed connection", ex );
                 }
                 return;
+            } else {
+                log.trace( "respondContent: not compressable" );
+                response.setVaryHeader( "Accept-Encoding" );
+                wrapped.respondContent( resource, response, request, params );
             }
+        } else {
+            throw new RuntimeException( "Cant generate content for non-Getable resource: " + resource.getClass());
         }
-        response.setVaryHeader("Accept-Encoding");
-        wrapped.respondContent( resource, response, request, params );
     }
 
     protected void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status, Auth auth ) {
