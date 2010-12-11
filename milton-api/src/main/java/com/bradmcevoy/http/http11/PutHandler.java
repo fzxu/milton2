@@ -108,10 +108,13 @@ public class PutHandler implements Handler {
         }
 
         if( replacee != null ) {
+            if( log.isTraceEnabled() ) {
+                log.trace( "replacing content in: " + replacee.getName() + " - " + replacee.getClass() );
+            }
             long t = System.currentTimeMillis();
             try {
                 manager.onProcessResourceStart( request, response, replacee );
-                processReplace( manager, request, response, (ReplaceableResource) existingResource );
+                processReplace( manager, request, response, replacee );
             } finally {
                 t = System.currentTimeMillis() - t;
                 manager.onProcessResourceFinish( request, response, replacee, t );
