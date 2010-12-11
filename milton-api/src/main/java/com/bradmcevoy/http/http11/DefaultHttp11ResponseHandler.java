@@ -194,7 +194,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
                 }
                 Long bufContentLength = tempOut.getSize();
                 if( contentLength != null ) {
-                    if( contentLength != bufContentLength ) {
+                    if( !contentLength.equals( bufContentLength) ) {
                         throw new RuntimeException( "Lengthd dont match: " + contentLength + " != " + bufContentLength);
                     }
                 }
