@@ -19,8 +19,10 @@ public class UtilsTest extends TestCase {
 //        }
         assertEquals( "", Utils.percentEncode( "" ) );
         assertEquals( "abc", Utils.percentEncode( "abc" ) );
+        System.out.println( "encode space: " + Utils.percentEncode( " " ) );
         assertEquals( "%20", Utils.percentEncode( " " ) );
         assertEquals( "A%26B", Utils.percentEncode( "A&B" ) );
+        System.out.println( "encode curly brackets: " + Utils.percentEncode( "{}" ) );
         assertEquals( "%7B%7D", Utils.percentEncode( "{}" ) );
 
         // check reserved characters

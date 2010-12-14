@@ -19,6 +19,7 @@ public class Utils {
         '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
     };
 
+
     public static Resource findChild( Resource parent, Path path ) {
         return _findChild( parent, path.getParts(), 0 );
     }
@@ -115,8 +116,50 @@ public class Utils {
      * @param s
      */
     public static String percentEncode( String s ) {
-        s = _percentEncode( s ); // the original method, from java.net
+        //s = _percentEncode( s ); // the original method, from java.net
+        s = encodeURL( s, "UTF-8");
         return s;
+    }
+
+    /**
+     * This method has been provided by André Kunert - looks a bit better then
+     * my shabby implementation! BM
+     *
+     * @param str
+     * @param charset
+     * @return
+     */
+    public static String encodeURL( String str, String charset ) {
+        StringBuilder buf = new StringBuilder();
+        byte[] daten;
+        try {
+            daten = charset == null ? str.getBytes() : str.getBytes( charset );
+        } catch( Exception e ) {
+            daten = str.getBytes();
+        }
+        int length = daten.length;
+        for( int i = 0; i < length; i++ ) {
+            char c = (char) ( daten[i] & 0xFF );
+            switch( c ) {
+                case '-':
+                case '_':
+                case '.':
+                case '*':
+//                case ':':
+//                case '/':
+                    buf.append( c );
+                    break;
+                default:
+                    if( ( '0' <= c && c <= '9' ) || ( 'a' <= c && c <= 'z' ) || ( 'A' <= c && c <= 'Z' ) ) {
+                        buf.append( c );
+                    } else {
+                        buf.append( '%' );
+                        buf.append( hexDigits[( c >> 4 ) & 0x0F] );
+                        buf.append( hexDigits[c & 0x0F] );
+                    }
+            }
+        }
+        return buf.toString();
     }
 
     private static String _percentEncode( String s ) {
@@ -160,9 +203,9 @@ public class Utils {
      */
     private static boolean isUnReserved( int b ) {
         return inRange( b, 65, 90 )
-                || inRange( b, 97, 122 )
-                || inRange( b, 48, 57 )
-                || inList(b, 45, 46, 95, 126);
+            || inRange( b, 97, 122 )
+            || inRange( b, 48, 57 )
+            || inList( b, 45, 46, 95, 126 );
     }
 
     private static boolean inRange( int b, int lower, int upper ) {
