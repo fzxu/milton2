@@ -6,6 +6,8 @@ import java.util.Set;
  * Extension to PropFindableResource which allows custom
  * properties to be returned.
  *
+ * See MultiNamespaceCustomPropertySource to support multiple namespaces
+ *
  * @author brad
  */
 public interface CustomPropertyResource extends PropFindableResource {
