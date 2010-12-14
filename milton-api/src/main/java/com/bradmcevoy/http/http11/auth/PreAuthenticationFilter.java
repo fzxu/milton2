@@ -12,7 +12,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * A filter to perform authentication before resource location.
  *
@@ -27,9 +26,7 @@ import org.slf4j.LoggerFactory;
 public class PreAuthenticationFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger( PreAuthenticationFilter.class );
-
     private static final ThreadLocal<Request> tlRequest = new ThreadLocal<Request>();
-
     private final Http11ResponseHandler responseHandler;
     private final List<AuthenticationHandler> authenticationHandlers;
 
@@ -37,36 +34,33 @@ public class PreAuthenticationFilter implements Filter {
         return tlRequest.get();
     }
 
-    public PreAuthenticationFilter(Http11ResponseHandler responseHandler, List<AuthenticationHandler> authenticationHandlers) {
+    public PreAuthenticationFilter( Http11ResponseHandler responseHandler, List<AuthenticationHandler> authenticationHandlers ) {
         this.responseHandler = responseHandler;
         this.authenticationHandlers = authenticationHandlers;
     }
 
-    public PreAuthenticationFilter(Http11ResponseHandler responseHandler, SecurityManager securityManager) {
+    public PreAuthenticationFilter( Http11ResponseHandler responseHandler, SecurityManager securityManager ) {
         this.responseHandler = responseHandler;
         this.authenticationHandlers = new ArrayList<AuthenticationHandler>();
-        authenticationHandlers.add(new SecurityManagerBasicAuthHandler(securityManager));
-        authenticationHandlers.add(new SecurityManagerDigestAuthenticationHandler(securityManager));
+        authenticationHandlers.add( new SecurityManagerBasicAuthHandler( securityManager ) );
+        authenticationHandlers.add( new SecurityManagerDigestAuthenticationHandler( securityManager ) );
     }
 
-
-
-    public void process(FilterChain chain, Request request, Response response) {
-        log.trace("process");
+    public void process( FilterChain chain, Request request, Response response ) {
+        log.trace( "process" );
         try {
-            tlRequest.set(request);
-            Object authTag = authenticate(request);
+            tlRequest.set( request );
+            Object authTag = authenticate( request );
             if( authTag != null ) {
-                request.getAuthorization().setTag(authTag);
-                chain.process(request, response);
+                request.getAuthorization().setTag( authTag );
+                chain.process( request, response );
             } else {
-                responseHandler.respondUnauthorised(null, response, request);
+                responseHandler.respondUnauthorised( null, response, request );
             }
         } finally {
             tlRequest.remove();
         }
     }
-
 
     /**
      * Looks for an AuthenticationHandler which supports the given resource and
@@ -88,7 +82,18 @@ public class PreAuthenticationFilter implements Filter {
                 return o;
             }
         }
-        log.warn( "No AuthenticationHandler supports scheme:" + request.getAuthorization().getScheme()  );
+
+        if( request.getAuthorization() == null ) {
+            // note that this is completely normal, so just TRACE
+            if( log.isTraceEnabled() ) {
+                log.trace( "No AuthenticationHandler supports this request - no authorisation given in request" );
+            }
+        } else {
+            // authorisation was present in the request, but no handlers accepted it - probably a config problem
+            if( log.isWarnEnabled() ) {
+                log.warn( "No AuthenticationHandler supports this request with scheme:" + request.getAuthorization().getScheme() );
+            }
+        }
         return null;
     }
 
@@ -101,11 +106,11 @@ public class PreAuthenticationFilter implements Filter {
      */
     public List<String> getChallenges( Request request ) {
         List<String> challenges = new ArrayList<String>();
+
         for( AuthenticationHandler h : authenticationHandlers ) {
             String ch = h.getChallenge( null, request );
             challenges.add( ch );
         }
         return challenges;
     }
-
 }
