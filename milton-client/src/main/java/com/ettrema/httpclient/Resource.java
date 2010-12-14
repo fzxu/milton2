@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,7 +99,9 @@ public class Resource {
             quotaUsedBytes = resp.quotaUsedBytes;
             crc = resp.crc; 
 
-            if( resp.modifiedDate.endsWith( "Z" ) ) {
+            if( StringUtils.isEmpty( resp.modifiedDate)) {
+                modifiedDate = null;
+            } else if( resp.modifiedDate.endsWith( "Z" ) ) {
                 modifiedDate = DateUtils.parseWebDavDate( resp.modifiedDate );
                 if( resp.serverDate != null ) {
                     // calc difference and use that as delta on local time
