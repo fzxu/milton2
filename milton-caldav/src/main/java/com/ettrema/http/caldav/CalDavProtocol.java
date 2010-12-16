@@ -175,7 +175,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("/caldavdemo/calendarHome");
+            return new WrappedHref("/calendarHome");
         }
 
         public Class<WrappedHref> getValueClass() {
@@ -235,7 +235,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("http://localhost:7080/caldavdemo/scheduleInBoxUrl");
+            return new WrappedHref("http://localhost:7080/scheduleInBoxUrl");
         }
 
         public Class<WrappedHref> getValueClass() {
@@ -255,7 +255,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("http://localhost:7080/caldavdemo/scheduleOutBoxUrl");
+            return new WrappedHref("http://localhost:7080/scheduleOutBoxUrl");
         }
 
         public Class<WrappedHref> getValueClass() {
@@ -275,7 +275,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("http://localhost:7080/caldavdemo/dropBoxHomeUrl");
+            return new WrappedHref("http://localhost:7080/dropBoxHomeUrl");
         }
 
         public Class<WrappedHref> getValueClass() {
@@ -313,7 +313,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("http://localhost:7080/caldavdemo/notificationUrl");
+            return new WrappedHref("http://localhost:7080/notificationUrl");
         }
 
         public Class<WrappedHref> getValueClass() {
