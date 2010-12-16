@@ -16,7 +16,7 @@ public class PrincipalsReport {
      */
     public static void main(String[] args) throws IOException {
         HttpClient client = new HttpClient();
-        ReportMethod rm = new ReportMethod( "http://localhost:9080/webdav-caldav/principals");
+        ReportMethod rm = new ReportMethod( "http://localhost:9080/principals");
         rm.setRequestHeader( "depth", "0");
         rm.setRequestEntity( new StringRequestEntity( "<x0:principal-search-property-set xmlns:x0=\"DAV:\"/>", "text/xml", "UTF-8"));
         int result = client.executeMethod( rm );
