@@ -22,6 +22,7 @@ import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
@@ -100,6 +101,15 @@ public class Host extends Folder {
         }
     }
 
+    /**
+     * Finds the resource by iterating through the path parts resolving collections
+     * as it goes. If any path component is not founfd returns null
+     *
+     * @param path
+     * @return
+     * @throws IOException
+     * @throws com.ettrema.httpclient.HttpException
+     */
     public Resource find( String path ) throws IOException, com.ettrema.httpclient.HttpException {
         if( path == null || path.length() == 0 || path.equals( "/" ) ) {
             return this;
@@ -306,7 +316,7 @@ public class Host extends Folder {
 
     private synchronized void doOptions( String url ) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
-        GetMethod m = new GetMethod( urlEncode( url ) );
+        OptionsMethod m = new OptionsMethod( urlEncode( url ) );
         InputStream in = null;
         try {
             int res = client.executeMethod( m );

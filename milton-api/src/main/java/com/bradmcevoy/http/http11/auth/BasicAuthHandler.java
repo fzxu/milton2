@@ -21,7 +21,7 @@ public class BasicAuthHandler implements AuthenticationHandler {
         if( auth == null ) {
             return false;
         }
-        log.trace( "supports: " + auth.getScheme() );
+        log.trace( "supports: {}", auth.getScheme() );
         return auth.getScheme().equals( Scheme.BASIC );
     }
 
@@ -29,7 +29,7 @@ public class BasicAuthHandler implements AuthenticationHandler {
         log.trace( "authenticate" );
         Auth auth = request.getAuthorization();
         Object o = resource.authenticate( auth.getUser(), auth.getPassword() );
-        log.trace( "result: " + o);
+        log.trace( "result: {}", o );
         return o;
     }
 
