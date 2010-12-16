@@ -23,35 +23,35 @@
               <maxIdleTime>60000</maxIdleTime>
             </connector>
           </connectors>
-          <contextPath>/webdav-caldav</contextPath>
+          <contextPath>/</contextPath>
           <stopKey>stop</stopKey>
           <stopPort>8899</stopPort>
         </configuration>
       </plugin>
-            <!--
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <configuration>
-                            <tasks>
-                                <echo>Install on Tomcat</echo>
+      <!--
+      <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <executions>
+              <execution>
+                  <phase>install</phase>
+                  <configuration>
+                      <tasks>
+                          <echo>Install on Tomcat</echo>
 
-                                <echo>...done</echo>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <dependencies>
-                </dependencies>
-            </plugin>
-            -->
+                          <echo>...done</echo>
+                      </tasks>
+                  </configuration>
+                  <goals>
+                      <goal>run</goal>
+                  </goals>
+              </execution>
+          </executions>
+          <dependencies>
+          </dependencies>
+      </plugin>
+      -->
 
-            <!--http://dpillay.wordpress.com/2009/04/12/maven-cargo-tomcat-auto-deployment/-->
+      <!--http://dpillay.wordpress.com/2009/04/12/maven-cargo-tomcat-auto-deployment/-->
       <plugin>
         <groupId>org.codehaus.cargo</groupId>
         <artifactId>cargo-maven2-plugin</artifactId>
