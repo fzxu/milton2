@@ -16,20 +16,29 @@ public class ContentTypeUtils {
 
     private static Logger log = LoggerFactory.getLogger(ContentTypeUtils.class);
 
+    static {
+        MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.ExtensionMimeDetector");
+        MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+    }
+
     public static String findContentTypes( String name ) {
         Collection mimeTypes = MimeUtil.getMimeTypes( name );
-        return buildContentTypeText(mimeTypes);
+        return mimeTypes.toString();
+        //return buildContentTypeText(mimeTypes);
     }
 
     public static String findContentTypes( File file ) {
         Collection mimeTypes = null;
         try {
-            mimeTypes = MimeUtil.getMimeTypes( file );
+            mimeTypes = MimeUtil.getMimeTypes( file.getName() );
         } catch( MimeException e ) {
             log.warn( "exception retrieving content type for file: " + file.getAbsolutePath(),e);
             return "application/binary";
         }
-        return buildContentTypeText(mimeTypes);
+        String s = mimeTypes.toString();
+        //String s = buildContentTypeText(mimeTypes);
+        log.trace( "findContentTypes: {}", file.getName(), mimeTypes);
+        return s;
     }
 
     public static String findAcceptableContentType(String mime, String preferredList) {
