@@ -1,5 +1,6 @@
 package com.ettrema.httpclient;
 
+import com.bradmcevoy.common.Path;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +48,7 @@ public class Host extends Folder {
     public final int port;
     public final String user;
     public final String password;
+    public final String rootPath;
     /**
      * time in milliseconds to be used for all timeout parameters
      */
@@ -63,11 +65,16 @@ public class Host extends Folder {
     }
 
     public Host( String server, int port, String user, String password, ProxyDetails proxyDetails ) {
-        this( server, port, user, password, proxyDetails, 30000 ); // defaul timeout of 30sec
+        this( server, null, port, user, password, proxyDetails, 30000 ); // defaul timeout of 30sec
     }
 
-    public Host( String server, int port, String user, String password, ProxyDetails proxyDetails, int timeout ) {
+    public Host( String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails ) {
+        this( server, rootPath, port, user, password, proxyDetails, 30000 ); // defaul timeout of 30sec
+    }
+
+    public Host( String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout ) {
         super();
+        this.rootPath = rootPath;
         this.timeout = timeout;
         this.server = server;
         this.port = port;
@@ -262,8 +269,8 @@ public class Host extends Folder {
             } else {
                 return null;
             }
-        } catch( NotFoundException e) {
-            log.trace("not found: " + url);
+        } catch( NotFoundException e ) {
+            log.trace( "not found: " + url );
             return Collections.EMPTY_LIST;
         } catch( HttpException ex ) {
             throw new RuntimeException( ex );
@@ -321,6 +328,9 @@ public class Host extends Folder {
         try {
             int res = client.executeMethod( m );
             log.trace( "result code: " + res );
+            if( res == 301 || res == 302 ) {
+                return;
+            }
             Utils.processResultCode( res, url );
         } finally {
             Utils.close( in );
@@ -368,10 +378,19 @@ public class Host extends Folder {
 
     @Override
     public String href() {
-        return "http://" + server + "/";
+        String s = "http://" + server + "/" + rootPath;
+        if( !s.endsWith( "/" ) ) s = s + "/";
+        return s;
     }
 
-    public static String urlEncode( String s ) {
+    public String urlEncode( String s ) {
+//        if( rootPath != null ) {
+//            s = rootPath + s;
+//        }
+        return urlEncodePath( s );
+    }
+
+    public static String urlEncodePath( String s ) {
         try {
             org.apache.commons.httpclient.URI uri = new URI( s, false );
             return uri.toString();
@@ -401,5 +420,32 @@ public class Host extends Folder {
 
     public void setPropFindXml( String propFindXml ) {
         this.propFindXml = propFindXml;
+    }
+
+    public com.ettrema.httpclient.Folder getOrCreateFolder( Path remoteParentPath, boolean create ) throws com.ettrema.httpclient.HttpException, IOException {
+        com.ettrema.httpclient.Folder f = this;
+        if( remoteParentPath != null ) {
+            for( String childName : remoteParentPath.getParts() ) {
+                if( childName.equals( "_code" ) ) {
+                    f = new Folder( f, childName );
+                } else {
+                    com.ettrema.httpclient.Resource child = f.child( childName );
+                    if( child == null ) {
+                        if( create ) {
+                            f = f.createFolder( childName );
+                        } else {
+                            return null;
+                        }
+                    } else if( child instanceof com.ettrema.httpclient.Folder ) {
+                        f = (com.ettrema.httpclient.Folder) child;
+                    } else {
+                        log.warn( "Can't upload. A resource exists with the same name as a folder, but is a file: " + remoteParentPath );
+                        return null;
+                    }
+                }
+
+            }
+        }
+        return f;
     }
 }

@@ -169,7 +169,7 @@ public class Folder extends Resource {
     }
 
     public Resource child( String childName ) throws IOException, HttpException {
-        log.trace( "child: current children: " + children().size());
+//        log.trace( "child: current children: " + children().size());
         for( Resource r : children() ) {
             if( r.name.equals( childName ) ) return r;
         }
