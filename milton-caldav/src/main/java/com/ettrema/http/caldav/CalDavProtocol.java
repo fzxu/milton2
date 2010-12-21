@@ -302,9 +302,9 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
     }
 
     /*
-        <notification-URL xmlns='http://calendarserver.org/ns/'>
-          <href xmlns='DAV:'>/calendars/__uids__/admin/notification/</href>
-        </notification-URL>
+    <notification-URL xmlns='http://calendarserver.org/ns/'>
+      <href xmlns='DAV:'>/calendars/__uids__/admin/notification/</href>
+    </notification-URL>
      */
     class NotificationProperty implements StandardProperty<WrappedHref> {
 
