@@ -10,16 +10,17 @@ public class TResourceFactory implements ResourceFactory {
     public static final TFolderResource ROOT = new TFolderResource( (TFolderResource) null, "http://localhost:9080" );
 
     static {
-        TFolderResource folder = new TFolderResource( ROOT, "folder1" );
         TFolderResource principals = new TFolderResource( ROOT, "principals" );
-        TCalendarResource cal1 = new TCalendarResource( folder, "calenderOne" );
+        TFolderResource folder = new TFolderResource( ROOT, "folder1" );
+        TFolderResource calendarHome = new TFolderResource( ROOT, "calendarHome" );
+        TCalendarResource calendar = new TCalendarResource( calendarHome, "calendarOne" );
     }
 
     public Resource getResource( String host, String url ) {
         log.debug( "getResource: url: " + url );
         Path path = Path.path( url );
         Resource r = find( path );
-        log.debug( "_found: " + r );
+        log.debug( "_found: " + r + " for url: "+url+" and path: "+path);
         return r;
     }
 
@@ -32,9 +33,10 @@ public class TResourceFactory implements ResourceFactory {
             for( Resource rChild : folder.getChildren() ) {
                 Resource r2 = (Resource) rChild;
                 if( r2.getName().equals( path.getName() ) ) {
+                    log.debug( "RESOURCE FOUND : " + r2.getName() + " - " + path.getName());
                     return r2;
                 } else {
-//                    log.debug( "IS NOT: " + r2.getName() + " - " + path.getName());
+                    log.debug( "IS NOT: " + r2.getName() + " - " + path.getName());
                 }
             }
         }
@@ -44,6 +46,6 @@ public class TResourceFactory implements ResourceFactory {
 
     private boolean isRoot( Path path ) {
         if( path == null ) return true;
-        return ( path.getParent() == null || path.getParent().isRoot() );
+        return ( path.getParent() == null );
     }
 }
