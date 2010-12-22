@@ -43,7 +43,7 @@ public abstract class TResource extends AbstractResource implements GetableResou
 
     public String getHref() {
         if( parent == null ) {
-            return "/webdav/";
+            return "";
         } else {
             String s = parent.getHref();
             if( !s.endsWith( "/" ) ) {
