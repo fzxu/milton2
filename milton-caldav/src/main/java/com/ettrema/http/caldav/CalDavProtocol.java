@@ -62,6 +62,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         propertyMapCalServer.add(new XMPPProperty());
         propertyMapCalServer.add(new DropBoxProperty());
         propertyMapCalServer.add(new NotificationProperty());
+        propertyMapCalServer.add(new NotificationsProperty());
 
         handlers = new HashSet<Handler>();
         handlers.add( new ACLHandler( responseHandler, handlerHelper ) );
@@ -306,6 +307,21 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
       <href xmlns='DAV:'>/calendars/__uids__/admin/notification/</href>
     </notification-URL>
      */
+    class NotificationsProperty implements StandardProperty<WrappedHref> {
+
+        public String fieldName() {
+            return "notifications-URL";
+        }
+
+        public WrappedHref getValue( PropFindableResource res ) {
+            return new WrappedHref("http://localhost:7080/notificationsUrl");
+        }
+
+        public Class<WrappedHref> getValueClass() {
+            return WrappedHref.class;
+        }
+    }
+
     class NotificationProperty implements StandardProperty<WrappedHref> {
 
         public String fieldName() {
