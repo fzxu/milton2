@@ -194,7 +194,7 @@ public class XmlWriter {
             append(name);
             append("=");
             append((char) 34);
-            append(value);
+            append(value == null ? "" : value);
             append((char) 34);
             return this;
         }
