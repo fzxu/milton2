@@ -96,7 +96,7 @@ public class HandlerHelper {
 
     public boolean doCheckRedirect( Http11ResponseHandler responseHandler, Request request, Response response, Resource resource ) {
         String redirectUrl = resource.checkRedirect( request );
-        if( redirectUrl != null ) {
+        if( redirectUrl != null && redirectUrl.length() > 0 ) {
             responseHandler.respondRedirect( response, request, redirectUrl );
             return true;
         } else {

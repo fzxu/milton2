@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.http11.CacheControlHelper;
+import com.bradmcevoy.http.http11.DefaultCacheControlHelper;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import com.bradmcevoy.io.BufferingOutputStream;
 import com.bradmcevoy.io.FileUtils;
@@ -33,6 +35,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
      * The size to buffer in memory before switching to disk cache.
      */
     private int maxMemorySize = 100000;
+    private CacheControlHelper cacheControlHelper = new DefaultCacheControlHelper();
 
     public CompressingResponseHandler() {
     }
@@ -41,9 +44,21 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
         super( wrapped );
     }
 
+    /**
+     * Defaults to com.bradmcevoy.http.http11.DefaultCacheControlHelper
+     * @return
+     */
+    public CacheControlHelper getCacheControlHelper() {
+        return cacheControlHelper;
+    }
+
+    public void setCacheControlHelper( CacheControlHelper cacheControlHelper ) {
+        this.cacheControlHelper = cacheControlHelper;
+    }
+
     @Override
     public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
-        if( resource instanceof GetableResource ) {            
+        if( resource instanceof GetableResource ) {
             GetableResource r = (GetableResource) resource;
 
             String acceptableContentTypes = request.getAcceptHeader();
@@ -74,7 +89,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 Long contentLength = tempOut.getSize();
                 response.setContentLengthHeader( contentLength );
                 response.setContentTypeHeader( contentType );
-                DefaultHttp11ResponseHandler.setCacheControl( r, response, request.getAuthorization() );
+                cacheControlHelper.setCacheControl( r, response, request.getAuthorization() );
                 try {
                     StreamUtils.readTo( tempOut.getInputStream(), response.getOutputStream() );
                 } catch( ReadingException ex ) {
@@ -89,7 +104,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 wrapped.respondContent( resource, response, request, params );
             }
         } else {
-            throw new RuntimeException( "Cant generate content for non-Getable resource: " + resource.getClass());
+            throw new RuntimeException( "Cant generate content for non-Getable resource: " + resource.getClass() );
         }
     }
 

@@ -38,6 +38,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
     private final AuthenticationService authenticationService;
     private final ETagGenerator eTagGenerator;
+    private CacheControlHelper cacheControlHelper = new DefaultCacheControlHelper();
     private int maxMemorySize = 100000;
     private BUFFERING buffering;
 
@@ -50,6 +51,20 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         this.authenticationService = authenticationService;
         this.eTagGenerator = eTagGenerator;
     }
+
+    /**
+     * Defaults to com.bradmcevoy.http.http11.DefaultCacheControlHelper
+     * @return
+     */
+    public CacheControlHelper getCacheControlHelper() {
+        return cacheControlHelper;
+    }
+
+    public void setCacheControlHelper( CacheControlHelper cacheControlHelper ) {
+        this.cacheControlHelper = cacheControlHelper;
+    }
+
+
 
     public String generateEtag( Resource r ) {
         return eTagGenerator.generateEtag( r );
@@ -176,7 +191,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
             if( ct != null ) {
                 response.setContentTypeHeader( ct );
             }
-            setCacheControl( gr, response, request.getAuthorization() );
+            cacheControlHelper.setCacheControl( gr, response, request.getAuthorization() );
 
             Long contentLength = gr.getContentLength();
             if( buffering == BUFFERING.always || (contentLength != null && buffering == BUFFERING.whenNeeded) ) { // often won't know until rendered
@@ -230,36 +245,9 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         Date modDate = resource.getModifiedDate();
         response.setLastModifiedHeader( modDate );
 
-        setCacheControl( resource, response, request.getAuthorization() );
+        cacheControlHelper.setCacheControl( resource, response, request.getAuthorization() );
     }
 
-    public static void setCacheControl( final GetableResource resource, final Response response, Auth auth ) {
-        Long delta = resource.getMaxAgeSeconds( auth );
-        if( log.isTraceEnabled() ) {
-            log.trace( "setCacheControl: " + delta + " - " + resource.getClass() );
-        }
-        if( delta != null ) {
-            if( auth != null ) {
-                response.setCacheControlPrivateMaxAgeHeader( delta );
-                //response.setCacheControlMaxAgeHeader(delta);
-            } else {
-                response.setCacheControlMaxAgeHeader( delta );
-            }
-            Date expiresAt = calcExpiresAt( new Date(), delta.longValue() );
-            if( log.isTraceEnabled() ) {
-                log.trace( "set expires: " + expiresAt );
-            }
-            response.setExpiresHeader( expiresAt );
-        } else {
-            response.setCacheControlNoCacheHeader();
-        }
-    }
-
-    public static Date calcExpiresAt( Date modifiedDate, long deltaSeconds ) {
-        long deltaMs = deltaSeconds * 1000;
-        long expiresAt = System.currentTimeMillis() + deltaMs;
-        return new Date( expiresAt );
-    }
 
     protected void sendContent( Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType ) throws NotAuthorizedException, BadRequestException {
         log.trace( "sendContent" );
