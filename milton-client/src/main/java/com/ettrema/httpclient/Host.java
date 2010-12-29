@@ -74,6 +74,9 @@ public class Host extends Folder {
 
     public Host( String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout ) {
         super();
+        if( server == null ) {
+            throw new IllegalArgumentException( "host name cannot be null");
+        }
         this.rootPath = rootPath;
         this.timeout = timeout;
         this.server = server;
@@ -168,6 +171,10 @@ public class Host extends Folder {
         MkColMethod p = new MkColMethod( urlEncode( newUri ) );
         try {
             int result = host().client.executeMethod( p );
+            if( result == 409 ) {
+                // probably means the folder already exists
+                return result;
+            }
             Utils.processResultCode( result, newUri );
             return result;
         } catch( IOException ex ) {
@@ -378,8 +385,14 @@ public class Host extends Folder {
 
     @Override
     public String href() {
-        String s = "http://" + server + "/" + rootPath;
+        String s = "http://" + server + "/";
+        if( rootPath != null && rootPath.length() > 0 ) {
+            if( !rootPath.equals( "/")) {
+                s = s + rootPath;
+            }
+        }
         if( !s.endsWith( "/" ) ) s = s + "/";
+        log.trace("host href: " + s);
         return s;
     }
 
