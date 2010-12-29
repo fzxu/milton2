@@ -124,7 +124,7 @@ public class Folder extends Resource {
         try {
             in = new NotifyingFileInputStream( f, listener, throttle );
             upload( f.getName(), in, f.length() );
-            flush();            
+            flush();
         } finally {
             Utils.close( in );
             listener.onComplete( f.getName() );
@@ -161,11 +161,22 @@ public class Folder extends Resource {
     public Folder createFolder( String name ) throws IOException, HttpException {
         children(); // ensure children are loaded
         String newUri = href() + name;
-        host().doMkCol( newUri );
-        Folder child = new Folder( this, name );
-        this.children.add( child );
-        notifyOnChildAdded( child );
-        return child;
+        int result = host().doMkCol( newUri );
+        if( result == 409 ) {
+            // folder probably exists, so flush children
+            this.flush();
+            Resource child = this.child( name );
+            if( child instanceof Folder ) {
+                return (Folder) child;
+            } else {
+                throw new GenericHttpException( result, newUri );
+            }
+        } else {
+            Folder child = new Folder( this, name );
+            this.children.add( child );
+            notifyOnChildAdded( child );
+            return child;
+        }
     }
 
     public Resource child( String childName ) throws IOException, HttpException {
@@ -236,11 +247,11 @@ public class Folder extends Resource {
             }
         }
 
-        void notifyListener( int numBytes ) {            
+        void notifyListener( int numBytes ) {
             bytesSinceLastNotify += numBytes;
             if( bytesSinceLastNotify < 1000 ) {
 //                log.trace( "notifyListener: not enough bytes: " + bytesSinceLastNotify);
-                return ;
+                return;
             }
             int timeDiff = (int) ( System.currentTimeMillis() - timeLastNotify );
             if( timeDiff > 10 ) {
