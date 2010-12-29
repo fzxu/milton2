@@ -44,7 +44,11 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
 
     public String getContentType( String preferredList ) {
         String mime = ContentTypeUtils.findContentTypes( this.file );
-        return ContentTypeUtils.findAcceptableContentType( mime, preferredList );
+        String s = ContentTypeUtils.findAcceptableContentType( mime, preferredList );
+        if( log.isTraceEnabled() ) {
+            log.trace( "getContentType: preferred: {} mime: {} selected: {}", new Object[]{preferredList, mime, s} );
+        }
+        return s;
     }
 
     public String checkRedirect( Request arg0 ) {
