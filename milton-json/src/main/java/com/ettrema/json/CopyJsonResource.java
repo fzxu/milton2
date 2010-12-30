@@ -11,10 +11,12 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +46,12 @@ public class CopyJsonResource extends JsonResource implements PostableResource{
         if(rDestParent instanceof CollectionResource ) {
             CollectionResource colDestParent = (CollectionResource) rDestParent;
             if( colDestParent.child( pDest.getName()) == null ) {
-                wrapped.copyTo( colDestParent, pDest.getName());
+                try {
+                    wrapped.copyTo( colDestParent, pDest.getName() );
+                } catch( ConflictException ex ) {
+                    log.warn( "Exception copying to: " + pDest.getName(), ex);
+                    throw new BadRequestException( rDestParent, "conflict: " + ex.getMessage());
+                }
                 return null;
             } else {
                 log.warn( "destination already exists: " + pDest.getName());
