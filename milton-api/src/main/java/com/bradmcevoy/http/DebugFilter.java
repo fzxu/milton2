@@ -234,6 +234,10 @@ public class DebugFilter implements Filter{
             return r.getCookies();
         }
 
+        public String getRemoteAddr() {
+            return r.getRemoteAddr();
+        }
+
     }
 
 }

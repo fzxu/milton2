@@ -236,5 +236,12 @@ public interface Request {
     *
     * @return this returns all cookie objects from the HTTP header
     */
-   List<Cookie> getCookies();   
+   List<Cookie> getCookies();
+
+   /**
+    * Returns the IP of the remote client
+    *
+    * @return
+    */
+   String getRemoteAddr();
 }

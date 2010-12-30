@@ -196,6 +196,9 @@ public class ServletRequest extends AbstractRequest {
 
         }
         return list;
-
     }
+
+    public String getRemoteAddr() {
+        return request.getRemoteAddr();
+    } 
 }
