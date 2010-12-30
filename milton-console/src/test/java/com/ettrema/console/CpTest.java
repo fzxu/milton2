@@ -4,6 +4,9 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.FolderResource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.ArrayList;
 import java.util.List;
 import junit.framework.TestCase;
@@ -46,7 +49,7 @@ public class CpTest extends TestCase {
         }
     }
 
-    public void testCopyFileNoDest() {
+    public void testCopyFileNoDest() throws NotAuthorizedException, BadRequestException, ConflictException {
         expect( resourceFactory.getResource( host, "" ) ).andReturn( col ).anyTimes();
         expect( col.child( "a" ) ).andReturn( sourceFile );
         expect( col.child( "b" ) ).andReturn( null );
@@ -62,7 +65,7 @@ public class CpTest extends TestCase {
         cp.execute();
     }
 
-    public void testCopyFolderNoDest() {
+    public void testCopyFolderNoDest() throws NotAuthorizedException, BadRequestException, ConflictException {
         expect( resourceFactory.getResource( host, "" ) ).andReturn( col ).anyTimes();
         expect( col.child( "a" ) ).andReturn( sourceFolder );
         expect( col.child( "b" ) ).andReturn( null );
@@ -78,7 +81,7 @@ public class CpTest extends TestCase {
         cp.execute();
     }
 
-    public void testCopyFolderDestExistsAndIsFolder() {
+    public void testCopyFolderDestExistsAndIsFolder() throws NotAuthorizedException, BadRequestException, ConflictException {
         expect( resourceFactory.getResource( host, "" ) ).andReturn( col );
         expect( col.child( "a" ) ).andReturn( sourceFolder );
         expect( col.child( "b" ) ).andReturn( destFolder );
@@ -94,7 +97,7 @@ public class CpTest extends TestCase {
         cp.execute();
     }
 
-    public void testCopyFolderWithRegex_DestExistsAndIsFolder() {
+    public void testCopyFolderWithRegex_DestExistsAndIsFolder() throws NotAuthorizedException, BadRequestException, ConflictException {
         expect( resourceFactory.getResource( host, "" ) ).andReturn( col );
         expect( resourceFactory.getResource( host, "/a" ) ).andReturn( sourceFolder );
         expect( col.child( "a" ) ).andReturn( sourceFolder );
@@ -122,7 +125,7 @@ public class CpTest extends TestCase {
         }
     }
 
-    private void replayChildrenWithCopyTo( FolderResource destFolder ) {
+    private void replayChildrenWithCopyTo( FolderResource destFolder ) throws NotAuthorizedException, BadRequestException, ConflictException {
         int i = 0;
         for( CopyableResource cr : sourceChilren ) {
             cr.copyTo( destFolder, "x" + i++ );

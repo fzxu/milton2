@@ -4,7 +4,9 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Rn extends AbstractConsoleCommand {
 
-    private static final Logger log = LoggerFactory.getLogger(Rn.class);
+    private static final Logger log = LoggerFactory.getLogger( Rn.class );
 
     public Rn( List<String> args, String host, String currentDir, ConsoleResourceFactory resourceFactory ) {
         super( args, host, currentDir, resourceFactory );
@@ -32,23 +34,28 @@ public class Rn extends AbstractConsoleCommand {
         Resource target = sourceCursor.getResource();
 
         if( target == null ) {
-            log.debug("target not found: " + srcPath);
-            return result("target not found: " + srcPath);
-        } else {            
+            log.debug( "target not found: " + srcPath );
+            return result( "target not found: " + srcPath );
+        } else {
             if( target instanceof MoveableResource ) {
+
+                CollectionResource currentParent = (CollectionResource) sourceCursor.getParent().getResource();
+                MoveableResource mv = (MoveableResource) target;
                 try {
-                    CollectionResource currentParent = (CollectionResource) sourceCursor.getParent().getResource();
-                    MoveableResource mv = (MoveableResource) target;
                     mv.moveTo( currentParent, destName );
-                    Cursor newCursor = sourceCursor.getParent().find( destName );
-                    return result( "created: <a href='" + newCursor.getPath() + "'>" + destName + "</a>" );
+                } catch( NotAuthorizedException e ) {
+                    return result( "not authorised" );
+                } catch( BadRequestException e ) {
+                    return result( "bad request" );
                 } catch( ConflictException ex ) {
-                    return result("conflict: " + ex.getMessage());
+                    return result( "conflict exception" );
                 }
+
+                Cursor newCursor = sourceCursor.getParent().find( destName );
+                return result( "created: <a href='" + newCursor.getPath() + "'>" + destName + "</a>" );
             } else {
-                return result("resource is not moveable");
+                return result( "resource is not moveable" );
             }
         }
     }
-
 }
