@@ -199,13 +199,13 @@ public class MiltonFtpFile implements FtpFile {
             try {
                 dr.delete();
             } catch( NotAuthorizedException ex ) {
-                log.warn("can't delete, not authorised");
+                log.warn( "can't delete, not authorised" );
                 return false;
             } catch( ConflictException ex ) {
-                log.warn("can't delete, conflct");
+                log.warn( "can't delete, conflct" );
                 return false;
             } catch( BadRequestException ex ) {
-                log.warn("can't delete, bad request");
+                log.warn( "can't delete, bad request" );
                 return false;
             }
             return true;
@@ -218,22 +218,28 @@ public class MiltonFtpFile implements FtpFile {
         if( r == null ) {
             throw new RuntimeException( "resource not saved yet" );
         } else if( r instanceof MoveableResource ) {
-                MoveableResource src = (MoveableResource) r;
-                MiltonFtpFile dest = (MiltonFtpFile) newFile;
-                CollectionResource crDest;
-                crDest = dest.getParent();
-                String newName = dest.path.getName();
-                try {
-                    src.moveTo( crDest, newName );
-                    return true;
-                } catch( ConflictException ex ) {
-                    log.error( "can't move", ex );
-                    return false;
-                }
-            } else {
-                log.debug( "not moveable: " + this.getName() );
+            MoveableResource src = (MoveableResource) r;
+            MiltonFtpFile dest = (MiltonFtpFile) newFile;
+            CollectionResource crDest;
+            crDest = dest.getParent();
+            String newName = dest.path.getName();
+            try {
+                src.moveTo( crDest, newName );
+                return true;
+            } catch( BadRequestException ex ) {
+                log.error( "bad request, can't move", ex );
+                return false;
+            } catch( NotAuthorizedException ex ) {
+                log.error( "not authorised can't move", ex );
+                return false;
+            } catch( ConflictException ex ) {
+                log.error( "can't move", ex );
                 return false;
             }
+        } else {
+            log.debug( "not moveable: " + this.getName() );
+            return false;
+        }
     }
 
     public List<FtpFile> listFiles() {
@@ -268,29 +274,29 @@ public class MiltonFtpFile implements FtpFile {
             if( col == null ) {
                 throw new IOException( "parent not found" );
             } else if( col instanceof PutableResource ) {
-                    final PutableResource putableResource = (PutableResource) col;
-                    final String newName = path.getName();
-                    Runnable runnable = new Runnable() {
+                final PutableResource putableResource = (PutableResource) col;
+                final String newName = path.getName();
+                Runnable runnable = new Runnable() {
 
-                        public void run() {
-                            try {
-                                putableResource.createNew( newName, out.getInputStream(), out.getSize(), null );
-                            } catch(BadRequestException ex) {
-                                throw new RuntimeException( ex );
-                            } catch(NotAuthorizedException ex) {
-                                throw new RuntimeException( ex );
-                            } catch( ConflictException ex ) {
-                                throw new RuntimeException( ex );
-                            } catch( IOException ex ) {
-                                throw new RuntimeException( ex );
-                            }
+                    public void run() {
+                        try {
+                            putableResource.createNew( newName, out.getInputStream(), out.getSize(), null );
+                        } catch( BadRequestException ex ) {
+                            throw new RuntimeException( ex );
+                        } catch( NotAuthorizedException ex ) {
+                            throw new RuntimeException( ex );
+                        } catch( ConflictException ex ) {
+                            throw new RuntimeException( ex );
+                        } catch( IOException ex ) {
+                            throw new RuntimeException( ex );
                         }
-                    };
-                    out.setOnClose( runnable );
-                    return out;
-                } else {
-                    throw new IOException( "folder doesnt support PUT, and the resource is not replaceable" );
-                }
+                    }
+                };
+                out.setOnClose( runnable );
+                return out;
+            } else {
+                throw new IOException( "folder doesnt support PUT, and the resource is not replaceable" );
+            }
         }
     }
 

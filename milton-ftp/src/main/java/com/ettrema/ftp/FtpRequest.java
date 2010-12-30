@@ -77,4 +77,8 @@ public class FtpRequest extends AbstractRequest{
         return new ArrayList<Cookie>();
     }
 
+    public String getRemoteAddr() {
+        throw new UnsupportedOperationException( "Not supported yet." );
+    }
+
 }
