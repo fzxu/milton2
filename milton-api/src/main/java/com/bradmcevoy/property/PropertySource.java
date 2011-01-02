@@ -50,7 +50,6 @@ public interface PropertySource {
         }
     }
 
-
     Object getProperty( QName name, Resource r ) throws NotAuthorizedException;
 
     void setProperty( QName name, Object value, Resource r ) throws PropertySetException, NotAuthorizedException;
@@ -93,15 +92,14 @@ public interface PropertySource {
     /**
      * Exception from setting a field
      */
-    public class PropertySetException extends Exception {
+    public class PropertySetException extends RuntimeException {
+
         private static final long serialVersionUID = 1L;
         private Response.Status status;
-        private QName field;
         private String notes;
 
-        public PropertySetException(Status status, QName field, String notes) {
+        public PropertySetException( Status status, String notes ) {
             this.status = status;
-            this.field = field;
             this.notes = notes;
         }
 
@@ -113,10 +111,6 @@ public interface PropertySource {
          */
         public Status getStatus() {
             return status;
-        }
-
-        public QName getField() {
-            return field;
         }
 
         /**
