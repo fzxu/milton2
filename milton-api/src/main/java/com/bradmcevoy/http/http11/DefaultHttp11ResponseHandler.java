@@ -309,8 +309,10 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
             if( resource instanceof GetableResource ) {
                 GetableResource gr = (GetableResource) resource;
                 Long maxAge = gr.getMaxAgeSeconds( auth );
-                if( maxAge != null ) {
-                    modDate = new Date(); // have max-age, so use current date
+                if( maxAge != null && maxAge > 0 ) {
+                    log.trace("setModifiedDate: has a modified date and a positive maxAge, so adjust modDate");
+                    long tm = System.currentTimeMillis() - 60000; // modified 1 minute ago
+                    modDate = new Date(tm); // have max-age, so use current date
                 }
             }
             response.setLastModifiedHeader( modDate );
