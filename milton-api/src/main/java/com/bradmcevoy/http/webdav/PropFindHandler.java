@@ -116,7 +116,7 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
     }
 
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
-        log.trace( "propfind" );
+        log.trace( "processExistingResource" );
         PropFindableResource pfr = (PropFindableResource) resource;
         int depth = request.getDepthHeader();
         response.setStatus( Response.Status.SC_MULTI_STATUS );

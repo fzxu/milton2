@@ -177,6 +177,7 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
     }
 
     public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, Resource r ) {
+        log.trace("respondPropFind");
         response.setStatus( Status.SC_MULTI_STATUS );
         response.setDateHeader( new Date() );
         response.setContentTypeHeader( Response.XML );

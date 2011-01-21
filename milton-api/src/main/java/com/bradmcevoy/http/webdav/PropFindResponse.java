@@ -2,6 +2,7 @@ package com.bradmcevoy.http.webdav;
 
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.values.ValueAndType;
 import java.util.List;
 import java.util.Map;
@@ -11,11 +12,11 @@ public class PropFindResponse {
 
     private final String href;
     private Map<QName, ValueAndType> knownProperties;
-    private Map<Response.Status,List<NameAndError>> errorProperties;
+    private Map<Response.Status, List<NameAndError>> errorProperties;
 
-    public PropFindResponse( String href, Map<QName, ValueAndType> knownProperties, Map<Response.Status,List<NameAndError>> errorProperties ) {
+    public PropFindResponse(String href, Map<QName, ValueAndType> knownProperties, Map<Response.Status, List<NameAndError>> errorProperties) {
         super();
-        this.href = href;
+        this.href = Utils.stripServer(href);
         this.knownProperties = knownProperties;
         this.errorProperties = errorProperties;
     }
@@ -40,6 +41,7 @@ public class PropFindResponse {
      *
      */
     public static class NameAndError {
+
         private final QName name;
         private final String error;
 
