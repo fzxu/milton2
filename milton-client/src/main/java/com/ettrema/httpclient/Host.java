@@ -39,11 +39,11 @@ import org.slf4j.LoggerFactory;
 public class Host extends Folder {
 
     private static String PROPFIND_XML = "<?xml version=\"1.0\"?>"
-        + "<d:propfind xmlns:d='DAV:' xmlns:c='clyde'><d:prop>"
-        + "<d:resourcetype/><d:displayname/><d:getcontentlength/><d:creationdate/><d:getlastmodified/><d:iscollection/>"
-        + "<d:quota-available-bytes/><d:quota-used-bytes/><c:crc/>"
-        + "</d:prop></d:propfind>";
-    private static final Logger log = LoggerFactory.getLogger( Host.class );
+            + "<d:propfind xmlns:d='DAV:' xmlns:c='clyde'><d:prop>"
+            + "<d:resourcetype/><d:displayname/><d:getcontentlength/><d:creationdate/><d:getlastmodified/><d:iscollection/>"
+            + "<d:quota-available-bytes/><d:quota-used-bytes/><c:crc/>"
+            + "</d:prop></d:propfind>";
+    private static final Logger log = LoggerFactory.getLogger(Host.class);
     public final String server;
     public final int port;
     public final String user;
@@ -64,18 +64,18 @@ public class Host extends Folder {
 //    System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "debug");    
     }
 
-    public Host( String server, int port, String user, String password, ProxyDetails proxyDetails ) {
-        this( server, null, port, user, password, proxyDetails, 30000 ); // defaul timeout of 30sec
+    public Host(String server, int port, String user, String password, ProxyDetails proxyDetails) {
+        this(server, null, port, user, password, proxyDetails, 30000); // defaul timeout of 30sec
     }
 
-    public Host( String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails ) {
-        this( server, rootPath, port, user, password, proxyDetails, 30000 ); // defaul timeout of 30sec
+    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails) {
+        this(server, rootPath, port, user, password, proxyDetails, 30000); // defaul timeout of 30sec
     }
 
-    public Host( String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout ) {
+    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout) {
         super();
-        if( server == null ) {
-            throw new IllegalArgumentException( "host name cannot be null");
+        if (server == null) {
+            throw new IllegalArgumentException("host name cannot be null");
         }
         this.rootPath = rootPath;
         this.timeout = timeout;
@@ -84,27 +84,27 @@ public class Host extends Folder {
         this.user = user;
         this.password = password;
         client = new HttpClient();
-        client.getHttpConnectionManager().getParams().setConnectionTimeout( 10000 );
-        if( user != null ) {
-            client.getState().setCredentials( AuthScope.ANY, new UsernamePasswordCredentials( user, password ) );
+        client.getHttpConnectionManager().getParams().setConnectionTimeout(10000);
+        if (user != null) {
+            client.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(user, password));
         }
 
-        if( user != null && user.length() > 0 ) {
-            client.getParams().setAuthenticationPreemptive( true );
+        if (user != null && user.length() > 0) {
+            client.getParams().setAuthenticationPreemptive(true);
         }
-        client.getParams().setCookiePolicy( CookiePolicy.IGNORE_COOKIES );
-        client.getParams().setSoTimeout( timeout );
-        client.getParams().setConnectionManagerTimeout( timeout );
-        if( proxyDetails != null ) {
-            if( proxyDetails.isUseSystemProxy() ) {
-                System.setProperty( "java.net.useSystemProxies", "true" );
+        client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
+        client.getParams().setSoTimeout(timeout);
+        client.getParams().setConnectionManagerTimeout(timeout);
+        if (proxyDetails != null) {
+            if (proxyDetails.isUseSystemProxy()) {
+                System.setProperty("java.net.useSystemProxies", "true");
             } else {
-                System.setProperty( "java.net.useSystemProxies", "false" );
-                if( proxyDetails.getProxyHost() != null && proxyDetails.getProxyHost().length() > 0 ) {
+                System.setProperty("java.net.useSystemProxies", "false");
+                if (proxyDetails.getProxyHost() != null && proxyDetails.getProxyHost().length() > 0) {
                     HostConfiguration hostConfig = client.getHostConfiguration();
-                    hostConfig.setProxy( proxyDetails.getProxyHost(), proxyDetails.getProxyPort() );
-                    if( proxyDetails.hasAuth() ) {
-                        client.getState().setProxyCredentials( AuthScope.ANY, new UsernamePasswordCredentials( proxyDetails.getUserName(), proxyDetails.getPassword() ) );
+                    hostConfig.setProxy(proxyDetails.getProxyHost(), proxyDetails.getProxyPort());
+                    if (proxyDetails.hasAuth()) {
+                        client.getState().setProxyCredentials(AuthScope.ANY, new UsernamePasswordCredentials(proxyDetails.getUserName(), proxyDetails.getPassword()));
                     }
                 }
             }
@@ -120,65 +120,65 @@ public class Host extends Folder {
      * @throws IOException
      * @throws com.ettrema.httpclient.HttpException
      */
-    public Resource find( String path ) throws IOException, com.ettrema.httpclient.HttpException {
-        if( path == null || path.length() == 0 || path.equals( "/" ) ) {
+    public Resource find(String path) throws IOException, com.ettrema.httpclient.HttpException {
+        if (path == null || path.length() == 0 || path.equals("/")) {
             return this;
         }
-        if( path.startsWith( "/" ) ) {
-            path = path.substring( 1 );
+        if (path.startsWith("/")) {
+            path = path.substring(1);
         }
-        String[] arr = path.split( "/" );
-        return _find( this, arr, 0 );
+        String[] arr = path.split("/");
+        return _find(this, arr, 0);
 
     }
 
-    public static Resource _find( Folder parent, String[] arr, int i ) throws IOException, com.ettrema.httpclient.HttpException {
+    public static Resource _find(Folder parent, String[] arr, int i) throws IOException, com.ettrema.httpclient.HttpException {
         String childName = arr[i];
-        log.trace( "find: " + childName );
-        Resource child = parent.child( childName );
-        if( i == arr.length - 1 ) {
-            log.trace( " found" );
+        log.trace("find: " + childName);
+        Resource child = parent.child(childName);
+        if (i == arr.length - 1) {
+            log.trace(" found");
             return child;
         } else {
-            if( child instanceof Folder ) {
-                log.trace( " recurse" );
-                return _find( (Folder) child, arr, i + 1 );
+            if (child instanceof Folder) {
+                log.trace(" recurse");
+                return _find((Folder) child, arr, i + 1);
             } else {
-                log.trace( "not found: " + childName );
+                log.trace("not found: " + childName);
                 return null;
             }
         }
     }
 
-    public Folder getFolder( String path ) throws IOException, com.ettrema.httpclient.HttpException {
-        Resource res = find( path );
-        if( res instanceof Folder ) {
+    public Folder getFolder(String path) throws IOException, com.ettrema.httpclient.HttpException {
+        Resource res = find(path);
+        if (res instanceof Folder) {
             return (Folder) res;
         } else {
-            throw new RuntimeException( "Not a folder: " + res.href() );
+            throw new RuntimeException("Not a folder: " + res.href());
         }
     }
 
-    synchronized PropFindMethod createPropFind( int depth, String href ) {
-        PropFindMethod m = new PropFindMethod( urlEncode( href ) );
-        m.addRequestHeader( new Header( "Depth", depth + "" ) );
-        m.setDoAuthentication( true );
+    synchronized PropFindMethod createPropFind(int depth, String href) {
+        PropFindMethod m = new PropFindMethod(urlEncode(href));
+        m.addRequestHeader(new Header("Depth", depth + ""));
+        m.setDoAuthentication(true);
         return m;
     }
 
-    synchronized int doMkCol( String newUri ) throws com.ettrema.httpclient.HttpException {
+    synchronized int doMkCol(String newUri) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
-        MkColMethod p = new MkColMethod( urlEncode( newUri ) );
+        MkColMethod p = new MkColMethod(urlEncode(newUri));
         try {
-            int result = host().client.executeMethod( p );
-            if( result == 409 ) {
+            int result = host().client.executeMethod(p);
+            if (result == 409) {
                 // probably means the folder already exists
                 return result;
             }
-            Utils.processResultCode( result, newUri );
+            Utils.processResultCode(result, newUri);
             return result;
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         } finally {
             p.releaseConnection();
             notifyFinishRequest();
@@ -186,42 +186,42 @@ public class Host extends Folder {
 
     }
 
-    synchronized int doPut( String newUri, InputStream content, Long contentLength, String contentType ) {
+    synchronized int doPut(String newUri, InputStream content, Long contentLength, String contentType) {
         notifyStartRequest();
-        String s = urlEncode( newUri );
-        PutMethod p = new PutMethod( s );
+        String s = urlEncode(newUri);
+        PutMethod p = new PutMethod(s);
         try {
             RequestEntity requestEntity;
-            if( contentLength == null ) {
-                log.trace( "no content length" );
-                requestEntity = new InputStreamRequestEntity( content, contentType );
+            if (contentLength == null) {
+                log.trace("no content length");
+                requestEntity = new InputStreamRequestEntity(content, contentType);
             } else {
-                requestEntity = new InputStreamRequestEntity( content, contentLength, contentType );
+                requestEntity = new InputStreamRequestEntity(content, contentLength, contentType);
             }
-            p.setRequestEntity( requestEntity );
-            int result = host().client.executeMethod( p );
+            p.setRequestEntity(requestEntity);
+            int result = host().client.executeMethod(p);
             return result;
-        } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         } finally {
             p.releaseConnection();
             notifyFinishRequest();
         }
     }
 
-    synchronized int doCopy( String from, String newUri ) throws com.ettrema.httpclient.HttpException {
+    synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
-        CopyMethod m = new CopyMethod( urlEncode( from ), urlEncode( newUri ) );
+        CopyMethod m = new CopyMethod(urlEncode(from), urlEncode(newUri));
         try {
-            int res = host().client.executeMethod( m );
-            Utils.processResultCode( res, from );
+            int res = host().client.executeMethod(m);
+            Utils.processResultCode(res, from);
             return res;
-        } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         } finally {
             m.releaseConnection();
             notifyFinishRequest();
@@ -229,27 +229,27 @@ public class Host extends Folder {
 
     }
 
-    synchronized int doDelete( String href ) throws IOException, com.ettrema.httpclient.HttpException {
+    synchronized int doDelete(String href) throws IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
-        DeleteMethod m = new DeleteMethod( urlEncode( href ) );
+        DeleteMethod m = new DeleteMethod(urlEncode(href));
         try {
-            int res = host().client.executeMethod( m );
-            Utils.processResultCode( res, href );
+            int res = host().client.executeMethod(m);
+            Utils.processResultCode(res, href);
             return res;
-        } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
         } finally {
             m.releaseConnection();
             notifyFinishRequest();
         }
     }
 
-    synchronized int doMove( String href, String newUri ) throws IOException, com.ettrema.httpclient.HttpException {
+    synchronized int doMove(String href, String newUri) throws IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
-        MoveMethod m = new MoveMethod( urlEncode( href ), urlEncode( newUri ) );
+        MoveMethod m = new MoveMethod(urlEncode(href), urlEncode(newUri));
         try {
-            int res = host().client.executeMethod( m );
-            Utils.processResultCode( res, href );
+            int res = host().client.executeMethod(m);
+            Utils.processResultCode(res, href);
             return res;
         } finally {
             m.releaseConnection();
@@ -258,89 +258,91 @@ public class Host extends Folder {
 
     }
 
-    synchronized List<PropFindMethod.Response> doPropFind( String url, int depth ) throws IOException, com.ettrema.httpclient.HttpException {
-        log.trace( "doPropFind: " + url );
+    synchronized List<PropFindMethod.Response> doPropFind(String url, int depth) throws IOException, com.ettrema.httpclient.HttpException {
+        log.trace("doPropFind: " + url);
         notifyStartRequest();
-        PropFindMethod m = createPropFind( depth, url );
+        PropFindMethod m = createPropFind(depth, url);
 
         try {
-            if( propFindXml != null ) {
-                RequestEntity requestEntity = new StringRequestEntity( propFindXml, "text/xml", "UTF-8" );
-                m.setRequestEntity( requestEntity );
+            if (propFindXml != null) {
+                RequestEntity requestEntity = new StringRequestEntity(propFindXml, "text/xml", "UTF-8");
+                m.setRequestEntity(requestEntity);
             }
 
-            int res = client.executeMethod( m );
-            Utils.processResultCode( res, url );
-            if( res == 207 ) {
+            int res = client.executeMethod(m);
+            Utils.processResultCode(res, url);
+            if (res == 207) {
                 return m.getResponses();
             } else {
                 return null;
             }
-        } catch( NotFoundException e ) {
-            log.trace( "not found: " + url );
+        } catch (NotFoundException e) {
+            log.trace("not found: " + url);
             return Collections.EMPTY_LIST;
-        } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
         } finally {
             m.releaseConnection();
             notifyFinishRequest();
         }
     }
 
-    synchronized void doGet( String url, StreamReceiver receiver ) throws com.ettrema.httpclient.HttpException {
+    synchronized void doGet(String url, StreamReceiver receiver) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
-        GetMethod m = new GetMethod( urlEncode( url ) );
+        GetMethod m = new GetMethod(urlEncode(url));
         InputStream in = null;
         try {
-            int res = client.executeMethod( m );
-            Utils.processResultCode( res, url );
+            int res = client.executeMethod(m);
+            Utils.processResultCode(res, url);
             in = m.getResponseBodyAsStream();
-            receiver.receive( in );
-        } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
+            receiver.receive(in);
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         } finally {
-            Utils.close( in );
+            Utils.close(in);
             m.releaseConnection();
             notifyFinishRequest();
         }
     }
 
-    public synchronized void options( String path ) throws java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
+    public synchronized void options(String path) throws java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
         String url = this.href() + path;
-        doOptions( url );
+        doOptions(url);
     }
 
-    public synchronized byte[] get( String path ) throws com.ettrema.httpclient.HttpException {
+    public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException {
         String url = this.href() + path;
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        doGet( url, new StreamReceiver() {
+        doGet(url, new StreamReceiver() {
 
-            public void receive( InputStream in ) {
+            public void receive(InputStream in) {
                 try {
-                    IOUtils.copy( in, out );
-                } catch( IOException ex ) {
-                    throw new RuntimeException( ex );
+                    IOUtils.copy(in, out);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
                 }
             }
-        } );
+        });
         return out.toByteArray();
     }
 
-    private synchronized void doOptions( String url ) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
+    private synchronized void doOptions(String url) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
-        OptionsMethod m = new OptionsMethod( urlEncode( url ) );
+        String uri = urlEncode(url);
+        log.trace("doOptions: {}", url);
+        OptionsMethod m = new OptionsMethod(uri);
         InputStream in = null;
         try {
-            int res = client.executeMethod( m );
-            log.trace( "result code: " + res );
-            if( res == 301 || res == 302 ) {
+            int res = client.executeMethod(m);
+            log.trace("result code: " + res);
+            if (res == 301 || res == 302) {
                 return;
             }
-            Utils.processResultCode( res, url );
+            Utils.processResultCode(res, url);
         } finally {
-            Utils.close( in );
+            Utils.close(in);
             m.releaseConnection();
             notifyFinishRequest();
         }
@@ -353,26 +355,26 @@ public class Host extends Folder {
      * @param params
      * @return
      */
-    String doPost( String url, Map<String, String> params ) throws com.ettrema.httpclient.HttpException {
+    String doPost(String url, Map<String, String> params) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
-        PostMethod m = new PostMethod( urlEncode( url ) );
-        for( Entry<String, String> entry : params.entrySet() ) {
-            m.addParameter( entry.getKey(), entry.getValue() );
+        PostMethod m = new PostMethod(urlEncode(url));
+        for (Entry<String, String> entry : params.entrySet()) {
+            m.addParameter(entry.getKey(), entry.getValue());
         }
         InputStream in = null;
         try {
-            int res = client.executeMethod( m );
-            Utils.processResultCode( res, url );
+            int res = client.executeMethod(m);
+            Utils.processResultCode(res, url);
             in = m.getResponseBodyAsStream();
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            IOUtils.copy( in, bout );
+            IOUtils.copy(in, bout);
             return bout.toString();
-        } catch( HttpException ex ) {
-            throw new RuntimeException( ex );
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         } finally {
-            Utils.close( in );
+            Utils.close(in);
             m.releaseConnection();
             notifyFinishRequest();
         }
@@ -385,44 +387,50 @@ public class Host extends Folder {
 
     @Override
     public String href() {
-        String s = "http://" + server + "/";
-        if( rootPath != null && rootPath.length() > 0 ) {
-            if( !rootPath.equals( "/")) {
+        String s = "http://" + server;
+        if (this.port != 80) {
+            s += ":" + this.port;
+        }
+        s += "/";
+        if (rootPath != null && rootPath.length() > 0) {
+            if (!rootPath.equals("/")) {
                 s = s + rootPath;
             }
         }
-        if( !s.endsWith( "/" ) ) s = s + "/";
+        if (!s.endsWith("/")) {
+            s = s + "/";
+        }
         log.trace("host href: " + s);
         return s;
     }
 
-    public String urlEncode( String s ) {
+    public String urlEncode(String s) {
 //        if( rootPath != null ) {
 //            s = rootPath + s;
 //        }
-        return urlEncodePath( s );
+        return urlEncodePath(s);
     }
 
-    public static String urlEncodePath( String s ) {
+    public static String urlEncodePath(String s) {
         try {
-            org.apache.commons.httpclient.URI uri = new URI( s, false );
+            org.apache.commons.httpclient.URI uri = new URI(s, false);
             return uri.toString();
-        } catch( URIException ex ) {
-            throw new RuntimeException( s, ex );
-        } catch( NullPointerException ex ) {
-            throw new RuntimeException( s, ex );
+        } catch (URIException ex) {
+            throw new RuntimeException(s, ex);
+        } catch (NullPointerException ex) {
+            throw new RuntimeException(s, ex);
         }
         //s = s.replace( " ", "%20" );
     }
 
     void notifyStartRequest() {
-        for( ConnectionListener l : connectionListeners ) {
+        for (ConnectionListener l : connectionListeners) {
             l.onStartRequest();
         }
     }
 
     void notifyFinishRequest() {
-        for( ConnectionListener l : connectionListeners ) {
+        for (ConnectionListener l : connectionListeners) {
             l.onFinishRequest();
         }
     }
@@ -431,28 +439,28 @@ public class Host extends Folder {
         return propFindXml;
     }
 
-    public void setPropFindXml( String propFindXml ) {
+    public void setPropFindXml(String propFindXml) {
         this.propFindXml = propFindXml;
     }
 
-    public com.ettrema.httpclient.Folder getOrCreateFolder( Path remoteParentPath, boolean create ) throws com.ettrema.httpclient.HttpException, IOException {
+    public com.ettrema.httpclient.Folder getOrCreateFolder(Path remoteParentPath, boolean create) throws com.ettrema.httpclient.HttpException, IOException {
         com.ettrema.httpclient.Folder f = this;
-        if( remoteParentPath != null ) {
-            for( String childName : remoteParentPath.getParts() ) {
-                if( childName.equals( "_code" ) ) {
-                    f = new Folder( f, childName );
+        if (remoteParentPath != null) {
+            for (String childName : remoteParentPath.getParts()) {
+                if (childName.equals("_code")) {
+                    f = new Folder(f, childName);
                 } else {
-                    com.ettrema.httpclient.Resource child = f.child( childName );
-                    if( child == null ) {
-                        if( create ) {
-                            f = f.createFolder( childName );
+                    com.ettrema.httpclient.Resource child = f.child(childName);
+                    if (child == null) {
+                        if (create) {
+                            f = f.createFolder(childName);
                         } else {
                             return null;
                         }
-                    } else if( child instanceof com.ettrema.httpclient.Folder ) {
+                    } else if (child instanceof com.ettrema.httpclient.Folder) {
                         f = (com.ettrema.httpclient.Folder) child;
                     } else {
-                        log.warn( "Can't upload. A resource exists with the same name as a folder, but is a file: " + remoteParentPath );
+                        log.warn("Can't upload. A resource exists with the same name as a folder, but is a file: " + remoteParentPath);
                         return null;
                     }
                 }

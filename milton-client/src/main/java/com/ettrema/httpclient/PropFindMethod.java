@@ -100,8 +100,16 @@ public class PropFindMethod extends EntityEnclosingMethod {
             }
 
             Element el = elResponse.element( "propstat" ).element( "prop" );
-            String[] arr = href.split( "[/]" );
-            name = arr[arr.length - 1];
+            if( href.contains("/")) {
+                String[] arr = href.split( "[/]" );
+                if( arr.length > 0) {
+                    name = arr[arr.length - 1];
+                } else {
+                    name = "";
+                }
+            } else {
+                name = href;
+            }
             String dn = RespUtils.asString( el, "displayname" );
             displayName = ( dn == null ) ? name : dn;
             createdDate = RespUtils.asString( el, "creationdate" );
