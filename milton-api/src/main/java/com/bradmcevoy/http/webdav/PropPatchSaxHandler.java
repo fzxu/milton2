@@ -14,7 +14,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class PropPatchSaxHandler extends DefaultHandler {
 
-    private final static Logger log = LoggerFactory.getLogger( PropPatchHandler.class );
+    private final static Logger log = LoggerFactory.getLogger( PropPatchSaxHandler.class );
 
     private Stack<String> elementPath = new Stack<String>();
 
