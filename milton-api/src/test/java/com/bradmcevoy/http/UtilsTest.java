@@ -12,6 +12,15 @@ public class UtilsTest extends TestCase {
         super( testName );
     }
 
+    public void testStripServer_NoHttp() {
+        assertEquals("abc", Utils.stripServer("abc"));
+    }
+
+    public void testStripServer_WithHttp() {
+        assertEquals("/abc", Utils.stripServer("http://server/abc"));
+    }
+
+
     public void testPercentEncode() {
 //        for( int i=0; i<180; i++ ) {
 //            String s = String.valueOf((char)i);
@@ -43,7 +52,7 @@ public class UtilsTest extends TestCase {
         // this string seems to encode differently on different platforms. this
         // isnt ideal and will hopefully be corrected, but in the mean time
         // its good enough if it 'round trips' Ie encode + decode = original
-        String originalUnencoded = "neé";
+        String originalUnencoded = "neï¿½";
         System.out.println( "encoding: " + originalUnencoded );
         String encoded = Utils.percentEncode( originalUnencoded );
         System.out.println( "encoded to: " + encoded );

@@ -122,7 +122,7 @@ public class Utils {
     }
 
     /**
-     * This method has been provided by André Kunert - looks a bit better then
+     * This method has been provided by Andrï¿½ Kunert - looks a bit better then
      * my shabby implementation! BM
      *
      * @param str
@@ -268,5 +268,13 @@ public class Utils {
             if( it.hasNext() ) res += ", ";
         }
         return res;
+    }
+
+    public static String stripServer(String href) {
+        if (href.startsWith("http")) {
+            return href.substring(href.indexOf("/",8));
+        } else {
+            return href;
+        }
     }
 }
