@@ -6,9 +6,12 @@
 package bradswebdavclient;
 
 import com.ettrema.httpclient.File;
+import com.ettrema.httpclient.HttpException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import org.jdesktop.application.Action;
 
@@ -22,13 +25,13 @@ public class TextEditorFrame extends javax.swing.JFrame {
     private File file;
 
     /** Creates new form TextEditorFrame */
-    public TextEditorFrame( File f ) {
+    public TextEditorFrame( File f ) throws HttpException {
         initComponents();
         this.file = f;
         load();
     }
 
-    private void load() {
+    private void load() throws HttpException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         file.download( out, null );
         this.editor.setText( out.toString() );
@@ -114,7 +117,7 @@ public class TextEditorFrame extends javax.swing.JFrame {
         ByteArrayInputStream in = new ByteArrayInputStream( s.getBytes() );
         try {
             this.file = this.file.parent.upload( file.name, in, (long) s.length() );
-        } catch( IOException ex ) {
+        } catch( Exception ex ) {
             JOptionPane.showMessageDialog( this, "An error occurred saving the resource");
         }
     }//GEN-LAST:event_mnuSaveMouseClicked
@@ -122,7 +125,11 @@ public class TextEditorFrame extends javax.swing.JFrame {
     @Action
     public void reload() {
         System.out.println( "reloading" );
-        load();
+        try {
+            load();
+        } catch (HttpException ex) {
+            Logger.getLogger(TextEditorFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JEditorPane editor;

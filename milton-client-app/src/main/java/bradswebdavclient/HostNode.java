@@ -15,7 +15,7 @@ public class HostNode extends FolderNode {
 
     final Host host;
 
-    public HostNode( AbstractTreeNode parent, Host host ) throws IOException {
+    public HostNode( AbstractTreeNode parent, Host host ) throws Exception {
         super( parent, host.getFolder( "" ) );
         this.host = host;
         host.connectionListeners.add( new ConnectionListener() {
@@ -79,3 +79,5 @@ public class HostNode extends FolderNode {
         return host.server;
     }
 }
+
+

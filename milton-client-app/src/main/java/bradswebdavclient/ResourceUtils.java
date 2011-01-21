@@ -40,7 +40,7 @@ public class ResourceUtils {
             if( result == JOptionPane.YES_OPTION ) {
                 try {
                     r.delete();
-                } catch( IOException ex ) {
+                } catch( Exception ex ) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog( component, "An error occurred deleting the resource");
                 }
@@ -53,7 +53,7 @@ public class ResourceUtils {
                 for( Resource r : toDelete ) {
                     try {
                         r.delete();
-                    } catch( IOException ex ) {
+                    } catch( Exception ex ) {
                         ex.printStackTrace();
                         JOptionPane.showMessageDialog( component, "An error occurred deleting the resource");
                     }

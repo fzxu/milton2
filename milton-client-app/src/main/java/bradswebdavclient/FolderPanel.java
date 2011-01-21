@@ -9,6 +9,7 @@ import bradswebdavclient.util.BareBonesBrowserLaunch;
 import com.ettrema.httpclient.File;
 import com.ettrema.httpclient.Folder;
 import com.ettrema.httpclient.FolderListener;
+import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.Resource;
 import com.ettrema.httpclient.ResourceListener;
 import java.awt.Component;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -40,7 +43,7 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
     TableResourceTransferHandler tableTransferHandler;
 
     /** Creates new form FolderPanel */
-    public FolderPanel( final Folder folder ) throws IOException {
+    public FolderPanel( final Folder folder ) throws Exception {
         System.out.println( "FolderPanel: create new" );
         initComponents();
         model = new FolderModel( folder );
@@ -150,7 +153,7 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
           if( r instanceof Folder ) {
               try {
                   App.current().view.showDetails( new FolderPanel( (Folder) r ) );
-              } catch( IOException ex ) {
+              } catch( Exception ex ) {
                   throw new RuntimeException( ex );
               }
           } else {
@@ -166,7 +169,7 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
                   java.io.File rFile;
                   try {
                       rFile = r.downloadTo( dest, null );
-                  } catch( IOException ex ) {
+                  } catch( Exception ex ) {
                       throw new RuntimeException( ex );
                   }
                   String url = "file://" + rFile.getAbsolutePath();
@@ -186,8 +189,13 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
     }
 
     private void openTextEditor( File f ) {
-        TextEditorFrame frm = new TextEditorFrame( f );
-        frm.setVisible( true );
+        TextEditorFrame frm;
+        try {
+            frm = new TextEditorFrame(f);
+            frm.setVisible( true );
+        } catch (HttpException ex) {
+            Logger.getLogger(FolderPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JTable table;
@@ -199,7 +207,7 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
         final Folder folder;
         List<Resource> children;
 
-        public FolderModel( Folder folder ) throws IOException {
+        public FolderModel( Folder folder ) throws Exception {
             this.folder = folder;
             this.folder.addListener( (FolderListener) this );
             this.folder.addListener( (ResourceListener) this );
@@ -268,12 +276,12 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
                     return children;
                 }
                 children = (List<Resource>) folder.children();
-                Collections.sort( children, new ResourceComparator() );
+//                Collections.sort( children, new ResourceComparator() );
                 for( Resource r : children ) {
                     r.addListener( this );
                 }
                 return children;
-            } catch( IOException ex ) {
+            } catch( Exception ex ) {
                 throw new RuntimeException( ex );
             }
         }
@@ -401,7 +409,7 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
             for( Resource r : list ) {
                 try {
                     r.copyTo( model.folder );
-                } catch( IOException ex ) {
+                } catch( Exception ex ) {
                     ex.printStackTrace();
                     break;
                 }
@@ -414,7 +422,7 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
             for( Resource r : list ) {
                 try {
                     r.moveTo( model.folder );
-                } catch( IOException ex ) {
+                } catch( Exception ex ) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog( table, "Failed to move: " + model.folder.name);
                 }

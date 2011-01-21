@@ -136,7 +136,7 @@ public class HostsNode extends AbstractTreeNode {
         Host h = new Host( server, port, user, password, null );
         try {
             return new HostNode( this, h );
-        } catch( IOException ex ) {
+        } catch( Exception ex ) {
             throw new RuntimeException( ex );
         }
     }
@@ -166,7 +166,7 @@ public class HostsNode extends AbstractTreeNode {
             HostNode hn;
             try {
                 hn = new HostNode( HostsNode.this, h );
-            } catch( IOException ex ) {
+            } catch( Exception ex ) {
                 JOptionPane.showMessageDialog( frame.getComponent(), "An error occured connecting to the host");
                 return;
             }

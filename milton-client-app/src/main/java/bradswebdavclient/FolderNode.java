@@ -97,7 +97,7 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
         System.out.println( "FolderNode: creating panel" );
         try {
             return new FolderPanel( folder );
-        } catch( IOException ex ) {
+        } catch( Exception ex ) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog( App.current().getMainFrame(), "An error occured connecting to the host");
             return null;
@@ -134,7 +134,7 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
                 folder.children();
                 folderListener = new FolderNodeListener();
                 folder.addListener( folderListener ); // activate folder population
-            } catch( IOException ex ) {
+            } catch( Exception ex ) {
                 ex.printStackTrace();
             }
         }
@@ -151,7 +151,7 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
         return Collections.enumeration( getChildren() );
     }
 
-    void createNewFolder( String name ) throws IOException {
+    void createNewFolder( String name ) throws Exception {
         Folder newFolder = this.folder.createFolder( name );
     }
 
@@ -175,7 +175,7 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
             if( name == null ) return;
             try {
                 createNewFolder( name );
-            } catch( IOException ex ) {
+            } catch( Exception ex ) {
                 ex.printStackTrace();
             }
         }
@@ -201,7 +201,7 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
         for( Resource r : list ) {
             try {
                 r.copyTo( this.folder );
-            } catch( IOException ex ) {
+            } catch( Exception ex ) {
                 ex.printStackTrace();
             }
         }
@@ -227,7 +227,7 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
             return true;
         } catch( UnsupportedFlavorException ex ) {
             ex.printStackTrace();
-        } catch( IOException ex ) {
+        } catch( Exception ex ) {
             ex.printStackTrace();
         }
         return false;

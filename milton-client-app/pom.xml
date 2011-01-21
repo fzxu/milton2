@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.ettrema</groupId>
         <artifactId>milton</artifactId>
-        <version>1.5.5-SNAPSHOT</version>
+        <version>1.5.7-SNAPSHOT</version>
     </parent>
     <groupId>com.ettrema</groupId>
     <artifactId>milton-client-app</artifactId>
@@ -14,12 +14,12 @@
         <dependency>
             <groupId>com.ettrema</groupId>
             <artifactId>milton-client</artifactId>
-            <version>1.5.5-SNAPSHOT</version>
+            <version>1.5.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.ettrema</groupId>
             <artifactId>endrick-common</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.swinglabs</groupId>

@@ -39,7 +39,7 @@ public class FolderPanel2 extends javax.swing.JPanel {
                     System.out.println( f.getName() );
                     try {
                         folder.upload( f );
-                    } catch( IOException ex ) {
+                    } catch( Exception ex ) {
                         throw new RuntimeException( ex );
                     }
                 }
@@ -100,7 +100,7 @@ public class FolderPanel2 extends javax.swing.JPanel {
         Resource getResource( int row ) {
             try {
                 return folder.children().get( row );
-            } catch( IOException ex ) {
+            } catch( Exception ex ) {
                 throw new RuntimeException( ex );
             }
         }
@@ -108,7 +108,7 @@ public class FolderPanel2 extends javax.swing.JPanel {
         public int getSize() {
             try {
                 return folder.children().size();
-            } catch( IOException ex ) {
+            } catch( Exception ex ) {
                 throw new RuntimeException( ex );
             }
         }
