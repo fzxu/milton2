@@ -216,7 +216,7 @@ public class PutHandler implements Handler {
      * @param response
      * @param replacee
      */
-    private void processReplace( HttpManager manager, Request request, Response response, ReplaceableResource replacee ) throws BadRequestException, NotAuthorizedException {
+    private void processReplace( HttpManager manager, Request request, Response response, ReplaceableResource replacee ) throws BadRequestException, NotAuthorizedException, ConflictException {
         if( !handlerHelper.checkAuthorisation( manager, replacee, request ) ) {
             responseHandler.respondUnauthorised( replacee, response, request );
             return;

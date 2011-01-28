@@ -1,5 +1,8 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.InputStream;
 
 /**
@@ -9,6 +12,6 @@ import java.io.InputStream;
  */
 public interface ReplaceableResource extends Resource {
 
-    public void replaceContent(InputStream in, Long length);
+    public void replaceContent(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException;
 
 }
