@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -263,7 +264,15 @@ public class MiltonFtpFile implements FtpFile {
             Runnable runnable = new Runnable() {
 
                 public void run() {
-                    rr.replaceContent( out.getInputStream(), out.getSize() );
+                    try {
+                        rr.replaceContent(out.getInputStream(), out.getSize());
+                    } catch (BadRequestException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ConflictException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (NotAuthorizedException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             };
             out.setOnClose( runnable );
