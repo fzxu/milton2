@@ -11,6 +11,7 @@ import com.bradmcevoy.property.PropertyAuthoriser;
 import com.ettrema.event.EventManager;
 import com.ettrema.event.EventManagerImpl;
 import com.ettrema.event.RequestEvent;
+import com.ettrema.event.ResponseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -168,6 +169,15 @@ public class HttpManager {
         try {
             FilterChain chain = new FilterChain(this);
             chain.process(request, response);
+            try {
+                fireResponseEvent(request, response);
+            } catch (ConflictException ex) {
+                log.warn("exception thrown from event handler after response is complete", ex);
+            } catch (BadRequestException ex) {
+                log.warn("exception thrown from event handler after response is complete", ex);
+            } catch (NotAuthorizedException ex) {
+                log.warn("exception thrown from event handler after response is complete", ex);
+            }
         } finally {
             tlRequest.remove();
             tlResponse.remove();
@@ -276,6 +286,14 @@ public class HttpManager {
         if (eventManager == null) {
             return;
         }
-        eventManager.fireEvent(new RequestEvent(request)); 
+        eventManager.fireEvent(new RequestEvent(request));
+    }
+
+    private void fireResponseEvent(Request request, Response response) throws ConflictException, BadRequestException, NotAuthorizedException {
+        if (eventManager == null) {
+            return;
+        }
+        eventManager.fireEvent(new ResponseEvent(request, response));
+
     }
 }
