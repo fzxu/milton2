@@ -242,6 +242,7 @@ public class JsonPropFindHandler {
 
         private List<Map<String, Object>> toMap(List<PropFindResponse> props, Map<QName, String> aliases) {
             List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+            Object val;
             for (PropFindResponse prop : props) {
                 Map<String, Object> map = new HashMap<String, Object>();
                 list.add(map);
@@ -250,7 +251,8 @@ public class JsonPropFindHandler {
                     if (name == null) {
                         name = p.getKey().getLocalPart();
                     }
-                    map.put(name, p.getValue().getValue());
+                    val = p.getValue().getValue();
+                    map.put(name, val);
                 }
             }
             return list;
