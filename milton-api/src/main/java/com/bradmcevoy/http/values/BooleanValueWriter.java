@@ -11,7 +11,7 @@ public class BooleanValueWriter implements ValueWriter {
     }
 
     public boolean supports( String nsUri, String localName, Class c ) {
-        return c.equals( Boolean.class );
+        return c.equals( Boolean.class ) || c.equals(boolean.class);
     }
 
     public Object parse( String namespaceURI, String localPart, String value ) {
