@@ -48,7 +48,7 @@ public class PropPatchJsonResource extends JsonResource implements PostableResou
         cfg.setCycleDetectionStrategy( CycleDetectionStrategy.LENIENT );
 
         List<FieldError> errors = new ArrayList<FieldError>();
-        if( resp.getErrorProperties() != null ) {
+        if( resp != null && resp.getErrorProperties() != null ) {
             log.debug( "error props: " + resp.getErrorProperties().size());
             for( Status stat : resp.getErrorProperties().keySet() ) {
                 List<NameAndError> props = resp.getErrorProperties().get( stat );
