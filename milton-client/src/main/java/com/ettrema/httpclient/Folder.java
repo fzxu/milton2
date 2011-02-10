@@ -141,6 +141,15 @@ public class Folder extends Resource {
         }
     }
 
+    public com.ettrema.httpclient.File upload( String name, InputStream content, Integer contentLength ) throws IOException, HttpException {
+        Long length = null;
+        if( contentLength != null ) {
+            long l = contentLength;
+            length = l;
+        }
+        return upload(name, content, length);
+    }
+
     public com.ettrema.httpclient.File upload( String name, InputStream content, Long contentLength ) throws IOException, HttpException {
         children(); // ensure children are loaded
         String newUri = href() + name;
