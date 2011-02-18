@@ -40,7 +40,7 @@ public interface Response {
         LOCATION( "Location" ),
         ALLOW( "Allow" ),
         DAV( "DAV" ),
-        DATE( "DATE" ),
+        DATE( "Date" ),  // was all-caps , eg DATE, which is wrong
         LAST_MODIFIED( "Last-Modified" ),
         LOCK_TOKEN( "Lock-Token" ),
         EXPIRES( "Expires" ),
