@@ -42,12 +42,12 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     private int maxMemorySize = 100000;
     private BUFFERING buffering;
 
-    public DefaultHttp11ResponseHandler( AuthenticationService authenticationService ) {
+    public DefaultHttp11ResponseHandler(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
         this.eTagGenerator = new DefaultETagGenerator();
     }
 
-    public DefaultHttp11ResponseHandler( AuthenticationService authenticationService, ETagGenerator eTagGenerator ) {
+    public DefaultHttp11ResponseHandler(AuthenticationService authenticationService, ETagGenerator eTagGenerator) {
         this.authenticationService = authenticationService;
         this.eTagGenerator = eTagGenerator;
     }
@@ -60,59 +60,57 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         return cacheControlHelper;
     }
 
-    public void setCacheControlHelper( CacheControlHelper cacheControlHelper ) {
+    public void setCacheControlHelper(CacheControlHelper cacheControlHelper) {
         this.cacheControlHelper = cacheControlHelper;
     }
 
-
-
-    public String generateEtag( Resource r ) {
-        return eTagGenerator.generateEtag( r );
+    public String generateEtag(Resource r) {
+        return eTagGenerator.generateEtag(r);
     }
 
-    public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
-        response.setStatus( Response.Status.SC_OK );
-        response.setAllowHeader( methodsAllowed );
-        response.setContentLengthHeader( (long) 0 );
+    public void respondWithOptions(Resource resource, Response response, Request request, List<String> methodsAllowed) {
+        response.setStatus(Response.Status.SC_OK);
+        response.setAllowHeader(methodsAllowed);
+        response.setContentLengthHeader((long) 0);
     }
 
-    public void respondNotFound( Response response, Request request ) {
-        response.setStatus( Response.Status.SC_NOT_FOUND );
-        response.setContentTypeHeader( "text/html" );
-        response.setStatus( Response.Status.SC_NOT_FOUND );
-        PrintWriter pw = new PrintWriter( response.getOutputStream(), true );
+    public void respondNotFound(Response response, Request request) {
+        response.setStatus(Response.Status.SC_NOT_FOUND);
+        response.setContentTypeHeader("text/html");
+        response.setStatus(Response.Status.SC_NOT_FOUND);
+        PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
 
-        String s = NOT_FOUND_HTML.replace( "${url}", request.getAbsolutePath() );
-        pw.print( s );
+        String s = NOT_FOUND_HTML.replace("${url}", request.getAbsolutePath());
+        pw.print(s);
         pw.flush();
 
     }
 
-    public void respondUnauthorised( Resource resource, Response response, Request request ) {
-        response.setStatus( Response.Status.SC_UNAUTHORIZED );
-        List<String> challenges = authenticationService.getChallenges( resource, request );
-        response.setAuthenticateHeader( challenges );
+    public void respondUnauthorised(Resource resource, Response response, Request request) {
+        response.setStatus(Response.Status.SC_UNAUTHORIZED);
+        List<String> challenges = authenticationService.getChallenges(resource, request);
+        response.setAuthenticateHeader(challenges);
     }
 
-    public void respondMethodNotImplemented( Resource resource, Response response, Request request ) {
+    public void respondMethodNotImplemented(Resource resource, Response response, Request request) {
 //        log.debug( "method not implemented. resource: " + resource.getClass().getName() + " - method " + request.getMethod() );
         try {
-            response.setStatus( Response.Status.SC_NOT_IMPLEMENTED );
+            response.setStatus(Response.Status.SC_NOT_IMPLEMENTED);
             OutputStream out = response.getOutputStream();
-            out.write( METHOD_NOT_IMPLEMENTED_HTML.getBytes() );
-        } catch( IOException ex ) {
-            log.warn( "exception writing content" );
+            out.write(METHOD_NOT_IMPLEMENTED_HTML.getBytes());
+        } catch (IOException ex) {
+            log.warn("exception writing content");
         }
     }
 
-    public void respondMethodNotAllowed( Resource res, Response response, Request request ) {
-        log.debug( "method not allowed. handler: " + this.getClass().getName() + " resource: " + res.getClass().getName() );
+    public void respondMethodNotAllowed(Resource res, Response response, Request request) {
+        log.debug("method not allowed. handler: " + this.getClass().getName() + " resource: " + res.getClass().getName());
         try {
-            response.setStatus( Response.Status.SC_METHOD_NOT_ALLOWED );
+            response.setStatus(Response.Status.SC_METHOD_NOT_ALLOWED);
             OutputStream out = response.getOutputStream();
-            out.write( METHOD_NOT_ALLOWED_HTML.getBytes() );
-        } catch( IOException ex ) {
-            log.warn( "exception writing content" );
+            out.write(METHOD_NOT_ALLOWED_HTML.getBytes());
+        } catch (IOException ex) {
+            log.warn("exception writing content");
         }
     }
 
@@ -122,167 +120,171 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
      * @param response
      * @param message - optional message to output in the body content
      */
-    public void respondConflict( Resource resource, Response response, Request request, String message ) {
-        log.debug( "respondConflict" );
+    public void respondConflict(Resource resource, Response response, Request request, String message) {
+        log.debug("respondConflict");
         try {
-            response.setStatus( Response.Status.SC_CONFLICT );
+            response.setStatus(Response.Status.SC_CONFLICT);
             OutputStream out = response.getOutputStream();
-            out.write( CONFLICT_HTML.getBytes() );
-        } catch( IOException ex ) {
-            log.warn( "exception writing content" );
+            out.write(CONFLICT_HTML.getBytes());
+        } catch (IOException ex) {
+            log.warn("exception writing content");
         }
     }
 
-    public void respondRedirect( Response response, Request request, String redirectUrl ) {
-        if( redirectUrl == null ) {
-            throw new NullPointerException( "redirectUrl cannot be null" );
+    public void respondRedirect(Response response, Request request, String redirectUrl) {
+        if (redirectUrl == null) {
+            throw new NullPointerException("redirectUrl cannot be null");
         }
-        response.setStatus( Response.Status.SC_MOVED_TEMPORARILY );
-        response.setLocationHeader( redirectUrl );
+        response.setStatus(Response.Status.SC_MOVED_TEMPORARILY);
+        response.setLocationHeader(redirectUrl);
     }
 
-    public void respondExpectationFailed( Response response, Request request ) {
-        response.setStatus( Response.Status.SC_EXPECTATION_FAILED );
+    public void respondExpectationFailed(Response response, Request request) {
+        response.setStatus(Response.Status.SC_EXPECTATION_FAILED);
     }
 
-    public void respondCreated( Resource resource, Response response, Request request ) {
+    public void respondCreated(Resource resource, Response response, Request request) {
 //        log.debug( "respondCreated" );
-        response.setStatus( Response.Status.SC_CREATED );
+        response.setStatus(Response.Status.SC_CREATED);
     }
 
-    public void respondNoContent( Resource resource, Response response, Request request ) {
+    public void respondNoContent(Resource resource, Response response, Request request) {
 //        log.debug( "respondNoContent" );
-        response.setStatus( Response.Status.SC_OK );
+        response.setStatus(Response.Status.SC_OK);
     }
 
-    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException {
-        log.debug( "respondPartialContent: " + range.getStart() + " - " + range.getFinish() );
-        response.setStatus( Response.Status.SC_PARTIAL_CONTENT );
-        response.setContentRangeHeader( range.getStart(), range.getFinish(), resource.getContentLength() );
-        response.setDateHeader( new Date() );
-        String etag = eTagGenerator.generateEtag( resource );
-        if( etag != null ) {
-            response.setEtag( etag );
+    public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException, BadRequestException {
+        log.debug("respondPartialContent: " + range.getStart() + " - " + range.getFinish());
+        response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
+        response.setContentRangeHeader(range.getStart(), range.getFinish(), resource.getContentLength());
+        response.setDateHeader(new Date());
+        String etag = eTagGenerator.generateEtag(resource);
+        if (etag != null) {
+            response.setEtag(etag);
         }
         String acc = request.getAcceptHeader();
-        String ct = resource.getContentType( acc );
-        if( ct != null ) {
-            response.setContentTypeHeader( ct );
+        String ct = resource.getContentType(acc);
+        if (ct != null) {
+            response.setContentTypeHeader(ct);
         }
         try {
-            resource.sendContent( response.getOutputStream(), range, params, ct );
-        } catch( IOException ex ) {
-            log.warn( "IOException writing to output, probably client terminated connection", ex );
+            resource.sendContent(response.getOutputStream(), range, params, ct);
+        } catch (IOException ex) {
+            log.warn("IOException writing to output, probably client terminated connection", ex);
         }
     }
 
-    public void respondHead( Resource resource, Response response, Request request ) {
-        setRespondContentCommonHeaders( response, resource, Response.Status.SC_NO_CONTENT, request.getAuthorization() );
+    public void respondHead(Resource resource, Response response, Request request) {
+        setRespondContentCommonHeaders(response, resource, Response.Status.SC_NO_CONTENT, request.getAuthorization());
     }
 
-    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
-        log.debug( "respondContent: " + resource.getClass() );
+    public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException, BadRequestException {
+        log.debug("respondContent: " + resource.getClass());
         Auth auth = request.getAuthorization();
-        setRespondContentCommonHeaders( response, resource, auth );
-        if( resource instanceof GetableResource ) {
+        setRespondContentCommonHeaders(response, resource, auth);
+        if (resource instanceof GetableResource) {
             GetableResource gr = (GetableResource) resource;
             String acc = request.getAcceptHeader();
-            String ct = gr.getContentType( acc );
-            if( ct != null ) {
-                response.setContentTypeHeader( ct );
+            String ct = gr.getContentType(acc);
+            if (ct != null) {
+                response.setContentTypeHeader(ct);
             }
-            cacheControlHelper.setCacheControl( gr, response, request.getAuthorization() );
+            cacheControlHelper.setCacheControl(gr, response, request.getAuthorization());
 
             Long contentLength = gr.getContentLength();
-            if( buffering == BUFFERING.always || (contentLength != null && buffering == BUFFERING.whenNeeded) ) { // often won't know until rendered
-                log.trace( "sending content with known content length: " + contentLength);
-                response.setContentLengthHeader( contentLength );
-                sendContent( request, response, (GetableResource) resource, params, null, ct );
+            if (buffering == BUFFERING.always || (contentLength != null && buffering == BUFFERING.whenNeeded)) { // often won't know until rendered
+                log.trace("sending content with known content length: " + contentLength);
+                response.setContentLengthHeader(contentLength);
+                sendContent(request, response, (GetableResource) resource, params, null, ct);
             } else {
-                log.trace( "buffering content...");
-                BufferingOutputStream tempOut = new BufferingOutputStream( maxMemorySize );
+                log.trace("buffering content...");
+                BufferingOutputStream tempOut = new BufferingOutputStream(maxMemorySize);
                 try {
-                    ( (GetableResource) resource ).sendContent( tempOut, null, params, ct );
+                    ((GetableResource) resource).sendContent(tempOut, null, params, ct);
                     tempOut.close();
-                } catch( IOException ex ) {
-                    throw new RuntimeException( "Exception generating buffered content", ex);
+                } catch (IOException ex) {
+                    throw new RuntimeException("Exception generating buffered content", ex);
                 }
                 Long bufContentLength = tempOut.getSize();
-                if( contentLength != null ) {
-                    if( !contentLength.equals( bufContentLength) ) {
-                        throw new RuntimeException( "Lengthd dont match: " + contentLength + " != " + bufContentLength);
+                if (contentLength != null) {
+                    if (!contentLength.equals(bufContentLength)) {
+                        throw new RuntimeException("Lengthd dont match: " + contentLength + " != " + bufContentLength);
                     }
                 }
-                log.trace( "sending buffered content...");
-                response.setContentLengthHeader( bufContentLength );
+                log.trace("sending buffered content...");
+                response.setContentLengthHeader(bufContentLength);
                 try {
-                    StreamUtils.readTo( tempOut.getInputStream(), response.getOutputStream() );
-                } catch( ReadingException ex ) {
-                    throw new RuntimeException( ex );
-                } catch( WritingException ex ) {
-                    log.warn( "exception writing, client probably closed connection", ex );
+                    StreamUtils.readTo(tempOut.getInputStream(), response.getOutputStream());
+                } catch (ReadingException ex) {
+                    throw new RuntimeException(ex);
+                } catch (WritingException ex) {
+                    log.warn("exception writing, client probably closed connection", ex);
                 }
                 return;
-                
+
 
             }
 
         }
     }
 
-    public void respondNotModified( GetableResource resource, Response response, Request request ) {
-        log.trace( "respondNotModified" );
-        response.setStatus( Response.Status.SC_NOT_MODIFIED );
-        response.setDateHeader( new Date() );
-        String etag = eTagGenerator.generateEtag( resource );
-        if( etag != null ) {
-            response.setEtag( etag );
+    public void respondNotModified(GetableResource resource, Response response, Request request) {
+        log.trace("respondNotModified");
+        response.setStatus(Response.Status.SC_NOT_MODIFIED);
+        response.setDateHeader(new Date());
+        String etag = eTagGenerator.generateEtag(resource);
+        if (etag != null) {
+            response.setEtag(etag);
         }
 
         // Note that we use a simpler modified date handling here then when
         // responding with content, because in a not-modified situation the
         // modified date MUST be that of the actual resource
         Date modDate = resource.getModifiedDate();
-        response.setLastModifiedHeader( modDate );
+        response.setLastModifiedHeader(modDate);
 
-        cacheControlHelper.setCacheControl( resource, response, request.getAuthorization() );
+        cacheControlHelper.setCacheControl(resource, response, request.getAuthorization());
     }
 
-
-    protected void sendContent( Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType ) throws NotAuthorizedException, BadRequestException {
-        log.trace( "sendContent" );
-        OutputStream out = outputStreamForResponse( request, response, resource );
+    protected void sendContent(Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType) throws NotAuthorizedException, BadRequestException {
+        long l = System.currentTimeMillis();
+        log.trace("sendContent");
+        OutputStream out = outputStreamForResponse(request, response, resource);
         try {
-            resource.sendContent( out, null, params, contentType );
+            resource.sendContent(out, null, params, contentType);
             out.flush();
-        } catch( IOException ex ) {
-            log.warn( "IOException sending content", ex );
+            if (log.isTraceEnabled()) {
+                l = System.currentTimeMillis() - l;
+                log.trace("sendContent finished in " + l + "ms");
+            }
+        } catch (IOException ex) {
+            log.warn("IOException sending content", ex);
         }
     }
 
-    protected OutputStream outputStreamForResponse( Request request, Response response, GetableResource resource ) {
+    protected OutputStream outputStreamForResponse(Request request, Response response, GetableResource resource) {
         OutputStream outToUse = response.getOutputStream();
         return outToUse;
     }
 
-    protected void output( final Response response, final String s ) {
-        PrintWriter pw = new PrintWriter( response.getOutputStream(), true );
-        pw.print( s );
+    protected void output(final Response response, final String s) {
+        PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
+        pw.print(s);
         pw.flush();
     }
 
-    protected void setRespondContentCommonHeaders( Response response, Resource resource, Auth auth ) {
-        setRespondContentCommonHeaders( response, resource, Response.Status.SC_OK, auth );
+    protected void setRespondContentCommonHeaders(Response response, Resource resource, Auth auth) {
+        setRespondContentCommonHeaders(response, resource, Response.Status.SC_OK, auth);
     }
 
-    protected void setRespondContentCommonHeaders( Response response, Resource resource, Response.Status status, Auth auth ) {
-        response.setStatus( status );
-        response.setDateHeader( new Date() );
-        String etag = eTagGenerator.generateEtag( resource );
-        if( etag != null ) {
-            response.setEtag( etag );
+    protected void setRespondContentCommonHeaders(Response response, Resource resource, Response.Status status, Auth auth) {
+        response.setStatus(status);
+        response.setDateHeader(new Date());
+        String etag = eTagGenerator.generateEtag(resource);
+        if (etag != null) {
+            response.setEtag(etag);
         }
-        setModifiedDate( response, resource, auth );
+        setModifiedDate(response, resource, auth);
     }
 
     /**
@@ -302,46 +304,46 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
      * @param resource
      * @param auth
      */
-    public static void setModifiedDate( Response response, Resource resource, Auth auth ) {
+    public static void setModifiedDate(Response response, Resource resource, Auth auth) {
         Date modDate = resource.getModifiedDate();
-        if( modDate != null ) {
+        if (modDate != null) {
 
-            if( resource instanceof GetableResource ) {
+            if (resource instanceof GetableResource) {
                 GetableResource gr = (GetableResource) resource;
-                Long maxAge = gr.getMaxAgeSeconds( auth );
-                if( maxAge != null && maxAge > 0 ) {
+                Long maxAge = gr.getMaxAgeSeconds(auth);
+                if (maxAge != null && maxAge > 0) {
                     log.trace("setModifiedDate: has a modified date and a positive maxAge, so adjust modDate");
                     long tm = System.currentTimeMillis() - 60000; // modified 1 minute ago
                     modDate = new Date(tm); // have max-age, so use current date
                 }
             }
-            response.setLastModifiedHeader( modDate );
+            response.setLastModifiedHeader(modDate);
         }
     }
 
-    public void respondBadRequest( Resource resource, Response response, Request request ) {
-        response.setStatus( Response.Status.SC_BAD_REQUEST );
+    public void respondBadRequest(Resource resource, Response response, Request request) {
+        response.setStatus(Response.Status.SC_BAD_REQUEST);
     }
 
-    public void respondForbidden( Resource resource, Response response, Request request ) {
-        response.setStatus( Response.Status.SC_FORBIDDEN );
+    public void respondForbidden(Resource resource, Response response, Request request) {
+        response.setStatus(Response.Status.SC_FORBIDDEN);
     }
 
-    public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
-        response.setStatus( status );
+    public void respondDeleteFailed(Request request, Response response, Resource resource, Status status) {
+        response.setStatus(status);
     }
 
     public AuthenticationService getAuthenticationService() {
         return authenticationService;
     }
 
-    public void respondServerError( Request request, Response response, String reason ) {
+    public void respondServerError(Request request, Response response, String reason) {
         try {
-            response.setStatus( Status.SC_INTERNAL_SERVER_ERROR );
+            response.setStatus(Status.SC_INTERNAL_SERVER_ERROR);
             OutputStream out = response.getOutputStream();
-            out.write( SERVER_ERROR_HTML.getBytes() );
-        } catch( IOException ex ) {
-            throw new RuntimeException( ex );
+            out.write(SERVER_ERROR_HTML.getBytes());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
@@ -355,7 +357,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         return maxMemorySize;
     }
 
-    public void setMaxMemorySize( int maxMemorySize ) {
+    public void setMaxMemorySize(int maxMemorySize) {
         this.maxMemorySize = maxMemorySize;
     }
 
@@ -363,7 +365,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         return buffering;
     }
 
-    public void setBuffering( BUFFERING buffering ) {
+    public void setBuffering(BUFFERING buffering) {
         this.buffering = buffering;
     }
 
