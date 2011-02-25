@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Folder extends Resource {
 
-    private static final Logger log = LoggerFactory.getLogger( Folder.class );
+    private static final Logger log = LoggerFactory.getLogger(Folder.class);
     private boolean childrenLoaded = false;
     private final List<Resource> children = new CopyOnWriteArrayList<Resource>();
     final List<FolderListener> folderListeners = new ArrayList<FolderListener>();
@@ -32,39 +32,39 @@ public class Folder extends Resource {
         super();
     }
 
-    public Folder( Folder parent, Response resp ) {
-        super( parent, resp );
+    public Folder(Folder parent, Response resp) {
+        super(parent, resp);
     }
 
-    public Folder( Folder parent, String name ) {
-        super( parent, name );
+    public Folder(Folder parent, String name) {
+        super(parent, name);
     }
 
-    public void addListener( FolderListener l ) throws IOException, HttpException {
-        for( Resource r : this.children() ) {
-            l.onChildAdded( r.parent, r );
+    public void addListener(FolderListener l) throws IOException, HttpException {
+        for (Resource r : this.children()) {
+            l.onChildAdded(r.parent, r);
         }
-        folderListeners.add( l );
+        folderListeners.add(l);
     }
 
-    public String post( String relativePath, Map<String, String> params ) throws HttpException {
-        return host().doPost( href() + relativePath, params );
+    public String post(String relativePath, Map<String, String> params) throws HttpException {
+        return host().doPost(href() + relativePath, params);
     }
 
     @Override
-    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException, HttpException {
-        File thisDir = new File( destFolder, this.name );
+    public File downloadTo(File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {
+        File thisDir = new File(destFolder, this.name);
         thisDir.mkdir();
-        for( Resource r : this.children() ) {
-            r.downloadTo( thisDir, listener );
+        for (Resource r : this.children()) {
+            r.downloadTo(thisDir, listener);
         }
         return thisDir;
     }
 
     public void flush() throws IOException {
-        if( children != null ) {
-            for( Resource r : children ) {
-                notifyOnChildRemoved( r );
+        if (children != null) {
+            for (Resource r : children) {
+                notifyOnChildRemoved(r);
             }
             children.clear();
             childrenLoaded = false;
@@ -73,26 +73,32 @@ public class Folder extends Resource {
     }
 
     public List<? extends Resource> children() throws IOException, HttpException {
-        if( childrenLoaded ) return children;
+        if (childrenLoaded) {
+            return children;
+        }
 
-        List<Response> responses = host().doPropFind( href(), 1 );
+        List<Response> responses = host().doPropFind(href(), 1);
         childrenLoaded = true;
-        if( responses != null ) {
-            for( Response resp : responses ) {
-                if( !resp.href.equals( this.href() ) ) {
-                    Resource r = Resource.fromResponse( this, resp );
-                    children.add( r );
-                    this.notifyOnChildAdded( r );
+        if (responses != null) {
+            for (Response resp : responses) {
+                if (!resp.href.equals(this.href())) {
+                    try {
+                        Resource r = Resource.fromResponse(this, resp);
+                        children.add(r);
+                        this.notifyOnChildAdded(r);
+                    } catch (Exception e) {
+                        log.error("couldnt process record", e);
+                    }
                 }
             }
         } else {
-            log.trace( "null responses" );
+            log.trace("null responses");
         }
         return children;
     }
 
-    public void removeListener( FolderListener folderListener ) {
-        this.folderListeners.remove( folderListener );
+    public void removeListener(FolderListener folderListener) {
+        this.folderListeners.remove(folderListener);
     }
 
     @Override
@@ -100,8 +106,8 @@ public class Folder extends Resource {
         return href() + " (is a folder)";
     }
 
-    public void upload( File f ) throws IOException, HttpException {
-        upload( f, null, null );
+    public void upload(File f) throws IOException, HttpException {
+        upload(f, null, null);
     }
 
     /**
@@ -111,102 +117,104 @@ public class Folder extends Resource {
      * @param throttle - optional, can be used to slow down the transfer
      * @throws IOException
      */
-    public void upload( File f, ProgressListener listener, Throttle throttle ) throws IOException, HttpException {
-        if( f.isDirectory() ) {
-            uploadFolder( f, listener, throttle );
+    public void upload(File f, ProgressListener listener, Throttle throttle) throws IOException, HttpException {
+        if (f.isDirectory()) {
+            uploadFolder(f, listener, throttle);
         } else {
-            uploadFile( f, listener, throttle );
+            uploadFile(f, listener, throttle);
         }
     }
 
-    protected void uploadFile( File f, ProgressListener listener, Throttle throttle ) throws FileNotFoundException, IOException, HttpException {
+    protected void uploadFile(File f, ProgressListener listener, Throttle throttle) throws FileNotFoundException, IOException, HttpException {
         NotifyingFileInputStream in = null;
         try {
-            in = new NotifyingFileInputStream( f, listener, throttle );
-            upload( f.getName(), in, f.length() );
+            in = new NotifyingFileInputStream(f, listener, throttle);
+            upload(f.getName(), in, f.length());
             flush();
         } finally {
-            Utils.close( in );
-            listener.onComplete( f.getName() );
+            Utils.close(in);
+            listener.onComplete(f.getName());
         }
     }
 
-    protected void uploadFolder( File folder, ProgressListener listener, Throttle throttle ) throws IOException, HttpException {
-        if( folder.getName().startsWith( "." ) ) {
+    protected void uploadFolder(File folder, ProgressListener listener, Throttle throttle) throws IOException, HttpException {
+        if (folder.getName().startsWith(".")) {
             return;
         }
-        Folder newFolder = createFolder( folder.getName() );
-        for( File f : folder.listFiles() ) {
-            newFolder.upload( f, listener, throttle );
+        Folder newFolder = createFolder(folder.getName());
+        for (File f : folder.listFiles()) {
+            newFolder.upload(f, listener, throttle);
         }
     }
 
-    public com.ettrema.httpclient.File upload( String name, InputStream content, Integer contentLength ) throws IOException, HttpException {
+    public com.ettrema.httpclient.File upload(String name, InputStream content, Integer contentLength) throws IOException, HttpException {
         Long length = null;
-        if( contentLength != null ) {
+        if (contentLength != null) {
             long l = contentLength;
             length = l;
         }
         return upload(name, content, length);
     }
 
-    public com.ettrema.httpclient.File upload( String name, InputStream content, Long contentLength ) throws IOException, HttpException {
+    public com.ettrema.httpclient.File upload(String name, InputStream content, Long contentLength) throws IOException, HttpException {
         children(); // ensure children are loaded
         String newUri = href() + name;
-        String contentType = URLConnection.guessContentTypeFromName( name );
-        log.trace( "upload: " + newUri );
-        int result = host().doPut( newUri, content, contentLength, contentType );
-        Utils.processResultCode( result, newUri );
-        com.ettrema.httpclient.File child = new com.ettrema.httpclient.File( this, name, contentType, contentLength );
-        com.ettrema.httpclient.Resource oldChild = this.child( child.name );
-        if( oldChild != null ) {
-            this.children.remove( oldChild );
+        String contentType = URLConnection.guessContentTypeFromName(name);
+        log.trace("upload: " + newUri);
+        int result = host().doPut(newUri, content, contentLength, contentType);
+        Utils.processResultCode(result, newUri);
+        com.ettrema.httpclient.File child = new com.ettrema.httpclient.File(this, name, contentType, contentLength);
+        com.ettrema.httpclient.Resource oldChild = this.child(child.name);
+        if (oldChild != null) {
+            this.children.remove(oldChild);
         }
-        this.children.add( child );
-        notifyOnChildAdded( child );
+        this.children.add(child);
+        notifyOnChildAdded(child);
         return child;
     }
 
-    public Folder createFolder( String name ) throws IOException, HttpException {
+    public Folder createFolder(String name) throws IOException, HttpException {
         children(); // ensure children are loaded
         String newUri = href() + name;
-        int result = host().doMkCol( newUri );
-        if( result == 409 ) {
+        int result = host().doMkCol(newUri);
+        if (result == 409) {
             // folder probably exists, so flush children
             this.flush();
-            Resource child = this.child( name );
-            if( child instanceof Folder ) {
+            Resource child = this.child(name);
+            if (child instanceof Folder) {
                 return (Folder) child;
             } else {
-                throw new GenericHttpException( result, newUri );
+                throw new GenericHttpException(result, newUri);
             }
         } else {
-            Folder child = new Folder( this, name );
-            this.children.add( child );
-            notifyOnChildAdded( child );
+            Folder child = new Folder(this, name);
+            this.children.add(child);
+            notifyOnChildAdded(child);
             return child;
         }
     }
 
-    public Resource child( String childName ) throws IOException, HttpException {
+    public Resource child(String childName) throws IOException, HttpException {
 //        log.trace( "child: current children: " + children().size());
-        for( Resource r : children() ) {
-            if( r.name.equals( childName ) ) return r;
+        for (Resource r : children()) {
+            if (r.name.equals(childName)) {
+                return r;
+            }
         }
         return null;
     }
 
-    void notifyOnChildAdded( Resource child ) {
-        List<FolderListener> l2 = new ArrayList<FolderListener>( folderListeners );
-        for( FolderListener l : l2 ) {
-            l.onChildAdded( this, child );
+    void notifyOnChildAdded(Resource child) {
+        List<FolderListener> l2 = new ArrayList<FolderListener>(folderListeners);
+        for (FolderListener l : l2) {
+            l.onChildAdded(this, child);
         }
     }
 
-    void notifyOnChildRemoved( Resource child ) {
-        List<FolderListener> l2 = new ArrayList<FolderListener>( folderListeners );
-        for( FolderListener l : l2 ) {
-            l.onChildRemoved( this, child );
+    void notifyOnChildRemoved(Resource child) {
+        List<FolderListener> l2 = new ArrayList<FolderListener>(folderListeners);
+        for (FolderListener l : l2) {
+            l.onChildRemoved(this, child);
         }
     }
 
@@ -221,8 +229,8 @@ public class Folder extends Resource {
         long timeLastNotify;
         long bytesSinceLastNotify;
 
-        public NotifyingFileInputStream( File f, ProgressListener listener, Throttle throttle ) throws FileNotFoundException {
-            super( f );
+        public NotifyingFileInputStream(File f, ProgressListener listener, Throttle throttle) throws FileNotFoundException {
+            super(f);
             this.throttle = throttle;
             this.listener = listener;
             this.totalLength = f.length();
@@ -232,46 +240,48 @@ public class Folder extends Resource {
 
         @Override
         public int read() throws IOException {
-            increment( 1 );
+            increment(1);
             return super.read();
         }
 
         @Override
-        public int read( byte[] b ) throws IOException {
-            increment( b.length );
-            return super.read( b );
+        public int read(byte[] b) throws IOException {
+            increment(b.length);
+            return super.read(b);
         }
 
         @Override
-        public int read( byte[] b, int off, int len ) throws IOException {
-            increment( len );
-            return super.read( b, off, len );
+        public int read(byte[] b, int off, int len) throws IOException {
+            increment(len);
+            return super.read(b, off, len);
         }
 
-        private void increment( int len ) {
+        private void increment(int len) {
             pos += len;
-            notifyListener( len );
-            if( throttle != null ) {
-                throttle.onRead( len );
+            notifyListener(len);
+            if (throttle != null) {
+                throttle.onRead(len);
             }
         }
 
-        void notifyListener( int numBytes ) {
+        void notifyListener(int numBytes) {
             bytesSinceLastNotify += numBytes;
-            if( bytesSinceLastNotify < 1000 ) {
+            if (bytesSinceLastNotify < 1000) {
 //                log.trace( "notifyListener: not enough bytes: " + bytesSinceLastNotify);
                 return;
             }
-            int timeDiff = (int) ( System.currentTimeMillis() - timeLastNotify );
-            if( timeDiff > 10 ) {
+            int timeDiff = (int) (System.currentTimeMillis() - timeLastNotify);
+            if (timeDiff > 10) {
                 timeLastNotify = System.currentTimeMillis();
 //                log.trace("notifyListener: name: " + fileName);
-                if( totalLength <= 0 ) {
-                    listener.onProgress( 100, fileName );
+                if (totalLength <= 0) {
+                    listener.onProgress(100, fileName);
                 } else {
-                    int percent = (int) ( ( pos * 100 / totalLength ) );
-                    if( percent > 100 ) percent = 100;
-                    listener.onProgress( percent, fileName );
+                    int percent = (int) ((pos * 100 / totalLength));
+                    if (percent > 100) {
+                        percent = 100;
+                    }
+                    listener.onProgress(percent, fileName);
                 }
                 bytesSinceLastNotify = 0;
             }

@@ -38,6 +38,7 @@ public class JsonPropFindHandlerTest extends TestCase {
         String field = "foo>bar";
         Set<QName> fields = new HashSet<QName>();
         Map<QName, String> aliases = new HashMap<QName, String>();
+        
         JsonPropFindHandler instance = new JsonPropFindHandler((PropFindPropertyBuilder)null);
         instance.parseField(field, fields, aliases);
 
