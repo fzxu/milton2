@@ -4,6 +4,7 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.MakeCollectionableResource;
+import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Request;
@@ -70,6 +71,7 @@ public class JsonResourceFactory implements ResourceFactory {
     }
 
     private Resource wrapResource( String host, Resource wrappedResource, String method, String href ) {
+        System.out.println("wrapResource: " + method);
         if( Request.Method.PROPFIND.code.equals( method ) ) {
             if( wrappedResource instanceof PropFindableResource ) {
                 return new PropFindJsonResource( (PropFindableResource) wrappedResource, propFindHandler, href, maxAgeSecsPropFind );
@@ -90,7 +92,14 @@ public class JsonResourceFactory implements ResourceFactory {
         }
         if( Request.Method.COPY.code.equals( method ) ) {
             if( wrappedResource instanceof CopyableResource ) {
+                System.out.println("copy reso");
                 return new CopyJsonResource( host, (CopyableResource) wrappedResource, wrapped );
+            }
+        }
+        if( Request.Method.MOVE.code.equals( method ) ) {
+            if( wrappedResource instanceof MoveableResource ) {
+                System.out.println("move res");
+                return new MoveJsonResource( host, (MoveableResource) wrappedResource, wrapped );
             }
         }
         return null;

@@ -277,4 +277,36 @@ public class Utils {
             return href;
         }
     }
+
+  /**
+     * Used for parsing uploaded file names. MS web browsers tend to transmit the complete
+     * path for an uploaded file, but we generally only want to know the last part of
+     * the path.
+     *
+     * TODO: move this into milton
+     *
+     * @param s
+     * @return
+     */
+    public static String truncateFileName(String agent, String s) {
+        if( agent == null ) {
+            return s;
+        } else {
+            if( agent.contains("MSIE")) {
+                if( s.contains("\\")) {
+                    int pos = s.lastIndexOf("\\");
+                    return s.substring(pos+1);
+                } else {
+                    return s;
+                }
+            } else {
+                return s;
+            }
+        }
+    }
+
+    public static String truncateFileName(String s) {
+        String ua = HttpManager.request().getUserAgentHeader();
+        return truncateFileName(ua, s);
+    }
 }

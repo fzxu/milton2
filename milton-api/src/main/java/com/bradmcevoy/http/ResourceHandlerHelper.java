@@ -28,6 +28,7 @@ public class ResourceHandlerHelper {
      * request attribute name for the files map
      */
     public static final String ATT_NAME_FILES = "_files";
+
     private final HandlerHelper handlerHelper;
     private final Http11ResponseHandler responseHandler;
     private UrlAdapter urlAdapter = new UrlAdapterImpl();

@@ -38,7 +38,8 @@ public abstract class JsonResource implements DigestResource {
     }
 
     public String getContentType( String accepts ) {
-        return "application/x-javascript; charset=utf-8";
+        String s = "application/x-javascript; charset=utf-8";
+        return s;
         //return "application/json";
     }
 

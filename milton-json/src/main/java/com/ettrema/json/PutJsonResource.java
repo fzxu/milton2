@@ -7,6 +7,7 @@ import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
@@ -56,6 +57,15 @@ public class PutJsonResource extends JsonResource implements PostableResource {
         this.href = href;
     }
 
+    @Override
+    public String getContentType( String accepts ) {
+        String s = "application/x-javascript; charset=utf-8";
+        s = "text/plain";
+        return s;
+        //return "application/json";
+    }
+
+
     public String processForm( Map<String, String> parameters, Map<String, FileItem> files ) throws ConflictException {
         if( files.isEmpty() ) {
             log.debug( "no files uploaded" );
@@ -64,10 +74,11 @@ public class PutJsonResource extends JsonResource implements PostableResource {
         newFiles = new ArrayList<NewFile>();
         for( FileItem file : files.values() ) {
             NewFile nf = new NewFile();
-            nf.setOriginalName( file.getName() );
+            String f = Utils.truncateFileName(file.getName());
+            nf.setOriginalName( f );
             nf.setContentType( file.getContentType() );
             nf.setLength( file.getSize() );
-            String newName = getName( file, parameters );
+            String newName = getName( f, parameters );
             String newHref = buildNewHref( href, newName );
             nf.setHref( newHref );
             newFiles.add( nf );
@@ -137,8 +148,8 @@ public class PutJsonResource extends JsonResource implements PostableResource {
 //    public String getContentType(String accepts) {
 //        return "text/html";
 //    }
-    private String getName( FileItem file, Map<String, String> parameters ) throws ConflictException {
-        String initialName = file.getName();
+    private String getName( String filename, Map<String, String> parameters ) throws ConflictException {
+        String initialName = filename;
         boolean nonBlankName = initialName != null && initialName.trim().length() > 0;
         boolean autoname = ( parameters.get( PARAM_AUTONAME ) != null );
         if( nonBlankName ) {

@@ -2,8 +2,8 @@ package com.ettrema.json;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.FileItem;
+import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
@@ -20,18 +20,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Forwards the POST request to the copy method on the wrapped
- * resource, looking up destination collection and name from the "destination" request parameter
+ * Forwards the POST request to the move method on the wrapped
+ * resource
  *
  * @author brad
  */
-public class CopyJsonResource extends JsonResource implements PostableResource{
-    private static final Logger log = LoggerFactory.getLogger( CopyJsonResource.class );
+public class MoveJsonResource extends JsonResource implements PostableResource {
+
+    private static final Logger log = LoggerFactory.getLogger( MoveJsonResource.class );
     private final String host;
     private final ResourceFactory resourceFactory;
-    private final CopyableResource wrapped;
+    private final MoveableResource wrapped;
 
-    public CopyJsonResource( String host, CopyableResource copyableResource, ResourceFactory resourceFactory ) {
+    public MoveJsonResource( String host, MoveableResource copyableResource, ResourceFactory resourceFactory ) {
         super(copyableResource, Request.Method.COPY.code, null);
         this.host = host;
         this.wrapped = copyableResource;
@@ -46,14 +47,15 @@ public class CopyJsonResource extends JsonResource implements PostableResource{
             CollectionResource colDestParent = (CollectionResource) rDestParent;
             if( colDestParent.child( pDest.getName()) == null ) {
                 try {
-                    wrapped.copyTo( colDestParent, pDest.getName() );
+                    System.out.println("move to: " + colDestParent.getName());
+                    wrapped.moveTo( colDestParent, pDest.getName() );
                 } catch( ConflictException ex ) {
                     log.warn( "Exception copying to: " + pDest.getName(), ex);
                     throw new BadRequestException( rDestParent, "conflict: " + ex.getMessage());
                 }
                 return null;
             } else {
-                log.warn( "destination already exists: " + pDest.getName());
+                log.warn( "destination already exists: " + pDest.getName() + " in folder: " + colDestParent.getName());
                 throw new BadRequestException( rDestParent, "File already exists");
             }
         } else {
@@ -67,7 +69,7 @@ public class CopyJsonResource extends JsonResource implements PostableResource{
 
     @Override
     public Method applicableMethod() {
-        return Method.COPY;
+        return Method.MOVE;
     }
 
 }
