@@ -174,6 +174,11 @@ public class PutHandler implements Handler {
 
         Resource thisResource = manager.getResourceFactory().getResource( host, path.toString() );
         if( thisResource != null ) {
+            // Defensive programming test for a common problem where resource factories
+            // return the wrong resource for a given path
+            if( thisResource.getName() != null && !thisResource.getName().equals(path.getName())) {
+                log.warn("Your resource factory returned a resource with a different name to that requested!!! Requested: " + path.getName() + " returned: " + thisResource.getName() + " - resource factory: " + manager.getResourceFactory().getClass());
+            }
             if( thisResource instanceof CollectionResource ) {
                 return (CollectionResource) thisResource;
             } else {
