@@ -1,7 +1,12 @@
 package com.ettrema.httpclient;
 
+import com.ettrema.httpclient.Utils.CancelledException;
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  *
@@ -31,5 +36,64 @@ public class File extends Resource {
     @Override
     public String toString() {
         return super.toString() + " (content type=" + this.contentType + ")";
+    }
+
+
+    public java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {
+        if (!destFolder.exists()) {
+            throw new FileNotFoundException(destFolder.getAbsolutePath());
+        }
+        java.io.File dest = new java.io.File(destFolder, name);
+        return downloadToFile(dest, listener);
+    }
+
+    public java.io.File downloadToFile(java.io.File dest, ProgressListener listener) throws FileNotFoundException, HttpException, CancelledException {
+        final FileOutputStream out;
+        if (dest.exists()) {
+            out = new NotifyingFileOutputStream(dest,true, listener, contentLength);
+        } else {
+            if (!dest.getParentFile().exists()) {
+                if (!dest.getParentFile().mkdirs()) {
+                    throw new FileNotFoundException("Couldnt create target directory: " + dest.getParentFile().getAbsolutePath());
+                }
+            }
+
+            out = new NotifyingFileOutputStream(dest, listener, contentLength);
+        }
+
+        download(out, listener);
+        return dest;
+    }
+
+    public void download(final OutputStream out, final ProgressListener listener) throws HttpException, CancelledException {
+        if (listener != null) {
+            listener.onProgress(0, this.name);
+        }
+        try {
+            host().doGet(href(), new StreamReceiver() {
+
+                public void receive(InputStream in) throws IOException{
+                    if( listener != null && listener.isCancelled() ) {
+                        throw new RuntimeException("Download cancelled");
+                    }
+                    try {
+                        Utils.write(in, out);
+                    } catch( CancelledException cancelled) {
+                        throw cancelled;
+                    } catch (IOException ex) {
+                        throw ex;
+                    }
+                }
+            });
+        } catch(CancelledException e) {
+            throw e;
+        } catch(Throwable e) {
+        } finally {
+            Utils.close(out);
+        }
+        if (listener != null) {
+            listener.onProgress(100, this.name);
+            listener.onComplete(this.name);
+        }
     }
 }

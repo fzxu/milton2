@@ -2,15 +2,11 @@ package com.ettrema.httpclient;
 
 import com.bradmcevoy.http.DateUtils;
 import com.bradmcevoy.http.DateUtils.DateParseException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
@@ -23,15 +19,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author mcevoyb
  */
-public class Resource {
+public abstract class Resource {
 
-    private static final Logger log = LoggerFactory.getLogger( Resource.class );
+    private static final Logger log = LoggerFactory.getLogger(Resource.class);
 
-    static Resource fromResponse( Folder parent, Response resp ) {
-        if( resp.isCollection ) {
-            return new Folder( parent, resp );
+    static Resource fromResponse(Folder parent, Response resp) {
+        if (resp.isCollection) {
+            return new Folder(parent, resp);
         } else {
-            return new com.ettrema.httpclient.File( parent, resp );
+            return new com.ettrema.httpclient.File(parent, resp);
         }
     }
 
@@ -43,25 +39,25 @@ public class Resource {
      *
      * @param href
      */
-    public static String decodePath( String href ) {
+    public static String decodePath(String href) {
         // For IPv6
-        href = href.replace( "[", "%5B" ).replace( "]", "%5D" );
+        href = href.replace("[", "%5B").replace("]", "%5D");
 
         // Seems that some client apps send spaces.. maybe..
-        href = href.replace( " ", "%20" );
+        href = href.replace(" ", "%20");
         // ok, this is milton's bad. Older versions don't encode curly braces
-        href = href.replace( "{", "%7B" ).replace( "}", "%7D" );
+        href = href.replace("{", "%7B").replace("}", "%7D");
         try {
-            if( href.startsWith( "/" ) ) {
-                URI uri = new URI( "http://anything.com" + href );
+            if (href.startsWith("/")) {
+                URI uri = new URI("http://anything.com" + href);
                 return uri.getPath();
             } else {
-                URI uri = new URI( "http://anything.com/" + href );
+                URI uri = new URI("http://anything.com/" + href);
                 String s = uri.getPath();
-                return s.substring( 1 );
+                return s.substring(1);
             }
-        } catch( URISyntaxException ex ) {
-            throw new RuntimeException( ex );
+        } catch (URISyntaxException ex) {
+            throw new RuntimeException(ex);
         }
     }
     public Folder parent;
@@ -73,6 +69,8 @@ public class Resource {
     private final Long quotaUsedBytes;
     private final Long crc;
     final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
+
+    public abstract java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException;
 
     /**
      *  Special constructor for Host
@@ -88,40 +86,44 @@ public class Resource {
         crc = null;
     }
 
-    public Resource( Folder parent, Response resp ) {
+    public Resource(Folder parent, Response resp) {
         try {
-            if( parent == null ) throw new NullPointerException( "parent" );
+            if (parent == null) {
+                throw new NullPointerException("parent");
+            }
             this.parent = parent;
-            name = Resource.decodePath( resp.name );
-            displayName = Resource.decodePath( resp.displayName );
-            createdDate = DateUtils.parseWebDavDate( resp.createdDate );
+            name = Resource.decodePath(resp.name);
+            displayName = Resource.decodePath(resp.displayName);
+            createdDate = DateUtils.parseWebDavDate(resp.createdDate);
             quotaAvailableBytes = resp.quotaAvailableBytes;
             quotaUsedBytes = resp.quotaUsedBytes;
-            crc = resp.crc; 
+            crc = resp.crc;
 
-            if( StringUtils.isEmpty( resp.modifiedDate)) {
+            if (StringUtils.isEmpty(resp.modifiedDate)) {
                 modifiedDate = null;
-            } else if( resp.modifiedDate.endsWith( "Z" ) ) {
-                modifiedDate = DateUtils.parseWebDavDate( resp.modifiedDate );
-                if( resp.serverDate != null ) {
+            } else if (resp.modifiedDate.endsWith("Z")) {
+                modifiedDate = DateUtils.parseWebDavDate(resp.modifiedDate);
+                if (resp.serverDate != null) {
                     // calc difference and use that as delta on local time
-                    Date serverDate = DateUtils.parseDate( resp.serverDate );
+                    Date serverDate = DateUtils.parseDate(resp.serverDate);
                     long delta = serverDate.getTime() - modifiedDate.getTime();
-                    modifiedDate = new Date( System.currentTimeMillis() - delta );
+                    modifiedDate = new Date(System.currentTimeMillis() - delta);
                 } else {
-                    log.debug( "no server date" );
+                    log.debug("no server date");
                 }
             } else {
-                modifiedDate = DateUtils.parseDate( resp.modifiedDate );
+                modifiedDate = DateUtils.parseDate(resp.modifiedDate);
             }
             //log.debug( "parsed mod date: " + modifiedDate);
-        } catch( DateParseException ex ) {
-            throw new RuntimeException( ex );
+        } catch (DateParseException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
-    public Resource( Folder parent, String name, String displayName, String href, Date modifiedDate, Date createdDate ) {
-        if( parent == null ) throw new NullPointerException( "parent" );
+    public Resource(Folder parent, String name, String displayName, String href, Date modifiedDate, Date createdDate) {
+        if (parent == null) {
+            throw new NullPointerException("parent");
+        }
         this.parent = parent;
         this.name = name;
         this.displayName = displayName;
@@ -132,8 +134,10 @@ public class Resource {
         crc = null;
     }
 
-    public Resource( Folder parent, String name ) {
-        if( parent == null ) throw new NullPointerException( "parent" );
+    public Resource(Folder parent, String name) {
+        if (parent == null) {
+            throw new NullPointerException("parent");
+        }
         this.parent = parent;
         this.name = name;
         this.displayName = name;
@@ -144,90 +148,43 @@ public class Resource {
         crc = null;
     }
 
-    public void addListener( ResourceListener l ) {
-        listeners.add( l );
+    public void addListener(ResourceListener l) {
+        listeners.add(l);
     }
 
-    public String post( Map<String, String> params ) throws HttpException {
-        return host().doPost( href(), params );
+    public String post(Map<String, String> params) throws HttpException {
+        return host().doPost(href(), params);
     }
 
-    public void copyTo( Folder folder ) throws IOException, HttpException {
-        host().doCopy( href(), folder.href() + this.name );
+    public void copyTo(Folder folder) throws IOException, HttpException {
+        host().doCopy(href(), folder.href() + this.name);
         folder.flush();
     }
 
-    public void rename( String newName ) throws IOException, HttpException {
+    public void rename(String newName) throws IOException, HttpException {
         String dest = "";
-        if( parent != null ) {
+        if (parent != null) {
             dest = parent.href();
         }
         dest = dest + newName;
-        int res = host().doMove( href(), dest );
-        if( res == 201 ) {
+        int res = host().doMove(href(), dest);
+        if (res == 201) {
             this.name = newName;
         }
     }
 
-    public void moveTo( Folder folder ) throws IOException, HttpException {
-        int res = host().doMove( href(), folder.href() + this.name );
-        if( res == 201 ) {
+    public void moveTo(Folder folder) throws IOException, HttpException {
+        int res = host().doMove(href(), folder.href() + this.name);
+        if (res == 201) {
             this.parent.flush();
             folder.flush();
         }
     }
 
-    public void removeListener( ResourceListener l ) {
-        listeners.remove( l );
+    public void removeListener(ResourceListener l) {
+        listeners.remove(l);
     }
 
-    public File downloadTo( File destFolder, ProgressListener listener ) throws FileNotFoundException, IOException, HttpException {
-        if( !destFolder.exists() )
-            throw new FileNotFoundException( destFolder.getAbsolutePath() );
-        File dest = new File( destFolder, name );
-        return downloadToFile( dest, listener );
-    }
-
-    public File downloadToFile( File dest, ProgressListener listener ) throws FileNotFoundException, HttpException {
-        final FileOutputStream out;
-        if( dest.exists() ){
-            out = new FileOutputStream( dest, true );
-        } else {
-            out = new FileOutputStream( dest );
-        }
-        if( !dest.getParentFile().exists()) {
-            if( !dest.getParentFile().mkdirs() ) {
-                throw new FileNotFoundException( "Couldnt create target directory: " + dest.getParentFile().getAbsolutePath());
-            }
-        }
-        
-        download( out, listener );
-        return dest;
-    }
-
-    public void download( final OutputStream out, ProgressListener listener ) throws HttpException {
-        if( listener != null ) {
-            listener.onProgress( 0, this.name );
-        }
-        try {
-            host().doGet( href(), new StreamReceiver() {
-
-                public void receive( InputStream in ) {
-                    try {
-                        Utils.write( in, out );
-                    } catch( IOException ex ) {
-                        throw new RuntimeException( ex );
-                    }
-                }
-            } );
-        } finally {
-            Utils.close( out );
-        }
-        if( listener != null ) {
-            listener.onProgress( 100, this.name );
-            listener.onComplete( this.name );
-        }
-    }
 
     @Override
     public String toString() {
@@ -235,37 +192,38 @@ public class Resource {
     }
 
     public void delete() throws IOException, HttpException {
-        host().doDelete( href() );
+        host().doDelete(href());
         notifyOnDelete();
     }
 
     void notifyOnDelete() {
-        if( this.parent != null ) {
-            this.parent.notifyOnChildRemoved( this );
+        if (this.parent != null) {
+            this.parent.notifyOnChildRemoved(this);
         }
-        List<ResourceListener> l2 = new ArrayList<ResourceListener>( listeners );
-        for( ResourceListener l : l2 ) {
-            l.onDeleted( this );
+        List<ResourceListener> l2 = new ArrayList<ResourceListener>(listeners);
+        for (ResourceListener l : l2) {
+            l.onDeleted(this);
         }
     }
 
     public Host host() {
         Host h = parent.host();
-        if( h == null ) throw new NullPointerException( "no host" );
+        if (h == null) {
+            throw new NullPointerException("no host");
+        }
         return h;
     }
 
 //    private String encodedName() {
 //        return com.bradmcevoy.http.Utils.percentEncode( name );
 //    }
-
     /**
      * Returns the UN encoded url
      * 
      * @return
      */
     public String href() {
-        if( parent == null ) {
+        if (parent == null) {
             return name;
             //return encodedName();
         } else {
@@ -293,6 +251,4 @@ public class Resource {
     public Long getCrc() {
         return crc;
     }
-
-    
 }

@@ -287,7 +287,7 @@ public class Host extends Folder {
         }
     }
 
-    synchronized void doGet(String url, StreamReceiver receiver) throws com.ettrema.httpclient.HttpException {
+    synchronized void doGet(String url, StreamReceiver receiver) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
         notifyStartRequest();
         GetMethod m = new GetMethod(urlEncode(url));
         InputStream in = null;
@@ -297,8 +297,13 @@ public class Host extends Folder {
             in = m.getResponseBodyAsStream();
             receiver.receive(in);
         } catch (HttpException ex) {
-            throw new RuntimeException(ex);
+            m.abort();
+            throw new GenericHttpException(ex.getReasonCode(), url);
+        } catch(Utils.CancelledException ex) {
+            m.abort();
+            throw ex;
         } catch (IOException ex) {
+            m.abort();            
             throw new RuntimeException(ex);
         } finally {
             Utils.close(in);
@@ -312,7 +317,7 @@ public class Host extends Folder {
         doOptions(url);
     }
 
-    public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException {
+    public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
         String url = this.href() + path;
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         doGet(url, new StreamReceiver() {
@@ -404,7 +409,7 @@ public class Host extends Folder {
         return s;
     }
 
-    public String urlEncode(String s) {
+    public static String urlEncode(String s) {
 //        if( rootPath != null ) {
 //            s = rootPath + s;
 //        }
@@ -414,7 +419,9 @@ public class Host extends Folder {
     public static String urlEncodePath(String s) {
         try {
             org.apache.commons.httpclient.URI uri = new URI(s, false);
-            return uri.toString();
+            s = uri.toString();
+            s = s.replace("&", "%26");
+            return s;
         } catch (URIException ex) {
             throw new RuntimeException(s, ex);
         } catch (NullPointerException ex) {

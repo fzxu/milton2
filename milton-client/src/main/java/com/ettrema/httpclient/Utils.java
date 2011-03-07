@@ -10,7 +10,7 @@ import java.util.logging.Logger;
  *
  * @author mcevoyb
  */
-class Utils {
+public class Utils {
 
     static void close(InputStream in) {
         try {
@@ -78,5 +78,9 @@ class Utils {
             throw new GenericHttpException(result, href);
         }
 
+    }
+
+    public static class CancelledException extends IOException {
+        
     }
 }

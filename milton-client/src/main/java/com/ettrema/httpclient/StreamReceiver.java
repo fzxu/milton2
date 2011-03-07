@@ -1,5 +1,6 @@
 package com.ettrema.httpclient;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -7,5 +8,5 @@ import java.io.InputStream;
  * @author mcevoyb
  */
 public interface StreamReceiver {
-    void receive( InputStream in );
+    void receive( InputStream in ) throws IOException;
 }

@@ -35,9 +35,13 @@ public class HostTest extends TestCase {
     }
 
     public void testUrlEncode() {
-//        String s = Host.urlEncode( "http://bb.shmego.com/files/Documents/r%20j/RA’S%20WEB%20TEXT.doc");
-//        System.out.println( "s: " + s );
-//        assertEquals( "http://bb.shmego.com/files/Documents/r%2520j/RA%E2%80%99S%2520WEB%2520TEXT.doc", s);
+        String s = Host.urlEncode( "http://bb.shmego.com/a&b");
+        System.out.println( "s: " + s );
+        assertEquals( "http://bb.shmego.com/a%26b", s);
+
+        s = Host.urlEncode( "http://bb.shmego.com/r%/a b");
+        System.out.println( "s: " + s );
+        assertEquals( "http://bb.shmego.com/r%25/a%20b", s);
 
     }
 
