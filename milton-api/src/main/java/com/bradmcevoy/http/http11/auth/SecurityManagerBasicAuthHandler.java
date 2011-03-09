@@ -15,35 +15,39 @@ import org.slf4j.LoggerFactory;
  */
 public class SecurityManagerBasicAuthHandler implements AuthenticationHandler {
 
-    private static final Logger log = LoggerFactory.getLogger( SecurityManagerBasicAuthHandler.class );
-
+    private static final Logger log = LoggerFactory.getLogger(SecurityManagerBasicAuthHandler.class);
     private final com.bradmcevoy.http.SecurityManager securityManager;
-
 
     public SecurityManagerBasicAuthHandler(SecurityManager securityManager) {
         this.securityManager = securityManager;
     }
 
-    public boolean supports( Resource r, Request request ) {
+    public boolean supports(Resource r, Request request) {
         Auth auth = request.getAuthorization();
-        log.debug( "supports: " + auth.getScheme() );
-        return auth.getScheme().equals( Scheme.BASIC );
+        if (auth == null) {
+            return false;
+        }
+
+        if (log.isTraceEnabled()) {
+            log.trace("supports basic? requested scheme: " + auth.getScheme());
+        }
+        return auth.getScheme().equals(Scheme.BASIC);
     }
 
-    public Object authenticate( Resource resource, Request request ) {
-        log.debug( "authenticate" );
+    public Object authenticate(Resource resource, Request request) {
+        log.debug("authenticate");
         Auth auth = request.getAuthorization();
         Object o = securityManager.authenticate(auth.getUser(), auth.getPassword());
-        log.debug( "result: " + o);
+        log.debug("result: " + o);
         return o;
     }
 
-    public String getChallenge( Resource resource, Request request ) {
+    public String getChallenge(Resource resource, Request request) {
         String realm = securityManager.getRealm(request.getHostHeader());
         return "Basic realm=\"" + realm + "\"";
     }
 
-    public boolean isCompatible( Resource resource ) {
+    public boolean isCompatible(Resource resource) {
         return true;
     }
 
