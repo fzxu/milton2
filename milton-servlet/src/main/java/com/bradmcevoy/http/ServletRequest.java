@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 public class ServletRequest extends AbstractRequest {
 
-    private static final Logger log = LoggerFactory.getLogger( ServletRequest.class );
+    private static final Logger log = LoggerFactory.getLogger(ServletRequest.class);
     private final HttpServletRequest request;
     private final Request.Method method;
     private final String url;
@@ -35,11 +35,11 @@ public class ServletRequest extends AbstractRequest {
     private static final Map<String, ContentType> typeContents = new HashMap<String, ContentType>();
 
     static {
-        contentTypes.put( ContentType.HTTP, Response.HTTP );
-        contentTypes.put( ContentType.MULTIPART, Response.MULTIPART );
-        contentTypes.put( ContentType.XML, Response.XML );
-        for( ContentType key : contentTypes.keySet() ) {
-            typeContents.put( contentTypes.get( key ), key );
+        contentTypes.put(ContentType.HTTP, Response.HTTP);
+        contentTypes.put(ContentType.MULTIPART, Response.MULTIPART);
+        contentTypes.put(ContentType.XML, Response.XML);
+        for (ContentType key : contentTypes.keySet()) {
+            typeContents.put(contentTypes.get(key), key);
         }
     }
     private static ThreadLocal<HttpServletRequest> tlRequest = new ThreadLocal<HttpServletRequest>();
@@ -48,13 +48,13 @@ public class ServletRequest extends AbstractRequest {
         return tlRequest.get();
     }
 
-    public ServletRequest( HttpServletRequest r ) {
+    public ServletRequest(HttpServletRequest r) {
         this.request = r;
         String sMethod = r.getMethod();
-        method = Request.Method.valueOf( sMethod );
+        method = Request.Method.valueOf(sMethod);
         String s = r.getRequestURL().toString(); //MiltonUtils.stripContext(r);
         url = s;
-        tlRequest.set( r );
+        tlRequest.set(r);
     }
 
     public HttpSession getSession() {
@@ -66,8 +66,8 @@ public class ServletRequest extends AbstractRequest {
     }
 
     @Override
-    public String getRequestHeader( Request.Header header ) {
-        return request.getHeader( header.code );
+    public String getRequestHeader(Request.Header header) {
+        return request.getHeader(header.code);
     }
 
     public Request.Method getMethod() {
@@ -79,11 +79,23 @@ public class ServletRequest extends AbstractRequest {
     }
 
     public Auth getAuthorization() {
-        if( auth != null ) return auth;
-        String enc = getRequestHeader( Request.Header.AUTHORIZATION );
-        if( enc == null ) return null;
-        if( enc.length() == 0 ) return null;
-        auth = new Auth( enc );
+        if (auth != null) {
+            log.trace("using cached auth object");
+            return auth;
+        }
+        String enc = getRequestHeader(Request.Header.AUTHORIZATION);
+        if (enc == null) {
+            log.trace("authorization header is null");
+            return null;
+        }
+        if (enc.length() == 0) {
+            log.trace("authorization header is not-null, but is empty");
+            return null;
+        }
+        auth = new Auth(enc);
+        if (log.isTraceEnabled()) {
+            log.trace("creating new auth object {}", auth.getScheme());
+        }
         return auth;
     }
 
@@ -95,95 +107,103 @@ public class ServletRequest extends AbstractRequest {
         return request.getInputStream();
     }
 
-    public void parseRequestParameters( Map<String, String> params, Map<String, com.bradmcevoy.http.FileItem> files ) throws RequestParseException {
+    public void parseRequestParameters(Map<String, String> params, Map<String, com.bradmcevoy.http.FileItem> files) throws RequestParseException {
         try {
-            if( isMultiPart() ) {
+            if (isMultiPart()) {
                 log.trace("isMultiPart");
                 UploadListener listener = new UploadListener();
-                MonitoredDiskFileItemFactory factory = new MonitoredDiskFileItemFactory( listener );
-                ServletFileUpload upload = new ServletFileUpload( factory );
-                List items = upload.parseRequest( request );
+                MonitoredDiskFileItemFactory factory = new MonitoredDiskFileItemFactory(listener);
+                ServletFileUpload upload = new ServletFileUpload(factory);
+                List items = upload.parseRequest(request);
                 log.trace("upload items: " + items.size());
 
-                parseQueryString( params );
+                parseQueryString(params);
 
-                for( Object o : items ) {
+                for (Object o : items) {
                     FileItem item = (FileItem) o;
-                    if( item.isFormField() ) {
-                        params.put( item.getFieldName(), item.getString() );
+                    if (item.isFormField()) {
+                        params.put(item.getFieldName(), item.getString());
                     } else {
-                        files.put( item.getFieldName(), new FileItemWrapper( item ) );
+                        files.put(item.getFieldName(), new FileItemWrapper(item));
                     }
                 }
-                log.trace("files: " + files.size() );
+                log.trace("files: " + files.size());
             } else {
                 log.trace("is not MultiPart");
-                for( Enumeration en = request.getParameterNames(); en.hasMoreElements(); ) {
+                for (Enumeration en = request.getParameterNames(); en.hasMoreElements();) {
                     String nm = (String) en.nextElement();
-                    String val = request.getParameter( nm );
-                    params.put( nm, val );
+                    String val = request.getParameter(nm);
+                    params.put(nm, val);
                 }
             }
-        } catch( FileUploadException ex ) {
-            throw new RequestParseException( "FileUploadException", ex );
-        } catch( Throwable ex ) {
-            throw new RequestParseException( ex.getMessage(), ex );
+        } catch (FileUploadException ex) {
+            throw new RequestParseException("FileUploadException", ex);
+        } catch (Throwable ex) {
+            throw new RequestParseException(ex.getMessage(), ex);
         }
     }
 
-    private void parseQueryString( Map<String, String> map ) {
+    private void parseQueryString(Map<String, String> map) {
         String qs = request.getQueryString();
-        parseQueryString( map, qs );
+        parseQueryString(map, qs);
     }
 
-    public static void parseQueryString( Map<String, String> map, String qs ) {
-        if( qs == null ) return;
-        String[] nvs = qs.split( "&" );
-        for( String nv : nvs ) {
-            String[] parts = nv.split( "=" );
+    public static void parseQueryString(Map<String, String> map, String qs) {
+        if (qs == null) {
+            return;
+        }
+        String[] nvs = qs.split("&");
+        for (String nv : nvs) {
+            String[] parts = nv.split("=");
             String key = parts[0];
             String val = null;
-            if( parts.length > 1 ) val = parts[1];
-            if( val != null ) {
+            if (parts.length > 1) {
+                val = parts[1];
+            }
+            if (val != null) {
                 try {
-                    val = URLDecoder.decode( val, "UTF-8" );
-                } catch( UnsupportedEncodingException ex ) {
-                    throw new RuntimeException( ex );
+                    val = URLDecoder.decode(val, "UTF-8");
+                } catch (UnsupportedEncodingException ex) {
+                    throw new RuntimeException(ex);
                 }
             }
-            map.put( key, val );
+            map.put(key, val);
         }
     }
 
     protected Response.ContentType getRequestContentType() {
         String s = request.getContentType();
         log.trace("request content type", s);
-        if( s == null ) return null;
-        if( s.contains( Response.MULTIPART ) ) return ContentType.MULTIPART;
-        return typeContents.get( s );
+        if (s == null) {
+            return null;
+        }
+        if (s.contains(Response.MULTIPART)) {
+            return ContentType.MULTIPART;
+        }
+        return typeContents.get(s);
     }
 
     protected boolean isMultiPart() {
         ContentType ct = getRequestContentType();
-        log.trace( "content type:", ct);
-        return ( ContentType.MULTIPART.equals( ct ) );
+        log.trace("content type:", ct);
+        return (ContentType.MULTIPART.equals(ct));
     }
 
     public Map<String, String> getHeaders() {
         Map<String, String> map = new HashMap<String, String>();
         Enumeration num = request.getHeaderNames();
-        while( num.hasMoreElements() ) {
+        while (num.hasMoreElements()) {
             String name = (String) num.nextElement();
-            String val = request.getHeader( name );
-            map.put( name, val );
+            String val = request.getHeader(name);
+            map.put(name, val);
         }
         return map;
     }
 
-    public Cookie getCookie( String name ) {
-        for( javax.servlet.http.Cookie c : request.getCookies() ) {
-            if( c.getName().equals( name ) ) {
-                return new ServletCookie( c );
+    public Cookie getCookie(String name) {
+        for (javax.servlet.http.Cookie c : request.getCookies()) {
+            if (c.getName().equals(name)) {
+                return new ServletCookie(c);
             }
         }
         return null;
@@ -191,8 +211,8 @@ public class ServletRequest extends AbstractRequest {
 
     public List<Cookie> getCookies() {
         ArrayList<Cookie> list = new ArrayList<Cookie>();
-        for( javax.servlet.http.Cookie c : request.getCookies() ) {
-            list.add( new ServletCookie( c ) );
+        for (javax.servlet.http.Cookie c : request.getCookies()) {
+            list.add(new ServletCookie(c));
 
         }
         return list;
@@ -200,5 +220,5 @@ public class ServletRequest extends AbstractRequest {
 
     public String getRemoteAddr() {
         return request.getRemoteAddr();
-    } 
+    }
 }
