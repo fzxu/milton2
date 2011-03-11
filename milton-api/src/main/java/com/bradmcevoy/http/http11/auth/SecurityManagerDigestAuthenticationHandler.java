@@ -34,6 +34,9 @@ public class SecurityManagerDigestAuthenticationHandler implements Authenticatio
 
     public boolean supports( Resource r, Request request ) {
         Auth auth = request.getAuthorization();
+        if( auth == null ) {
+            return false;
+        }
         return  Auth.Scheme.DIGEST.equals( auth.getScheme() );
     }
 
