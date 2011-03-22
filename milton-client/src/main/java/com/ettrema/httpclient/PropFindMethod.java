@@ -48,6 +48,10 @@ public class PropFindMethod extends EntityEnclosingMethod {
         }
     }
 
+    /**
+     *
+     * @return - child responses only, not the requested url
+     */
     public List<Response> getResponses() {
         List<Response> responses = new ArrayList<PropFindMethod.Response>();
         try {
@@ -65,7 +69,11 @@ public class PropFindMethod extends EntityEnclosingMethod {
             while( it.hasNext() ) {
                 Element el = (Element) it.next();
                 Response resp = new Response( serverDate, el );
-                responses.add( resp );
+                
+                // Dont add if href is the requested url
+                if( !this.getURI().getEscapedPath().equals(resp.href)) {
+                    responses.add( resp );
+                }
             }
             return responses;
         } catch( IOException ex ) {
@@ -92,6 +100,7 @@ public class PropFindMethod extends EntityEnclosingMethod {
         public Response( String serverDate, Element elResponse ) {
             this.serverDate = serverDate;
             href = RespUtils.asString( elResponse, "href" ).trim();
+            System.out.println("href: " + href);
             int pos = href.lastIndexOf( "/", 8 );
             if( pos > 0 ) {
                 parentHref = href.substring( 0, pos - 1 );

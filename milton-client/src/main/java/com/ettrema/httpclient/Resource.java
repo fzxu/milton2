@@ -174,6 +174,7 @@ public abstract class Resource {
     }
 
     public void moveTo(Folder folder) throws IOException, HttpException {
+        log.info("Move: " + this.href() + " to " + folder.href());
         int res = host().doMove(href(), folder.href() + this.name);
         if (res == 201) {
             this.parent.flush();

@@ -82,7 +82,10 @@ public class Folder extends Resource {
                 if (!resp.href.equals(this.href())) {
                     try {
                         Resource r = Resource.fromResponse(this, resp);
-                        children.add(r);
+                        System.out.println("add: this:" + this.href() + "  that:" + r.href());
+                        if( !r.href().equals(this.href())) {
+                            children.add(r);
+                        }
                         this.notifyOnChildAdded(r);
                     } catch (Exception e) {
                         log.error("couldnt process record", e);
