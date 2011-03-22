@@ -7,9 +7,9 @@ package bradswebdavclient;
 
 import com.ettrema.httpclient.File;
 import com.ettrema.httpclient.HttpException;
+import com.ettrema.httpclient.Utils.CancelledException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -25,13 +25,13 @@ public class TextEditorFrame extends javax.swing.JFrame {
     private File file;
 
     /** Creates new form TextEditorFrame */
-    public TextEditorFrame( File f ) throws HttpException {
+    public TextEditorFrame( File f ) throws HttpException, CancelledException {
         initComponents();
         this.file = f;
         load();
     }
 
-    private void load() throws HttpException {
+    private void load() throws HttpException, CancelledException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         file.download( out, null );
         this.editor.setText( out.toString() );
@@ -123,7 +123,7 @@ public class TextEditorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuSaveMouseClicked
 
     @Action
-    public void reload() {
+    public void reload() throws CancelledException {
         System.out.println( "reloading" );
         try {
             load();

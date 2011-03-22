@@ -1,6 +1,5 @@
 package bradswebdavclient;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -12,17 +11,15 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-
 /**
  *
  * @author mcevoyb
  */
 public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
-    
+
     public abstract JPanel createDetails();
 
     protected abstract String getIconName();
-                
     protected final AbstractTreeNode parent;
     protected List<AbstractTreeNode> children;
     private String name;
@@ -34,14 +31,15 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
         this.name = name;
     }
 
-    
     ResourceTreeModel model() {
-      return ((ResourceTreeModel) root().frame.tree().getModel());
+        return ((ResourceTreeModel) root().frame.tree().getModel());
     }
-    
+
     int numChildren() {
-      if( children == null ) return 0;
-      return children.size();
+        if (children == null) {
+            return 0;
+        }
+        return children.size();
     }
 
     public String[] getPath() {
@@ -57,7 +55,7 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
     }
 
     protected List<AbstractTreeNode> listChildren() {
-      return children; // todo
+        return children;
     }
 
     protected void populateCellRenderer(MyCellRenderer renderer) {
@@ -79,7 +77,6 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
 
     protected List<AbstractTreeNode> getChildren() {
         if (children == null) {
-            System.out.println("listChildren");
             children = listChildren();
             if (children == null) {
                 children = new ArrayList<AbstractTreeNode>();
@@ -88,7 +85,6 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
         }
         return children;
     }
-    
 
     // MutableTreeNode - start
     public final boolean isLeaf() {
@@ -100,7 +96,7 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
     }
 
     public int getChildCount() {
-      return getChildren().size();
+        return getChildren().size();
     }
 
     public AbstractTreeNode getParent() {
@@ -125,10 +121,9 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
     public Enumeration children() {
         return Collections.enumeration(getChildren());
     }
-    
-    
+
     public void insert(MutableTreeNode child, int index) {
-      System.out.println("inserting: " + child);
+        System.out.println("inserting: " + child);
         List list = getChildren();
         if (list == null) {
             return;
@@ -141,8 +136,8 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
         if (list == null) {
             return;
         }
-        if( list.size() > 0 ) {
-          list.remove(index);
+        if (list.size() > 0) {
+            list.remove(index);
         }
     }
 
@@ -162,11 +157,9 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
     }
 
     public void setParent(MutableTreeNode newParent) {
-
-    }    
+    }
     // MutableTreeNode - finish
-    
-    
+
     protected void flush(List<? extends AbstractTreeNode> list) {
         List<AbstractTreeNode> list2 = new ArrayList<AbstractTreeNode>();
         if (list != null) {
@@ -178,9 +171,11 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
     }
 
     protected void flush(AbstractTreeNode node) {
-      if( node == null ) return ;
-      node.beforeFlush();
-      ((ResourceTreeModel) root().frame.tree().getModel()).removeNodeFromParent(node);
+        if (node == null) {
+            return;
+        }
+        node.beforeFlush();
+        ((ResourceTreeModel) root().frame.tree().getModel()).removeNodeFromParent(node);
     }
 
     public final AbstractTreeNode getNode() {
@@ -188,9 +183,9 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
     }
 
     protected HostsNode root() {
-      return parent.root();
+        return parent.root();
     }
-    
+
     public int compareTo(Object o) {
         if (o == null) {
             return -1;
@@ -233,22 +228,25 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
     }
 
     public void selectThis() {
-      select(this);
+        System.out.println("selectThis");
+        select(this);
     }
-    
+
     public static void select(AbstractTreeNode node) {
         String[] path = node.getPath();
         TreePath tp = getTreePath(path);
         select(tp);
     }
-    
+
     public static void select(TreePath tp) {
-        if( tp == null ) return ;
+        if (tp == null) {
+            return;
+        }
         JTree tree = App.current().getFrame().tree();
         tree.setSelectionPath(tp);
         tree.scrollPathToVisible(tp);
     }
-    
+
     public static TreePath getTreePath(String[] path) {
         JTree tree = App.current().getFrame().tree();
         AbstractTreeNode node = null;
@@ -269,11 +267,11 @@ public abstract class AbstractTreeNode implements MutableTreeNode, Comparable {
         return tp;
     }
 
-  void updatePopupMenu(JPopupMenu popupMenu) {
-    popupMenu.removeAll();
-    RefreshMouseListener.add(popupMenu, this);
-  }
+    void updatePopupMenu(JPopupMenu popupMenu) {
+        popupMenu.removeAll();
+        RefreshMouseListener.add(popupMenu, this);
+    }
 
-  protected void beforeFlush() {   
-  }
+    protected void beforeFlush() {
+    }
 }

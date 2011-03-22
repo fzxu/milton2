@@ -221,8 +221,8 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
     public boolean acceptMoveDrop( Transferable transferable ) {
         try {
             TransferableResourceList list = (TransferableResourceList) transferable.getTransferData( TransferableResourceList.RESOURCE_LIST_FLAVOR );
-            for( Resource r : list ) {
-                r.moveTo( this.folder );
+            for( Resource rSource : list ) {
+                rSource.moveTo( this.folder );
             }
             return true;
         } catch( UnsupportedFlavorException ex ) {
@@ -238,13 +238,9 @@ public class FolderNode extends AbstractTreeNode implements Droppable, Deletable
         public void onChildAdded( Folder parent, Resource child ) {
             if( parent == FolderNode.this.folder ) {
                 if( child instanceof Folder ) {
-                    System.out.println( "FolderNode: onChildAdded " + parent.name + " - " + child.name );
                     int num = numChildren();
-                    System.out.println( " numchildren" );
                     FolderNode f = new FolderNode( FolderNode.this, (Folder) child );
-                    System.out.println( "  new node" );
                     model().insertNodeInto( f, FolderNode.this, num );
-                    System.out.println( "  done insert into" );
                 }
             }
         }
