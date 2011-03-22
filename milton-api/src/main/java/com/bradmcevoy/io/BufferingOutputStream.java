@@ -25,16 +25,14 @@ import org.slf4j.LoggerFactory;
  *
  * @author brad
  */
-public class BufferingOutputStream extends OutputStream{
+public class BufferingOutputStream extends OutputStream {
 
-    private static Logger log = LoggerFactory.getLogger(BufferingOutputStream.class);
-
+    private static Logger log = LoggerFactory.getLogger( BufferingOutputStream.class );
     private ByteArrayOutputStream tempMemoryBuffer = new ByteArrayOutputStream();
     private int maxMemorySize;
     private File tempFile;
     private FileOutputStream fout;
     private BufferedOutputStream bufOut;
-
     private Runnable runnable;
     private long size;
     private boolean closed;
@@ -44,7 +42,8 @@ public class BufferingOutputStream extends OutputStream{
     }
 
     public InputStream getInputStream() {
-        if( !closed ) throw new IllegalStateException( "this output stream is not yet closed");
+        if( !closed )
+            throw new IllegalStateException( "this output stream is not yet closed" );
         if( tempMemoryBuffer == null ) {
             FileDeletingInputStream fin;
             try {
@@ -55,11 +54,9 @@ public class BufferingOutputStream extends OutputStream{
             BufferedInputStream bufIn = new BufferedInputStream( fin );
             return bufIn;
         } else {
-            return new ByteArrayInputStream( tempMemoryBuffer.toByteArray());
+            return new ByteArrayInputStream( tempMemoryBuffer.toByteArray() );
         }
     }
-
-
 
     @Override
     public void write( byte[] b ) throws IOException {
@@ -85,9 +82,9 @@ public class BufferingOutputStream extends OutputStream{
 
     @Override
     public void write( byte[] b, int off, int len ) throws IOException {
-        size+=len;
+        size += len;
         if( tempMemoryBuffer != null ) {
-            tempMemoryBuffer.write( b,off, len );
+            tempMemoryBuffer.write( b, off, len );
         } else {
             bufOut.write( b, off, len );
         }
@@ -95,14 +92,17 @@ public class BufferingOutputStream extends OutputStream{
     }
 
     private void checkSize() throws IOException {
-        if( tempMemoryBuffer == null ) return ;
+        if( log.isTraceEnabled() ) {
+            log.trace( "checkSize: " + size );
+        }
+        if( tempMemoryBuffer == null ) return;
 
-        if( tempMemoryBuffer.size() < maxMemorySize ) return ;
+        if( tempMemoryBuffer.size() < maxMemorySize ) return;
 
-        tempFile = File.createTempFile( "" + System.currentTimeMillis(), ".buffer");
+        tempFile = File.createTempFile( "" + System.currentTimeMillis(), ".buffer" );
         fout = new FileOutputStream( tempFile );
         bufOut = new BufferedOutputStream( fout );
-        bufOut.write( tempMemoryBuffer.toByteArray());
+        bufOut.write( tempMemoryBuffer.toByteArray() );
         tempMemoryBuffer = null;
     }
 
@@ -142,7 +142,7 @@ public class BufferingOutputStream extends OutputStream{
         return tempMemoryBuffer;
     }
 
-    public void setOnClose(Runnable r) {
+    public void setOnClose( Runnable r ) {
         this.runnable = r;
     }
 
@@ -167,9 +167,9 @@ public class BufferingOutputStream extends OutputStream{
     @Override
     protected void finalize() throws Throwable {
         if( tempFile != null && tempFile.exists() ) {
-            log.error("temporary file was not deleted. Was close called on the inputstream? Will attempt to delete");
-            if( !tempFile.delete()) {
-                log.error("Still couldnt delete temporary file: " + tempFile.getAbsolutePath());
+            log.error( "temporary file was not deleted. Was close called on the inputstream? Will attempt to delete" );
+            if( !tempFile.delete() ) {
+                log.error( "Still couldnt delete temporary file: " + tempFile.getAbsolutePath() );
             }
         }
         super.finalize();
