@@ -12,6 +12,7 @@ import com.ettrema.httpclient.FolderListener;
 import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.Resource;
 import com.ettrema.httpclient.ResourceListener;
+import com.ettrema.httpclient.Utils.CancelledException;
 import java.awt.Component;
 import java.awt.datatransfer.Transferable;
 import java.io.IOException;
@@ -193,8 +194,11 @@ public class FolderPanel extends javax.swing.JPanel implements Addressable, Unlo
         try {
             frm = new TextEditorFrame(f);
             frm.setVisible( true );
+        } catch(CancelledException e) {
+            JOptionPane.showMessageDialog(this, "Cancelled by user");
         } catch (HttpException ex) {
             Logger.getLogger(FolderPanel.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Sorry an error occured");
         }
     }
   // Variables declaration - do not modify//GEN-BEGIN:variables
