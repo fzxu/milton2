@@ -1,9 +1,12 @@
 package com.ettrema.http.fs;
 
+import com.bradmcevoy.common.ContentTypeUtils;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.DigestResource;
+import com.bradmcevoy.http.FileItem;
 import com.bradmcevoy.http.GetableResource;
+import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
@@ -11,6 +14,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.SecurityManager;
 import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
 import eu.medsea.mimeutil.MimeType;
@@ -22,6 +26,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -30,6 +36,8 @@ import org.apache.commons.io.IOUtils;
  * @author brad
  */
 public class ClassPathResourceFactory implements ResourceFactory {
+
+    private static final Logger log = LoggerFactory.getLogger( ClassPathResourceFactory.class );
 
     private String basePath;
     private Long maxAgeSeconds = 60 * 60 * 24 * 7l;
@@ -51,6 +59,7 @@ public class ClassPathResourceFactory implements ResourceFactory {
         if (content == null) {
             return null;
         } else {
+            log.trace("return class path resource");
             return new ClassPathResource(host, p, content);
         }
     }
@@ -111,13 +120,7 @@ public class ClassPathResourceFactory implements ResourceFactory {
         this.securityManager = securityManager;
     }
 
-    
-
-
-
-
-
-    public class ClassPathResource implements GetableResource, DigestResource {
+    public class ClassPathResource implements GetableResource, DigestResource, PostableResource {
 
         private final String host;
         private final Path path;
@@ -138,24 +141,12 @@ public class ClassPathResourceFactory implements ResourceFactory {
         }
 
         public String getContentType(String preferredList) {
-            Collection mimeTypes = MimeUtil.getMimeTypes(path.getName());
-            StringBuilder sb = null;
-            for (Object o : mimeTypes) {
-                MimeType mt = (MimeType) o;
-                if (sb == null) {
-                    sb = new StringBuilder();
-                } else {
-                    sb.append(",");
-                }
-                sb.append(mt.toString());
+            String mime = ContentTypeUtils.findContentTypes(path.getName());
+            String s = ContentTypeUtils.findAcceptableContentType(mime, preferredList);
+            if (log.isTraceEnabled()) {
+                log.trace("getContentType: preferred: {} mime: {} selected: {}", new Object[]{preferredList, mime, s});
             }
-            if (sb == null) {
-                return null;
-            }
-            String mime = sb.toString();
-            MimeType mt = MimeUtil.getPreferedMimeType(preferredList, mime);
-            return mt.toString();
-
+            return s;
         }
 
         public Long getContentLength() {
@@ -214,6 +205,10 @@ public class ClassPathResourceFactory implements ResourceFactory {
 
         public boolean isDigestAllowed() {
             return true;
+        }
+
+        public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
+            return null;
         }
     }
 }
