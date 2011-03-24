@@ -165,7 +165,7 @@ public class ClassPathResourceFactory implements ResourceFactory {
             if (securityManager != null) {
                 return securityManager.authenticate(user, password);
             } else {
-                return null;
+                return "ok";
             }
         }
 
