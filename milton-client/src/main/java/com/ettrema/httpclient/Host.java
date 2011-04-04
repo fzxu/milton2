@@ -134,17 +134,13 @@ public class Host extends Folder {
 
     public static Resource _find(Folder parent, String[] arr, int i) throws IOException, com.ettrema.httpclient.HttpException {
         String childName = arr[i];
-        log.trace("find: " + childName);
         Resource child = parent.child(childName);
         if (i == arr.length - 1) {
-            log.trace(" found");
             return child;
         } else {
             if (child instanceof Folder) {
-                log.trace(" recurse");
                 return _find((Folder) child, arr, i + 1);
             } else {
-                log.trace("not found: " + childName);
                 return null;
             }
         }
@@ -166,7 +162,7 @@ public class Host extends Folder {
         return m;
     }
 
-    synchronized int doMkCol(String newUri) throws com.ettrema.httpclient.HttpException {
+    public synchronized int doMkCol(String newUri) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         MkColMethod p = new MkColMethod(urlEncode(newUri));
         try {
@@ -186,7 +182,14 @@ public class Host extends Folder {
 
     }
 
+
+    public int doPut(Path path, InputStream content, Long contentLength, String contentType) {
+        String dest = getHref(path);
+        return doPut(dest, content, contentLength, contentType);
+    }
+
     synchronized int doPut(String newUri, InputStream content, Long contentLength, String contentType) {
+        log.trace("put: " + newUri);
         notifyStartRequest();
         String s = urlEncode(newUri);
         PutMethod p = new PutMethod(s);
@@ -211,7 +214,7 @@ public class Host extends Folder {
         }
     }
 
-    synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException {
+    public synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         CopyMethod m = new CopyMethod(urlEncode(from), urlEncode(newUri));
         try {
@@ -229,7 +232,7 @@ public class Host extends Folder {
 
     }
 
-    synchronized int doDelete(String href) throws IOException, com.ettrema.httpclient.HttpException {
+    public synchronized int doDelete(String href) throws IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         DeleteMethod m = new DeleteMethod(urlEncode(href));
         try {
@@ -244,7 +247,7 @@ public class Host extends Folder {
         }
     }
 
-    synchronized int doMove(String href, String newUri) throws IOException, com.ettrema.httpclient.HttpException {
+    public synchronized int doMove(String href, String newUri) throws IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         MoveMethod m = new MoveMethod(urlEncode(href), urlEncode(newUri));
         try {
@@ -258,7 +261,7 @@ public class Host extends Folder {
 
     }
 
-    synchronized List<PropFindMethod.Response> doPropFind(String url, int depth) throws IOException, com.ettrema.httpclient.HttpException {
+    public synchronized List<PropFindMethod.Response> doPropFind(String url, int depth) throws IOException, com.ettrema.httpclient.HttpException {
         log.trace("doPropFind: " + url);
         notifyStartRequest();
         PropFindMethod m = createPropFind(depth, url);
@@ -287,7 +290,7 @@ public class Host extends Folder {
         }
     }
 
-    synchronized void doGet(String url, StreamReceiver receiver) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
+    public synchronized void doGet(String url, StreamReceiver receiver) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
         notifyStartRequest();
         GetMethod m = new GetMethod(urlEncode(url));
         InputStream in = null;
@@ -299,11 +302,11 @@ public class Host extends Folder {
         } catch (HttpException ex) {
             m.abort();
             throw new GenericHttpException(ex.getReasonCode(), url);
-        } catch(Utils.CancelledException ex) {
+        } catch (Utils.CancelledException ex) {
             m.abort();
             throw ex;
         } catch (IOException ex) {
-            m.abort();            
+            m.abort();
             throw new RuntimeException(ex);
         } finally {
             Utils.close(in);
@@ -405,8 +408,32 @@ public class Host extends Folder {
         if (!s.endsWith("/")) {
             s = s + "/";
         }
-        log.trace("host href: " + s);
+        //log.trace("host href: " + s);
         return s;
+    }
+
+    public String getHref(Path path) {
+        String s = "http://" + server;
+        if (this.port != 80) {
+            s += ":" + this.port;
+        }
+        s += "/";
+        if (rootPath != null && rootPath.length() > 0) {
+            if (!rootPath.equals("/")) {
+                s = s + rootPath;
+            }
+        }
+        if (s.endsWith("/")) {
+            if (!path.isRelative()) {
+                s = s.substring(0, s.length() - 1);
+            }
+        } else {
+            if (path.isRelative()) {
+                s = s + "/";
+            }
+        }
+        //log.trace("host href: " + s);
+        return s + path; // path will be absolute
     }
 
     public static String urlEncode(String s) {

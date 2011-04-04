@@ -100,7 +100,6 @@ public class PropFindMethod extends EntityEnclosingMethod {
         public Response( String serverDate, Element elResponse ) {
             this.serverDate = serverDate;
             href = RespUtils.asString( elResponse, "href" ).trim();
-            System.out.println("href: " + href);
             int pos = href.lastIndexOf( "/", 8 );
             if( pos > 0 ) {
                 parentHref = href.substring( 0, pos - 1 );

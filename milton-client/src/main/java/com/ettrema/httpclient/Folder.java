@@ -61,6 +61,7 @@ public class Folder extends Resource {
 
     public void flush() throws IOException {
         if (children != null) {
+            log.trace("flush: " + this.name);
             for (Resource r : children) {
                 notifyOnChildRemoved(r);
             }
@@ -75,6 +76,10 @@ public class Folder extends Resource {
             return children;
         }
 
+        String href = href();
+        if (log.isTraceEnabled()) {
+            log.trace("load children for: " + href);
+        }
         List<Response> responses = host().doPropFind(href(), 1);
         childrenLoaded = true;
         if (responses != null) {
@@ -82,8 +87,7 @@ public class Folder extends Resource {
                 if (!resp.href.equals(this.href())) {
                     try {
                         Resource r = Resource.fromResponse(this, resp);
-                        System.out.println("add: this:" + this.href() + "  that:" + r.href());
-                        if( !r.href().equals(this.href())) {
+                        if (!r.href().equals(this.href())) {
                             children.add(r);
                         }
                         this.notifyOnChildAdded(r);
