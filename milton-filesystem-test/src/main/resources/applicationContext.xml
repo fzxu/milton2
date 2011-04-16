@@ -28,9 +28,9 @@
         <property name="contextPath" value="webdav-fs"/>
         <!-- the default root is System property user.home  -->
         <!-- enable the property below to set the root elsewhere -->
-        <!--
-        <property name="root" value="/www/webs" />
-        -->
+
+        <property name="root" value="/proj" />
+
     </bean>
 
 <!--

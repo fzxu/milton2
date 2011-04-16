@@ -85,7 +85,7 @@ public class PropFindPropertyBuilder {
 
     private void appendResponses(List<PropFindResponse> responses, PropFindableResource resource, int requestedDepth, PropFindRequestFieldParser.ParseResult parseResult, String encodedCollectionUrl) {
         try {
-            String collectionHref = suffixSlash(encodedCollectionUrl);
+            String collectionHref = suffixSlash(resource, encodedCollectionUrl);
             URI parentUri = new URI(collectionHref);
 
             collectionHref = parentUri.toASCIIString();
@@ -97,7 +97,7 @@ public class PropFindPropertyBuilder {
     }
 
     private void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropFindRequestFieldParser.ParseResult parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) {
-        collectionHref = suffixSlash(collectionHref);
+        collectionHref = suffixSlash(resource, collectionHref);
         final LinkedHashMap<QName, ValueAndType> knownProperties = new LinkedHashMap<QName, ValueAndType>();
         final ArrayList<NameAndError> unknownProperties = new ArrayList<NameAndError>();
 
@@ -176,8 +176,8 @@ public class PropFindPropertyBuilder {
 
     }
 
-    private String suffixSlash(String s) {
-        if (!s.endsWith("/")) {
+    private String suffixSlash(PropFindableResource resource, String s) {
+        if ( resource instanceof CollectionResource && !s.endsWith("/")) {
             s = s + "/";
         }
         return s;

@@ -1,5 +1,6 @@
 package com.ettrema.httpclient;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import junit.framework.TestCase;
 
@@ -51,9 +52,8 @@ public class HostTest extends TestCase {
     public void testSetPropFindXml() {
     }
 
-    public void testScratch() throws URISyntaxException {
-        //java.net.URI uri = new java.net.URI("http://abc.com/a b");
-//        java.net.URI uri = java.net.URI.create("http://abc.com/a b");
+    public void testScratch() throws URISyntaxException, Exception {
+
     }
 
 }
