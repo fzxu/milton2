@@ -38,6 +38,12 @@ public class DeleteHandler implements ExistingEntityHandler {
 
     @Override
     public void process(HttpManager manager, Request request, Response response) throws NotAuthorizedException, ConflictException, BadRequestException {
+        String url = request.getAbsoluteUrl();
+        if( url.contains("#")) {
+            // See http://www.ettrema.com:8080/browse/MIL-88
+            // Litmus test thinks this is unsafe
+            throw new BadRequestException(null, "Can't delete a resource with a # in the url");
+        }
         resourceHandlerHelper.process(manager, request, response, this);
     }
 

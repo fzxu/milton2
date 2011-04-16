@@ -150,7 +150,9 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
     public void respondNoContent(Resource resource, Response response, Request request) {
 //        log.debug( "respondNoContent" );
-        response.setStatus(Response.Status.SC_OK);
+        //response.setStatus(Response.Status.SC_OK);
+        // see comments in http://www.ettrema.com:8080/browse/MIL-87
+        response.setStatus(Response.Status.SC_NO_CONTENT);
     }
 
     public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException, BadRequestException {

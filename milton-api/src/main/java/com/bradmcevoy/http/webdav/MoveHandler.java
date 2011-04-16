@@ -72,6 +72,7 @@ public class MoveHandler implements ExistingEntityHandler {
             log.debug( "process: destination exists but is not a collection" );
             responseHandler.respondConflict( resource, response, request, "Destination exists but is not a collection: " + sDest );
         } else {
+            boolean wasDeleted = false;
             CollectionResource colDest = (CollectionResource) rDest;
             // check if the dest exists
             Resource rExisting = colDest.child( dest.name );
@@ -92,6 +93,7 @@ public class MoveHandler implements ExistingEntityHandler {
                         }
                         log.debug( "deleting pre-existing destination resource" );
                         deleteHelper.delete( drExisting );
+                        wasDeleted = true;
                     } else {
                         log.warn( "destination exists, and overwrite header is set, but destination is not a DeletableResource" );
                         responseHandler.respondConflict( resource, response, request, "A resource exists at the destination, and it cannot be deleted" );
@@ -102,7 +104,12 @@ public class MoveHandler implements ExistingEntityHandler {
             log.debug( "process: moving resource to: " + rDest.getName() );
             try {
                 r.moveTo( (CollectionResource) rDest, dest.name );
-                responseHandler.respondCreated( resource, response, request );
+                // See http://www.ettrema.com:8080/browse/MIL-87
+                if( wasDeleted) {
+                    responseHandler.respondNoContent( resource, response, request ); 
+                } else {
+                    responseHandler.respondCreated( resource, response, request );
+                }
             } catch( ConflictException ex ) {
                 log.warn( "conflict", ex );
                 responseHandler.respondConflict( resource, response, request, sDest );
