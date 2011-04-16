@@ -17,6 +17,7 @@ public class CopyHandler implements ExistingEntityHandler {
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
     private DeleteHelper deleteHelper;
+    private UserAgentHelper userAgentHelper = new DefaultUserAgentHelper();
     private boolean deleteExistingBeforeCopy = true;
 
     public CopyHandler(WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, ResourceHandlerHelper resourceHandlerHelper) {
@@ -72,8 +73,7 @@ public class CopyHandler implements ExistingEntityHandler {
                 CollectionResource colDest = (CollectionResource) rDest;
                 Resource rExisting = colDest.child(dest.name);
                 if (rExisting != null) {
-                    Boolean overwrite = request.getOverwriteHeader();
-                    if (overwrite != null && overwrite.booleanValue()) {
+                    if( !canOverwrite( request ) ) {
                         // Exists, and overwrite = F, disallow - http://www.webdav.org/specs/rfc4918.html#rfc.section.9.8.4
                         responseHandler.respondPreconditionFailed(request, response, resource);
                         return;
@@ -119,4 +119,29 @@ public class CopyHandler implements ExistingEntityHandler {
     public boolean isDeleteExistingBeforeCopy() {
         return deleteExistingBeforeCopy;
     }
+
+    private boolean canOverwrite( Request request ) {
+        Boolean ow = request.getOverwriteHeader();
+        boolean bHasOverwriteHeader = ( ow != null && request.getOverwriteHeader().booleanValue() );
+        if( bHasOverwriteHeader) {
+            return true;
+        } else {
+            String us = request.getUserAgentHeader();
+            if( userAgentHelper.isMacFinder( us)) {
+                log.debug( "no overwrite header, but user agent is Finder so permit overwrite");
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    public UserAgentHelper getUserAgentHelper() {
+        return userAgentHelper;
+    }
+
+    public void setUserAgentHelper( UserAgentHelper userAgentHelper ) {
+        this.userAgentHelper = userAgentHelper;
+    }
+
 }

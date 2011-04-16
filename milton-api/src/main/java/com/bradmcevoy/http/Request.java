@@ -167,7 +167,7 @@ public interface Request {
     String getContentRangeHeader();
 
     /**
-     * Used for MOVE method. If true it indicates that any existing resource
+     * Used for MOVE and COPY methods. If true it indicates that any existing resource
      * should be deleted before the move.
      *
      * @return - null if no value, true indicates that any existing resource
