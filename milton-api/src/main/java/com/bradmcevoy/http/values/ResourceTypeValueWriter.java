@@ -23,7 +23,8 @@ public class ResourceTypeValueWriter implements ValueWriter {
             for( QName name : list ) {
                 String childNsUri = name.getNamespaceURI();
                 String childPrefix = nsPrefixes.get( childNsUri );
-                rt.begin( childPrefix, name.getLocalPart() ).noContent();
+                // don't write a new line - see http://www.ettrema.com:8080/browse/MIL-83
+                rt.begin( childPrefix, name.getLocalPart() ).noContent(false);
             }
             rt.close();
         } else {

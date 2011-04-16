@@ -275,6 +275,13 @@ public class XmlWriter {
             append("/>\n");
             return parent;
         }
+        public Element noContent(boolean newLine) {
+            append("/>");
+            if(newLine) {
+                append("\n");
+            }
+            return parent;
+        }
 
         /**
          * Start a new element, completing the open tag if required
