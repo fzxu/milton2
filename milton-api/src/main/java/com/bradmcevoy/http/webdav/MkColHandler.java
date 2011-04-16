@@ -97,12 +97,16 @@ public class MkColHandler implements Handler {
                 return;
             }
         } catch( Exception ex ) {
-            ex.printStackTrace();
+            // I think this exception is normal - BM
+            log.debug("exception checking inputstream", ex);
         }
         Resource existingChild = existingCol.child( newName );
         if( existingChild != null ) {
             log.warn( "item already exists: " + existingChild.getName() );
-            throw new ConflictException( existingChild );
+            //throw new ConflictException( existingChild );
+            // See http://www.ettrema.com:8080/browse/MIL-86
+            responseHandler.respondMethodNotAllowed(existingChild, response, request);
+            return;
         }
         CollectionResource made = existingCol.createCollection( newName );
         if( made == null ) {
