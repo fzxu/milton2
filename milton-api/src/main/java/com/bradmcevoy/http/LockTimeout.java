@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -8,7 +9,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LockTimeout {
+public class LockTimeout implements Serializable{
+
+    private static final long serialVersionUID = 1L;
+
 
     private static Logger log = LoggerFactory.getLogger(LockTimeout.class);
     private static final String INFINITE = "Infinite";

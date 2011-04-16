@@ -1,9 +1,13 @@
 
 package com.bradmcevoy.http;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class LockToken {
+public class LockToken implements Serializable{
+
+    private static final long serialVersionUID = 1L;
+
 
     /**
      * the date/time that this lock was created or last refreshed
