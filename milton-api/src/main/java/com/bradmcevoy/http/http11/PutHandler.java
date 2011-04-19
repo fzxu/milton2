@@ -277,6 +277,7 @@ public class PutHandler implements Handler {
                     throw new BadRequestException( replacee, "Cant apply partial update. Resource does not support PartialllyUpdateableResource or GetableResource" );
                 }
             } else {
+                // Not a partial update, but resource implements Replaceable, so give it the new data
                 Long l = request.getContentLengthHeader();
                 replacee.replaceContent( request.getInputStream(), l );
             }
@@ -284,7 +285,8 @@ public class PutHandler implements Handler {
             log.warn( "IOException reading input stream. Probably interrupted upload: " + ex.getMessage() );
             return;
         }
-        responseHandler.respondCreated( replacee, response, request );
+        // Respond with a 204
+        responseHandler.respondNoContent(replacee, response, request);
 
         log.debug( "process: finished" );
     }
