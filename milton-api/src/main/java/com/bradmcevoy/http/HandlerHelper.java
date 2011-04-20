@@ -54,26 +54,31 @@ public class HandlerHelper {
         log.trace( "checkAuthentication" );
         AuthStatus authStatus = authenticationService.authenticate( resource, request ); //handler.authenticate( auth.user, auth.password );
         if( authStatus == null ) {
+            log.trace("checkAuthentication: null authStatus");
             return null;
         } else {
+            log.trace("checkAuthentication: authStatus.failed =" + authStatus.loginFailed);
             return authStatus;
         }
     }
 
     public boolean checkAuthorisation( HttpManager manager, Resource resource, Request request ) {
-
+        log.trace("checkAuthorisation");
         AuthStatus authStatus = checkAuthentication( manager, resource, request );
         
         // a null authStatus means that no authentication was attempted, eg an anonymous request
         // it is up to the implementation to decide whether or not to allow anonymous access
         // however a failed login must always be rejected
         if( authStatus != null && authStatus.loginFailed ) {
+            log.trace("checkAuthorisation: loginFailed");
             return false;
         }
         Auth auth;
         if( authStatus != null ) {
+            log.trace("checkAuthorisation: got auth object");
             auth = authStatus.auth;
         } else {
+            log.trace("checkAuthorisation: authStatus is null, no authentication was attempted");
             auth = null;
         }
         boolean authorised = resource.authorise( request, request.getMethod(), auth );
