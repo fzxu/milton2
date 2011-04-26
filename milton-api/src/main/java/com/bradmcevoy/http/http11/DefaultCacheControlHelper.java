@@ -28,11 +28,12 @@ public class DefaultCacheControlHelper implements CacheControlHelper {
             } else {
                 response.setCacheControlMaxAgeHeader( delta );
             }
-            Date expiresAt = calcExpiresAt( new Date(), delta.longValue() );
-            if( log.isTraceEnabled() ) {
-                log.trace( "set expires: " + expiresAt );
-            }
-            response.setExpiresHeader( expiresAt );
+            // Disable, might be interfering with IE.. ?
+//            Date expiresAt = calcExpiresAt( new Date(), delta.longValue() );
+//            if( log.isTraceEnabled() ) {
+//                log.trace( "set expires: " + expiresAt );
+//            }
+//            response.setExpiresHeader( expiresAt );
         } else {
             response.setCacheControlNoCacheHeader();
         }

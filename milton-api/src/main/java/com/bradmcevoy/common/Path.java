@@ -222,6 +222,22 @@ public class Path implements Serializable {
         }
     }
 
+    /**
+     * Add the path components of the given path to this one.
+     *
+     * Eg "a/b/c" + "/d/e/f" = "a/b/c/d/e/f"
+     *
+     * @param p
+     * @return
+     */
+    public Path add(Path p) {
+        Path x = this;
+        for(String s : p.getParts()) {
+            x = x.child(s);
+        }
+        return x;
+    }
+
     public static class LengthComparator implements Comparator<Path> {
 
         public int compare( Path o1, Path o2 ) {

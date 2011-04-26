@@ -100,7 +100,8 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 return;
             } else {
                 log.trace( "respondContent: not compressable" );
-                response.setVaryHeader( "Accept-Encoding" );
+                // We really should set this header, but it causes IE to not cache files (eg images)
+                //response.setVaryHeader( "Accept-Encoding" );
                 wrapped.respondContent( resource, response, request, params );
             }
         } else {

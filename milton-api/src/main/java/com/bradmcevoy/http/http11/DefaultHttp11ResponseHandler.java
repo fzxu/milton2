@@ -189,6 +189,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
             String acc = request.getAcceptHeader();
             String ct = gr.getContentType(acc);
             if (ct != null) {
+                ct = pickBestContentType(ct);
                 response.setContentTypeHeader(ct);
             }
             cacheControlHelper.setCacheControl(gr, response, request.getAuthorization());
@@ -309,17 +310,18 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public static void setModifiedDate(Response response, Resource resource, Auth auth) {
         Date modDate = resource.getModifiedDate();
         if (modDate != null) {
-
-            if (resource instanceof GetableResource) {
-                GetableResource gr = (GetableResource) resource;
-                Long maxAge = gr.getMaxAgeSeconds(auth);
-                if (maxAge != null && maxAge > 0) {
-                    log.trace("setModifiedDate: has a modified date and a positive maxAge, so adjust modDate");
-                    long tm = System.currentTimeMillis() - 60000; // modified 1 minute ago
-                    modDate = new Date(tm); // have max-age, so use current date
-                }
-            }
+            // HACH - see if this helps IE
             response.setLastModifiedHeader(modDate);
+//            if (resource instanceof GetableResource) {
+//                GetableResource gr = (GetableResource) resource;
+//                Long maxAge = gr.getMaxAgeSeconds(auth);
+//                if (maxAge != null && maxAge > 0) {
+//                    log.trace("setModifiedDate: has a modified date and a positive maxAge, so adjust modDate");
+//                    long tm = System.currentTimeMillis() - 60000; // modified 1 minute ago
+//                    modDate = new Date(tm); // have max-age, so use current date
+//                }
+//            }
+//            response.setLastModifiedHeader(modDate);
         }
     }
 
@@ -371,7 +373,22 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         this.buffering = buffering;
     }
 
-
-
+    /**
+     * Sometimes we'll get a content type list, such as image/jpeg,image/pjpeg
+     *
+     * In this case we should pick the first in the list
+     *
+     * @param ct
+     * @return
+     */
+    private String pickBestContentType(String ct) {
+        if( ct == null ) {
+            return null;
+        } else if( ct.contains(",")) {
+            return ct.split(",")[0];
+        } else {
+            return ct;
+        }
+    }
 
 }

@@ -10,5 +10,12 @@ import com.bradmcevoy.http.Response;
  * @author brad
  */
 public interface CacheControlHelper {
+    /**
+     *
+     * @param resource
+     * @param response
+     * @param auth
+     * @param notMod - true means we're sending a not modified response
+     */
     void setCacheControl( final GetableResource resource, final Response response, Auth auth);
 }
