@@ -36,6 +36,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
     public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
     public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
+    public static final String NOT_AUTHORISED_HTML = "<html><body><h1>Not authorised</h1></body></html>";
     private final AuthenticationService authenticationService;
     private final ETagGenerator eTagGenerator;
     private CacheControlHelper cacheControlHelper = new DefaultCacheControlHelper();
@@ -90,6 +91,14 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         response.setStatus(Response.Status.SC_UNAUTHORIZED);
         List<String> challenges = authenticationService.getChallenges(resource, request);
         response.setAuthenticateHeader(challenges);
+
+        PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
+
+        // http://jira.ettrema.com:8080/browse/MIL-39
+        String s = NOT_AUTHORISED_HTML.replace("${url}", request.getAbsolutePath());
+        pw.print(s);
+        pw.flush();
+
     }
 
     public void respondMethodNotImplemented(Resource resource, Response response, Request request) {

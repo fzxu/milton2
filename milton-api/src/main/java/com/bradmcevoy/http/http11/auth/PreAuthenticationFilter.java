@@ -46,6 +46,14 @@ public class PreAuthenticationFilter implements Filter {
         authenticationHandlers.add( new SecurityManagerDigestAuthenticationHandler( securityManager ) );
     }
 
+    public PreAuthenticationFilter( Http11ResponseHandler responseHandler, SecurityManager securityManager, NonceProvider np) {
+        this.responseHandler = responseHandler;
+        this.authenticationHandlers = new ArrayList<AuthenticationHandler>();
+        authenticationHandlers.add( new SecurityManagerBasicAuthHandler( securityManager ) );
+        authenticationHandlers.add( new SecurityManagerDigestAuthenticationHandler( np, securityManager ) );
+    }
+
+
     public void process( FilterChain chain, Request request, Response response ) {
         log.trace( "process" );
         try {

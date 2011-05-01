@@ -1,19 +1,15 @@
-
 package com.bradmcevoy.http;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public class LockToken implements Serializable{
+public class LockToken implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-
     /**
      * the date/time that this lock was created or last refreshed
      */
     private Date from;
-
     public String tokenId;
     public LockInfo info;
     public LockTimeout timeout;
@@ -39,7 +35,14 @@ public class LockToken implements Serializable{
 
     public boolean isExpired() {
         long secondsDif = dateDiffSeconds(new Date(), from);
-        return ( secondsDif > timeout.getSeconds());
+        // http://jira.ettrema.com:8080/browse/MIL-79
+        Long seconds = timeout.getSeconds();
+        if (seconds == null) // Infinite
+        {
+            return false;
+        }
+        return (secondsDif > seconds);
+
     }
 
     private long dateDiffSeconds(Date dt1, Date dt2) {

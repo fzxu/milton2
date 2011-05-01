@@ -157,7 +157,7 @@ public class AuthenticationService {
                 String ch = h.getChallenge( resource, request );
                 challenges.add( ch );
             } else {
-                log.debug( "not challenging for auth: " + h.getClass() + " for resource type: " + resource.getClass() );
+                log.debug( "not challenging for auth: " + h.getClass() + " for resource type: " + (resource == null ? "" : resource.getClass()) );
             }
         }
         return challenges;
