@@ -3,6 +3,7 @@ package com.bradmcevoy.http.webdav;
 import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockInfo.LockScope;
 import com.bradmcevoy.http.LockInfo.LockType;
+import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.XmlWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -55,9 +56,20 @@ public class LockWriterHelper {
         writer.writeProperty( null, "D:lockscope", "<D:" + scope.toString().toLowerCase() + "/>" );
     }
 
+    /**
+     * Sets the timeout in seconds, with a maximum as required by the spec. See http://jira.ettrema.com:8080/browse/MIL-89
+     *
+     * RFC4918 (14.29 timeout XML Element; 10.7 Timeout Request Header) states:
+     * "The timeout value for TimeType "Second" MUST NOT be greater than 232-1."
+     * 2^32 - 1 = 4 294 967 295 (136 years)
+     * http://greenbytes.de/tech/webdav/rfc4918.html#HEADER_Timeout
+     *
+     * @param writer
+     * @param seconds
+     */
     public void appendTimeout( XmlWriter writer, Long seconds ) {
         if( seconds != null && seconds > 0 ) {
-            writer.writeProperty( null, "D:timeout", "Second-" + seconds );
+            writer.writeProperty( null, "D:timeout", "Second-" + Utils.withMax(seconds, 4294967295l) );
         }
     }
 

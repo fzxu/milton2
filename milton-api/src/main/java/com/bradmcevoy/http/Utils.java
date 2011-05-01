@@ -309,4 +309,19 @@ public class Utils {
         String ua = HttpManager.request().getUserAgentHeader();
         return truncateFileName(ua, s);
     }
+
+    /**
+     * If n is > max, returns max. Otherwise n
+     * 
+     * @param n
+     * @param max
+     * @return
+     */
+    public static long withMax(long n, long max) {
+        if( n > max) {
+            return max;
+        } else {
+            return n;
+        }
+    }
 }

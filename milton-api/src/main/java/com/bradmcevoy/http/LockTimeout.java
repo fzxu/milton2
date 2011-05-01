@@ -81,7 +81,7 @@ public class LockTimeout implements Serializable{
     }
     
     private LockTimeout(List<Long> timeouts) {
-        if( timeouts == null || timeouts.size()==0 ) {
+        if( timeouts == null || timeouts.isEmpty() ) {
             this.seconds = null;
             this.otherSeconds = null;
         } else {
