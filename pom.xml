@@ -8,7 +8,7 @@
     <name>Milton WebDav Parent</name>
     <url>http://milton.ettrema.com</url>
     <scm>
-        <connection>scm:svn:svn://www.ettrema.com/milton/trunk/milton</connection>
+        <connection>scm:svn:http://svn.ettrema.com/svn/milton/trunk/milton</connection>
     </scm>
     <distributionManagement>
         <repository>
@@ -61,7 +61,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.0</version>
                 <configuration>
-                    <tagBase>svn://www.ettrema.com/milton/tags</tagBase>
+                    <tagBase>http://svn.ettrema.com/svn/milton/tags</tagBase>
                 </configuration>
             </plugin>
 
