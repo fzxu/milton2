@@ -65,7 +65,7 @@ public class FileDeletingInputStream extends InputStream{
     @Override
     protected void finalize() throws Throwable {
         if( tempFile != null && tempFile.exists() ) {
-            log.error("temporary file was not deleted. Was close called on the inputstream? Will attempt to delete");
+            log.error("temporary file was not deleted. Was close called on the inputstream? Will attempt to delete: " + tempFile.getAbsolutePath());
             if( !tempFile.delete()) {
                 log.error("Still couldnt delete temporary file: " + tempFile.getAbsolutePath());
             }
