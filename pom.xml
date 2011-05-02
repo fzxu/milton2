@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ettrema</groupId>
     <artifactId>milton</artifactId>
-    <version>1.5.10</version>
+    <version>1.5.10-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Milton WebDav Parent</name>
     <url>http://milton.ettrema.com</url>
     <scm>
-        <connection>scm:svn:svn://www.ettrema.com/milton/tags/milton-1.5.10</connection>
+        <connection>scm:svn:svn://www.ettrema.com/milton/trunk/milton</connection>
     </scm>
     <distributionManagement>
         <repository>

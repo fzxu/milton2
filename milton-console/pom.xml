@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.ettrema</groupId>
         <artifactId>milton</artifactId>
-        <version>1.5.10</version>
+        <version>1.5.10-SNAPSHOT</version>
     </parent>
     <groupId>com.ettrema</groupId>
     <artifactId>milton-console</artifactId>
