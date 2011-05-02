@@ -8,7 +8,7 @@
     <name>Milton WebDav Parent</name>
     <url>http://milton.ettrema.com</url>
     <scm>
-        <connection>scm:svn:svn://www.ettrema.com/milton/trunk/milton</connection>
+        <connection>scm:svn:http://svn.ettrema.com/svn/milton/trunk/milton</connection>
     </scm>
     <distributionManagement>
         <repository>
