@@ -16,8 +16,11 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import com.bradmcevoy.http.Resource;
 import com.ettrema.http.AccessControlledResource;
+import com.ettrema.http.acl.Principal;
 import java.io.PrintWriter;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public abstract class TResource extends AbstractResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource,
@@ -155,5 +158,15 @@ public abstract class TResource extends AbstractResource implements GetableResou
         return true;
     }
 
+    public Map<Principal, List<Priviledge>> getAccessControlList() {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
 
+    public List<Priviledge> getPriviledges(Auth auth) {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void setPriviledges(Principal principal, boolean isGrantOrDeny, List<Priviledge> privs) {
+      throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

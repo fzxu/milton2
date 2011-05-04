@@ -1,6 +1,5 @@
 package com.ettrema.http.caldav.demo;
 
-import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.MakeCollectionableResource;
 import com.bradmcevoy.http.PutableResource;
@@ -10,7 +9,6 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.StreamUtils;
-import com.ettrema.http.acl.Principal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -109,15 +107,11 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
         return "text/html";
     }
 
-    public Map<Principal, List<Priviledge>> getAccessControlList() {
-      throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public List<Priviledge> getPriviledges(Auth auth) {
-      throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public void setPriviledges(Principal principal, boolean isGrantOrDeny, List<Priviledge> privs) {
-      throw new UnsupportedOperationException("Not supported yet.");
+    public String getCTag() {
+        int x = this.hashCode();
+        for(Resource r : this.children) {
+            x = x ^ r.getUniqueId().hashCode();
+        }
+        return "c" + x;
     }
 }

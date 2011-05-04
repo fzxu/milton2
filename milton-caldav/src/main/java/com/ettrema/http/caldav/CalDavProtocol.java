@@ -17,6 +17,7 @@ import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import com.bradmcevoy.property.PropertySource;
+import com.ettrema.http.CalendarResource;
 import com.ettrema.http.ICalResource;
 import com.ettrema.http.acl.ACLHandler;
 import java.util.ArrayList;
@@ -149,18 +150,25 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
     /*
         <calendar-description xmlns='urn:ietf:params:xml:ns:caldav'/>
      */
-    class CalenderDescriptionProperty implements StandardProperty<String> {
+    class CalenderDescriptionProperty implements StandardProperty<CData> {
 
         public String fieldName() {
             return "calendar-description";
         }
 
-        public String getValue( PropFindableResource res ) {
-            return res.getName();
+        public CData getValue( PropFindableResource res ) {
+            if( res instanceof CalendarResource) {
+                CalendarResource ical = (CalendarResource) res;
+                return new CData( ical.getCalendarDescription() ); 
+            } else {
+                log.warn( "getValue: not a ICalResource");
+                return null;
+            }
+
         }
 
-        public Class<String> getValueClass() {
-            return String.class;
+        public Class<CData> getValueClass() {
+            return CData.class;
         }
     }
 
@@ -169,18 +177,22 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
           <href xmlns='DAV:'>/calendars/__uids__/admin</href>
         </calendar-home-set>     
      */
-    class CalenderHomeSetProperty implements StandardProperty<WrappedHref> {
+    class CalenderHomeSetProperty implements StandardProperty<HrefList> {
 
         public String fieldName() {
             return "calendar-home-set";
         }
 
-        public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("/calendarHome");
+        public HrefList getValue( PropFindableResource res ) {
+            if( res instanceof CalDavPrincipal) {
+                return ((CalDavPrincipal)res).getCalendatHomeSet();
+            } else {
+                throw new RuntimeException("Not a supported class: " + res.getClass());
+            }
         }
 
-        public Class<WrappedHref> getValueClass() {
-            return WrappedHref.class;
+        public Class<HrefList> getValueClass() {
+            return HrefList.class;
         }
     }
 
@@ -213,10 +225,11 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
          */
 
         public HrefList getValue( PropFindableResource res ) {
-            HrefList list = new HrefList();
-            list.add("/caldav/users");
-            list.add("/caldav/staff");
-            return list;
+            if( res instanceof CalDavPrincipal) {
+                return ((CalDavPrincipal)res).getCalendarUserAddressSet();
+            } else {
+                throw new RuntimeException("Not a supported class: " + res.getClass());
+            }
         }
 
         public Class<HrefList> getValueClass() {
@@ -236,7 +249,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("http://localhost:7080/scheduleInBoxUrl");
+            if( res instanceof CalDavPrincipal) {
+                String s = ((CalDavPrincipal)res).getScheduleInboxUrl();
+                return new WrappedHref(s);
+            } else {
+                throw new RuntimeException("Not a supported class: " + res.getClass());
+            }
         }
 
         public Class<WrappedHref> getValueClass() {
@@ -256,7 +274,13 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("http://localhost:7080/scheduleOutBoxUrl");
+            if( res instanceof CalDavPrincipal) {
+                String s = ((CalDavPrincipal)res).getScheduleOutboxUrl();
+                return new WrappedHref(s);
+            } else {
+                throw new RuntimeException("Not a supported class: " + res.getClass());
+            }
+
         }
 
         public Class<WrappedHref> getValueClass() {
@@ -276,7 +300,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public WrappedHref getValue( PropFindableResource res ) {
-            return new WrappedHref("http://localhost:7080/dropBoxHomeUrl");
+            if( res instanceof CalDavPrincipal) {
+                String s = ((CalDavPrincipal)res).getDropBoxUrl();
+                return new WrappedHref(s);
+            } else {
+                throw new RuntimeException("Not a supported class: " + res.getClass());
+            }
         }
 
         public Class<WrappedHref> getValueClass() {

@@ -3,6 +3,8 @@ package com.ettrema.http.caldav;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.webdav.ResourceTypeHelper;
 import com.ettrema.http.CalendarResource;
+import com.ettrema.http.SchedulingInboxResource;
+import com.ettrema.http.SchedulingOutboxResource;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
@@ -38,11 +40,23 @@ public class CalendarResourceTypeHelper implements ResourceTypeHelper {
         return list;
     }
 
+    /**
+     * 
+     *
+     * @param r
+     * @return
+     */
     public List<String> getSupportedLevels( Resource r ) {
         log.debug( "getSupportedLevels" );
         List<String> list = wrapped.getSupportedLevels( r );
         if( r instanceof CalendarResource ) {
             list.add( "calendar-access" );
+        }
+        if( r instanceof SchedulingInboxResource) {
+            list.add( "schedule-inbox" );
+        }
+        if( r instanceof SchedulingOutboxResource) {
+            list.add( "schedule-outbox" );
         }
         return list;
     }

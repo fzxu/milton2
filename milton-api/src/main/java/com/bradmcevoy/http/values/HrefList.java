@@ -10,6 +10,14 @@ import java.util.ArrayList;
  * @author brad
  */
 public class HrefList extends ArrayList<String> {
+
     private static final long serialVersionUID = 1L;
 
+    public static HrefList asList(String... items) {
+        HrefList l = new HrefList();
+        for (String s : items) {
+            l.add(s);
+        }
+        return l;
+    }
 }

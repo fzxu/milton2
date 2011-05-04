@@ -14,134 +14,102 @@ import java.util.Date;
  *
  * @author alex
  */
-public class AbstractResource implements Resource, ReportableResource
-{
+public class AbstractResource implements Resource, ReportableResource {
 
-  private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
-  protected String name;
-  protected String user;
-  protected String password;
-  protected Date modDate;
-  protected Date createdDate;
-  protected TFolderResource parent;
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
+    protected String name;
+    protected String user;
+    protected String password;
+    protected Date modDate;
+    protected Date createdDate;
+    protected TFolderResource parent;
 
-  public AbstractResource(TFolderResource parent, String name)
-  {
-    this.parent = parent;
-    this.name = name;
-    modDate = new Date();
-    createdDate = new Date();
-    if (parent != null)
-    {
-      checkAndRemove(parent, name);
-      parent.children.add(this);
+    public AbstractResource(TFolderResource parent, String name) {
+        this.parent = parent;
+        this.name = name;
+        modDate = new Date();
+        createdDate = new Date();
+        if (parent != null) {
+            checkAndRemove(parent, name);
+            parent.children.add(this);
+        }
     }
-  }
 
-  public Object authenticate(String user, String requestedPassword)
-  {
-    log.debug("authentication: " + user + " - " + requestedPassword + " = " + password);
-    if (this.user == null)
-    {
-      log.debug("no user defined, so allow access");
-      return true;
+    public Object authenticate(String user, String requestedPassword) {
+        log.debug("authentication: " + user + " - " + requestedPassword + " = " + password);
+        if (this.user == null) {
+            log.debug("no user defined, so allow access");
+            return true;
+        }
+        if (!user.equals(this.user)) {
+            return null;
+        }
+        if (password == null) {
+            if (requestedPassword == null || requestedPassword.length() == 0) {
+                return "ok";
+            } else {
+                return null;
+            }
+        } else {
+            if (password.equals(requestedPassword)) {
+                return "ok";
+            } else {
+                return null;
+            }
+        }
     }
-    if (!user.equals(this.user))
-    {
-      return null;
+
+    public Object authenticate(DigestResponse digestRequest) {
+        DigestGenerator dg = new DigestGenerator();
+        String serverResponse = dg.generateDigest(digestRequest, password);
+        String clientResponse = digestRequest.getResponseDigest();
+        log.debug("server resp: " + serverResponse);
+        log.debug("given response: " + clientResponse);
+        if (serverResponse.equals(clientResponse)) {
+            return "ok";
+        } else {
+            return null;
+        }
     }
-    if (password == null)
-    {
-      if (requestedPassword == null || requestedPassword.length() == 0)
-      {
-        return "ok";
-      }
-      else
-      {
+
+    public String getUniqueId() {
+        return this.hashCode() + "";
+    }
+
+    public String checkRedirect(Request request) {
         return null;
-      }
     }
-    else
-    {
-      if (password.equals(requestedPassword))
-      {
-        return "ok";
-      }
-      else
-      {
-        return null;
-      }
+
+    public String getName() {
+        return name;
     }
-  }
 
-  public Object authenticate(DigestResponse digestRequest)
-  {
-    DigestGenerator dg = new DigestGenerator();
-    String serverResponse = dg.generateDigest(digestRequest, password);
-    String clientResponse = digestRequest.getResponseDigest();
-    log.debug("server resp: " + serverResponse);
-    log.debug("given response: " + clientResponse);
-    if (serverResponse.equals(clientResponse))
-    {
-      return "ok";
+    public boolean authorise(Request request, Method method, Auth auth) {
+        log.debug("authorise");
+        if (auth == null) {
+            if (this.user == null) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return this.user == null || auth.getUser().equals(this.user);
+        }
     }
-    else
-    {
-      return null;
+
+    public String getRealm() {
+        return "testrealm@host.com";
     }
-  }
 
-  public String getUniqueId()
-  {
-    return this.hashCode() + "";
-  }
-
-  public String checkRedirect(Request request)
-  {
-    return null;
-  }
-
-  public String getName()
-  {
-    return name;
-  }
-
-  public boolean authorise(Request request, Method method, Auth auth)
-  {
-    log.debug("authorise");
-    if (auth == null)
-    {
-      if (this.user == null)
-      {
-        return true;
-      }
-      else
-      {
-        return false;
-      }
+    public Date getModifiedDate() {
+        return modDate;
     }
-    else
-    {
-      return this.user == null || auth.getUser().equals(this.user);
+
+    private void checkAndRemove(TFolderResource parent, String name) {
+        TResource r = (TResource) parent.child(name);
+        if (r != null) {
+            parent.children.remove(r);
+        }
     }
-  }
 
-  public String getRealm()
-  {
-    return "testrealm@host.com";
-  }
-
-  public Date getModifiedDate()
-  {
-    return modDate;
-  }
-
-  private void checkAndRemove(TFolderResource parent, String name)
-  {
-    TResource r = (TResource) parent.child(name);
-    if (r != null)
-    {
-      parent.children.remove(r);
-    }
-  }
 }

@@ -36,20 +36,13 @@
         <constructor-arg ref="resource.type.helper.caldav"/>
     </bean>
 
-    <!-- The compressing response handler wraps the default response handler and compresses
-    response content. This will only actually perform compression for specific mime types
-    (currently hard coded to text, css and js files) and if the client supports gzip -->
-    <bean id="response.handler.compressing" class="com.bradmcevoy.http.CompressingResponseHandler">
-        <constructor-arg ref="response.handler" />
-    </bean>
-
     <bean id="protocol.http11" class="com.bradmcevoy.http.http11.Http11Protocol">
-        <constructor-arg ref="response.handler.compressing"/>
+        <constructor-arg ref="response.handler"/>
         <constructor-arg ref="handler.helper"/>
     </bean>
 
     <bean id="protocol.webdav" class="com.bradmcevoy.http.webdav.WebDavProtocol">
-        <constructor-arg ref="response.handler.compressing"/>
+        <constructor-arg ref="response.handler"/>
         <constructor-arg ref="handler.helper"/>
         <constructor-arg ref="resource.type.helper.caldav"/>
         <constructor-arg>
@@ -60,7 +53,7 @@
 
     <bean id="protocol.caldav" class="com.ettrema.http.caldav.CalDavProtocol">
         <constructor-arg ref="caldav.demo.resource.factory" />
-        <constructor-arg ref="response.handler.compressing"/>
+        <constructor-arg ref="response.handler"/>
         <constructor-arg ref="handler.helper"/>
         <constructor-arg ref="protocol.webdav"/>
     </bean>
@@ -82,7 +75,7 @@
 
     <bean id="http.manager" class="com.bradmcevoy.http.HttpManager">
         <constructor-arg ref="caldav.demo.resource.factory" />
-        <constructor-arg ref="response.handler.compressing" />
+        <constructor-arg ref="response.handler" />
         <constructor-arg ref="protocol.handlers" />
 
         <property name="filters">
@@ -101,5 +94,34 @@
         <!--
         <constructor-arg value="/test"/>
         -->
+    </bean>
+
+    <!-- This will proxy requests from the local machine to google. This allows
+         us to test against google's caldav while conveniently seeing the output in
+         our own IDE's console
+         -->
+         <!--
+    <bean id="proxy.server" class="com.ettrema.proxy.ProxyLogServer" init-method="start">
+        <property name="targetHost" value="www.google.com"/>
+        <property name="targetPort" value="80"/>
+        <property name="listenPort" value="8080"/>
+        <property name="debug" value="true"/>
+    </bean>
+    -->
+
+    <bean id="cluster.google" class="com.ettrema.berry.ha.FixedCluster">
+        <constructor-arg value="www.google.com" />
+        <constructor-arg value="443" />
+        <property name="secure" value="true"/>
+    </bean>
+
+    <bean id="proxy.task.processor" class="com.ettrema.berry.simple.ReverseProxyTaskProcessor">
+        <constructor-arg ref="cluster.google" />
+    </bean>
+
+    <bean id="simpleton.http.adapter" class="com.ettrema.berry.simple.SimpletonServer" init-method="start">
+        <constructor-arg ref="proxy.task.processor" />
+
+        <property name="httpPort" value="8080"/>
     </bean>
 </beans>

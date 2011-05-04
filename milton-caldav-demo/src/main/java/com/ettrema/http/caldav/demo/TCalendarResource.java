@@ -52,4 +52,9 @@ public class TCalendarResource extends TFolderResource implements CalendarResour
             //return super.createNew( newName, inputStream, length, contentType );
         }
     }
+
+    public String getCalendarDescription() {
+        return "A test calendar";
+    }
+
 }

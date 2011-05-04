@@ -23,10 +23,12 @@ public interface Principal {
     /**
      * Eg
      * <D:href>http://www.example.com/acl/groups/maintainers</D:href>
+     * For a specific user or group
      *
      * or
      *
-     * <D:all/> 
+     * <D:all/>  - for a group which represents all authenticated users, and is defined
+     * by the DAV standard
      *
      */
     public static interface PrincipleId {

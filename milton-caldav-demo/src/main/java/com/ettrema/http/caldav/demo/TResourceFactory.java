@@ -4,15 +4,25 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 
+/**
+ * For iCal, start off by opening a calendar at
+ *
+ * http://localhost:8080/principals/userA/
+ *
+ * @author brad
+ */
 public class TResourceFactory implements ResourceFactory {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TResourceFactory.class );
-    public static final TFolderResource ROOT = new TFolderResource( (TFolderResource) null, "http://localhost:9080" );
+    public static final TFolderResource ROOT = new TFolderResource( (TFolderResource) null, "http://localhost:8080" );
 
     static {
         TFolderResource principals = new TFolderResource( ROOT, "principals" );
         TFolderResource calendarHome = new TFolderResource( ROOT, "calendarHome" );
+
         TCalendarResource calendar = new TCalendarResource( calendarHome, "calendarOne" );
+        TCalDavPrincipal p = new TCalDavPrincipal(principals, "userA", calendarHome, null, null, null);
+        principals.children.add(p);
     }
 
     public Resource getResource( String host, String url ) {

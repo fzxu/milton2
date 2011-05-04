@@ -49,7 +49,8 @@ import org.slf4j.LoggerFactory;
 public class WebDavProtocol implements HttpExtension, PropertySource {
 
     private static final Logger log = LoggerFactory.getLogger( WebDavProtocol.class );
-    public static final NameSpace NS_DAV = new NameSpace( "DAV:", "D" );
+    public static final String DAV_URI = "DAV:";
+    public static final NameSpace NS_DAV = new NameSpace(DAV_URI, "D" );
     private final Set<Handler> handlers;
     private final Map<String, Report> reports;
     private final ResourceTypeHelper resourceTypeHelper;
