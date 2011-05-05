@@ -16,8 +16,10 @@ public class TResourceFactory implements ResourceFactory {
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TResourceFactory.class );
     public static final TFolderResource ROOT = new TFolderResource( (TFolderResource) null, "http://localhost:8080" );
 
+    static TFolderResource users;
+
     static {
-        TFolderResource users = new TFolderResource( ROOT, "users" );        
+        users = new TFolderResource( ROOT, "users" );        
         addUser(users, "userA");
         addUser(users, "userB");
         addUser(users, "userC");
@@ -32,6 +34,19 @@ public class TResourceFactory implements ResourceFactory {
         userA.setCalendarHome(calendars);
         userA.setScheduleInboxResource(scheduleInbox);
         userA.setScheduleOutboxResource(scheduleOutbox);
+    }
+
+    public static TCalDavPrincipal findUser(String name) {
+        if( name.contains("@")) {
+            name = name.substring(0, name.indexOf("@"));
+        }
+        System.out.println("find user:" + name);
+        for(Resource r : users.children) {
+            if( r.getName().equals(name)) {
+                return (TCalDavPrincipal) r;
+            }
+        }
+        return null;
     }
 
     public Resource getResource( String host, String url ) {
@@ -53,10 +68,7 @@ public class TResourceFactory implements ResourceFactory {
             for( Resource rChild : folder.getChildren() ) {
                 Resource r2 = rChild;
                 if( r2.getName().equals( path.getName() ) ) {
-                    log.debug( "RESOURCE FOUND : " + r2.getName() + " - " + path.getName() );
                     return r2;
-                } else {
-                    log.debug( "IS NOT: " + r2.getName() + " - " + path.getName() );
                 }
             }
         }

@@ -14,6 +14,8 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -21,30 +23,29 @@ import java.util.Map;
  */
 public class TScheduleOutboxResource extends TFolderResource implements SchedulingOutboxResource {
 
+    private static final Logger log = LoggerFactory.getLogger(TScheduleOutboxResource.class);
+
     public TScheduleOutboxResource(TFolderResource parent, String name) {
         super(parent, name);
     }
 
     public List<SchedulingResponseItem> queryFreeBusy(String iCalText) {
+        log.info("queryFreeBusy");
         List<SchedulingResponseItem> respItems = new ArrayList<SchedulingResponseItem>();
         try {
             Reader sr = new StringReader(iCalText);
             LineNumberReader r = new LineNumberReader(sr);
             String organiser = "";
-            while (r.ready()) {
-                String line = nextLine(r);
-                if (line.startsWith("ORGANIXER")) {
+            String line = nextLine(r);
+            while (line != null) {
+                if (line.startsWith("ORGANIZER:")) {
                     organiser = line.substring(line.lastIndexOf(":"));
-                    System.out.println("got organiser: " + organiser);
-                }
-                if (line.startsWith("ATTENDEE;")) {
+                } else if (line.startsWith("ATTENDEE:")) {
                     SchedulingResponseItem item = processAttendeeLine(line, organiser);
                     respItems.add(item);
                 }
-
+                line = nextLine(r);
             }
-            System.out.println("finished query");
-            System.out.println("-------------------------------------------");
             return respItems;
         } catch (IOException ex) {
             throw new RuntimeException(ex);
@@ -57,47 +58,48 @@ public class TScheduleOutboxResource extends TFolderResource implements Scheduli
 
     private SchedulingResponseItem processAttendeeLine(String line, String organiser) {
         System.out.println("processAttendeeLine: " + line);
-        String attendee = line.substring(line.lastIndexOf(":"));
-        System.out.println("process user: " + attendee);
+        String attendeeName = line.substring(line.lastIndexOf(":")+1);
+        System.out.println("process user: " + attendeeName);
+        TCalDavPrincipal attendee = TResourceFactory.findUser(attendeeName);
+        if (attendee == null) {
+            return new SchedulingResponseItem(attendeeName, ITip.StatusResponse.RS_INVALID_37, null);
+        } else {
+            String ical = "";
+            ical += "BEGIN:VCALENDAR\n";
+            ical += "VERSION:2.0\n";
+            ical += "PRODID:-//Example Corp.//CalDAV Server//EN\n";
+            ical += "METHOD:REPLY\n";
+            ical += "BEGIN:VFREEBUSY\n";
+            ical += "UID:4FD3AD926350\n";
+            ical += "DTSTAMP:20090602T200733Z\n";
+            ical += "DTSTART:20090602T000000Z\n";
+            ical += "DTEND:20090604T000000Z\n";
+            ical += "ORGANIZER;CN=\"" + organiser + "\":mailto:" + organiser + "\n";  // TODO: should be organiser user
+            ical += "ATTENDEE;CN=\"" + attendeeName + "\":mailto:" + attendeeName + "\n";
+            ical += "FREEBUSY;FBTYPE=BUSY:20090602T110000Z/20090602T120000Z\n";
+            ical += "FREEBUSY;FBTYPE=BUSY:20090603T170000Z/20090603T180000Z\n";
+            ical += "END:VFREEBUSY\n";
+            ical += "END:VCALENDAR\n";
 
-        String ical = "";
-        ical += "BEGIN:VCALENDAR\n";
-        ical += "VERSION:2.0\n";
-        ical += "PRODID:-//Example Corp.//CalDAV Server//EN\n";
-        ical += "METHOD:REPLY\n";
-        ical += "BEGIN:VFREEBUSY\n";
-        ical += "UID:4FD3AD926350\n";
-        ical += "DTSTAMP:20090602T200733Z\n";
-        ical += "DTSTART:20090602T000000Z\n";
-        ical += "DTEND:20090604T000000Z\n";
-        ical += "ORGANIZER;CN=\"" + organiser + "\":mailto:" + organiser + "\n";  // TODO: should be organiser user
-        ical += "ATTENDEE;CN=\"" + attendee + "\":mailto:" + attendee + "\n";
-        ical += "FREEBUSY;FBTYPE=BUSY:20090602T110000Z/20090602T120000Z\n";
-        ical += "FREEBUSY;FBTYPE=BUSY:20090603T170000Z/20090603T180000Z\n";
-        ical += "END:VFREEBUSY\n";
-        ical += "END:VCALENDAR\n";
-
-        return new SchedulingResponseItem(attendee, ITip.StatusResponse.RS_SUCCESS_20, ical);
+            return new SchedulingResponseItem(attendeeName, ITip.StatusResponse.RS_SUCCESS_20, ical);
+        }
     }
 
     private String nextLine(LineNumberReader r) throws IOException {
         String s = r.readLine();
         if (s == null) {
-            return "";
+            return null;
         }
-        System.out.println("line: " + s.length() + " -> " + s);
 
-        int lineNo = r.getLineNumber();
+        r.mark(10000);
         String nextLine = r.readLine();
-        if (nextLine.length() != nextLine.trim().length()) {
-            System.out.println("found white space, so concat with preceding line");
-            s += nextLine.trim();
-            System.out.println("now have: " + s);
-        } else {
-            System.out.println("go back to line: " + lineNo);
-            r.setLineNumber(lineNo); // go back
+        if (nextLine != null) {
+            if (nextLine.length() != nextLine.trim().length()) {
+                s += nextLine.trim();
+            } else {
+                r.reset();
+            }
         }
-
         return s;
     }
 }

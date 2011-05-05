@@ -48,7 +48,6 @@ public class SchedulingCustomPostHandler implements CustomPostHandler {
             pw.print(xml);
             pw.flush();
             response.close();
-            System.out.println("------------------------------------------------------ Finished");
 
 
         } catch (IOException ex) {
