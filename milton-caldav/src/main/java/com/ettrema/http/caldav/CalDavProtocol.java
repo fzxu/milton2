@@ -17,6 +17,7 @@ import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import com.bradmcevoy.property.PropertySource;
+import com.ettrema.http.CalendarCollection;
 import com.ettrema.http.CalendarResource;
 import com.ettrema.http.ICalResource;
 import com.ettrema.http.acl.ACLHandler;
@@ -150,16 +151,16 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
     /*
         <calendar-description xmlns='urn:ietf:params:xml:ns:caldav'/>
      */
-    class CalenderDescriptionProperty implements StandardProperty<CData> {
+    class CalenderDescriptionProperty implements StandardProperty<String> {
 
         public String fieldName() {
             return "calendar-description";
         }
 
-        public CData getValue( PropFindableResource res ) {
+        public String getValue( PropFindableResource res ) {
             if( res instanceof CalendarResource) {
                 CalendarResource ical = (CalendarResource) res;
-                return new CData( ical.getCalendarDescription() ); 
+                return ical.getCalendarDescription(); 
             } else {
                 log.warn( "getValue: not a ICalResource");
                 return null;
@@ -167,8 +168,8 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
 
         }
 
-        public Class<CData> getValueClass() {
-            return CData.class;
+        public Class<String> getValueClass() {
+            return String.class;
         }
     }
 
@@ -413,7 +414,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
 
         public String getValue( PropFindableResource res ) {
-            return res.getUniqueId();
+            if( res instanceof CalendarCollection) {
+                CalendarCollection ccol = (CalendarCollection) res;
+                return ccol.getCTag();
+            } else {
+                return null;
+            }
         }
 
         public Class<String> getValueClass() {

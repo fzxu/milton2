@@ -17,12 +17,18 @@ public class TResourceFactory implements ResourceFactory {
     public static final TFolderResource ROOT = new TFolderResource( (TFolderResource) null, "http://localhost:8080" );
 
     static {
-        TFolderResource principals = new TFolderResource( ROOT, "principals" );
-        TFolderResource calendarHome = new TFolderResource( ROOT, "calendarHome" );
+        TFolderResource users = new TFolderResource( ROOT, "users" );        
 
-        TCalendarResource calendar = new TCalendarResource( calendarHome, "calendarOne" );
-        TCalDavPrincipal p = new TCalDavPrincipal(principals, "userA", calendarHome, null, null, null);
-        principals.children.add(p);
+        
+        TCalDavPrincipal userA = new TCalDavPrincipal(users, "userA", null, null, null, null);
+        TFolderResource calendars = new TFolderResource( userA, "calendars" );        
+        TCalendarResource calendar = new TCalendarResource( calendars, "cal1" );
+        TScheduleInboxResource scheduleInbox = new TScheduleInboxResource(calendars, "inbox");
+        TScheduleOutboxResource scheduleOutbox = new TScheduleOutboxResource(calendars, "outbox");
+
+        userA.setCalendarHome(calendars);
+        userA.setScheduleInboxResource(scheduleInbox);
+        userA.setScheduleOutboxResource(scheduleOutbox);
     }
 
     public Resource getResource( String host, String url ) {

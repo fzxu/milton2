@@ -108,7 +108,7 @@
         <property name="debug" value="true"/>
     </bean>
     -->
-
+<!--
     <bean id="cluster.google" class="com.ettrema.berry.ha.FixedCluster">
         <constructor-arg value="www.google.com" />
         <constructor-arg value="443" />
@@ -120,8 +120,11 @@
     </bean>
 
     <bean id="simpleton.http.adapter" class="com.ettrema.berry.simple.SimpletonServer" init-method="start">
-        <constructor-arg ref="proxy.task.processor" />
+        <constructor-arg value="10" />
+        <constructor-arg value="10" />
+        <constructor-arg ref="response.handler" />
 
         <property name="httpPort" value="8080"/>
     </bean>
+-->
 </beans>

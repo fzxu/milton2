@@ -1,35 +1,54 @@
 package com.ettrema.http.caldav.demo;
 
-import com.bradmcevoy.http.Range;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.HrefList;
 import com.ettrema.http.acl.HrefPrincipleId;
 import com.ettrema.http.caldav.CalDavPrincipal;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Map;
 
 /**
  *
  * @author brad
  */
-public class TCalDavPrincipal extends TResource implements CalDavPrincipal {
+public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal {
 
     private HrefPrincipleId principleId;
     private TFolderResource calendarHome;
     private TScheduleInboxResource scheduleInboxResource;
-    private String scheduleOutboxUrl;
+    private TScheduleOutboxResource scheduleOutboxResource;
     private TFolderResource dropBox;
 
-    public TCalDavPrincipal(TFolderResource parent, String name, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, String scheduleOutboxUrl, TFolderResource dropBox) {
+    public TCalDavPrincipal(TFolderResource parent, String name, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, TScheduleOutboxResource scheduleOutboxResource, TFolderResource dropBox) {
         super(parent, name);
         this.principleId = new HrefPrincipleId(getHref());
         this.calendarHome = calendarHome;
         this.scheduleInboxResource = scheduleInboxResource;
-        this.scheduleOutboxUrl = scheduleOutboxUrl;
+        this.scheduleOutboxResource = scheduleOutboxResource;
         this.dropBox = dropBox;
     }
+
+    public TFolderResource getCalendarHome() {
+        return calendarHome;
+    }
+
+    public void setCalendarHome(TFolderResource calendarHome) {
+        this.calendarHome = calendarHome;
+    }
+
+    public TScheduleInboxResource getScheduleInboxResource() {
+        return scheduleInboxResource;
+    }
+
+    public void setScheduleInboxResource(TScheduleInboxResource scheduleInboxResource) {
+        this.scheduleInboxResource = scheduleInboxResource;
+    }
+
+    public TScheduleOutboxResource getScheduleOutboxResource() {
+        return scheduleOutboxResource;
+    }
+
+    public void setScheduleOutboxResource(TScheduleOutboxResource scheduleOutboxResource) {
+        this.scheduleOutboxResource = scheduleOutboxResource;
+    }
+    
 
     public HrefList getCalendatHomeSet() {
         return HrefList.asList(calendarHome.getHref());
@@ -48,7 +67,12 @@ public class TCalDavPrincipal extends TResource implements CalDavPrincipal {
     }
 
     public String getScheduleOutboxUrl() {
-        return scheduleOutboxUrl;
+        if (scheduleOutboxResource != null) {
+            return scheduleOutboxResource.getHref();
+        } else {
+            return null;
+        }
+
     }
 
     public String getDropBoxUrl() {
@@ -65,14 +89,8 @@ public class TCalDavPrincipal extends TResource implements CalDavPrincipal {
 
     @Override
     protected Object clone(TFolderResource newParent) {
-        return new TCalDavPrincipal(newParent, name, calendarHome, scheduleInboxResource, scheduleOutboxUrl, dropBox);
+        return new TCalDavPrincipal(newParent, name, calendarHome, scheduleInboxResource, scheduleOutboxResource, dropBox);
     }
 
-    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
-    public String getContentType(String accepts) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 }

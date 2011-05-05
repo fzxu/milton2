@@ -26,12 +26,30 @@ public class CalendarResourceTypeHelper implements ResourceTypeHelper {
     }
 
     public List<QName> getResourceTypes( Resource r ) {
-        log.debug( "getResourceTypes" );
+        if( log.isTraceEnabled()) {
+            log.trace( "getResourceTypes:" + r.getClass().getCanonicalName() );
+        }
         List<QName> list = wrapped.getResourceTypes( r );
         if( r instanceof CalendarResource ) {            
             // http://greenbytes.de/tech/webdav/draft-dusseault-caldav-04.html#new-resources
+            log.trace("getResourceTypes: is a calendar");
             QName qn = new QName( CalDavProtocol.CALDAV_NS, "calendar");
-            log.debug( "is a calendar, added: " + qn);
+            if( list == null ) {
+                list = new ArrayList<QName>();
+            }
+            list.add(qn);
+        }
+        if( r instanceof SchedulingInboxResource) {
+            log.trace("getResourceTypes: is a schedule-inbox");
+            QName qn = new QName( CalDavProtocol.CALDAV_NS, "schedule-inbox");
+            if( list == null ) {
+                list = new ArrayList<QName>();
+            }
+            list.add(qn);
+        }
+        if( r instanceof SchedulingOutboxResource) {
+            log.trace("getResourceTypes: is a schedule-outbox");
+            QName qn = new QName( CalDavProtocol.CALDAV_NS, "schedule-outbox");
             if( list == null ) {
                 list = new ArrayList<QName>();
             }
