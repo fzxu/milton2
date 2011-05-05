@@ -6,6 +6,7 @@ import com.bradmcevoy.http.HttpExtension;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.http11.CustomPostHandler;
 import com.bradmcevoy.http.values.WrappedHref;
 import com.bradmcevoy.http.webdav.PropertyMap;
 import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
@@ -75,6 +76,10 @@ public class ACLProtocol implements HttpExtension, PropertySource {
         List<QName> list = new ArrayList<QName>();
         list.addAll( propertyMap.getAllPropertyNames( r ) );
         return list;
+    }
+
+    public List<CustomPostHandler> getCustomPostHandlers() {
+        return null;
     }
 
     class PrincipalUrl implements StandardProperty<String> {

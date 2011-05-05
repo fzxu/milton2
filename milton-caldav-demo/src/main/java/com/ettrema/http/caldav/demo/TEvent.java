@@ -48,16 +48,4 @@ public class TEvent extends TResource implements ICalResource {
     public void setiCalData( String iCalData ) {
         this.iCalData = iCalData;
     }
-
-    public Map<Principal, List<Priviledge>> getAccessControlList() {
-      throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public List<Priviledge> getPriviledges(Auth auth) {
-      throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public void setPriviledges(Principal principal, boolean isGrantOrDeny, List<Priviledge> privs) {
-      throw new UnsupportedOperationException("Not supported yet.");
-    }
 }

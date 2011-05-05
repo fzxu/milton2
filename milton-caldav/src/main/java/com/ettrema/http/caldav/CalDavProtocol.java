@@ -6,6 +6,7 @@ import com.bradmcevoy.http.HttpExtension;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.http11.CustomPostHandler;
 import com.bradmcevoy.http.values.CData;
 import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.http.values.ValueWriters;
@@ -49,6 +50,9 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
     private final PropertyMap propertyMapCalDav;
     private final PropertyMap propertyMapCalServer;
 
+    private final SchedulingCustomPostHandler schedulingCustomPostHandler;
+    private final List<CustomPostHandler> customPostHandlers;    
+
 
     public CalDavProtocol( ResourceFactory resourceFactory, WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, WebDavProtocol webDavProtocol ) {
         propertyMapCalDav = new PropertyMap( CALDAV_NS );
@@ -79,7 +83,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         webDavProtocol.addReport(new ACLPrincipalPropSetReport());
         webDavProtocol.addReport(new PrincipalMatchReport());
         webDavProtocol.addReport(new PrincipalPropertySearchReport());
-        webDavProtocol.addReport(new ExpandPropertyReport());       
+        webDavProtocol.addReport(new ExpandPropertyReport());
+
+        schedulingCustomPostHandler = new SchedulingCustomPostHandler();
+        List<CustomPostHandler> l = new ArrayList<CustomPostHandler>();
+        l.add(schedulingCustomPostHandler);
+        customPostHandlers = Collections.unmodifiableList(l);
     }
 
     public Set<Handler> getHandlers() {
@@ -125,6 +134,10 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         list.addAll( propertyMapCalDav.getAllPropertyNames( r ) );
         list.addAll( propertyMapCalServer.getAllPropertyNames( r ) );
         return list;
+    }
+
+    public List<CustomPostHandler> getCustomPostHandlers() {
+        return customPostHandlers;
     }
 
     class CalendarDataProperty implements StandardProperty<CData> {

@@ -4,6 +4,7 @@ import com.bradmcevoy.http.Handler;
 import com.bradmcevoy.http.HandlerHelper;
 import com.bradmcevoy.http.HttpExtension;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -15,6 +16,8 @@ public class Http11Protocol implements HttpExtension{
     private final Set<Handler> handlers;
 
     private final HandlerHelper handlerHelper;
+
+    private List<CustomPostHandler> customPostHandlers;
 
     public Http11Protocol( Set<Handler> handlers, HandlerHelper handlerHelper ) {
         this.handlers = handlers;
@@ -47,5 +50,9 @@ public class Http11Protocol implements HttpExtension{
 
     public HandlerHelper getHandlerHelper() {
         return handlerHelper;
+    }
+
+    public List<CustomPostHandler> getCustomPostHandlers() {
+        return customPostHandlers;
     }
 }

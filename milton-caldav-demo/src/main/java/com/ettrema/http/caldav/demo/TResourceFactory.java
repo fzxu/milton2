@@ -18,14 +18,17 @@ public class TResourceFactory implements ResourceFactory {
 
     static {
         TFolderResource users = new TFolderResource( ROOT, "users" );        
+        addUser(users, "userA");
+        addUser(users, "userB");
+        addUser(users, "userC");
+    }
 
-        
-        TCalDavPrincipal userA = new TCalDavPrincipal(users, "userA", null, null, null, null);
-        TFolderResource calendars = new TFolderResource( userA, "calendars" );        
-        TCalendarResource calendar = new TCalendarResource( calendars, "cal1" );
+    private static void addUser(TFolderResource users, String name) {
+        TCalDavPrincipal userA = new TCalDavPrincipal(users, name, null, null, null, null);
+        TFolderResource calendars = new TFolderResource(userA, "calendars");
+        TCalendarResource calendar = new TCalendarResource(calendars, "cal1");
         TScheduleInboxResource scheduleInbox = new TScheduleInboxResource(calendars, "inbox");
         TScheduleOutboxResource scheduleOutbox = new TScheduleOutboxResource(calendars, "outbox");
-
         userA.setCalendarHome(calendars);
         userA.setScheduleInboxResource(scheduleInbox);
         userA.setScheduleOutboxResource(scheduleOutbox);
@@ -60,4 +63,6 @@ public class TResourceFactory implements ResourceFactory {
         log.debug( "not found: " + path );
         return null;
     }
+
+
 }

@@ -4,6 +4,7 @@ import com.bradmcevoy.common.NameSpace;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.DateUtils;
 import com.bradmcevoy.http.GetableResource;
+import com.bradmcevoy.http.http11.CustomPostHandler;
 import com.bradmcevoy.property.PropertySource;
 import com.bradmcevoy.http.Handler;
 import com.bradmcevoy.http.HandlerHelper;
@@ -60,6 +61,8 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     private final ETagGenerator eTagGenerator;
     private final HandlerHelper handlerHelper;
     private DisplayNameFormatter displayNameFormatter = new DefaultDisplayNameFormatter();
+
+    private List<CustomPostHandler> customPostHandlers;
     //private DisplayNameFormatter displayNameFormatter = new CdataDisplayNameFormatter( new DefaultDisplayNameFormatter());
 
 //    public WebDavProtocol( Set<Handler> handlers ) {
@@ -146,6 +149,10 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         handlers.add( new ReportHandler( responseHandler, resourceHandlerHelper, reports ) );
     }
 
+    public List<CustomPostHandler> getCustomPostHandlers() {
+        return customPostHandlers;
+    }
+
     public List<PropertySource> getPropertySources() {
         return Collections.unmodifiableList( propertySources );
     }
@@ -162,6 +169,8 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     public Set<Handler> getHandlers() {
         return Collections.unmodifiableSet( handlers );
     }
+
+
 
     /**
      * Used as a marker to generate supported locks element in propfind responses

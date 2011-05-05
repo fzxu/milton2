@@ -3,6 +3,7 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.http11.CustomPostHandler;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
@@ -53,6 +54,8 @@ public class HttpManager {
     private SessionAuthenticationHandler sessionAuthenticationHandler;
     private PropertyAuthoriser propertyPermissionService;
     private EventManager eventManager = new EventManagerImpl();
+
+
 
     /**
      * Creates the manager with a DefaultResponseHandler
@@ -295,5 +298,17 @@ public class HttpManager {
         }
         eventManager.fireEvent(new ResponseEvent(request, response));
 
+    }
+
+    public List<CustomPostHandler> getCustomPostHandlers() {
+        List<CustomPostHandler> list = new ArrayList<CustomPostHandler>();
+        for( HttpExtension p : this.handlers) {
+            if( p.getCustomPostHandlers() != null ) {
+                for(CustomPostHandler h : p.getCustomPostHandlers()) {
+                    list.add(h);
+                }
+            }
+        }
+        return list;
     }
 }

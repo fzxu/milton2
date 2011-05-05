@@ -14,6 +14,7 @@ public class PostHandler implements ExistingEntityHandler {
     private final Http11ResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
+    
 
     public PostHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
@@ -45,6 +46,13 @@ public class PostHandler implements ExistingEntityHandler {
     @Override
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         PostableResource r = (PostableResource) resource;
+        for(CustomPostHandler h : manager.getCustomPostHandlers()) {
+            if(h.supports(resource, request)) {
+                log.trace("Found CustomPostHandler supporting this resource and request");
+                h.process(resource, request, response);
+                return ;
+            }
+        }
         String url = r.processForm( request.getParams(), request.getFiles() );
         if( url != null ) {
             log.debug("redirect: " + url );
@@ -53,5 +61,5 @@ public class PostHandler implements ExistingEntityHandler {
             log.debug("respond with content");
             responseHandler.respondContent( resource, response, request, request.getParams() );
         }
-    }
+    }    
 }
