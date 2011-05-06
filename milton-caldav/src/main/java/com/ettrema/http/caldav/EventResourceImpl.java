@@ -7,11 +7,21 @@ import java.util.Date;
  * @author brad
  */
 public class EventResourceImpl implements EventResource {
-
+    private String uniqueId;
     private Date start;
     private Date end;
     private String summary;
 
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
+    }
+
+    
+    
     public Date getStart() {
         return start;
     }

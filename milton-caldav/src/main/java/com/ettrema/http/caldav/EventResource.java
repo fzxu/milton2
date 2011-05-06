@@ -11,6 +11,8 @@ import java.util.Date;
  */
 public interface EventResource {
 
+    String getUniqueId();
+    
     Date getStart();
 
     void setStart( Date d );
