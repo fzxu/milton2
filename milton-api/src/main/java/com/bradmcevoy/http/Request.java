@@ -73,6 +73,7 @@ public interface Request {
         PROPFIND( "PROPFIND", false ),
         PROPPATCH( "PROPPATCH", true ),
         MKCOL( "MKCOL", true ),
+        MKCALENDAR( "MKCALENDAR", true ),
         COPY( "COPY", true ),
         MOVE( "MOVE", true ),
         LOCK( "LOCK", true ),

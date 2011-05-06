@@ -62,6 +62,10 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     private final HandlerHelper handlerHelper;
     private DisplayNameFormatter displayNameFormatter = new DefaultDisplayNameFormatter();
 
+    private final MkColHandler mkColHandler;
+    private final PropPatchHandler propPatchHandler;
+
+
     private List<CustomPostHandler> customPostHandlers;
     //private DisplayNameFormatter displayNameFormatter = new CdataDisplayNameFormatter( new DefaultDisplayNameFormatter());
 
@@ -137,8 +141,10 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
             patchSetter = new PropertySourcePatchSetter( propertySources, valueWriters );
         }
         handlers.add( new PropFindHandler( resourceHandlerHelper, resourceTypeHelper, responseHandler, propertySources ) );
-        handlers.add( new MkColHandler( responseHandler, handlerHelper ) );
-        handlers.add( new PropPatchHandler( resourceHandlerHelper, responseHandler, patchSetter ) );
+        mkColHandler = new MkColHandler( responseHandler, handlerHelper );
+        handlers.add( mkColHandler );
+        propPatchHandler = new PropPatchHandler( resourceHandlerHelper, responseHandler, patchSetter );
+        handlers.add( propPatchHandler );
         handlers.add( new CopyHandler( responseHandler, handlerHelper, resourceHandlerHelper ) );
         handlers.add( new LockHandler( responseHandler, handlerHelper ) );
         handlers.add( new UnlockHandler( resourceHandlerHelper, responseHandler ) );
@@ -506,4 +512,14 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     public PropertyMap getPropertyMap() {
         return propertyMap;
     }
+
+    public MkColHandler getMkColHandler() {
+        return mkColHandler;
+    }
+
+    public PropPatchHandler getPropPatchHandler() {
+        return propPatchHandler;
+    }
+
+    
 }

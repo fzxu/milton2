@@ -169,28 +169,14 @@ public class PropPatchHandler implements ExistingEntityHandler, PropertyHandler 
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         // todo: check if token header
         try {
-            InputStream in = request.getInputStream();
-            ParseResult parseResult = requestParser.getRequestedFields( in );
+            PropFindResponse resp = doPropPatch( request, resource);
 
-            // Check that the current user has permission to write requested fields
-            Set<QName> allFields = getAllFields( parseResult );
-            if( log.isTraceEnabled() ) {
-                log.trace( "check permissions with: " + permissionService.getClass().getCanonicalName() );
-            }
-            Set<PropertyAuthoriser.CheckResult> errorFields = permissionService.checkPermissions( request, request.getMethod(), PropertyAuthoriser.PropertyPermission.WRITE, allFields, resource );
-            if( errorFields != null && errorFields.size() > 0 ) {
-                log.trace( "authorisation errors" );
-                responseHandler.respondUnauthorised( resource, response, request );
-            } else {
-                String href = request.getAbsoluteUrl();
-                List<PropFindResponse> responses = new ArrayList<PropFindResponse>();
-                PropFindResponse resp = patchSetter.setProperties( href, parseResult, resource );
-                log.trace( "fire event" );
-                manager.getEventManager().fireEvent( new PropPatchEvent( resource, resp ) );
-                responses.add( resp );
-                responseHandler.respondPropFind( responses, response, request, resource );
-
-            }
+            manager.getEventManager().fireEvent( new PropPatchEvent( resource, resp ) );
+            List<PropFindResponse> responses = new ArrayList<PropFindResponse>();
+            responses.add( resp );
+            responseHandler.respondPropFind( responses, response, request, resource );
+        } catch( NotAuthorizedException e ) {
+            responseHandler.respondUnauthorised( resource, response, request );
         } catch( WritingException ex ) {
             throw new RuntimeException( ex );
         } catch( ReadingException ex ) {
@@ -198,6 +184,23 @@ public class PropPatchHandler implements ExistingEntityHandler, PropertyHandler 
         } catch( IOException ex ) {
             throw new RuntimeException( ex );
         }
+    }
+
+    public PropFindResponse doPropPatch(Request request, Resource resource) throws NotAuthorizedException, IOException {
+        InputStream in = request.getInputStream();
+        ParseResult parseResult = requestParser.getRequestedFields(in);
+        // Check that the current user has permission to write requested fields
+        Set<QName> allFields = getAllFields(parseResult);
+        if (log.isTraceEnabled()) {
+            log.trace("check permissions with: " + permissionService.getClass().getCanonicalName());
+        }
+        Set<PropertyAuthoriser.CheckResult> errorFields = permissionService.checkPermissions(request, request.getMethod(), PropertyAuthoriser.PropertyPermission.WRITE, allFields, resource);
+        if (errorFields != null && errorFields.size() > 0) {
+            throw new NotAuthorizedException(resource);
+        }
+        String href = request.getAbsoluteUrl();
+        PropFindResponse resp = patchSetter.setProperties(href, parseResult, resource);
+        return resp;
     }
 
     private Set<QName> getAllFields( ParseResult parseResult ) {

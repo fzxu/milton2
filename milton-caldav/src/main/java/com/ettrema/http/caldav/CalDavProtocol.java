@@ -72,6 +72,8 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
 
         handlers = new HashSet<Handler>();
         handlers.add( new ACLHandler( responseHandler, handlerHelper ) );
+
+        handlers.add(new MkCalendarHandler(webDavProtocol.getMkColHandler(), webDavProtocol.getPropPatchHandler()));
         
         ValueWriters valueWriters = new ValueWriters();
         PropFindXmlGenerator gen = new PropFindXmlGenerator( valueWriters );
