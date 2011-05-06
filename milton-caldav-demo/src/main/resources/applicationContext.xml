@@ -3,9 +3,18 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
            
+<!--
+ * For iCal, start off by opening a calendar at
+ *
+ * http://localhost:8080/users/userA/  - iCal will discover the calendar inside
+ * that user.
+ *
+ * For Mozilla clients (eg thunderbird) connect directory to the calendar url, eg
+ *
+ * http://localhost:8080/users/userA/calendars/cal1/
+ -->
 
-    <bean id="caldav.demo.resource.factory" class="com.ettrema.http.caldav.demo.TResourceFactory">
-    </bean>
+    <bean id="caldav.demo.resource.factory" class="com.ettrema.http.caldav.demo.TResourceFactory"/>
 
     <bean id="resource.type.helper.default" class="com.bradmcevoy.http.webdav.WebDavResourceTypeHelper"/>
 
@@ -96,35 +105,59 @@
         -->
     </bean>
 
-    <!-- This will proxy requests from the local machine to google. This allows
-         us to test against google's caldav while conveniently seeing the output in
-         our own IDE's console
-         -->
-         <!--
-    <bean id="proxy.server" class="com.ettrema.proxy.ProxyLogServer" init-method="start">
-        <property name="targetHost" value="www.google.com"/>
-        <property name="targetPort" value="80"/>
-        <property name="listenPort" value="8080"/>
-        <property name="debug" value="true"/>
-    </bean>
+
+    <!-- EMAIL SERVER IMPLEMENTATION -->
+
+    <!-- Client configuration
+        This doesnt use standard ports to avoid permissions problems on linux
+        POP: 1110
+        MTA: 5587 (for sending SMTP from client apps)
+        SMTP: 2525 (for receiving SMTP from other mail servers)
     -->
-<!--
-    <bean id="cluster.google" class="com.ettrema.berry.ha.FixedCluster">
-        <constructor-arg value="www.google.com" />
-        <constructor-arg value="443" />
-        <property name="secure" value="true"/>
+
+    <!-- The CalDAV demo includes an integrated mail server from the geroa.ettrema.com project
+         This isnt necessary for caldav support (and milton caldav does not depend on it) but is
+         convenient for demonstrating caldav and email integration
+    -->
+    <bean id="mailResourceFactory" class="com.ettrema.http.caldav.demo.TMailResourceFactory">
+        <constructor-arg ref="caldav.demo.resource.factory" />
     </bean>
 
-    <bean id="proxy.task.processor" class="com.ettrema.berry.simple.ReverseProxyTaskProcessor">
-        <constructor-arg ref="cluster.google" />
+
+    <bean id="popServer" class="com.ettrema.mail.pop.MinaPopServer">
+        <constructor-arg value="1110" /> <!-- run on high port so no problems on linux - should be 25 -->
+        <constructor-arg ref="mailResourceFactory" />
+        <constructor-arg >
+            <list />
+        </constructor-arg>
     </bean>
 
-    <bean id="simpleton.http.adapter" class="com.ettrema.berry.simple.SimpletonServer" init-method="start">
-        <constructor-arg value="10" />
-        <constructor-arg value="10" />
-        <constructor-arg ref="response.handler" />
+    <bean id="mailSender" class="com.ettrema.mail.send.AspirinMailSender" />
 
-        <property name="httpPort" value="8080"/>
+    <bean id="smtpServer" class="com.ettrema.mail.receive.SubethaSmtpServer" >
+        <constructor-arg value="2525" /> <!-- run on high port so no problems on linux - should be 25 -->
+        <constructor-arg value="false" /> <!-- do not enable SSL -->
+        <constructor-arg ref="mailResourceFactory" />
+        <constructor-arg > <!-- no filters -->
+            <list />
+        </constructor-arg>
     </bean>
--->
+
+    <!-- The Mail Submission Agent. Runs on port 587-->
+    <bean id="msaSmtpServer" class="com.ettrema.mail.receive.AuthenticatedSmtpServer" >
+        <constructor-arg value="5587" /> <!-- run on high port so no problems on linux - should be 587 -->
+        <constructor-arg value="false" /> <!-- do not enable SSL -->
+        <constructor-arg ref="mailResourceFactory" />
+        <constructor-arg ref="mailSender" />
+        <constructor-arg >
+            <list />
+        </constructor-arg>
+    </bean>
+
+    <bean id="mailServer" class="com.ettrema.mail.MailServer" init-method="start">
+        <constructor-arg ref="mailSender" />
+        <constructor-arg ref="smtpServer" />
+        <constructor-arg ref="popServer" />
+        <constructor-arg ref="msaSmtpServer" />
+    </bean>
 </beans>

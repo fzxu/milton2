@@ -1,6 +1,9 @@
 package com.ettrema.http.report;
 
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 /**
  * Represents a known report type, is delegated to by the ReportHandler
@@ -26,5 +29,5 @@ public interface Report {
      * @param doc
      * @return the response body, usually xml
      */
-    String process(String host, Resource r, org.jdom.Document doc);
+    String process(String host, Resource r, org.jdom.Document doc) throws BadRequestException, ConflictException, NotAuthorizedException;
 }

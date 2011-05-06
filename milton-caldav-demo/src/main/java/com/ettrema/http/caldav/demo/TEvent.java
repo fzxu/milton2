@@ -1,14 +1,11 @@
 package com.ettrema.http.caldav.demo;
 
-import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.ettrema.http.ICalResource;
-import com.ettrema.http.acl.Principal;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,5 @@
 package com.ettrema.http.caldav;
 
-import com.ettrema.http.ICalResource;
 import java.util.Date;
 
 /**
@@ -10,7 +9,7 @@ import java.util.Date;
  *
  * @author brad
  */
-public interface EventResource extends ICalResource {
+public interface EventResource {
 
     Date getStart();
 

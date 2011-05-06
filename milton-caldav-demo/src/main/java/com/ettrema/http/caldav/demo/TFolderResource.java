@@ -91,6 +91,13 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
         pw.print("<html><body>");
         pw.print("<h1>" + this.getName() + "</h1>");
         pw.print("<p>" + this.getClass().getCanonicalName() + "</p>");
+        doBody(pw);
+        pw.print("</body>");
+        pw.print("</html>");
+        pw.flush();
+    }
+
+    protected void doBody(PrintWriter pw) {
         pw.print("<ul>");
         for( Resource r : this.children ) {
             String href = r.getName();
@@ -100,7 +107,6 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
             pw.print("<li><a href='" + href + "'>" + r.getName() + "(" + r.getClass().getCanonicalName() + ")" + "</a></li>");
         }
         pw.print("</ul>");
-        pw.flush();
     }
 
     public String getContentType( String accepts ) {

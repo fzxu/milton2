@@ -3,6 +3,7 @@ package com.ettrema.http;
 import com.bradmcevoy.http.Resource;
 
 /**
+ * Represents a resource which can return an ical textual representation
  *
  * @author brad
  */
@@ -14,10 +15,5 @@ public interface ICalResource extends Resource {
      */
     String getICalData();
 
-//    /**
-//     *
-//     *
-//     * @param s
-//     */
-//    void setICalData(String s);
+
 }

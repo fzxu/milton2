@@ -84,6 +84,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         webDavProtocol.addReport(new PrincipalMatchReport());
         webDavProtocol.addReport(new PrincipalPropertySearchReport());
         webDavProtocol.addReport(new ExpandPropertyReport());
+        webDavProtocol.addReport(new CalendarQueryReport(propertyBuilder, gen));
 
         schedulingCustomPostHandler = new SchedulingCustomPostHandler();
         List<CustomPostHandler> l = new ArrayList<CustomPostHandler>();
@@ -201,7 +202,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
             if( res instanceof CalDavPrincipal) {
                 return ((CalDavPrincipal)res).getCalendatHomeSet();
             } else {
-                throw new RuntimeException("Not a supported class: " + res.getClass());
+                return null;
             }
         }
 
