@@ -78,7 +78,6 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     public void respondNotFound(Response response, Request request) {
         response.setStatus(Response.Status.SC_NOT_FOUND);
         response.setContentTypeHeader("text/html");
-        response.setStatus(Response.Status.SC_NOT_FOUND);
         PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
 
         String s = NOT_FOUND_HTML.replace("${url}", request.getAbsolutePath());
@@ -88,16 +87,18 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
     public void respondUnauthorised(Resource resource, Response response, Request request) {
+        log.trace("respondUnauthorised");
         response.setStatus(Response.Status.SC_UNAUTHORIZED);
         List<String> challenges = authenticationService.getChallenges(resource, request);
         response.setAuthenticateHeader(challenges);
 
-        PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
-
-        // http://jira.ettrema.com:8080/browse/MIL-39
-        String s = NOT_AUTHORISED_HTML.replace("${url}", request.getAbsolutePath());
-        pw.print(s);
-        pw.flush();
+//        PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
+//
+//        // http://jira.ettrema.com:8080/browse/MIL-39
+//        String s = NOT_AUTHORISED_HTML.replace("${url}", request.getAbsolutePath());
+//        response.setContentLengthHeader((long)s.length());
+//        pw.print(s);
+//        pw.flush();
 
     }
 
@@ -144,8 +145,11 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         if (redirectUrl == null) {
             throw new NullPointerException("redirectUrl cannot be null");
         }
-        response.setStatus(Response.Status.SC_MOVED_TEMPORARILY);
-        response.setLocationHeader(redirectUrl);
+        log.trace("respondRedirect");
+        // delegate to the response, because this can be server dependent
+        response.sendRedirect(redirectUrl);
+//        response.setStatus(Response.Status.SC_MOVED_TEMPORARILY);
+//        response.setLocationHeader(redirectUrl);
     }
 
     public void respondExpectationFailed(Response response, Request request) {

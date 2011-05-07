@@ -135,16 +135,17 @@ public abstract class AbstractResponse implements Response {
         setResponseHeader(Header.DAV, supportedLevels);
     }
 
-    public void setVaryHeader( String value ) {
-        setResponseHeader( Header.VARY, value);
+    public void setVaryHeader(String value) {
+        setResponseHeader(Header.VARY, value);
     }
-
-
 
     public void close() {
     }
 
     public void sendRedirect(String url) {
+        if (log.isTraceEnabled()) {
+            log.trace("sendRedirect: " + url);
+        }
         setStatus(Response.Status.SC_MOVED_TEMPORARILY);
         setLocationHeader(url);
     }

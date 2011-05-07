@@ -8,6 +8,7 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.DeletableResource;
+import com.bradmcevoy.http.DigestResource;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockResult;
@@ -21,11 +22,13 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.http11.auth.DigestGenerator;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 
 public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource,
     CopyableResource, PropPatchableResource, LockableResource
-//    , DigestResource
+    , DigestResource
 {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger( TResource.class );
@@ -102,26 +105,32 @@ public abstract class TResource implements GetableResource, PropFindableResource
         log.debug( "authentication: " + user + " - " + requestedPassword + " = " + password );
         return "ok";
     }
-//
-//    public Object authenticate( DigestResponse digestRequest ) {
-//        if( this.user == null ) {
-//            log.debug( "no user defined, so allow access" );
-//            return "ok";
-//        }
-//
-//        DigestGenerator dg = new DigestGenerator();
-//        String serverResponse = dg.generateDigest( digestRequest, password );
-//        String clientResponse = digestRequest.getResponseDigest();
-//
-//        log.debug( "server resp: " + serverResponse );
-//        log.debug( "given response: " + clientResponse );
-//
-//        if( serverResponse.equals( clientResponse ) ) {
-//            return "ok";
-//        } else {
-//            return null;
-//        }
-//    }
+
+    public Object authenticate( DigestResponse digestRequest ) {
+        if( this.user == null ) {
+            log.debug( "no user defined, so allow access" );
+            return "ok";
+        }
+
+        DigestGenerator dg = new DigestGenerator();
+        String serverResponse = dg.generateDigest( digestRequest, password );
+        String clientResponse = digestRequest.getResponseDigest();
+
+        log.debug( "server resp: " + serverResponse );
+        log.debug( "given response: " + clientResponse );
+
+        if( serverResponse.equals( clientResponse ) ) {
+            return "ok";  // return any non-null value to indicate success. Normally this will be a user object
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isDigestAllowed() {
+        return true;
+    }
+    
+    
 
     public boolean authorise( Request request, Method method, Auth auth ) {
         log.debug( "authorise" );

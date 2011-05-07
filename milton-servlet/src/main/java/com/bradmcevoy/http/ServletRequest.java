@@ -85,7 +85,6 @@ public class ServletRequest extends AbstractRequest {
         }
         String enc = getRequestHeader(Request.Header.AUTHORIZATION);
         if (enc == null) {
-            log.trace("authorization header is null");
             return null;
         }
         if (enc.length() == 0) {

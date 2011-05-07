@@ -43,7 +43,13 @@ public class File extends Resource {
         if (!destFolder.exists()) {
             throw new FileNotFoundException(destFolder.getAbsolutePath());
         }
-        java.io.File dest = new java.io.File(destFolder, name);
+        java.io.File dest;
+        if( destFolder.isFile()) {
+            // not actually a folder
+            dest = destFolder;
+        } else {
+            dest = new java.io.File(destFolder, name);
+        }
         return downloadToFile(dest, listener);
     }
 
