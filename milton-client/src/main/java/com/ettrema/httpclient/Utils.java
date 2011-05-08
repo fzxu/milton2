@@ -69,6 +69,8 @@ public class Utils {
                     throw new NotFoundException(result, href);
                 case 405:
                     throw new MethodNotAllowedException(result, href);
+                case 409:
+                    throw new ConflictException(result, href);
                 default:
                     throw new GenericHttpException(result, href);
             }

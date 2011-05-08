@@ -181,22 +181,37 @@ public class Folder extends Resource {
     public Folder createFolder(String name) throws IOException, HttpException {
         children(); // ensure children are loaded
         String newUri = href() + name;
-        int result = host().doMkCol(newUri);
-        if (result == 409) {
-            // folder probably exists, so flush children
-            this.flush();
-            Resource child = this.child(name);
-            if (child instanceof Folder) {
-                return (Folder) child;
-            } else {
-                throw new GenericHttpException(result, newUri);
-            }
-        } else {
+        try {
+            host().doMkCol(newUri);
             Folder child = new Folder(this, name);
             this.children.add(child);
             notifyOnChildAdded(child);
             return child;
+        } catch (ConflictException e) {
+            return handlerCreateFolderException(newUri, name);
+        } catch (MethodNotAllowedException e) {
+            return handlerCreateFolderException(newUri, name);
         }
+    }
+    
+    private Folder handlerCreateFolderException(String newUri, String name) throws IOException, HttpException {
+            // folder probably exists, so flush children
+            System.out.println("-----------------------------------------");
+            System.out.println("MKCOL method not allowed on : " + newUri);
+            this.flush();
+            Resource child = this.child(name);
+            if (child instanceof Folder) {
+                Folder fChild = (Folder) child;
+                return fChild;
+            } else {
+                if (child == null) {
+                    log.error("Couldnt create remote collection");                    
+                } else {
+                    log.error("Remote resource exists and is not a collection");
+                }
+                throw new GenericHttpException(405, newUri);
+            }
+        
     }
 
     public Resource child(String childName) throws IOException, HttpException {

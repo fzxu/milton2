@@ -9,6 +9,8 @@ import com.bradmcevoy.http.*;
  */
 public class ConflictException extends MiltonException {
 
+     private final String message;
+    
     /**
      * The resource idenfitied by the URI.
      *
@@ -16,6 +18,22 @@ public class ConflictException extends MiltonException {
      */
     public ConflictException(Resource r) {
         super(r);
+        this.message = "Conflict exception: " + r.getName();
     }
+    
+    public ConflictException(Resource r, String message) {
+        super(r);
+        this.message = message;
+    }
+
+    @Override
+    public String getMessage() {
+        return super.getMessage();
+    }
+    
+    
+    
+    
+    
 
 }

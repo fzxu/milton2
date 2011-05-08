@@ -117,6 +117,7 @@ public class MkColHandler implements Handler {
             log.warn("item already exists: " + existingChild.getName());
             //throw new ConflictException( existingChild );
             // See http://www.ettrema.com:8080/browse/MIL-86
+            // 405 (Method Not Allowed) - MKCOL can only be executed on a deleted/non-existent resource.
             responseHandler.respondMethodNotAllowed(existingChild, response, request);
             return;
         }
