@@ -115,19 +115,14 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
 
     public String getCTag() {
         int x = this.hashCode();
-        System.out.println("start X=" + x);
         for(Resource r : this.children) {
             if( r instanceof TFolderResource) {
                 TFolderResource tfr = (TFolderResource) r;
                 x = x ^ tfr.getCTag().hashCode();
-                System.out.println("  with tfr");
             } else {
                 x = x ^ r.getUniqueId().hashCode();
-                System.out.println(" with non tfr");
             }
-            System.out.println("  == " + x);
         }
-        System.out.println("getCTag: " + x);
         return "c" + x;
     }
 }
