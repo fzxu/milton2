@@ -234,7 +234,7 @@ public class HttpManager {
 
     public void setFilters(List<Filter> filters) {
         this.filters = filters;
-        filters.add(new StandardFilter());
+        filters.add(createStandardFilter());
     }
 
     public void setEventListeners(List<EventListener> eventListeners) {
