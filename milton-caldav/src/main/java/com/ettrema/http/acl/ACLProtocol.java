@@ -7,6 +7,7 @@ import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.http11.CustomPostHandler;
+import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.http.values.WrappedHref;
 import com.bradmcevoy.http.webdav.PropertyMap;
 import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
@@ -89,7 +90,6 @@ public class ACLProtocol implements HttpExtension, PropertySource {
         }
 
         public String getValue( PropFindableResource res ) {
-            // TODO: should be the owner of 'res'
             if( res instanceof AccessControlledResource ) {
                 AccessControlledResource acr = (AccessControlledResource) res;
                 return acr.getPrincipalURL();
@@ -109,20 +109,24 @@ public class ACLProtocol implements HttpExtension, PropertySource {
           <href>/principals/</href>
         </principal-collection-set>
      */
-    class PrincipalCollectionSetProperty implements StandardProperty<WrappedHref> {
+    class PrincipalCollectionSetProperty implements StandardProperty<HrefList> {
 
         public String fieldName() {
             return "principal-collection-set";
         }
 
-        public WrappedHref getValue( PropFindableResource res ) {
-            WrappedHref wrappedHref = new WrappedHref("/principals");
-            log.error("HREF : "+wrappedHref.getValue());
-            return wrappedHref;
+        public HrefList getValue( PropFindableResource res ) {
+            if( res instanceof AccessControlledResource ) {
+                AccessControlledResource acr = (AccessControlledResource) res;
+                return acr.getPrincipalCollectionHrefs();
+            } else {
+                return null;
+            }
+
         }
 
-        public Class<WrappedHref> getValueClass() {
-            return WrappedHref.class;
+        public Class<HrefList> getValueClass() {
+            return HrefList.class;
         }
     }
 

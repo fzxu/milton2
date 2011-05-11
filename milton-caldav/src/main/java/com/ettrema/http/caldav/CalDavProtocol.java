@@ -331,6 +331,9 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
     }
 
     /*
+     * I think this property probably isnt necessary, but will wait until things
+     * are stable.
+     *
         <xmpp-uri xmlns='http://calendarserver.org/ns/'/>
      */
     class XMPPProperty implements StandardProperty<String> {

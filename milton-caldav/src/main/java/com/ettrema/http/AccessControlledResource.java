@@ -2,6 +2,7 @@ package com.ettrema.http;
 
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.values.HrefList;
 import com.ettrema.http.acl.Principal;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,7 @@ Content-Length: xxx
  */
 public interface AccessControlledResource extends Resource{
 
+
     public enum Priviledge {
         READ,
         WRITE,
@@ -101,4 +103,18 @@ public interface AccessControlledResource extends Resource{
      */
     void setPriviledges(Principal principal, boolean isGrantOrDeny, List<Priviledge> privs);
 
+
+    /**
+     * Return the hrefs (either fully qualified URLs or absolute paths) to the
+     * collections which contain principals. This is to allow user agents to
+     * display a list of users to display.
+     *
+     * Most implementations will only have a single value which will be the path to
+     * the users folder. Eg:
+     *
+     * return Arrays.asList("/users/");
+     *
+     * @return - a list of hrefs
+     */
+    HrefList getPrincipalCollectionHrefs();
 }
