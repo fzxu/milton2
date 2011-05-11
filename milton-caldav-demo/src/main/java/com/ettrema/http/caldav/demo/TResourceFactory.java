@@ -3,6 +3,8 @@ package com.ettrema.http.caldav.demo;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.values.HrefList;
+import java.util.Arrays;
 
 /**
  * For iCal, start off by opening a calendar at
@@ -52,6 +54,12 @@ public class TResourceFactory implements ResourceFactory {
             }
         }
         return null;
+    }
+
+    static HrefList getPrincipalCollectionHrefs() {
+        HrefList list = new HrefList();
+        list.add("/users");
+        return list;
     }
 
     public Resource getResource( String host, String url ) {

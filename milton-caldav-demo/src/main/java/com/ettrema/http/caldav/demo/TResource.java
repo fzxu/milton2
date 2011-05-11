@@ -15,6 +15,7 @@ import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.values.HrefList;
 import com.ettrema.http.AccessControlledResource;
 import com.ettrema.http.acl.Principal;
 import java.io.PrintWriter;
@@ -38,6 +39,11 @@ public abstract class TResource extends AbstractResource implements GetableResou
     public String getPrincipalURL() {
         return user;
     }
+
+    public HrefList getPrincipalCollectionHrefs() {
+        return TResourceFactory.getPrincipalCollectionHrefs();
+    }
+
 
     public void setSecure( String user, String password ) {
         this.user = user;
@@ -169,4 +175,6 @@ public abstract class TResource extends AbstractResource implements GetableResou
     public void setPriviledges(Principal principal, boolean isGrantOrDeny, List<Priviledge> privs) {
       throw new UnsupportedOperationException("Not supported yet.");
     }
+
+
 }

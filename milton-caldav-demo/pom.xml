@@ -97,11 +97,6 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>milton-proxy</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>berry-server</artifactId>
             <version>1.4-SNAPSHOT</version>
         </dependency>
