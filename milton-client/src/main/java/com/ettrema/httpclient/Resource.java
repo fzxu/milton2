@@ -70,7 +70,7 @@ public abstract class Resource {
     private final Long crc;
     final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
 
-    public abstract java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException;
+    public abstract java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException, Utils.CancelledException;
 
     /**
      *  Special constructor for Host

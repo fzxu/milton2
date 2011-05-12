@@ -39,7 +39,7 @@ public class File extends Resource {
     }
 
 
-    public java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {
+    public java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException, CancelledException {
         if (!destFolder.exists()) {
             throw new FileNotFoundException(destFolder.getAbsolutePath());
         }

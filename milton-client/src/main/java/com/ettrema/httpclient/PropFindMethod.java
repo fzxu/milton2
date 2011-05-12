@@ -13,6 +13,8 @@ import org.apache.commons.io.IOUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
+import org.dom4j.Namespace;
+import org.dom4j.QName;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,9 @@ import org.slf4j.LoggerFactory;
 public class PropFindMethod extends EntityEnclosingMethod {
 
     private static final Logger log = LoggerFactory.getLogger( PropFindMethod.class );
+    
+    private static final Namespace NS_CLYDE = new Namespace("ns1", "clyde");
+    private static final QName QNAME_CRC = new QName("crc",  NS_CLYDE);
 
     public PropFindMethod( String uri ) {
         super( uri );
@@ -126,7 +131,7 @@ public class PropFindMethod extends EntityEnclosingMethod {
             contentLength = RespUtils.asLong( el, "getcontentlength" );
             quotaAvailableBytes = RespUtils.asLong( el, "quota-available-bytes" );
             quotaUsedBytes = RespUtils.asLong( el, "quota-used-bytes" );
-            crc = RespUtils.asLong( el, "crc" );
+            crc = RespUtils.asLong( el, QNAME_CRC );
             isCollection = RespUtils.hasChild( el.element( "resourcetype" ), "collection" );
         }
     }
