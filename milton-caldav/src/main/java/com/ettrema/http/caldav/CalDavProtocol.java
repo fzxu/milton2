@@ -154,7 +154,6 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
                 ICalResource ical = (ICalResource) res;
                 return new CData( ical.getICalData() );
             } else {
-                log.warn( "getValue: not a ICalResource");
                 return null;
             }
         }
