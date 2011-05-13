@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,12 +167,24 @@ public class BufferingOutputStream extends OutputStream {
 
     @Override
     protected void finalize() throws Throwable {
+        deleteTempFileIfExists();
+        super.finalize();
+    }
+
+    public void deleteTempFileIfExists() {
+        if( bufOut != null ) {
+            IOUtils.closeQuietly(bufOut);
+        }
+        if( fout != null ) {
+            IOUtils.closeQuietly(fout);
+        }
+
         if( tempFile != null && tempFile.exists() ) {
             log.error( "temporary file was not deleted. Was close called on the inputstream? Will attempt to delete" );
             if( !tempFile.delete() ) {
                 log.error( "Still couldnt delete temporary file: " + tempFile.getAbsolutePath() );
             }
         }
-        super.finalize();
+
     }
 }

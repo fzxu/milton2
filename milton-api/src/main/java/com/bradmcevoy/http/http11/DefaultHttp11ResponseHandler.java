@@ -18,6 +18,8 @@ import com.bradmcevoy.io.BufferingOutputStream;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
+import java.io.InputStream;
+import org.apache.commons.io.IOUtils;
 
 /**
  *
@@ -219,6 +221,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
                     ((GetableResource) resource).sendContent(tempOut, null, params, ct);
                     tempOut.close();
                 } catch (IOException ex) {
+                    tempOut.deleteTempFileIfExists();
                     throw new RuntimeException("Exception generating buffered content", ex);
                 }
                 Long bufContentLength = tempOut.getSize();
@@ -229,12 +232,15 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
                 }
                 log.trace("sending buffered content...");
                 response.setContentLengthHeader(bufContentLength);
+                InputStream in = tempOut.getInputStream();
                 try {
-                    StreamUtils.readTo(tempOut.getInputStream(), response.getOutputStream());
+                    StreamUtils.readTo(in, response.getOutputStream());
                 } catch (ReadingException ex) {
                     throw new RuntimeException(ex);
                 } catch (WritingException ex) {
                     log.warn("exception writing, client probably closed connection", ex);
+                } finally {
+                    IOUtils.closeQuietly(in); // make sure we close to delete temporary file
                 }
                 return;
 

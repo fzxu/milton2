@@ -18,7 +18,9 @@ import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
+import java.io.InputStream;
 import java.util.Date;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Response Handler which wraps another, and compresses content if appropriate
@@ -77,6 +79,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                     gzipOut.close();
                     tempOut.flush();
                 } catch( Exception ex ) {
+                    tempOut.deleteTempFileIfExists();
                     throw new RuntimeException( ex );
                 } finally {
                     FileUtils.close( tempOut );
@@ -90,12 +93,15 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 response.setContentLengthHeader( contentLength );
                 response.setContentTypeHeader( contentType );
                 cacheControlHelper.setCacheControl( r, response, request.getAuthorization() );
+                InputStream in = tempOut.getInputStream();
                 try {
-                    StreamUtils.readTo( tempOut.getInputStream(), response.getOutputStream() );
+                    StreamUtils.readTo( in, response.getOutputStream() );
                 } catch( ReadingException ex ) {
                     throw new RuntimeException( ex );
                 } catch( WritingException ex ) {
                     log.warn( "exception writing, client probably closed connection", ex );
+                } finally {
+                    IOUtils.closeQuietly(in);
                 }
                 return;
             } else {
