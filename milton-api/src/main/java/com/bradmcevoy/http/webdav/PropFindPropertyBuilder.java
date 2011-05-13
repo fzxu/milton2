@@ -96,12 +96,15 @@ public class PropFindPropertyBuilder {
         }
     }
 
-    private void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropFindRequestFieldParser.ParseResult parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) {
+    public void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropFindRequestFieldParser.ParseResult parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) {
         collectionHref = suffixSlash(resource, collectionHref);
         final LinkedHashMap<QName, ValueAndType> knownProperties = new LinkedHashMap<QName, ValueAndType>();
         final ArrayList<NameAndError> unknownProperties = new ArrayList<NameAndError>();
 
+        System.out.println("processResource: " + href);
+
         if (resource instanceof CollectionResource) {
+            System.out.println(" is a collection! " + resource.getClass());
             if (!href.endsWith("/")) {
                 href = href + "/";
             }

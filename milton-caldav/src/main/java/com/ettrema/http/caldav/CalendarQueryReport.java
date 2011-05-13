@@ -4,7 +4,6 @@ import com.bradmcevoy.http.DateUtils;
 import com.bradmcevoy.http.DateUtils.DateParseException;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindRequestFieldParser;
@@ -67,7 +66,13 @@ public class CalendarQueryReport implements Report {
             String parentHref = HttpManager.request().getAbsolutePath();
             for(ICalResource cr : foundResources) {
                 String href = parentHref + cr.getName();
-                respProps.addAll(propertyBuilder.buildProperties(calendar, 0, parseResult, href));
+                System.out.println("calquery: href: " + href);
+                //List<PropFindResponse> resps = propertyBuilder.buildProperties(calendar, 0, parseResult, href);
+
+                List<PropFindResponse> resps = new ArrayList<PropFindResponse>();
+                propertyBuilder.processResource(resps, cr, parseResult, href, 0, 0, href);
+                
+                respProps.addAll(resps);
             }
         } else {
             throw new BadRequestException(resource, "Resource is not a " + CalendarResource.class.getCanonicalName() + " is a: " + resource.getClass() );
