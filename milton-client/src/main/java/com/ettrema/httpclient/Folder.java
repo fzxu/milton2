@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +20,7 @@ public class Folder extends Resource {
 
     private static final Logger log = LoggerFactory.getLogger(Folder.class);
     private boolean childrenLoaded = false;
-    private final List<Resource> children = new CopyOnWriteArrayList<Resource>();
+    private final SoftReferenceBag<Resource> children = new SoftReferenceBag<Resource>();
     final List<FolderListener> folderListeners = new ArrayList<FolderListener>();
 
     /**
@@ -71,7 +70,19 @@ public class Folder extends Resource {
 //        children();
     }
 
-    public List<? extends Resource> children() throws IOException, HttpException {
+    public boolean hasChildren() throws IOException, HttpException {
+        children(); // ensure loaded
+        return !children.isEmpty();
+    }
+
+    public int numChildren() throws IOException, HttpException {
+        children(); // ensure loaded
+        return children.size();
+    }
+
+
+
+    public Iterable<? extends Resource> children() throws IOException, HttpException {
         if (childrenLoaded) {
             return children;
         }
@@ -100,6 +111,16 @@ public class Folder extends Resource {
             log.trace("null responses");
         }
         return children;
+    }
+
+    public Resource getChild(int num) throws IOException, HttpException {
+        int x = 0;
+        for(Resource r : children()) {
+            if( x++ == num ) {
+                return r;
+            }
+        }
+        return null;
     }
 
     public void removeListener(FolderListener folderListener) {
