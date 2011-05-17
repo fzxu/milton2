@@ -1,5 +1,6 @@
 package com.ettrema.httpclient;
 
+import com.ettrema.cache.Cache;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,23 +20,34 @@ import org.slf4j.LoggerFactory;
 public class Folder extends Resource {
 
     private static final Logger log = LoggerFactory.getLogger(Folder.class);
-    private boolean childrenLoaded = false;
-    private final SoftReferenceBag<Resource> children = new SoftReferenceBag<Resource>();
     final List<FolderListener> folderListeners = new ArrayList<FolderListener>();
+    protected final Cache<Folder, List<Resource>> cache;
 
     /**
      *  Special constructor for Host
      */
-    Folder() {
+    Folder(Cache<Folder, List<Resource>> cache) {
         super();
+        this.cache = cache;
+        if( this.cache == null ) {
+            throw new IllegalArgumentException("cache cannot be null");
+        }
     }
 
-    public Folder(Folder parent, Response resp) {
+    public Folder(Folder parent, Response resp, Cache<Folder, List<Resource>> cache) {
         super(parent, resp);
+        this.cache = cache;
+        if( this.cache == null ) {
+            throw new IllegalArgumentException("cache cannot be null");
+        }
     }
 
-    public Folder(Folder parent, String name) {
+    public Folder(Folder parent, String name, Cache<Folder, List<Resource>> cache) {
         super(parent, name);
+        this.cache = cache;
+        if( this.cache == null ) {
+            throw new IllegalArgumentException("cache cannot be null");
+        }
     }
 
     public void addListener(FolderListener l) throws IOException, HttpException {
@@ -59,64 +71,55 @@ public class Folder extends Resource {
     }
 
     public void flush() throws IOException {
-        if (children != null) {
-            log.trace("flush: " + this.name);
-            for (Resource r : children) {
-                notifyOnChildRemoved(r);
-            }
-            children.clear();
-            childrenLoaded = false;
-        }
-//        children();
+        cache.remove(this);
     }
 
     public boolean hasChildren() throws IOException, HttpException {
-        children(); // ensure loaded
-        return !children.isEmpty();
+        return !children().isEmpty();
     }
 
     public int numChildren() throws IOException, HttpException {
-        children(); // ensure loaded
-        return children.size();
+        return children().size();
     }
 
-
-
-    public Iterable<? extends Resource> children() throws IOException, HttpException {
-        if (childrenLoaded) {
-            return children;
-        }
-
-        String href = href();
-        if (log.isTraceEnabled()) {
-            log.trace("load children for: " + href);
-        }
-        List<Response> responses = host().doPropFind(href(), 1);
-        childrenLoaded = true;
-        if (responses != null) {
-            for (Response resp : responses) {
-                if (!resp.href.equals(this.href())) {
-                    try {
-                        Resource r = Resource.fromResponse(this, resp);
-                        if (!r.href().equals(this.href())) {
-                            children.add(r);
+    public List<? extends Resource> children() throws IOException, HttpException {
+        List<Resource> children = cache.get(this);
+        if (children == null) {
+            children = new ArrayList<Resource>();
+            String thisHref = href();
+            if (log.isTraceEnabled()) {
+                log.trace("load children for: " + thisHref);
+            }
+            List<Response> responses = host().doPropFind(href(), 1);
+            if (responses != null) {
+                for (Response resp : responses) {
+                    if (!resp.href.equals(this.href())) {
+                        try {
+                            Resource r = Resource.fromResponse(this, resp, cache);
+                            if (!r.href().equals(thisHref)) {
+                                children.add(r);
+                            }
+                            this.notifyOnChildAdded(r);
+                        } catch (Exception e) {
+                            log.error("couldnt process record", e);
                         }
-                        this.notifyOnChildAdded(r);
-                    } catch (Exception e) {
-                        log.error("couldnt process record", e);
                     }
                 }
+            } else {
+                log.trace("null responses");
             }
-        } else {
-            log.trace("null responses");
-        }
+
+            cache.put(this, children);
+            System.out.println("Folder: children: loaded resources: " + Resource.getCount());
+        }       
+
         return children;
     }
 
     public Resource getChild(int num) throws IOException, HttpException {
         int x = 0;
-        for(Resource r : children()) {
-            if( x++ == num ) {
+        for (Resource r : children()) {
+            if (x++ == num) {
                 return r;
             }
         }
@@ -191,10 +194,7 @@ public class Folder extends Resource {
         Utils.processResultCode(result, newUri);
         com.ettrema.httpclient.File child = new com.ettrema.httpclient.File(this, name, contentType, contentLength);
         com.ettrema.httpclient.Resource oldChild = this.child(child.name);
-        if (oldChild != null) {
-            this.children.remove(oldChild);
-        }
-        this.children.add(child);
+        flush();
         notifyOnChildAdded(child);
         return child;
     }
@@ -204,8 +204,8 @@ public class Folder extends Resource {
         String newUri = href() + name;
         try {
             host().doMkCol(newUri);
-            Folder child = new Folder(this, name);
-            this.children.add(child);
+            flush();
+            Folder child = (Folder) child(name);
             notifyOnChildAdded(child);
             return child;
         } catch (ConflictException e) {
@@ -214,25 +214,25 @@ public class Folder extends Resource {
             return handlerCreateFolderException(newUri, name);
         }
     }
-    
+
     private Folder handlerCreateFolderException(String newUri, String name) throws IOException, HttpException {
-            // folder probably exists, so flush children
-            System.out.println("-----------------------------------------");
-            System.out.println("MKCOL method not allowed on : " + newUri);
-            this.flush();
-            Resource child = this.child(name);
-            if (child instanceof Folder) {
-                Folder fChild = (Folder) child;
-                return fChild;
+        // folder probably exists, so flush children
+        System.out.println("-----------------------------------------");
+        System.out.println("MKCOL method not allowed on : " + newUri);
+        this.flush();
+        Resource child = this.child(name);
+        if (child instanceof Folder) {
+            Folder fChild = (Folder) child;
+            return fChild;
+        } else {
+            if (child == null) {
+                log.error("Couldnt create remote collection");
             } else {
-                if (child == null) {
-                    log.error("Couldnt create remote collection");                    
-                } else {
-                    log.error("Remote resource exists and is not a collection");
-                }
-                throw new GenericHttpException(405, newUri);
+                log.error("Remote resource exists and is not a collection");
             }
-        
+            throw new GenericHttpException(405, newUri);
+        }
+
     }
 
     public Resource child(String childName) throws IOException, HttpException {

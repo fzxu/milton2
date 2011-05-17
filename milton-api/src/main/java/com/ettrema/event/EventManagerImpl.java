@@ -1,6 +1,7 @@
 package com.ettrema.event;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ public class EventManagerImpl implements EventManager {
         }
         List<EventListener> list = listenersMap.get( e.getClass() );
         if( list == null ) return;
-        for( EventListener l : list ) {
+        for( EventListener l : Collections.unmodifiableCollection(list) ) {
             if( log.isTraceEnabled() ) {
                 log.trace( "  firing on: " + l.getClass() );
             }

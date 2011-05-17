@@ -2,6 +2,7 @@ package com.ettrema.httpclient;
 
 import com.bradmcevoy.http.DateUtils;
 import com.bradmcevoy.http.DateUtils.DateParseException;
+import com.ettrema.cache.Cache;
 import java.util.ArrayList;
 import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
@@ -23,9 +24,9 @@ public abstract class Resource {
 
     private static final Logger log = LoggerFactory.getLogger(Resource.class);
 
-    static Resource fromResponse(Folder parent, Response resp) {
+    static Resource fromResponse(Folder parent, Response resp, Cache<Folder, List<Resource>> cache) {
         if (resp.isCollection) {
-            return new Folder(parent, resp);
+            return new Folder(parent, resp, cache);
         } else {
             return new com.ettrema.httpclient.File(parent, resp);
         }
@@ -72,6 +73,12 @@ public abstract class Resource {
 
     public abstract java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException, Utils.CancelledException;
 
+    private static long count = 0;
+
+    public static long getCount() {
+        return count;
+    }
+
     /**
      *  Special constructor for Host
      */
@@ -84,9 +91,11 @@ public abstract class Resource {
         quotaAvailableBytes = null;
         quotaUsedBytes = null;
         crc = null;
+        count++;
     }
 
     public Resource(Folder parent, Response resp) {
+        count++;
         try {
             if (parent == null) {
                 throw new NullPointerException("parent");
@@ -121,6 +130,7 @@ public abstract class Resource {
     }
 
     public Resource(Folder parent, String name, String displayName, String href, Date modifiedDate, Date createdDate) {
+        count++;
         if (parent == null) {
             throw new NullPointerException("parent");
         }
@@ -135,6 +145,7 @@ public abstract class Resource {
     }
 
     public Resource(Folder parent, String name) {
+        count++;
         if (parent == null) {
             throw new NullPointerException("parent");
         }
@@ -147,6 +158,14 @@ public abstract class Resource {
         quotaUsedBytes = null;
         crc = null;
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        count--;
+        super.finalize();
+    }
+
+
 
     public void addListener(ResourceListener l) {
         listeners.add(l);

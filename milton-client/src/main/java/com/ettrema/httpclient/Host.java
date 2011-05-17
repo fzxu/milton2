@@ -1,6 +1,8 @@
 package com.ettrema.httpclient;
 
 import com.bradmcevoy.common.Path;
+import com.ettrema.cache.Cache;
+import com.ettrema.cache.MemoryCache;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,15 +67,19 @@ public class Host extends Folder {
     }
 
     public Host(String server, int port, String user, String password, ProxyDetails proxyDetails) {
-        this(server, null, port, user, password, proxyDetails, 30000); // defaul timeout of 30sec
+        this(server, null, port, user, password, proxyDetails, 30000, new MemoryCache<Folder, List<Resource>>("resource-cache-default", 50, 20)); // defaul timeout of 30sec
     }
 
-    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails) {
-        this(server, rootPath, port, user, password, proxyDetails, 30000); // defaul timeout of 30sec
+    public Host(String server, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
+        this(server, null, port, user, password, proxyDetails, 30000, cache); // defaul timeout of 30sec
     }
 
-    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout) {
-        super();
+    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
+        this(server, rootPath, port, user, password, proxyDetails, 30000, cache); // defaul timeout of 30sec
+    }
+
+    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout, Cache<Folder, List<Resource>> cache) {
+        super(cache);
         if (server == null) {
             throw new IllegalArgumentException("host name cannot be null");
         }
@@ -482,7 +488,7 @@ public class Host extends Folder {
         if (remoteParentPath != null) {
             for (String childName : remoteParentPath.getParts()) {
                 if (childName.equals("_code")) {
-                    f = new Folder(f, childName);
+                    f = new Folder(f, childName, cache); 
                 } else {
                     com.ettrema.httpclient.Resource child = f.child(childName);
                     if (child == null) {
