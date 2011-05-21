@@ -194,7 +194,7 @@ public class HostsNode extends AbstractTreeNode {
                 return;
             }
 
-            Host h = new Host(hostName,rootPath, port, username, password, null);
+            Host h = new Host(hostName,rootPath, port, username, password, null, null);
             HostNode hn;
             try {
                 hn = new HostNode(HostsNode.this, h);

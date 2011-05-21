@@ -68,7 +68,7 @@ public class Host extends Folder {
     }
 
     public Host(String server, int port, String user, String password, ProxyDetails proxyDetails) {
-        this(server, null, port, user, password, proxyDetails, 30000, new MemoryCache<Folder, List<Resource>>("resource-cache-default", 50, 20)); // defaul timeout of 30sec
+        this(server, null, port, user, password, proxyDetails, 30000, null);
     }
 
     public Host(String server, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
@@ -80,7 +80,7 @@ public class Host extends Folder {
     }
 
     public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout, Cache<Folder, List<Resource>> cache) {
-        super(cache);
+        super((cache != null ? cache : new MemoryCache<Folder, List<Resource>>("resource-cache-default", 50, 20)));
         if (server == null) {
             throw new IllegalArgumentException("host name cannot be null");
         }
