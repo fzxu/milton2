@@ -30,6 +30,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class Host extends Folder {
     /**
      * time in milliseconds to be used for all timeout parameters
      */
-    public final int timeout;
+    private int timeout;
     final HttpClient client;
     public final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
     private String propFindXml = PROPFIND_XML;
@@ -199,6 +200,9 @@ public class Host extends Folder {
         notifyStartRequest();
         String s = urlEncode(newUri);
         PutMethod p = new PutMethod(s);
+        HttpMethodParams params = new HttpMethodParams();
+        params.setSoTimeout(timeout);
+        p.setParams(params);
         try {
             RequestEntity requestEntity;
             if (contentLength == null) {
@@ -508,5 +512,19 @@ public class Host extends Folder {
             }
         }
         return f;
+    }
+
+    /**
+     * @return the timeout
+     */
+    public int getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * @param timeout the timeout to set
+     */
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 }
