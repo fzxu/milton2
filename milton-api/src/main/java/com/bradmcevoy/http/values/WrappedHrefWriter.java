@@ -17,7 +17,7 @@ public class WrappedHrefWriter  implements ValueWriter {
     public void writeValue( XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes ) {
       writer.open(prefix, localName);
       WrappedHref wrappedHref = (WrappedHref) val;
-      if( wrappedHref.getValue() != null ) {
+      if( wrappedHref != null && wrappedHref.getValue() != null ) {
             //TODO: Replace explicit namespace declaration with reference to constant
             Element hrefEl = writer.begin(WebDavProtocol.NS_DAV.getPrefix(),"href" ).open();
             hrefEl.writeText( wrappedHref.getValue() );

@@ -244,7 +244,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
             if( res instanceof CalDavPrincipal) {
                 return ((CalDavPrincipal)res).getCalendarUserAddressSet();
             } else {
-                throw new RuntimeException("Not a supported class: " + res.getClass());
+                return null;
             }
         }
 
@@ -269,7 +269,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
                 String s = ((CalDavPrincipal)res).getScheduleInboxUrl();
                 return new WrappedHref(s);
             } else {
-                throw new RuntimeException("Not a supported class: " + res.getClass());
+                return null;
             }
         }
 
@@ -294,7 +294,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
                 String s = ((CalDavPrincipal)res).getScheduleOutboxUrl();
                 return new WrappedHref(s);
             } else {
-                throw new RuntimeException("Not a supported class: " + res.getClass());
+                return null;
             }
 
         }
@@ -320,7 +320,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
                 String s = ((CalDavPrincipal)res).getDropBoxUrl();
                 return new WrappedHref(s);
             } else {
-                throw new RuntimeException("Not a supported class: " + res.getClass());
+                return null;
             }
         }
 
