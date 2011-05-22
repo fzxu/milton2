@@ -40,8 +40,20 @@ public class MoveJsonResource extends JsonResource implements PostableResource {
     }
     public String processForm( Map<String, String> parameters, Map<String, FileItem> files ) throws BadRequestException, NotAuthorizedException {
         String dest = parameters.get( "destination");
+        if( dest == null ) {
+            throw new BadRequestException(this, "The destination parameter is null");
+        } else if (dest.trim().length() == 0 ) {
+            throw new BadRequestException(this, "The destination parameter is empty");
+        }
         Path pDest = Path.path( dest );
-        Resource rDestParent = resourceFactory.getResource( host, pDest.getParent().toString());
+        if( pDest == null ) {
+            throw new BadRequestException(this, "Couldnt parse the destination header, returned null from: " + dest);
+        }
+        String parentPath = "/";
+        if( pDest.getParent() != null ) {
+            parentPath = pDest.getParent().toString();
+        }
+        Resource rDestParent = resourceFactory.getResource( host, parentPath);
         if( rDestParent == null ) throw new BadRequestException( wrapped, "The destination parent does not exist");
         if(rDestParent instanceof CollectionResource ) {
             CollectionResource colDestParent = (CollectionResource) rDestParent;
