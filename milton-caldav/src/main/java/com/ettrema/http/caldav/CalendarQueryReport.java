@@ -66,7 +66,6 @@ public class CalendarQueryReport implements Report {
             String parentHref = HttpManager.request().getAbsolutePath();
             for(ICalResource cr : foundResources) {
                 String href = parentHref + cr.getName();
-                System.out.println("calquery: href: " + href);
                 //List<PropFindResponse> resps = propertyBuilder.buildProperties(calendar, 0, parseResult, href);
 
                 List<PropFindResponse> resps = new ArrayList<PropFindResponse>();
