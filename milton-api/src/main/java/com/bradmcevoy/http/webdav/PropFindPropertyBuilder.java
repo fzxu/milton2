@@ -101,10 +101,7 @@ public class PropFindPropertyBuilder {
         final LinkedHashMap<QName, ValueAndType> knownProperties = new LinkedHashMap<QName, ValueAndType>();
         final ArrayList<NameAndError> unknownProperties = new ArrayList<NameAndError>();
 
-        System.out.println("processResource: " + href);
-
         if (resource instanceof CollectionResource) {
-            System.out.println(" is a collection! " + resource.getClass());
             if (!href.endsWith("/")) {
                 href = href + "/";
             }

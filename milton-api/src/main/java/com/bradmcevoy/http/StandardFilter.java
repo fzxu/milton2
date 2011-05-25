@@ -33,10 +33,10 @@ public class StandardFilter implements Filter {
             }
 
         } catch( BadRequestException ex ) {
-            log.warn( "BadRequestException" );
+            log.warn( "BadRequestException: " + ex.getReason() );
             manager.getResponseHandler().respondBadRequest( ex.getResource(), response, request );
         } catch( ConflictException ex ) {
-            log.warn( "conflictException" );
+            log.warn( "conflictException: " + ex.getMessage() );
             manager.getResponseHandler().respondConflict( ex.getResource(), response, request, INTERNAL_SERVER_ERROR_HTML );
         } catch( NotAuthorizedException ex ) {
             log.warn( "NotAuthorizedException" );
