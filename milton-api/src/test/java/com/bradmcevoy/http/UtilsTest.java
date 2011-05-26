@@ -79,4 +79,26 @@ public class UtilsTest extends TestCase {
 
     }
 
+    
+    public void testDecodeHref_DifferentCodes_SameCharacter() {
+        String href = "/%C3%A4";
+        String result = Utils.decodePath( href );
+        showBytes(result);
+        assertEquals( "/ä", result );
+
+//        href = "/%E4";
+//        result = Utils.decodePath( href );
+//        showBytes(result);
+//        assertEquals( "/ä", result );
+    }
+
+    private void showBytes(String result) {
+        System.out.print("ShowBytes: ");
+        for( int i=0; i<result.getBytes().length; i++) {
+            byte b = result.getBytes()[i];
+            System.out.print(" " + b);
+        }
+        System.out.println("");
+    }
+    
 }

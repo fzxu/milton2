@@ -47,7 +47,7 @@ public class CopyHandler implements ExistingEntityHandler {
     public void processExistingResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, BadRequestException, ConflictException {
         CopyableResource r = (CopyableResource) resource;
         String sDest = request.getDestinationHeader();
-//        sDest = HttpManager.decodeUrl(sDest);
+        sDest = HttpManager.decodeUrl(sDest);
         URI destUri = URI.create(sDest);
         sDest = destUri.getPath();
 
