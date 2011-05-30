@@ -103,6 +103,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 } finally {
                     IOUtils.closeQuietly(in);
                 }
+                log.trace("finished sending content");
                 return;
             } else {
                 log.trace( "respondContent: not compressable" );
