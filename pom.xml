@@ -65,7 +65,7 @@
                 </configuration>
             </plugin>
 
-            <!--
+<!--
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -98,7 +98,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
+-->
 
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
@@ -117,12 +117,11 @@
                     <execution>
                         <id>attach-javadocs</id>
                         <goals>
-                            <goal>deploy</goal>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
--->
 
         </plugins>
         <extensions>
