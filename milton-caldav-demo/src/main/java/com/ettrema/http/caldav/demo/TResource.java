@@ -37,7 +37,12 @@ public abstract class TResource extends AbstractResource implements GetableResou
     protected abstract Object clone( TFolderResource newParent );
 
     public String getPrincipalURL() {
-        return user;
+        //return user;
+			if( user != null && user.length() > 0 ) {
+				return TResourceFactory.findUser(user).getHref();
+			} else {
+				return null;
+			}
     }
 
     public HrefList getPrincipalCollectionHrefs() {
