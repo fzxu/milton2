@@ -7,10 +7,10 @@
         <version>1.6.2-SNAPSHOT</version>
     </parent>
     <groupId>com.ettrema</groupId>
-    <artifactId>milton-db-demo</artifactId>
+    <artifactId>milton-sso-demo</artifactId>
     <packaging>war</packaging>
-    <name>milton-db-demo</name>
-    <description>Demonstrates using milton with a transaction database</description>
+    <name>milton-sso-demo</name>
+    <description>Demonstrates using SSO, launching document editing from web pages and custom servlets</description>
     <build>
         <plugins>
             <plugin>
@@ -33,6 +33,11 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>com.ettrema</groupId>
+            <artifactId>milton-filesystem</artifactId>
+            <version>${project.version}</version>
+        </dependency>			
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.5.2</version>
@@ -43,50 +48,14 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.ettrema</groupId>
-            <artifactId>milton-ftp</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>1.1</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring</artifactId>
-            <version>2.5.6</version>
-        </dependency>
-        <dependency>
-            <groupId>hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <version>1.8.0.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate</artifactId>
-            <version>3.2.1.ga</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-annotations</artifactId>
-            <version>3.2.0.ga</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>persistence-api</artifactId>
-            <version>1.0</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>${jdbc.groupId}</groupId>
-            <artifactId>${jdbc.artifactId}</artifactId>
-            <version>${jdbc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>2.1</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.3</version>
         </dependency>
     </dependencies>
 

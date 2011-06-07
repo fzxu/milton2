@@ -27,7 +27,8 @@ import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
 
 public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource,
-    CopyableResource, PropPatchableResource, LockableResource
+    CopyableResource, PropPatchableResource
+//	, LockableResource
     , DigestResource
 {
 
@@ -194,6 +195,7 @@ public abstract class TResource implements GetableResource, PropFindableResource
     }
 
     public LockResult lock( LockTimeout timeout, LockInfo lockInfo ) {
+			System.out.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  locking");
 //        if( lock != null ) {
 //            // todo
 //            throw new RuntimeException("already locked");

@@ -29,6 +29,7 @@ public abstract class FsResource implements Resource, MoveableResource, Copyable
     File file;
     final FileSystemResourceFactory factory;
     final String host;
+		String ssoPrefix;
 
     protected abstract void doCopy(File dest);
     
@@ -60,7 +61,7 @@ public abstract class FsResource implements Resource, MoveableResource, Copyable
     }
 
     public boolean isDigestAllowed() {
-        return true;
+        return factory.isDigestAllowed();
     }
 
 

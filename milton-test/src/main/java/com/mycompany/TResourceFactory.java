@@ -69,7 +69,8 @@ public class TResourceFactory implements ResourceFactory {
     }
 
     public String getSupportedLevels() {
-        return "1,2";
+        //return "1,2";
+				return "1";
     }
 
     private boolean isRoot( Path path ) {
