@@ -33,6 +33,12 @@ public class NullSecurityManager implements com.bradmcevoy.http.SecurityManager 
 
     public void setRealm(String realm) {
         this.realm = realm;
-    }   
+    }
+
+	public boolean isDigestAllowed() {
+		return true;
+	}
+	
+	
 }
 

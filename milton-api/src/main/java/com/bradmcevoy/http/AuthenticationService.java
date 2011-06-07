@@ -136,8 +136,13 @@ public class AuthenticationService {
                     auth.setTag( loginToken );
                 }
                 return new AuthStatus( auth, false );
-            }
+            } else {
+				if(log.isTraceEnabled()) {
+					log.trace("handler does not support this resource and request. handler: " + h.getClass() + " resource: " + resource.getClass());
+				}
+			}
         }
+		log.trace("authentication did not locate a user, because no handler accepted the request");
         return null;
     }
 
@@ -155,7 +160,9 @@ public class AuthenticationService {
             if( h.isCompatible( resource ) ) {
                 log.debug( "challenge for auth: " + h.getClass() );
                 String ch = h.getChallenge( resource, request );
-                challenges.add( ch );
+				if( ch != null ) {
+					challenges.add( ch );
+				}
             } else {
                 log.debug( "not challenging for auth: " + h.getClass() + " for resource type: " + (resource == null ? "" : resource.getClass()) );
             }

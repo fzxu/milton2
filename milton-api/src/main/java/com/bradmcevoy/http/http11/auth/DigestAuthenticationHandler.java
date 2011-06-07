@@ -70,7 +70,12 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
     }
 
     public boolean isCompatible( Resource resource ) {
-        return ( resource instanceof DigestResource );
+        if ( resource instanceof DigestResource ) {
+			DigestResource dr = (DigestResource) resource;
+			return dr.isDigestAllowed();
+		} else {
+			return false;
+		}
     }
 }
 

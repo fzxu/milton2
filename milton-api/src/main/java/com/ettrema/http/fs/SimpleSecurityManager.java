@@ -68,6 +68,9 @@ public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManage
     }
 
     public Object authenticate( DigestResponse digestRequest ) {
+		if( digestGenerator == null ) {
+			throw new RuntimeException("No digest generator is configured");
+		}
         String actualPassword = nameAndPasswords.get( digestRequest.getUser() );
         String serverResponse = digestGenerator.generateDigest( digestRequest, actualPassword );
         String clientResponse = digestRequest.getResponseDigest();
@@ -100,6 +103,14 @@ public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManage
         this.nameAndPasswords = nameAndPasswords;
     }
 
+	public void setDigestGenerator(DigestGenerator digestGenerator) {
+		this.digestGenerator = digestGenerator;
+	}
+	
+	public boolean isDigestAllowed() {
+		return digestGenerator != null;
+	}
+
 
 //    public MiltonUser getUserByName( String name, String domain ) {
 //        log.debug( "getUserByName: " + name + " - " + domain);
@@ -107,5 +118,9 @@ public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManage
 //        if( actualPassword == null ) return null;
 //        return new MiltonUser( name, name, domain );
 //    }
+
+	public DigestGenerator getDigestGenerator() {
+		return digestGenerator;
+	}
 }
 

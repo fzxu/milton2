@@ -66,8 +66,10 @@ public class ReadOnlySecurityManager implements SecurityManager{
         }
     }
 
-    public Object getUserByName( String name ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
+
+
+	public boolean isDigestAllowed() {
+		return true;
+	}
 
 }
