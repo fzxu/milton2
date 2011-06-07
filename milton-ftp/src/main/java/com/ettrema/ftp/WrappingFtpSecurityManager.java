@@ -74,4 +74,8 @@ public class WrappingFtpSecurityManager implements com.bradmcevoy.http.SecurityM
         return wrapped.getRealm( string );
     }
 
+	public boolean isDigestAllowed() {
+		return true;
+	}
+
 }
