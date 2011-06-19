@@ -1,21 +1,19 @@
 package com.ettrema.httpclient;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.io.IOUtils;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.Namespace;
-import org.dom4j.QName;
-import org.dom4j.io.SAXReader;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.Namespace;
+import org.jdom.input.SAXBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +25,8 @@ public class PropFindMethod extends EntityEnclosingMethod {
 
     private static final Logger log = LoggerFactory.getLogger( PropFindMethod.class );
     
-    private static final Namespace NS_CLYDE = new Namespace("ns1", "clyde");
-    private static final QName QNAME_CRC = new QName("crc",  NS_CLYDE);
+    private static final Namespace NS_CLYDE = Namespace.getNamespace("ns1", "clyde");
+
 
     public PropFindMethod( String uri ) {
         super( uri );
@@ -40,18 +38,18 @@ public class PropFindMethod extends EntityEnclosingMethod {
     }
 
     public Document getResponseAsDocument() throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        System.out.println("getResponseAsDocument");
         InputStream in = getResponseBodyAsStream();
-        IOUtils.copy( in, out );
-        String xml = out.toString();
+//        IOUtils.copy( in, out );
+//        String xml = out.toString();
         try {
-            SAXReader reader = new SAXReader();
-            Document document = reader.read( new ByteArrayInputStream( xml.getBytes() ) );
+            Document document = RespUtils.getJDomDocument(in);
             return document;
-        } catch( DocumentException ex ) {
-            throw new RuntimeException(xml, ex );
+        } catch( JDOMException ex ) {
+            throw new RuntimeException( ex );
         }
     }
+
 
     /**
      *
@@ -70,9 +68,9 @@ public class PropFindMethod extends EntityEnclosingMethod {
                 return responses;
             }
             Element root = document.getRootElement();
-            Iterator it = root.elementIterator( "response" );
-            while( it.hasNext() ) {
-                Element el = (Element) it.next();
+            List<Element> responseEls = RespUtils.getElements(root, "response");
+            System.out.println("resps: " + responseEls.size());
+            for( Element el : responseEls) {
                 Response resp = new Response( serverDate, el );
                 
                 // Dont add if href is the requested url
@@ -85,6 +83,7 @@ public class PropFindMethod extends EntityEnclosingMethod {
             throw new RuntimeException( ex );
         }
     }
+
 
     public static class Response {
 
@@ -112,7 +111,7 @@ public class PropFindMethod extends EntityEnclosingMethod {
                 parentHref = null;
             }
 
-            Element el = elResponse.element( "propstat" ).element( "prop" );
+            Element el = elResponse.getChild( "propstat", RespUtils.NS_DAV ).getChild( "prop", RespUtils.NS_DAV );
             if( href.contains("/")) {
                 String[] arr = href.split( "[/]" );
                 if( arr.length > 0) {
@@ -127,12 +126,14 @@ public class PropFindMethod extends EntityEnclosingMethod {
             displayName = ( dn == null ) ? name : dn;
             createdDate = RespUtils.asString( el, "creationdate" );
             modifiedDate = RespUtils.asString( el, "getlastmodified" );
+                   
             contentType = RespUtils.asString( el, "getcontenttype" );
             contentLength = RespUtils.asLong( el, "getcontentlength" );
             quotaAvailableBytes = RespUtils.asLong( el, "quota-available-bytes" );
             quotaUsedBytes = RespUtils.asLong( el, "quota-used-bytes" );
-            crc = RespUtils.asLong( el, QNAME_CRC );
-            isCollection = RespUtils.hasChild( el.element( "resourcetype" ), "collection" );
+            crc = RespUtils.asLong( el, "crc", NS_CLYDE );
+            isCollection = RespUtils.hasChild( el, "collection" );
+            System.out.println("resp: " + name + " isCollection: " + isCollection);     
         }
     }
 }

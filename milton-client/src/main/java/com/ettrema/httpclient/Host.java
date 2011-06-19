@@ -135,19 +135,25 @@ public class Host extends Folder {
             path = path.substring(1);
         }
         String[] arr = path.split("/");
+        System.out.println("find: " + path);
         return _find(this, arr, 0);
 
     }
 
     public static Resource _find(Folder parent, String[] arr, int i) throws IOException, com.ettrema.httpclient.HttpException {
         String childName = arr[i];
+        System.out.println("_find: " + childName + " " + i);        
+        
         Resource child = parent.child(childName);
         if (i == arr.length - 1) {
+            System.out.println("  child: " + child);
             return child;
         } else {
             if (child instanceof Folder) {
+                System.out.println("  go to parent");
                 return _find((Folder) child, arr, i + 1);
             } else {
+                System.out.println("  not found");
                 return null;
             }
         }
@@ -488,6 +494,7 @@ public class Host extends Folder {
     }
 
     public com.ettrema.httpclient.Folder getOrCreateFolder(Path remoteParentPath, boolean create) throws com.ettrema.httpclient.HttpException, IOException {
+        log.trace("getOrCreateFolder: {}", remoteParentPath);
         com.ettrema.httpclient.Folder f = this;
         if (remoteParentPath != null) {
             for (String childName : remoteParentPath.getParts()) {
@@ -504,7 +511,7 @@ public class Host extends Folder {
                     } else if (child instanceof com.ettrema.httpclient.Folder) {
                         f = (com.ettrema.httpclient.Folder) child;
                     } else {
-                        log.warn("Can't upload. A resource exists with the same name as a folder, but is a file: " + remoteParentPath);
+                        log.warn("Can't upload. A resource exists with the same name as a folder, but is a file: " + remoteParentPath + " - " + child.getClass());
                         return null;
                     }
                 }
@@ -528,3 +535,4 @@ public class Host extends Folder {
         this.timeout = timeout;
     }
 }
+

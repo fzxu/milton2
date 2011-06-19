@@ -103,7 +103,9 @@ public abstract class Resource {
             this.parent = parent;
             name = Resource.decodePath(resp.name);
             displayName = Resource.decodePath(resp.displayName);
-            createdDate = DateUtils.parseWebDavDate(resp.createdDate);
+            if( resp.createdDate != null && resp.createdDate.length() > 0 ) {
+                createdDate = DateUtils.parseWebDavDate(resp.createdDate);
+            }
             quotaAvailableBytes = resp.quotaAvailableBytes;
             quotaUsedBytes = resp.quotaUsedBytes;
             crc = resp.crc;

@@ -166,7 +166,7 @@ public class DateUtils {
         }
 
         // we were unable to parse the date
-        throw new DateParseException( "Unable to parse the date " + dateValue );
+        throw new DateParseException( "Unable to parse the date: " + dateValue );
     }
 
     public static String formatDate( Date date ) {
