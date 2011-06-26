@@ -25,7 +25,8 @@ public class LockTokenValueWriter implements ValueWriter {
 
     public void writeValue( XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes ) {
         LockToken token = (LockToken) val;
-        Element lockentry = writer.begin( "D:lockdiscovery" ).open();
+        Element lockDiscovery = writer.begin( "D:lockdiscovery" ).open();
+		Element activeLock = writer.begin( "D:activelock" ).open();
         if( token != null ) {
             LockInfo info = token.info;
             lockWriterHelper.appendType( writer, info.type );
@@ -36,7 +37,8 @@ public class LockTokenValueWriter implements ValueWriter {
             lockWriterHelper.appendTokenId( writer, token.tokenId );
             lockWriterHelper.appendRoot( writer, href );
         }
-        lockentry.close();
+		activeLock.close();
+        lockDiscovery.close();
     }
 
     public Object parse( String namespaceURI, String localPart, String value ) {
