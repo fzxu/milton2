@@ -178,7 +178,7 @@ public class MetaFileMaker {
 	/**
 	 * Calculates optimal blocksize for a file
 	 */
-	private void computeBlockSize() {
+	public  int computeBlockSize(long fileLength) {
 		int[][] array = new int[10][2];
 		array[0][0] = 2048;
 		array[0][1] = 2048;
@@ -197,10 +197,12 @@ public class MetaFileMaker {
 				min = array[i][0];
 			}
 		}
+                int bs = 300;
 		for (int i = 0; i < array.length; i++) {
 			if (array[i][0] == min) {
-				blocksize = array[i][1];
+				bs = array[i][1];
 			}
 		}
+                return bs;
 	}
 }
