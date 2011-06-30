@@ -1,9 +1,8 @@
 package jazsync;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.InputStream;
+import jazsync.jazsync.FileMaker;
+import jazsync.jazsyncmake.MetaFileMaker;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,19 +14,19 @@ import org.junit.Test;
  * @author brad
  */
 public class Scratch {
-//
-//	MetaFileMaker metaFileMaker;
-//	FileMaker fileMaker;
-//	
+
+	MetaFileMaker metaFileMaker;
+	FileMaker fileMaker;
+	
 	@Before
 	public void setUp() {
-//		File fIn = new File("src/test/resources/jazsync/source.txt"); // this represents the remote file we want to download
-//		System.out.println("fin: " + fIn.getAbsolutePath());
-//		System.out.println(fIn.getAbsolutePath());
-//		metaFileMaker = new MetaFileMaker(fIn);
-//		
-//		File fLocal = new File("src/test/resources/jazsync/dest.txt"); // this represents the current version of the local file we want to update
-//		fileMaker = new FileMaker(fLocal); 
+		File fIn = new File("src/test/resources/jazsync/source.txt"); // this represents the remote file we want to download
+		System.out.println("fin: " + fIn.getAbsolutePath());
+		System.out.println(fIn.getAbsolutePath());
+		metaFileMaker = new MetaFileMaker("/test", 300, fIn);
+		
+		File fLocal = new File("src/test/resources/jazsync/dest.txt"); // this represents the current version of the local file we want to update
+		fileMaker = new FileMaker(fLocal); 
 	}
 
 	@Test
