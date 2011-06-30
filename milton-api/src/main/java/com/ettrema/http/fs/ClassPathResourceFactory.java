@@ -130,6 +130,9 @@ public class ClassPathResourceFactory implements ResourceFactory {
             this.host = host;
             this.path = path;
             this.content = content;
+			if( content == null ) {
+				throw new IllegalArgumentException("content cannot be null");
+			}
         }
 
         public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
