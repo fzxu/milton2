@@ -60,9 +60,8 @@ public class MetaFileMaker {
     private String url;
     private int blocksize;
     private File file;
-    private String outputfile;
-    private boolean noURL=true;
-    private boolean newNameFile=false;
+    
+
     private String header;
 
     /****************************************/
@@ -87,22 +86,17 @@ public class MetaFileMaker {
 		this.blocksize = blocksize;
 		
 		this.file = file;
-		if(file.isDirectory()){
-			System.out.println("Open: Directory as argument; Operation not permitted");
-			System.exit(1);
-		} else if(!file.isFile()){
-			System.out.println("Open: No such file");
-			System.exit(1);
-		}
+    }
+	
+	public File make() {
+
 		fileLength=file.length();
 
 		//vypocet optimalniho blocksize podle velikosti souboru
 		if(useBlockDefault){
 			computeBlockSize();
 		}
-		if(!newNameFile){
-			outputfile=file.getName()+".zsync";
-		}
+		File outputFile = new File(file.getName() + ".zsynch");
 
         /**
          * zde provedeme analyzu souboru a podle toho urcime velikost hash length
@@ -113,7 +107,7 @@ public class MetaFileMaker {
         HeaderMaker hm=new HeaderMaker(file,url,blocksize,hashLengths);
         header=hm.getFullHeader();
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(outputfile));
+            BufferedWriter out = new BufferedWriter(new FileWriter(outputFile));
             header.replaceAll("\n", System.getProperty("line.separator"));
             out.write(header);
             out.close();
@@ -124,7 +118,7 @@ public class MetaFileMaker {
 
         //appending block checksums into the metafile
         try {
-            FileOutputStream fos=new FileOutputStream(outputfile, true);
+            FileOutputStream fos=new FileOutputStream(outputFile, true);
             Configuration config = new Configuration();
             config.strongSum = MessageDigest.getInstance("MD4");
             config.weakSum = new Rsum();
@@ -137,21 +131,14 @@ public class MetaFileMaker {
                 fos.write(intToBytes(p.getWeak(),hashLengths[1]));
                 fos.write(p.getStrong());
             }
+			return outputFile;
         } catch (IOException ioe){
-            System.out.println("Can't write into the metafile, check your permissions");
-            System.exit(1);
+			throw new RuntimeException(ioe);
         } catch (NoSuchAlgorithmException nae){
-            System.out.println("Problem with MD4 checksum");
-            System.exit(1);
+			throw new RuntimeException(nae);
         }
-
-        if(noURL){
-            System.out.println("No URL given, so I am including a relative "
-                    + "URL in the .zsync file - you must keep the file being"
-                    + " served and the .zsync in the same public directory. "
-                    + "Use -u "+file.getName()+" to get this same result without this warning.");
-        }
-    }
+		
+	}
 
     /**
      * File analysis, computing lengths of weak and strong checksums and 

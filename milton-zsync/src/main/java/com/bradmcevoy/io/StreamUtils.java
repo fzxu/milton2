@@ -100,7 +100,7 @@ public class StreamUtils {
         return readTo(in, out,closeIn, closeOut, null, null);
             }
     
-    private static long readTo(InputStream in, OutputStream out, boolean closeIn, boolean closeOut, Long start, Long finish)  {
+    public static long readTo(InputStream in, OutputStream out, boolean closeIn, boolean closeOut, Long start, Long finish)  {
         long cnt=0;        
         if( start != null ) {
             skip(in, start);

@@ -64,7 +64,6 @@ public class MetaFileReader {
 	private String auth;
 	//------------------------------
 	private String url;
-	private String extraInputFile;
 	private int ranges = 100; // number of ranges which can be downloaded together
 	private long downloadedMetafile = 0;
 
@@ -90,12 +89,7 @@ public class MetaFileReader {
 		if (file.isFile()) {
 			SHA1check(file);
 		} else {
-			if (extraInputFile != null && new File(extraInputFile).exists()) {
-				SHA1check(new File(extraInputFile));
-			} else {
-				//nutne stahnout cely soubor
-				FILE_FLAG = -1;
-			}
+			throw new RuntimeException("Output file is not a file! " + file.getAbsolutePath());
 		}
 	}
 
@@ -393,13 +387,6 @@ public class MetaFileReader {
 		return ranges;
 	}
 
-	/**
-	 * Returns filename of seeding file
-	 * @return Filename of extra seeding file
-	 */
-	public String getInputFile() {
-		return extraInputFile;
-	}
 
 	/**
 	 * Length of DOWNLOADED metafile

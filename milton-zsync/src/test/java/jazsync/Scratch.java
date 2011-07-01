@@ -2,6 +2,7 @@ package jazsync;
 
 import java.io.File;
 import jazsync.jazsync.FileMaker;
+import jazsync.jazsync.LocalFileRangeLoader;
 import jazsync.jazsyncmake.MetaFileMaker;
 
 import org.junit.Before;
@@ -24,9 +25,14 @@ public class Scratch {
 		System.out.println("fin: " + fIn.getAbsolutePath());
 		System.out.println(fIn.getAbsolutePath());
 		metaFileMaker = new MetaFileMaker("/test", 300, fIn);
+		File metaFile = metaFileMaker.make();
+
 		
 		File fLocal = new File("src/test/resources/jazsync/dest.txt"); // this represents the current version of the local file we want to update
-		fileMaker = new FileMaker(fLocal); 
+		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);
+		fileMaker = new FileMaker(rangeLoader, metaFile); 
+		System.out.println("making: " + fLocal.getAbsolutePath());		
+		fileMaker.make(fLocal);
 	}
 
 	@Test

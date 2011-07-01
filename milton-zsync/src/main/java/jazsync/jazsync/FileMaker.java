@@ -33,8 +33,6 @@ import java.io.InputStream;
 
 import java.math.RoundingMode;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -77,7 +75,7 @@ public class FileMaker {
 	private int missing;
 	private boolean rangeQueue;
 	private double complete;
-	private String inputFileName;
+
 	private DecimalFormat df = new DecimalFormat("#.##");
 
 	public FileMaker(RangeLoader rangeLoader,File metafile) {
@@ -89,22 +87,25 @@ public class FileMaker {
 		fileOffset = 0;
 		df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
 		df.setRoundingMode(RoundingMode.DOWN);
-		inputFileName = mfr.getInputFile();
-		if (inputFileName == null) {
-			inputFileName = mfr.getFilename();
-		}
-		mapMatcher();
+	}
+	
+	/**
+	 * 
+	 * @param inputFile - the "local" file, containing data which needs to be merged
+	 * with that on the server
+	 */
+	public void make(File inputFile) {
+		mapMatcher(inputFile);
 		if (complete > 0) {
-			fileMaker();
-		}
-
+			fileMaker(inputFile);
+		}		
 	}
 
 
 	/**
 	 * Method for completing file
 	 */
-	private void fileMaker() {
+	private void fileMaker(File inputFile) {
 		try {
 			long allData = 0;
 			double a = 10;
@@ -118,7 +119,7 @@ public class FileMaker {
 			byte[] data = null;
 			newFile.createNewFile();
 			ByteBuffer buffer = ByteBuffer.allocate(mfr.getBlocksize());
-			FileChannel rChannel = new FileInputStream(inputFileName).getChannel();
+			FileChannel rChannel = new FileInputStream(inputFile).getChannel();
 			FileChannel wChannel = new FileOutputStream(newFile, true).getChannel();
 			System.out.println();
 			System.out.print("File completion: ");
@@ -226,7 +227,7 @@ public class FileMaker {
 	/**
 	 * Reads file and map it's data into the fileMap.
 	 */
-	private void mapMatcher() {
+	private void mapMatcher(File inputFile) {
 		InputStream is = null;
 		try {
 			Security.addProvider(new JarsyncProvider());
@@ -249,16 +250,14 @@ public class FileMaker {
 			} else {
 				fileBuffer = new byte[mebiByte];
 			}
-			is = new FileInputStream(inputFileName);
-			File test = new File(inputFileName);
+			is = new FileInputStream(inputFile);
+			File test = inputFile;
 			long fileLength = test.length();
 			int n;
 			byte newByte;
 			boolean firstBlock = true;
 			int len = fileBuffer.length;
 			boolean end = false;
-			System.out.print("Reading " + inputFileName + ": ");
-			System.out.print("|----------|");
 			double a = 10;
 			while (true) {
 				n = is.read(fileBuffer, 0, len);

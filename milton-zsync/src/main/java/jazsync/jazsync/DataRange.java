@@ -47,11 +47,15 @@ public class DataRange {
         return start + "-" + end;
     }
 
-    /**
-     * Returns offset where block starts in the complete file
-     * @return Offset where block starts
-     */
-    public long getOffset(){
-        return start;
-    }
+	public long getStart() {
+		return start;
+	}
+
+	
+
+	public long getEnd() {
+		return end;
+	}
+	
+	
 }
