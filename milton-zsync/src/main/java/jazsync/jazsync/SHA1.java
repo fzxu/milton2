@@ -81,11 +81,9 @@ public class SHA1 {
                 sb.append(Integer.toString((mdbytes[i] & 0xff) + 0x100, 16).substring(1));
             }
         } catch (IOException ex) {
-            System.out.println("Can't read file to count SHA-1 hash, check your permissions");
-            System.exit(1);
+            throw new RuntimeException("Can't read file to count SHA-1 hash, check your permissions", ex);
         } catch (NoSuchAlgorithmException ex) {
-            System.out.println("Problem with SHA-1 hash");
-            System.exit(1);
+            throw new RuntimeException("Problem with SHA-1 hash", ex);
         }
         return sb.toString();
     }

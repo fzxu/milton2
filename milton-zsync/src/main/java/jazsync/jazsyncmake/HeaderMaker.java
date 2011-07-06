@@ -84,8 +84,7 @@ SHA-1: 5944ec77b9b0f2d6b8212d142970117f5801430a
         if (isPowerOfTwo(blocksize)) {
             Blocksize+=blocksize;
         } else {
-            System.out.println("Blocksize must be a power of 2 (512, 1024, 2048, ...)");
-            System.exit(1);
+            throw new IllegalArgumentException("Blocksize must be a power of 2 (512, 1024, 2048, ...)");
         }
 
         this.seq_num=hashLengths[0];

@@ -93,22 +93,6 @@ public class MetaFileReader {
 //		}
 //	}
 
-	/**
-	 * Method for checking consistency of a file
-	 * @param file File to check
-	 */
-	private void SHA1check(File file) {
-		SHA1 sha1 = new SHA1(file.getPath());
-		if (sha1.SHA1sum().equals(mf_sha1)) {
-			System.out.println("Read " + file.getName() + ". Target 100.0% complete.\n"
-					+ "verifying download...checksum matches OK\n"
-					+ "used " + mf_length + " local, fetched 0");
-			System.exit(0);
-		} else {
-			//soubor mame, ale neni kompletni
-			FILE_FLAG = 1;
-		}
-	}
 
 	/**
 	 * Parsing method for metafile headers, saving each value into separate variable.
@@ -129,8 +113,7 @@ public class MetaFileReader {
 			mf_version = s.substring(colonIndex + 2);
 			//zkontrolujeme kompatibilitu
 			if (mf_version.equals("0.0.4") || mf_version.equals("0.0.2")) {
-				System.out.println("This version is not compatible with zsync streams in versions up to 0.0.4");
-				System.exit(1);
+				throw new RuntimeException("This version is not compatible with zsync streams in versions up to 0.0.4");
 			}
 		} else if (subs.equalsIgnoreCase("Filename")) {
 			mf_filename = s.substring(colonIndex + 2);
@@ -150,8 +133,7 @@ public class MetaFileReader {
 			if ((mf_seq_num < 1 || mf_seq_num > 2)
 					|| (mf_rsum_bytes < 1 || mf_rsum_bytes > 4)
 					|| (mf_checksum_bytes < 3 || mf_checksum_bytes > 16)) {
-				System.out.println("Nonsensical hash lengths line " + s.substring(colonIndex + 2));
-				System.exit(1);
+				throw new RuntimeException("Nonsensical hash lengths line " + s.substring(colonIndex + 2));
 			}
 
 		} else if (subs.equalsIgnoreCase("URL")) {
@@ -192,8 +174,7 @@ public class MetaFileReader {
 	private void readChecksums() {
 		long length = metafile.length();
 		if (metafile.length() > Integer.MAX_VALUE) {
-			System.out.println("Metafile is too large");
-			System.exit(1);
+			throw new RuntimeException("Metafile is too large");
 		}
 		byte[] bytes = new byte[(int) length];
 
