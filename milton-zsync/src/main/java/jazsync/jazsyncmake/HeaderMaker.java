@@ -67,7 +67,16 @@ SHA-1: 5944ec77b9b0f2d6b8212d142970117f5801430a
     private int checksum_bytes=16;
     private long mtime=0;
 
-    public HeaderMaker(File file, String url, int blocksize, int[] hashLengths){
+    public HeaderMaker(){
+
+    }
+	
+
+    /**
+     * Method builds header from key values
+     * @return Full header in String format
+     */
+    public String getFullHeader(File file, String url, int blocksize, int[] hashLengths){
         Version+="jazsync";
         this.mtime=file.lastModified();
 		Filename+=file.getName();   //default
@@ -93,7 +102,19 @@ SHA-1: 5944ec77b9b0f2d6b8212d142970117f5801430a
         HashLengths+=(this.seq_num+","+this.rsum_bytes+","+this.checksum_bytes);
         sha1 = new SHA1(file.toString());
         SHA1+=sha1.SHA1sum();
-    }
+		
+        StringBuilder sb = new StringBuilder("");
+        sb.append(Version).append("\n");
+        sb.append(Filename).append("\n");
+        sb.append(MTime).append("\n");
+        sb.append(Blocksize).append("\n");
+        sb.append(Length).append("\n");
+        sb.append(HashLengths).append("\n");
+        sb.append(URL).append("\n");
+        sb.append(SHA1).append("\n\n");
+        String header = sb.toString();
+        return header;
+    }	
 
     /**
      * Checks if <code>number</code> is power of two
@@ -126,21 +147,4 @@ SHA-1: 5944ec77b9b0f2d6b8212d142970117f5801430a
         return sdf.format(date);
     }
 
-    /**
-     * Method builds header from key values
-     * @return Full header in String format
-     */
-    public String getFullHeader(){
-        StringBuilder sb = new StringBuilder("");
-        sb.append(Version).append("\n");
-        sb.append(Filename).append("\n");
-        sb.append(MTime).append("\n");
-        sb.append(Blocksize).append("\n");
-        sb.append(Length).append("\n");
-        sb.append(HashLengths).append("\n");
-        sb.append(URL).append("\n");
-        sb.append(SHA1).append("\n\n");
-        String header = sb.toString();
-        return header;
-    }
 }

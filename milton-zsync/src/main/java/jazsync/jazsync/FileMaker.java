@@ -31,7 +31,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.math.RoundingMode;
 
 
 import java.nio.ByteBuffer;
@@ -41,8 +40,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -62,33 +59,20 @@ import org.jarsync.JarsyncProvider;
  */
 public class FileMaker {
 
-	private final RangeLoader rangeLoader;
-	private MetaFileReader mfr;
-	private HttpConnection http;
-	private ChainingHash hashtable;
 	private Configuration config;
 	private int bufferOffset;
 	private long fileOffset;
 	private long[] fileMap;
 	private SHA1 sha;
 	private int missing;
-	private boolean rangeQueue;
-	private DecimalFormat df = new DecimalFormat("#.##");
+	private boolean rangeQueue;	
 	/**
 	 * Maximum ranges to download in the range header
 	 */
 	private int maxRanges = 100;
 
-	public FileMaker(RangeLoader rangeLoader, File metafile) {
-		this.rangeLoader = rangeLoader;
-		mfr = new MetaFileReader(metafile);
-		System.out.println("FileMaker: block count: " + mfr.getBlockCount() + " - size: " + mfr.getBlocksize());
-		hashtable = mfr.getHashtable();
-		fileMap = new long[mfr.getBlockCount()];
-		Arrays.fill(fileMap, -1);
-		fileOffset = 0;
-		df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
-		df.setRoundingMode(RoundingMode.DOWN);
+	public FileMaker() {
+
 	}
 
 	/**
@@ -96,18 +80,27 @@ public class FileMaker {
 	 * @param inputFile - the "local" file, containing data which needs to be merged
 	 * with that on the server
 	 */
-	public void make(File inputFile) {
+	public void make(File inputFile, File metafile, RangeLoader rangeLoader) {
 		System.out.println("make");
-		double complete = mapMatcher(inputFile);
+				
+		MetaFileReader mfr = new MetaFileReader(metafile);
+		System.out.println("FileMaker: block count: " + mfr.getBlockCount() + " - size: " + mfr.getBlocksize());
+		ChainingHash hashtable = mfr.getHashtable();
+		fileMap = new long[mfr.getBlockCount()];
+
+		Arrays.fill(fileMap, -1);
+		fileOffset = 0;
+				
+		double complete = mapMatcher(inputFile, mfr, hashtable);
 		System.out.println("local file percentage complete: " + complete);
 		// Note if complete is zero better to download whole file
-		fileMaker(inputFile);
+		fileMaker(inputFile, mfr, rangeLoader);
 	}
 
 	/**
 	 * Method for completing file
 	 */
-	private void fileMaker(File inputFile) {
+	private void fileMaker(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader) {
 		System.out.println("fileMaker: input: " + inputFile.getAbsolutePath());
 		try {
 			double a = 10;
@@ -140,7 +133,7 @@ public class FileMaker {
 					System.out.println("   read block from remote file");
 					if (!rangeQueue) {
 						System.out.println("     range lookup: " + i);
-						rangeList = rangeLookUp(i);
+						rangeList = rangeLookUp(i, mfr.getBlocksize());
 						range = rangeList.size();
 						data = rangeLoader.get(rangeList);
 					} else {
@@ -198,12 +191,12 @@ public class FileMaker {
 	 * @param i Offset in fileMap where to start looking
 	 * @return ArrayList with ranges for requesting
 	 */
-	private ArrayList<DataRange> rangeLookUp(int i) {
+	private ArrayList<DataRange> rangeLookUp(int i, int blocksize) {
 		ArrayList<DataRange> ranges = new ArrayList<DataRange>();
 		for (; i < fileMap.length; i++) {
 			if (fileMap[i] == -1) {
-				ranges.add(new DataRange(i * mfr.getBlocksize(),
-						(i * mfr.getBlocksize()) + mfr.getBlocksize()));
+				ranges.add(new DataRange(i * blocksize,
+						(i * blocksize) + blocksize));
 			}
 			if (ranges.size() >= maxRanges) {
 				break;
@@ -220,7 +213,7 @@ public class FileMaker {
 	 * Parsing out date from metafile into long value
 	 * @return Time as long value in milliseconds passed since 1.1.1970
 	 */
-	private long getMTime() {
+	private long getMTime(MetaFileReader mfr) {
 		long mtime = 0;
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", Locale.US);
@@ -238,7 +231,7 @@ public class FileMaker {
 	/**
 	 * Reads file and map it's data into the fileMap.
 	 */
-	private double mapMatcher(File inputFile) {
+	private double mapMatcher(File inputFile, MetaFileReader mfr, ChainingHash hashtable) {
 		System.out.println("FileMaker: mapMatcher");
 		InputStream is = null;
 		try {
@@ -271,14 +264,16 @@ public class FileMaker {
 			int len = fileBuffer.length;
 			boolean end = false;
 			double a = 10;
+			int blocksize = mfr.getBlocksize();
 			while (fileOffset != fileLength) {
 				n = is.read(fileBuffer, 0, len);
 				if (firstBlock) {
 					weakSum = gen.generateWeakSum(fileBuffer, 0);
 					bufferOffset = mfr.getBlocksize();
-					if (hashLookUp(updateWeakSum(weakSum), null)) {
+					int weak = updateWeakSum(weakSum, mfr);
+					if (hashLookUp(weak, null, blocksize, hashtable)  ) {
 						strongSum = gen.generateStrongSum(fileBuffer, 0, mfr.getBlocksize());
-						hashLookUp(updateWeakSum(weakSum), strongSum);
+						hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, hashtable);
 					}
 					fileOffset++;
 					firstBlock = false;
@@ -289,7 +284,7 @@ public class FileMaker {
 						newByte = 0;
 					}
 					weakSum = gen.generateRollSum(newByte);
-					if (hashLookUp(updateWeakSum(weakSum), null)) {
+					if (hashLookUp(updateWeakSum(weakSum, mfr), null, blocksize, hashtable)) {
 						if (fileOffset + mfr.getBlocksize() > fileLength) {
 							if (n > 0) {
 								Arrays.fill(fileBuffer, n, fileBuffer.length, (byte) 0);
@@ -305,10 +300,10 @@ public class FileMaker {
 								System.arraycopy(fileBuffer, 0, blockBuffer, mfr.getBlocksize() - bufferOffset - 1, bufferOffset + 1);
 							}
 							strongSum = gen.generateStrongSum(blockBuffer, 0, mfr.getBlocksize());
-							hashLookUp(updateWeakSum(weakSum), strongSum);
+							hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, hashtable);
 						} else {
 							strongSum = gen.generateStrongSum(fileBuffer, bufferOffset - mfr.getBlocksize() + 1, mfr.getBlocksize());
-							hashLookUp(updateWeakSum(weakSum), strongSum);
+							hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, hashtable);
 						}
 					}
 					fileOffset++;
@@ -329,8 +324,7 @@ public class FileMaker {
 			}
 
 			System.out.println();
-			double complete = matchControl();
-			System.out.println("Target " + df.format(complete) + "% complete.");
+			double complete = matchControl(mfr);
 			fileMap[fileMap.length - 1] = -1;
 			is.close();
 			return complete;
@@ -347,7 +341,7 @@ public class FileMaker {
 	 * @param weak Generated full weakSum
 	 * @return Shortened weakSum
 	 */
-	private int updateWeakSum(int weak) {
+	private int updateWeakSum(int weak, MetaFileReader mfr) {
 		byte[] rsum;
 		switch (mfr.getRsumBytes()) {
 			case 2:
@@ -396,7 +390,7 @@ public class FileMaker {
 	 * value of how complete is our file
 	 * @return How many percent of file we have already
 	 */
-	private double matchControl() {
+	private double matchControl(MetaFileReader mfr) {
 		missing = 0;
 		for (int i = 0; i < fileMap.length; i++) {
 			if (mfr.getSeqNum() == 2) { //pouze pokud kontrolujeme matching continuation
@@ -428,7 +422,7 @@ public class FileMaker {
 	 * @param strongSum Strong MD4 checksum
 	 * @return True if we got a hit
 	 */
-	private boolean hashLookUp(int weakSum, byte[] strongSum) {
+	private boolean hashLookUp(int weakSum, byte[] strongSum, int blocksize, ChainingHash hashtable) {
 		ChecksumPair p;
 		if (strongSum == null) {
 			p = new ChecksumPair(weakSum);
@@ -447,8 +441,7 @@ public class FileMaker {
 				 */
 				seq = link.getSequence();
 				fileMap[seq] = fileOffset;
-				hashtable.delete(new ChecksumPair(weakSum, strongSum,
-						mfr.getBlocksize() * seq, mfr.getBlocksize(), seq));
+				hashtable.delete(new ChecksumPair(weakSum, strongSum, blocksize * seq, blocksize, seq));
 				return true;
 			}
 		}

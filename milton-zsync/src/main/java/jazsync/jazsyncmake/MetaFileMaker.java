@@ -56,7 +56,7 @@ public class MetaFileMaker {
 	}
 	/** Default length of strong checksum (MD4) */
 	private final int STRONG_SUM_LENGTH = 16;
-	private String header;
+	private HeaderMaker headerMaker = new HeaderMaker();
 
 	public MetaFileMaker() {
 	}
@@ -68,8 +68,7 @@ public class MetaFileMaker {
 
 		int[] hashLengths = analyzeFile(blocksize, fileLength);
 
-		HeaderMaker hm = new HeaderMaker(file, url, blocksize, hashLengths);
-		header = hm.getFullHeader();
+		String header = headerMaker.getFullHeader(file, url, blocksize, hashLengths);
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(outputFile));
 			header.replaceAll("\n", System.getProperty("line.separator"));

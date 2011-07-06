@@ -29,6 +29,9 @@ public class Scratch {
 
 		
 		fLocal = new File("src/test/resources/jazsync/dest.txt"); // this represents the current version of the local file we want to update
+		
+		metaFileMaker = new MetaFileMaker();
+		fileMaker = new FileMaker(); 		
 	}
 
 	
@@ -54,14 +57,11 @@ public class Scratch {
 	 * 
 	 */
 	@Test
-	public void test1() {
-		metaFileMaker = new MetaFileMaker(); //blocksize should be 300
-		//metaFileMaker = new MetaFileMaker("/test", 256, fIn);
+	public void test1() {		
 		File metaFile = metaFileMaker.make("/test", 32, fIn);		
 		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);		
-		fileMaker = new FileMaker(rangeLoader, metaFile); 
 		System.out.println("local: " + fLocal.getAbsolutePath());		
-		fileMaker.make(fLocal);
+		fileMaker.make(fLocal, metaFile, rangeLoader);
 		
 		System.out.println("----------------------------------------------");
 		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());
