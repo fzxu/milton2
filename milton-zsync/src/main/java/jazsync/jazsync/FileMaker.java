@@ -59,10 +59,6 @@ import org.jarsync.JarsyncProvider;
  */
 public class FileMaker {
 
-	private long[] fileMap;
-	private SHA1 sha;
-	private int missing;
-	private boolean rangeQueue;	
 	/**
 	 * Maximum ranges to download in the range header
 	 */
@@ -82,10 +78,9 @@ public class FileMaker {
 				
 		MetaFileReader mfr = new MetaFileReader(metafile);
 		System.out.println("FileMaker: block count: " + mfr.getBlockCount() + " - size: " + mfr.getBlocksize());
-		MakeContext makeContext = new MakeContext(mfr.getHashtable());
-		fileMap = new long[mfr.getBlockCount()];
+		MakeContext makeContext = new MakeContext(mfr.getHashtable(), new long[mfr.getBlockCount()]);
 
-		Arrays.fill(fileMap, -1);
+		Arrays.fill(makeContext.fileMap, -1);
 				
 		double complete = mapMatcher(inputFile, mfr, makeContext);
 		System.out.println("local file percentage complete: " + complete);
@@ -96,7 +91,7 @@ public class FileMaker {
 	/**
 	 * Method for completing file
 	 */
-	private void fileMaker(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext makeContext) {
+	private void fileMaker(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext mc) {
 		System.out.println("fileMaker: input: " + inputFile.getAbsolutePath());
 		try {
 			double a = 10;
@@ -116,20 +111,20 @@ public class FileMaker {
 			FileChannel wChannel = new FileOutputStream(newFile, true).getChannel();
 			System.out.println();
 			System.out.print("File completion: ");
-			for (int i = 0; i < fileMap.length; i++) {
-				makeContext.fileOffset = fileMap[i];
-				System.out.println("get map item: " + i + " - file offset: " + makeContext.fileOffset);
-				if (makeContext.fileOffset != -1) {
+			for (int i = 0; i < mc.fileMap.length; i++) {
+				mc.fileOffset = mc.fileMap[i];
+				System.out.println("get map item: " + i + " - file offset: " + mc.fileOffset);
+				if (mc.fileOffset != -1) {
 					System.out.println("  read block from local file");
-					rChannel.read(buffer, makeContext.fileOffset);
+					rChannel.read(buffer, mc.fileOffset);
 					buffer.flip();
 					wChannel.write(buffer);
 					buffer.clear();
 				} else {
 					System.out.println("   read block from remote file");
-					if (!rangeQueue) {
+					if (!mc.rangeQueue) {
 						System.out.println("     range lookup: " + i);
-						rangeList = rangeLookUp(i, mfr.getBlocksize());
+						rangeList = rangeLookUp(i, mfr.getBlocksize(), mc);
 						range = rangeList.size();
 						data = rangeLoader.get(rangeList);
 					} else {
@@ -142,15 +137,15 @@ public class FileMaker {
 					buffer.clear();
 					rangeList.remove(0);
 					if (rangeList.isEmpty()) {
-						rangeQueue = false;
+						mc.rangeQueue = false;
 					}
 				}
-				if ((((double) i / ((double) fileMap.length - 1)) * 100) >= a) {
-					progressBar(((double) i / ((double) fileMap.length - 1)) * 100);
+				if ((((double) i / ((double) mc.fileMap.length - 1)) * 100) >= a) {
+					progressBar(((double) i / ((double) mc.fileMap.length - 1)) * 100);
 					a += 10;
 				}
 			}
-			sha = new SHA1(newFile);
+			SHA1 sha = new SHA1(newFile);
 			if (sha.SHA1sum().equals(mfr.getSha1())) {
 				System.out.println("\nverifying download...checksum matches OK");
 //				System.out.println("used " + (mfr.getLength() - (mfr.getBlocksize() * missing)) + " " + "local, fetched " + (mfr.getBlocksize() * missing));
@@ -187,10 +182,10 @@ public class FileMaker {
 	 * @param i Offset in fileMap where to start looking
 	 * @return ArrayList with ranges for requesting
 	 */
-	private ArrayList<DataRange> rangeLookUp(int i, int blocksize) {
+	private ArrayList<DataRange> rangeLookUp(int i, int blocksize, MakeContext mc) {
 		ArrayList<DataRange> ranges = new ArrayList<DataRange>();
-		for (; i < fileMap.length; i++) {
-			if (fileMap[i] == -1) {
+		for (; i < mc.fileMap.length; i++) {
+			if (mc.fileMap[i] == -1) {
 				ranges.add(new DataRange(i * blocksize,
 						(i * blocksize) + blocksize));
 			}
@@ -199,7 +194,7 @@ public class FileMaker {
 			}
 		}
 		if (!ranges.isEmpty()) {
-			rangeQueue = true;
+			mc.rangeQueue = true;
 		}
 		System.out.println("rangeLookup: getting ranges: " + ranges.size());
 		return ranges;
@@ -227,7 +222,7 @@ public class FileMaker {
 	/**
 	 * Reads file and map it's data into the fileMap.
 	 */
-	private double mapMatcher(File inputFile, MetaFileReader mfr, MakeContext makeContext) {
+	private double mapMatcher(File inputFile, MetaFileReader mfr, MakeContext mc) {
 		System.out.println("FileMaker: mapMatcher");
 		InputStream is = null;
 		int bufferOffset = 0;
@@ -262,27 +257,27 @@ public class FileMaker {
 			boolean end = false;
 			double a = 10;
 			int blocksize = mfr.getBlocksize();
-			while (makeContext.fileOffset != fileLength) {
+			while (mc.fileOffset != fileLength) {
 				n = is.read(fileBuffer, 0, len);
 				if (firstBlock) {
 					weakSum = gen.generateWeakSum(fileBuffer, 0);
 					bufferOffset = mfr.getBlocksize();
 					int weak = updateWeakSum(weakSum, mfr);
-					if (hashLookUp(weak, null, blocksize, makeContext)  ) {
+					if (hashLookUp(weak, null, blocksize, mc)  ) {
 						strongSum = gen.generateStrongSum(fileBuffer, 0, mfr.getBlocksize());
-						hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, makeContext);
+						hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
 					}
-					makeContext.fileOffset++;
+					mc.fileOffset++;
 					firstBlock = false;
 				}
 				for (; bufferOffset < fileBuffer.length; bufferOffset++) {
 					newByte = fileBuffer[bufferOffset];
-					if (makeContext.fileOffset + mfr.getBlocksize() > fileLength) {
+					if (mc.fileOffset + mfr.getBlocksize() > fileLength) {
 						newByte = 0;
 					}
 					weakSum = gen.generateRollSum(newByte);
-					if (hashLookUp(updateWeakSum(weakSum, mfr), null, blocksize, makeContext)) {
-						if (makeContext.fileOffset + mfr.getBlocksize() > fileLength) {
+					if (hashLookUp(updateWeakSum(weakSum, mfr), null, blocksize, mc)) {
+						if (mc.fileOffset + mfr.getBlocksize() > fileLength) {
 							if (n > 0) {
 								Arrays.fill(fileBuffer, n, fileBuffer.length, (byte) 0);
 							} else {
@@ -297,18 +292,18 @@ public class FileMaker {
 								System.arraycopy(fileBuffer, 0, blockBuffer, mfr.getBlocksize() - bufferOffset - 1, bufferOffset + 1);
 							}
 							strongSum = gen.generateStrongSum(blockBuffer, 0, mfr.getBlocksize());
-							hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, makeContext);
+							hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
 						} else {
 							strongSum = gen.generateStrongSum(fileBuffer, bufferOffset - mfr.getBlocksize() + 1, mfr.getBlocksize());
-							hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, makeContext);
+							hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
 						}
 					}
-					makeContext.fileOffset++;
-					if ((((double) makeContext.fileOffset / (double) fileLength) * 100) >= a) {
-						progressBar(((double) makeContext.fileOffset / (double) fileLength) * 100);
+					mc.fileOffset++;
+					if ((((double) mc.fileOffset / (double) fileLength) * 100) >= a) {
+						progressBar(((double) mc.fileOffset / (double) fileLength) * 100);
 						a += 10;
 					}
-					if (makeContext.fileOffset == fileLength) {
+					if (mc.fileOffset == fileLength) {
 						end = true;
 						break;
 					}
@@ -321,8 +316,8 @@ public class FileMaker {
 			}
 
 			System.out.println();
-			double complete = matchControl(mfr);
-			fileMap[fileMap.length - 1] = -1;
+			double complete = matchControl(mfr, mc);
+			mc.fileMap[mc.fileMap.length - 1] = -1;
 			is.close();
 			return complete;
 		} catch (IOException ex) {
@@ -387,8 +382,9 @@ public class FileMaker {
 	 * value of how complete is our file
 	 * @return How many percent of file we have already
 	 */
-	private double matchControl(MetaFileReader mfr) {
-		missing = 0;
+	private double matchControl(MetaFileReader mfr, MakeContext mc) {
+		int missing = 0;
+		long[] fileMap = mc.fileMap;
 		for (int i = 0; i < fileMap.length; i++) {
 			if (mfr.getSeqNum() == 2) { //pouze pokud kontrolujeme matching continuation
 				if (i > 0 && i < fileMap.length - 1) {
@@ -437,7 +433,7 @@ public class FileMaker {
 				 * Nasledne po sobe muzeme tento zaznam z hash tabulky vymazat.
 				 */
 				seq = link.getSequence();
-				fileMap[seq] = mc.fileOffset;
+				mc.fileMap[seq] = mc.fileOffset;
 				mc.hashtable.delete(new ChecksumPair(weakSum, strongSum, blocksize * seq, blocksize, seq));
 				return true;
 			}
@@ -447,10 +443,14 @@ public class FileMaker {
 	
 	public class MakeContext {
 		final ChainingHash hashtable;
+		final long[] fileMap;
+		
 		long fileOffset;
+		boolean rangeQueue;
 
-		public MakeContext(ChainingHash hashtable) {
+		public MakeContext(ChainingHash hashtable, long[] fileMap) {
 			this.hashtable = hashtable;
+			this.fileMap = fileMap;
 		}
 		
 	}
