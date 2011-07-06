@@ -110,7 +110,6 @@ public class FileMaker {
 	private void fileMaker(File inputFile) {
 		System.out.println("fileMaker: input: " + inputFile.getAbsolutePath());
 		try {
-			long allData = 0;
 			double a = 10;
 			int range = 0;
 			int blockLength = 0;

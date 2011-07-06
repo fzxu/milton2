@@ -31,6 +31,28 @@ public class Scratch {
 		fLocal = new File("src/test/resources/jazsync/dest.txt"); // this represents the current version of the local file we want to update
 	}
 
+	
+	/**
+	 * So this basically works for downloading deltas to update a local file. But
+	 * what about uploading?
+	 * 
+	 * 1. Client calculates meta data (basically crc's for each block) and POST's
+	 * to the server
+	 * 2a. client LOCK's the file
+	 * 2b. Server does a dry-run make on its version of the file, but instead of getting 
+	 * and merging blocks it just returns the blocks it would read to the client
+	 * 2c. The client then does a PUT with partial ranges of the requested blocks, including
+	 * the original metadata
+	 * 2d. The server does a make again, but this time with the ranges already available,
+	 * and does the merge
+	 * 2e. The client unlocks the file
+	 * 
+	 * So this means we need to decompose jaz into seperate operations
+	 *  - get meta data for any inputstream
+	 *  - apply meta data to a local file (make), with a seperable updater which might
+	 * actualy update the file, or might be a NOOP
+	 * 
+	 */
 	@Test
 	public void test1() {
 		metaFileMaker = new MetaFileMaker("/test", 32, fIn); //blocksize should be 300
