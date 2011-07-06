@@ -15,15 +15,19 @@ import java.util.ArrayList;
 public class LocalFileRangeLoader implements RangeLoader{
 
 	private File file;
+	
+	private long bytesDownloaded;
 
 	public LocalFileRangeLoader(File file) {
 		this.file = file;
 	}
 		
 	
-	public byte[] get(ArrayList<DataRange> rangeList, int range, int blockSize) {
+	public byte[] get(ArrayList<DataRange> rangeList) { 
+		System.out.println("LocalFileRangeLoader: get: rangeList: " + rangeList.size());
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		for(DataRange r : rangeList) {
+			System.out.println("  get range: " + r.getRange());
 			writeRange(r, bout);
 		}
 		return bout.toByteArray();
@@ -34,6 +38,7 @@ public class LocalFileRangeLoader implements RangeLoader{
 		try {
 			fin = new FileInputStream(file);
 			BufferedInputStream bufIn = new BufferedInputStream(fin);
+			bytesDownloaded += (r.getEnd() - r.getStart());
 			StreamUtils.readTo(bufIn, bout, true, false, r.getStart(), r.getEnd());						
 		} catch (FileNotFoundException ex) {
 			throw new RuntimeException(ex);
@@ -41,5 +46,11 @@ public class LocalFileRangeLoader implements RangeLoader{
 			StreamUtils.close(fin);			
 		}
 	}
+
+	public long getBytesDownloaded() {
+		return bytesDownloaded;
+	}
+	
+	
 	
 }

@@ -77,21 +77,21 @@ public class MetaFileReader {
 
 		readMetaFile();
 		blockNum = (int) Math.ceil((double) mf_length / (double) mf_blocksize);
-		checkOutputFile();
+//		checkOutputFile();
 		readChecksums() ;	
 	}
 
 	/**
 	 * Method used to check outputfile if exist and is(not) complete
 	 */
-	private void checkOutputFile() {
-		File file = new File(mf_filename);
-		if (file.isFile()) {
-			SHA1check(file);
-		} else {
-			throw new RuntimeException("Output file is not a file! " + file.getAbsolutePath());
-		}
-	}
+//	private void checkOutputFile() {
+//		File file = new File(mf_filename);
+//		if (file.isFile()) {
+//			SHA1check(file);
+//		} else {
+//			throw new RuntimeException("Output file is not a file! " + file.getAbsolutePath());
+//		}
+//	}
 
 	/**
 	 * Method for checking consistency of a file
@@ -116,6 +116,7 @@ public class MetaFileReader {
 	 * @return Boolean value notifying whether header ended or not (true = end of header)
 	 */
 	private boolean parseHeader(String s) {
+		System.out.println("MetaFileReader: parseHeader: " + s);
 		String subs;
 		int colonIndex;
 		if (s.equals("")) {

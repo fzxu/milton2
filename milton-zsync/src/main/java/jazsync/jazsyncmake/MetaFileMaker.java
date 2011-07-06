@@ -75,7 +75,6 @@ public class MetaFileMaker {
     /****************************************/
     /** File length */
     private long fileLength;
-    private boolean useBlockDefault=true;
     
     
     public MetaFileMaker(String url, int blocksize, File file) {
@@ -92,10 +91,6 @@ public class MetaFileMaker {
 
 		fileLength=file.length();
 
-		//vypocet optimalniho blocksize podle velikosti souboru
-		if(useBlockDefault){
-			computeBlockSize();
-		}
 		File outputFile = new File(file.getName() + ".zsynch");
 
         /**
@@ -192,7 +187,7 @@ public class MetaFileMaker {
     /**
      * Calculates optimal blocksize for a file
      */
-    private void computeBlockSize(){
+    public void computeBlockSize(){
         int[][] array = new int[10][2];
         array[0][0]=2048;
         array[0][1]=2048;
@@ -216,5 +211,6 @@ public class MetaFileMaker {
                 blocksize=array[i][1];
             }
         }
+		System.out.println("MetaFileMaker: computeBlockSize: "+ blocksize);
     }
 }

@@ -8,6 +8,6 @@ import java.util.ArrayList;
  */
 public interface RangeLoader {
 
-	public byte[] get(ArrayList<DataRange> rangeList, int range, int blockSize);
+	public byte[] get(ArrayList<DataRange> rangeList);
 	
 }

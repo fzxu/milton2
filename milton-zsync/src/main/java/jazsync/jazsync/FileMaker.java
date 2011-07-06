@@ -63,7 +63,6 @@ import org.jarsync.JarsyncProvider;
 public class FileMaker {
 
 	private final RangeLoader rangeLoader;
-	
 	private MetaFileReader mfr;
 	private HttpConnection http;
 	private ChainingHash hashtable;
@@ -74,13 +73,16 @@ public class FileMaker {
 	private SHA1 sha;
 	private int missing;
 	private boolean rangeQueue;
-	private double complete;
-
 	private DecimalFormat df = new DecimalFormat("#.##");
+	/**
+	 * Maximum ranges to download in the range header
+	 */
+	private int maxRanges = 100;
 
-	public FileMaker(RangeLoader rangeLoader,File metafile) {
+	public FileMaker(RangeLoader rangeLoader, File metafile) {
 		this.rangeLoader = rangeLoader;
 		mfr = new MetaFileReader(metafile);
+		System.out.println("FileMaker: block count: " + mfr.getBlockCount() + " - size: " + mfr.getBlocksize());
 		hashtable = mfr.getHashtable();
 		fileMap = new long[mfr.getBlockCount()];
 		Arrays.fill(fileMap, -1);
@@ -88,24 +90,25 @@ public class FileMaker {
 		df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
 		df.setRoundingMode(RoundingMode.DOWN);
 	}
-	
+
 	/**
 	 * 
 	 * @param inputFile - the "local" file, containing data which needs to be merged
 	 * with that on the server
 	 */
 	public void make(File inputFile) {
-		mapMatcher(inputFile);
-		if (complete > 0) {
-			fileMaker(inputFile);
-		}		
+		System.out.println("make");
+		double complete = mapMatcher(inputFile);
+		System.out.println("local file percentage complete: " + complete);
+		// Note if complete is zero better to download whole file
+		fileMaker(inputFile);
 	}
-
 
 	/**
 	 * Method for completing file
 	 */
 	private void fileMaker(File inputFile) {
+		System.out.println("fileMaker: input: " + inputFile.getAbsolutePath());
 		try {
 			long allData = 0;
 			double a = 10;
@@ -119,31 +122,32 @@ public class FileMaker {
 			byte[] data = null;
 			newFile.createNewFile();
 			ByteBuffer buffer = ByteBuffer.allocate(mfr.getBlocksize());
+			System.out.println("Reading from file: " + inputFile.getAbsolutePath());
 			FileChannel rChannel = new FileInputStream(inputFile).getChannel();
+			System.out.println("Writing new file: " + newFile.getAbsolutePath());
 			FileChannel wChannel = new FileOutputStream(newFile, true).getChannel();
 			System.out.println();
 			System.out.print("File completion: ");
-			System.out.print("|----------|");
 			for (int i = 0; i < fileMap.length; i++) {
 				fileOffset = fileMap[i];
+				System.out.println("get map item: " + i + " - file offset: " + fileOffset);
 				if (fileOffset != -1) {
+					System.out.println("  read block from local file");
 					rChannel.read(buffer, fileOffset);
 					buffer.flip();
 					wChannel.write(buffer);
 					buffer.clear();
 				} else {
+					System.out.println("   read block from remote file");
 					if (!rangeQueue) {
+						System.out.println("     range lookup: " + i);
 						rangeList = rangeLookUp(i);
 						range = rangeList.size();
-						data = rangeLoader.get(rangeList, range, mfr.getBlocksize());
-					}
-					if ((i * mfr.getBlocksize() + mfr.getBlocksize()) < mfr.getLength()) {
-						blockLength = mfr.getBlocksize();
+						data = rangeLoader.get(rangeList);
 					} else {
-						blockLength = (int) ((int) (mfr.getBlocksize())
-								+ (mfr.getLength()
-								- (i * mfr.getBlocksize() + mfr.getBlocksize())));
+						System.out.println("     already have queued ranges: " + rangeList.size());
 					}
+					blockLength = calcBlockLength(i, mfr.getBlocksize(), (int) mfr.getLength());
 					buffer.put(data, (range - rangeList.size()) * mfr.getBlocksize(), blockLength);
 					buffer.flip();
 					wChannel.write(buffer);
@@ -158,27 +162,34 @@ public class FileMaker {
 					a += 10;
 				}
 			}
-			newFile.setLastModified(getMTime());
 			sha = new SHA1(newFile);
 			if (sha.SHA1sum().equals(mfr.getSha1())) {
 				System.out.println("\nverifying download...checksum matches OK");
-				System.out.println("used " + (mfr.getLength() - (mfr.getBlocksize() * missing)) + " " + "local, fetched " + (mfr.getBlocksize() * missing));
-				new File(mfr.getFilename()).renameTo(new File(mfr.getFilename() + ".zs-old"));
-				newFile.renameTo(new File(mfr.getFilename()));
-				allData += mfr.getLengthOfMetafile();
-				System.out.println("really downloaded " + allData);
-				double overhead = ((double) (allData - (mfr.getBlocksize() * missing)) / ((double) (mfr.getBlocksize() * missing))) * 100;
-				System.out.println("overhead: " + df.format(overhead) + "%");
+//				System.out.println("used " + (mfr.getLength() - (mfr.getBlocksize() * missing)) + " " + "local, fetched " + (mfr.getBlocksize() * missing));
+//				new File(mfr.getFilename()).renameTo(new File(mfr.getFilename() + ".zs-old"));
+//				newFile.renameTo(new File(mfr.getFilename()));
+//				allData += mfr.getLengthOfMetafile();
+//				System.out.println("really downloaded " + allData);
+//				double overhead = ((double) (allData - (mfr.getBlocksize() * missing)) / ((double) (mfr.getBlocksize() * missing))) * 100;
+//				System.out.println("overhead: " + df.format(overhead) + "%");
 			} else {
 				System.out.println("\nverifying download...checksum don't match");
-				System.out.println("Deleting temporary file");
-				newFile.delete();
-				System.exit(1);
 			}
 		} catch (IOException ex) {
 			System.out.println("Can't read or write, check your permissions.");
-			System.exit(1);
 		}
+	}
+
+	private int calcBlockLength(int i, int blockSize, int length) {
+		if ((i * blockSize + blockSize) < length) {
+			return blockSize;
+		} else {
+			return calcBlockLength_b(i, blockSize, length);
+		}
+	}
+
+	private int calcBlockLength_b(int i, int blockSize, int length) {
+		return blockSize + (length - (i * blockSize + blockSize));
 	}
 
 	/**
@@ -195,13 +206,14 @@ public class FileMaker {
 				ranges.add(new DataRange(i * mfr.getBlocksize(),
 						(i * mfr.getBlocksize()) + mfr.getBlocksize()));
 			}
-			if (ranges.size() == mfr.getRangesNumber()) {
+			if (ranges.size() >= maxRanges) {
 				break;
 			}
 		}
 		if (!ranges.isEmpty()) {
 			rangeQueue = true;
 		}
+		System.out.println("rangeLookup: getting ranges: " + ranges.size());
 		return ranges;
 	}
 
@@ -227,7 +239,8 @@ public class FileMaker {
 	/**
 	 * Reads file and map it's data into the fileMap.
 	 */
-	private void mapMatcher(File inputFile) {
+	private double mapMatcher(File inputFile) {
+		System.out.println("FileMaker: mapMatcher");
 		InputStream is = null;
 		try {
 			Security.addProvider(new JarsyncProvider());
@@ -259,7 +272,7 @@ public class FileMaker {
 			int len = fileBuffer.length;
 			boolean end = false;
 			double a = 10;
-			while (true) {
+			while (fileOffset != fileLength) {
 				n = is.read(fileBuffer, 0, len);
 				if (firstBlock) {
 					weakSum = gen.generateWeakSum(fileBuffer, 0);
@@ -317,16 +330,16 @@ public class FileMaker {
 			}
 
 			System.out.println();
-			complete = matchControl();
+			double complete = matchControl();
 			System.out.println("Target " + df.format(complete) + "% complete.");
 			fileMap[fileMap.length - 1] = -1;
 			is.close();
+			return complete;
 		} catch (IOException ex) {
-			System.out.println("Can't read seed file, check your permissions");
-			System.exit(1);
+			throw new RuntimeException(ex);
 		} catch (NoSuchAlgorithmException ex) {
 			System.out.println("Problem with MD4 checksum");
-			System.exit(1);
+			throw new RuntimeException(ex);
 		}
 	}
 
@@ -376,32 +389,7 @@ public class FileMaker {
 	 * @param i How much data we already progressed (value in percents)
 	 */
 	private void progressBar(double i) {
-		if (i >= 10) {
-			for (int b = 0; b < 11; b++) {
-				System.out.print("\b");
-			}
-		}
-		if (i >= 10 && i < 20) {
-			System.out.print("#---------|");
-		} else if (i >= 20 && i < 30) {
-			System.out.print("##--------|");
-		} else if (i >= 30 && i < 40) {
-			System.out.print("###-------|");
-		} else if (i >= 40 && i < 50) {
-			System.out.print("####------|");
-		} else if (i >= 50 && i < 60) {
-			System.out.print("#####-----|");
-		} else if (i >= 60 && i < 70) {
-			System.out.print("######----|");
-		} else if (i >= 70 && i < 80) {
-			System.out.print("#######---|");
-		} else if (i >= 80 && i < 90) {
-			System.out.print("########--|");
-		} else if (i >= 90 & i < 100) {
-			System.out.print("#########-|");
-		} else if (i >= 100) {
-			System.out.print("##########|");
-		}
+		System.out.println("progress: " + i + "%");
 	}
 
 	/**
@@ -431,6 +419,7 @@ public class FileMaker {
 				missing++;
 			}
 		}
+		System.out.println("matchControl: fileMap.length: " + fileMap.length + " - missing: " + missing);
 		return ((((double) fileMap.length - missing) / (double) fileMap.length) * 100);
 	}
 
