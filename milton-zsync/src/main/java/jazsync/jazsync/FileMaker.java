@@ -63,6 +63,8 @@ public class FileMaker {
 	 * Maximum ranges to download in the range header
 	 */
 	private int maxRanges = 100;
+	
+	private Generator gen = new Generator();
 
 	public FileMaker() {
 
@@ -232,8 +234,7 @@ public class FileMaker {
 			config.strongSum = MessageDigest.getInstance("MD4");
 			config.weakSum = new Rsum();
 			config.blockLength = mfr.getBlocksize();
-			config.strongSumLength = mfr.getChecksumBytes();
-			Generator gen = new Generator(config);
+			config.strongSumLength = mfr.getChecksumBytes();			
 			int weakSum;
 			byte[] strongSum;
 			byte[] backBuffer = new byte[mfr.getBlocksize()];
@@ -260,11 +261,11 @@ public class FileMaker {
 			while (mc.fileOffset != fileLength) {
 				n = is.read(fileBuffer, 0, len);
 				if (firstBlock) {
-					weakSum = gen.generateWeakSum(fileBuffer, 0);
+					weakSum = gen.generateWeakSum(fileBuffer, 0, config);
 					bufferOffset = mfr.getBlocksize();
 					int weak = updateWeakSum(weakSum, mfr);
 					if (hashLookUp(weak, null, blocksize, mc)  ) {
-						strongSum = gen.generateStrongSum(fileBuffer, 0, mfr.getBlocksize());
+						strongSum = gen.generateStrongSum(fileBuffer, 0, blocksize, config);
 						hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
 					}
 					mc.fileOffset++;
@@ -275,7 +276,7 @@ public class FileMaker {
 					if (mc.fileOffset + mfr.getBlocksize() > fileLength) {
 						newByte = 0;
 					}
-					weakSum = gen.generateRollSum(newByte);
+					weakSum = gen.generateRollSum(newByte, config);
 					if (hashLookUp(updateWeakSum(weakSum, mfr), null, blocksize, mc)) {
 						if (mc.fileOffset + mfr.getBlocksize() > fileLength) {
 							if (n > 0) {
@@ -291,10 +292,10 @@ public class FileMaker {
 								System.arraycopy(backBuffer, backBuffer.length + bufferOffset - mfr.getBlocksize() + 1, blockBuffer, 0, mfr.getBlocksize() - bufferOffset - 1);
 								System.arraycopy(fileBuffer, 0, blockBuffer, mfr.getBlocksize() - bufferOffset - 1, bufferOffset + 1);
 							}
-							strongSum = gen.generateStrongSum(blockBuffer, 0, mfr.getBlocksize());
+							strongSum = gen.generateStrongSum(blockBuffer, 0, blocksize, config);
 							hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
 						} else {
-							strongSum = gen.generateStrongSum(fileBuffer, bufferOffset - mfr.getBlocksize() + 1, mfr.getBlocksize());
+							strongSum = gen.generateStrongSum(fileBuffer, bufferOffset - blocksize + 1, blocksize, config);
 							hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
 						}
 					}

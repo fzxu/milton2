@@ -57,6 +57,7 @@ public class MetaFileMaker {
 	/** Default length of strong checksum (MD4) */
 	private final int STRONG_SUM_LENGTH = 16;
 	private HeaderMaker headerMaker = new HeaderMaker();
+	private Generator gen = new Generator();	
 
 	public MetaFileMaker() {
 	}
@@ -86,9 +87,8 @@ public class MetaFileMaker {
 			config.weakSum = new Rsum();
 			config.blockLength = blocksize;
 			config.strongSumLength = hashLengths[2];
-			Generator gen = new Generator(config);
 			List<ChecksumPair> list = new ArrayList<ChecksumPair>((int) Math.ceil((double) file.length() / (double) blocksize));
-			list = gen.generateSums(file);
+			list = gen.generateSums(file, config);
 			for (ChecksumPair p : list) {
 				fos.write(intToBytes(p.getWeak(), hashLengths[1]));
 				fos.write(p.getStrong());

@@ -48,20 +48,7 @@ import java.util.List;
  */
 public class Generator {
 
-   // Constants and variables.
-   // ------------------------------------------------------------------------
-
-   /**
-    * Our configuration. Contains such things as our rolling checksum
-    * and message digest.
-    */
-   protected final Configuration config;
-
-   // Constructors.
-   // ------------------------------------------------------------------------
-
-   public Generator(Configuration config) {
-      this.config = config;
+   public Generator() {
    }
 
    // Instance methods.
@@ -76,8 +63,8 @@ public class Generator {
     *    generated from the array.
     * @see #generateSums(byte[],int,int,long)
     */
-   public List generateSums(byte[] buf) {
-      return generateSums(buf, 0, buf.length, 0);
+   public List generateSums(byte[] buf, Configuration config) {
+      return generateSums(buf, 0, buf.length, 0, config);
    }
 
    /**
@@ -91,8 +78,8 @@ public class Generator {
     *    generated from the array.
     * @see #generateSums(byte[],int,int,long)
     */
-   public List generateSums(byte[] buf, int off, int len) {
-      return generateSums(buf, off, len, 0);
+   public List generateSums(byte[] buf, int off, int len, Configuration config) {
+      return generateSums(buf, off, len, 0, config);
    }
 
    /**
@@ -106,8 +93,8 @@ public class Generator {
     *    generated from the array.
     * @see #generateSums(byte[],int,int,long)
     */
-   public List generateSums(byte[] buf, long baseOffset) {
-      return generateSums(buf, 0, buf.length, baseOffset);
+   public List generateSums(byte[] buf, long baseOffset, Configuration config) {
+      return generateSums(buf, 0, buf.length, baseOffset, config);
    }
 
    /**
@@ -123,7 +110,7 @@ public class Generator {
     * @return A {@link java.util.List} of {@link ChecksumPair}s
     *    generated from the array.
     */
-   public List generateSums(byte[] buf, int off, int len, long baseOffset) {
+   public List generateSums(byte[] buf, int off, int len, long baseOffset, Configuration config) {
       int count = (len+(config.blockLength-1)) / config.blockLength;
       int remainder = len % config.blockLength;
       int offset = off;
@@ -131,7 +118,7 @@ public class Generator {
 
       for (int i = 0; i < count; i++) {
          int n = Math.min(len, config.blockLength);
-         ChecksumPair pair = generateSum(buf, offset, n, offset+baseOffset);
+         ChecksumPair pair = generateSum(buf, offset, n, offset+baseOffset, config);
          pair.seq = i;
 
          sums.add(pair);
@@ -150,7 +137,7 @@ public class Generator {
     *    generated from the file.
     * @throws java.io.IOException if <code>f</code> cannot be read from.
     */
-    public List generateSums(File f) throws IOException {
+    public List generateSums(File f, Configuration config) throws IOException {
         long len = f.length();
         int count = (int) ((len + (config.blockLength + 1)) / config.blockLength);
         long offset = 0;
@@ -178,7 +165,7 @@ public class Generator {
              * do velikosti blocksize.
              */
             if (l > 0) {
-                ChecksumPair pair = generateSum(buf, 0, config.blockLength /* not in zsync -> Math.min(l, n)*/, offset);
+                ChecksumPair pair = generateSum(buf, 0, config.blockLength /* not in zsync -> Math.min(l, n)*/, offset, config);
                 pair.seq = i;
 
                 sums.add(pair);
@@ -199,7 +186,7 @@ public class Generator {
     *    generated from the bytes read.
     * @throws java.io.IOException if reading fails.
     */
-   public List generateSums(InputStream in) throws IOException {
+   public List generateSums(InputStream in, Configuration config) throws IOException {
       List sums = null;
       byte[] buf = new byte[config.blockLength*config.blockLength];
       long offset = 0;
@@ -207,9 +194,9 @@ public class Generator {
 
       while ((len = in.read(buf)) != -1) {
          if (sums == null) {
-            sums = generateSums(buf, 0, len, offset);
+            sums = generateSums(buf, 0, len, offset, config);
          } else {
-            sums.addAll(generateSums(buf, 0, len, offset));
+            sums.addAll(generateSums(buf, 0, len, offset, config));
          }
          offset += len;
       }
@@ -225,8 +212,8 @@ public class Generator {
     *    this block came.
     * @return A {@link ChecksumPair} for this byte array.
     */
-   public ChecksumPair generateSum(byte[] buf, long fileOffset) {
-      return generateSum(buf, 0, buf.length, fileOffset);
+   public ChecksumPair generateSum(byte[] buf, long fileOffset, Configuration config) {
+      return generateSum(buf, 0, buf.length, fileOffset, config);
    }
 
    /**
@@ -238,8 +225,7 @@ public class Generator {
     * @param fileOffset The original offset of this byte array.
     * @return A {@link ChecksumPair} for this byte array.
     */
-   public ChecksumPair
-   generateSum(byte[] buf, int off, int len, long fileOffset) {
+   public ChecksumPair generateSum(byte[] buf, int off, int len, long fileOffset, Configuration config) {
       ChecksumPair p = new ChecksumPair();     
       config.weakSum.check(buf, off, len);
       config.strongSum.update(buf, off, len);
@@ -256,19 +242,19 @@ public class Generator {
       return p;
    }
 
-   public int generateWeakSum(byte[] buf, int offset){
+   public int generateWeakSum(byte[] buf, int offset, Configuration config){
        config.weakSum.first(buf, offset, config.blockLength);
        int weakSum = config.weakSum.getValue();
        return weakSum;
    }
 
-   public int generateRollSum(byte b){
+   public int generateRollSum(byte b, Configuration config){
        config.weakSum.roll(b);
        int weakSum = config.weakSum.getValue();
        return weakSum;
    }
 
-   public byte[] generateStrongSum(byte[] buf, int off, int len){
+   public byte[] generateStrongSum(byte[] buf, int off, int len, Configuration config){
        config.strongSum.update(buf, off, len);
        byte[] strongSum = new byte[config.strongSumLength];
        System.arraycopy(config.strongSum.digest(), 0, strongSum, 0, strongSum.length);
