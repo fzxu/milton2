@@ -55,9 +55,9 @@ public class Scratch {
 	 */
 	@Test
 	public void test1() {
-		metaFileMaker = new MetaFileMaker("/test", 32, fIn); //blocksize should be 300
+		metaFileMaker = new MetaFileMaker(); //blocksize should be 300
 		//metaFileMaker = new MetaFileMaker("/test", 256, fIn);
-		File metaFile = metaFileMaker.make();		
+		File metaFile = metaFileMaker.make("/test", 32, fIn);		
 		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);		
 		fileMaker = new FileMaker(rangeLoader, metaFile); 
 		System.out.println("local: " + fLocal.getAbsolutePath());		
