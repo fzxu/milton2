@@ -1,9 +1,15 @@
 package jazsync;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Date;
 import jazsync.jazsync.FileMaker;
 import jazsync.jazsync.LocalFileRangeLoader;
+import jazsync.jazsync.SHA1;
 import jazsync.jazsyncmake.MetaFileMaker;
+import jazsync.jazsyncmake.MetaFileMaker.MetaData;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,25 +63,37 @@ public class Scratch {
 	 * 
 	 */
 	@Test
-	public void test1() {		
+	public void test1() throws FileNotFoundException, Exception {		
 		File metaFile = metaFileMaker.make("/test", 32, fIn);		
 		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);		
 		System.out.println("local: " + fLocal.getAbsolutePath());		
 		fileMaker.make(fLocal, metaFile, rangeLoader);
 		
 		System.out.println("----------------------------------------------");
-		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());
-		
-		
-//		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-//		metaFileMaker.write(bout);
-//		System.out.println(bout.toString());
-//
-//		InputStream metaIn = new ByteArrayInputStream(bout.toByteArray());
-//		
-//		
-//		File dest = new File("src/test/resources/jazsync/output.txt"); // the merged file
-//		fileMaker.make(dest, metaIn);
-		
+		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());				
 	}
+	
+	/**
+	 * This is to simulate usage in a CMS, where we don't have a physical file
+	 * to work with
+	 * 
+	 * @throws FileNotFoundException 
+	 */
+	@Test
+	public void test2() throws FileNotFoundException, IOException {		
+		String sha1 = new SHA1(fIn).SHA1sum();
+		FileInputStream dataIn = new FileInputStream(fIn);
+		MetaData metaData = metaFileMaker.make("/test", 32, fIn.length(), new Date(fIn.lastModified()), sha1, dataIn);
+		dataIn.close();
+		
+		System.out.println("metaData ----------------");
+		System.out.println(metaData.getHeaders().toString());
+		
+		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);		
+		System.out.println("local: " + fLocal.getAbsolutePath());		
+		fileMaker.make(fLocal, metaData, rangeLoader);
+//		
+//		System.out.println("----------------------------------------------");
+//		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());				
+	}	
 }

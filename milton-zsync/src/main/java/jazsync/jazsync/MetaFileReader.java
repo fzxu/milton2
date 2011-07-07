@@ -32,6 +32,9 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import jazsync.jazsyncmake.HeaderMaker.Headers;
+import jazsync.jazsyncmake.MetaFileMaker.MetaData;
 
 import org.jarsync.ChecksumPair;
 
@@ -41,58 +44,27 @@ import org.jarsync.ChecksumPair;
  */
 public class MetaFileReader {
 
-	/** File existency and completion flag */
-	public int FILE_FLAG = 0;
-	private File metafile;
-	private String filename;
 	private ChainingHash hashtable;
 	private int fileOffset;
 	private int blockNum;
 	
 	/** Variables for header information from .zsync metafile */
 	//------------------------------
-	private String mf_version;
-	private String mf_filename;
-	private String mf_mtime;
-	private int mf_blocksize;
-	private long mf_length;
-	private int mf_seq_num;
-	private int mf_rsum_bytes;
-	private int mf_checksum_bytes;
-	private String mf_url;
-	private String mf_sha1;
-	private String auth;
-	//------------------------------
-	private String url;
-	private int ranges = 100; // number of ranges which can be downloaded together
-	private long downloadedMetafile = 0;
+	private Headers headers;
 
-	/** Option variables */
-	/**
-	 * Metafile constructor
-	 * @param args Arguments
-	 */
+
 	public MetaFileReader(File metafile) {
-		this.metafile = metafile;
-
-		readMetaFile();
-		blockNum = (int) Math.ceil((double) mf_length / (double) mf_blocksize);
-//		checkOutputFile();
-		readChecksums() ;	
+		readMetaFile(metafile);
+		blockNum = (int) Math.ceil((double) headers.length / (double) headers.blocksize);
+		readChecksums(metafile) ;	
 	}
 
-	/**
-	 * Method used to check outputfile if exist and is(not) complete
-	 */
-//	private void checkOutputFile() {
-//		File file = new File(mf_filename);
-//		if (file.isFile()) {
-//			SHA1check(file);
-//		} else {
-//			throw new RuntimeException("Output file is not a file! " + file.getAbsolutePath());
-//		}
-//	}
-
+	public MetaFileReader(MetaData metaData) {
+		this.headers = metaData.getHeaders();		
+		blockNum = (int) Math.ceil((double) headers.length / (double) headers.blocksize);
+		fillHashTable(metaData.getChecksums());
+		
+	}
 
 	/**
 	 * Parsing method for metafile headers, saving each value into separate variable.
@@ -110,38 +82,34 @@ public class MetaFileReader {
 		colonIndex = s.indexOf(":");
 		subs = s.substring(0, colonIndex);
 		if (subs.equalsIgnoreCase("zsync")) {
-			mf_version = s.substring(colonIndex + 2);
+			headers.version = s.substring(colonIndex + 2);
 			//zkontrolujeme kompatibilitu
-			if (mf_version.equals("0.0.4") || mf_version.equals("0.0.2")) {
+			if (headers.version.equals("0.0.4") || headers.version.equals("0.0.2")) {
 				throw new RuntimeException("This version is not compatible with zsync streams in versions up to 0.0.4");
 			}
-		} else if (subs.equalsIgnoreCase("Filename")) {
-			mf_filename = s.substring(colonIndex + 2);
-		} else if (subs.equalsIgnoreCase("MTime")) {
-			mf_mtime = s.substring(colonIndex + 2);
 		} else if (subs.equalsIgnoreCase("Blocksize")) {
-			mf_blocksize = Integer.parseInt(s.substring(colonIndex + 2));
+			headers.blocksize = Integer.parseInt(s.substring(colonIndex + 2));
 		} else if (subs.equalsIgnoreCase("Length")) {
-			mf_length = Long.parseLong(s.substring(colonIndex + 2));
+			headers.length = Long.parseLong(s.substring(colonIndex + 2));
 		} else if (subs.equalsIgnoreCase("Hash-Lengths")) {
 			int comma = s.indexOf(",");
-			mf_seq_num = Integer.parseInt(s.substring((colonIndex + 2), comma));
+			int seqNum = Integer.parseInt(s.substring((colonIndex + 2), comma));
+			headers.setSeqNum(seqNum);
 			int nextComma = s.indexOf(",", comma + 1);
-			mf_rsum_bytes = Integer.parseInt(s.substring(comma + 1, nextComma));
-			mf_checksum_bytes = Integer.parseInt(s.substring(nextComma + 1));
-			//zkontrolujeme validni hash-lengths
-			if ((mf_seq_num < 1 || mf_seq_num > 2)
-					|| (mf_rsum_bytes < 1 || mf_rsum_bytes > 4)
-					|| (mf_checksum_bytes < 3 || mf_checksum_bytes > 16)) {
+			headers.setRsumBytes( Integer.parseInt(s.substring(comma + 1, nextComma)) );
+			headers.setChecksumBytes( Integer.parseInt(s.substring(nextComma + 1)) );
+			if ((headers.getSeqNum() < 1 || headers.getSeqNum() > 2)
+					|| (headers.getRsumButes() < 1 || headers.getRsumButes() > 4)
+					|| (headers.getChecksumBytes() < 3 || headers.getChecksumBytes() > 16)) {
 				throw new RuntimeException("Nonsensical hash lengths line " + s.substring(colonIndex + 2));
 			}
 
 		} else if (subs.equalsIgnoreCase("URL")) {
-			mf_url = s.substring(colonIndex + 2);
+			headers.url = s.substring(colonIndex + 2);
 		} else if (subs.equalsIgnoreCase("Z-URL")) {
 			//not implemented yet
 		} else if (subs.equalsIgnoreCase("SHA-1")) {
-			mf_sha1 = s.substring(colonIndex + 2);
+			headers.sha1 = s.substring(colonIndex + 2);
 		} else if (subs.equalsIgnoreCase("Z-Map2")) {
 			//not implemented yet
 		}
@@ -152,7 +120,8 @@ public class MetaFileReader {
 	 * Method reads metafile from file and reads
 	 * it line by line, sending line String to parser.
 	 */
-	private void readMetaFile() {
+	private void readMetaFile(File metafile) {
+		headers = new Headers(); 
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(metafile));
 			String s;
@@ -171,7 +140,7 @@ public class MetaFileReader {
 	 * Method that reads metafile from file and stores its content into byte array
 	 * and saves offset where headers end and blocksums starts.
 	 */
-	private void readChecksums() {
+	private void readChecksums(File metafile) {
 		long length = metafile.length();
 		if (metafile.length() > Integer.MAX_VALUE) {
 			throw new RuntimeException("Metafile is too large");
@@ -207,6 +176,19 @@ public class MetaFileReader {
 		fillHashTable(bytes);
 	}
 
+	private void fillHashTable(List<ChecksumPair> list) {
+		int i = 16;
+		//spocteme velikost hashtable podle poctu bloku dat
+		while ((2 << (i - 1)) > blockNum && i > 4) {
+			i--;
+		}
+		//vytvorime hashtable o velikosti 2^i (max. 2^16, min. 2^4)
+		hashtable = new ChainingHash(2 << (i - 1));
+		for( ChecksumPair pair : list ) {
+			hashtable.insert(pair);
+		}
+	}
+	
 	/**
 	 * Fills a chaining hash table with ChecksumPairs
 	 * @param checksums Byte array with bytes of whole metafile
@@ -227,11 +209,11 @@ public class MetaFileReader {
 		int off = fileOffset;
 
 		byte[] weak = new byte[4];
-		byte[] strongSum = new byte[mf_checksum_bytes];
+		byte[] strongSum = new byte[headers.getChecksumBytes()];
 
 		while (seq < blockNum) {
 
-			for (int w = 0; w < mf_rsum_bytes; w++) {
+			for (int w = 0; w < headers.getRsumButes(); w++) {
 				weak[w] = checksums[off];
 				off++;
 			}
@@ -247,8 +229,8 @@ public class MetaFileReader {
 			weakSum += (weak[0] & 0x000000FF) << 8;
 			weakSum += (weak[1] & 0x000000FF);
 
-			p = new ChecksumPair(weakSum, strongSum.clone(), offset, mf_blocksize, seq);
-			offset += mf_blocksize;
+			p = new ChecksumPair(weakSum, strongSum.clone(), offset, headers.blocksize, seq);
+			offset += headers.blocksize;
 			seq++;
 			//item = new Link(p);
 			hashtable.insert(p);
@@ -272,19 +254,11 @@ public class MetaFileReader {
 	}
 
 	/**
-	 * Returns metafile URL
-	 * @return Metafile URL in String format
-	 */
-	public String getMetaFileURL() {
-		return filename;
-	}
-
-	/**
 	 * Returns size of block
 	 * @return Size of the data block
 	 */
 	public int getBlocksize() {
-		return mf_blocksize;
+		return headers.blocksize;
 	}
 
 	/**
@@ -292,15 +266,7 @@ public class MetaFileReader {
 	 * @return Length of strong sum
 	 */
 	public int getChecksumBytes() {
-		return mf_checksum_bytes;
-	}
-
-	/**
-	 * Returns name of the file that we are trying to synchronize
-	 * @return Name of the file
-	 */
-	public String getFilename() {
-		return mf_filename;
+		return headers.getChecksumBytes();
 	}
 
 	/**
@@ -308,24 +274,16 @@ public class MetaFileReader {
 	 * @return Length of the file
 	 */
 	public long getLength() {
-		return mf_length;
+		return headers.length;
 	}
 
-	/**
-	 * Last modified time of file stored in metafile stored
-	 * in string format ("EEE, dd MMM yyyy HH:mm:ss Z")
-	 * @return String form of mtime
-	 */
-	public String getMtime() {
-		return mf_mtime;
-	}
 
 	/**
 	 * Length of used weak sum
 	 * @return Length of weak sum
 	 */
 	public int getRsumBytes() {
-		return mf_rsum_bytes;
+		return headers.getRsumButes();
 	}
 
 	/**
@@ -333,7 +291,7 @@ public class MetaFileReader {
 	 * @return Number of consequence blocks
 	 */
 	public int getSeqNum() {
-		return mf_seq_num;
+		return headers.getSeqNum();
 	}
 
 	/**
@@ -341,40 +299,6 @@ public class MetaFileReader {
 	 * @return String containing SHA1 sum of complete file
 	 */
 	public String getSha1() {
-		return mf_sha1;
-	}
-
-	/**
-	 * Return URL of complete file
-	 * @return URL address in String format
-	 */
-	public String getUrl() {
-		return mf_url;
-	}
-
-	/**
-	 * Return URL as origin of local metafile (in case that metafile contains
-	 * relative URL to a file)
-	 * @return URL address in String format
-	 */
-	public String getRelativeURL() {
-		return url;
-	}
-
-	/**
-	 * Maximum number of simultaneously downloaded blocks
-	 * @return Max. number of blocks downloaded in one piece
-	 */
-	public int getRangesNumber() {
-		return ranges;
-	}
-
-
-	/**
-	 * Length of DOWNLOADED metafile
-	 * @return Length of metafile
-	 */
-	public long getLengthOfMetafile() {
-		return downloadedMetafile;
+		return headers.sha1;
 	}
 }

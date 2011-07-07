@@ -25,20 +25,27 @@ USA
  */
 package jazsync.jazsyncmake;
 
+import com.bradmcevoy.io.StreamUtils;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import jazsync.jazsync.Rsum;
+import jazsync.jazsync.SHA1;
+import jazsync.jazsyncmake.HeaderMaker.Headers;
 
 import org.jarsync.ChecksumPair;
 import org.jarsync.Configuration;
@@ -62,14 +69,47 @@ public class MetaFileMaker {
 	public MetaFileMaker() {
 	}
 
-	public File make(String url, int blocksize, File file) {
-		long fileLength = file.length();
-
-		File outputFile = new File(file.getName() + ".zsynch");
+	public MetaData make(String url, int blocksize, long fileLength, Date lastMod, String sha1, InputStream fileData) {
 
 		int[] hashLengths = analyzeFile(blocksize, fileLength);
 
-		String header = headerMaker.getFullHeader(file, url, blocksize, hashLengths);
+		HeaderMaker.Headers headers = headerMaker.getFullHeader(lastMod, fileLength, url, blocksize, hashLengths, sha1);
+
+
+		//appending block checksums into the metafile
+		try {
+			Configuration config = new Configuration();
+			config.strongSum = MessageDigest.getInstance("MD4");
+			config.weakSum = new Rsum();
+			config.blockLength = blocksize;
+			config.strongSumLength = hashLengths[2];
+			List<ChecksumPair> list = new ArrayList<ChecksumPair>((int) Math.ceil((double) fileLength / (double) blocksize));
+			list = gen.generateSums(fileData, config);
+			return new MetaData(headers, list);
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		} catch (NoSuchAlgorithmException nae) {
+			throw new RuntimeException(nae);
+		}		
+	}
+	
+	public File make(String url, int blocksize, File file) throws FileNotFoundException {
+		FileInputStream fin = null;
+		MetaData metaData;
+		SHA1 sh = new SHA1(file);
+		String sha1 = sh.SHA1sum();
+		try {
+			fin = new FileInputStream(file);
+			metaData = make(url, blocksize, file.length(), new Date(file.lastModified()), sha1, fin);
+		} catch(IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			StreamUtils.close(fin);
+		}
+		
+		File outputFile = new File(file.getName() + ".zsynch");
+
+		String header = headerMaker.toString(metaData.getHeaders());
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(outputFile));
 			header.replaceAll("\n", System.getProperty("line.separator"));
@@ -82,22 +122,15 @@ public class MetaFileMaker {
 		//appending block checksums into the metafile
 		try {
 			FileOutputStream fos = new FileOutputStream(outputFile, true);
-			Configuration config = new Configuration();
-			config.strongSum = MessageDigest.getInstance("MD4");
-			config.weakSum = new Rsum();
-			config.blockLength = blocksize;
-			config.strongSumLength = hashLengths[2];
-			List<ChecksumPair> list = new ArrayList<ChecksumPair>((int) Math.ceil((double) file.length() / (double) blocksize));
-			list = gen.generateSums(file, config);
+			List<ChecksumPair> list = metaData.getChecksums();
 			for (ChecksumPair p : list) {
-				fos.write(intToBytes(p.getWeak(), hashLengths[1]));
+				int rsum_bytes = metaData.headers.hashLengths[1];
+				fos.write(intToBytes(p.getWeak(), rsum_bytes));
 				fos.write(p.getStrong());
 			}
 			return outputFile;
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);
-		} catch (NoSuchAlgorithmException nae) {
-			throw new RuntimeException(nae);
 		}
 
 	}
@@ -191,5 +224,25 @@ public class MetaFileMaker {
 			}
 		}
 		System.out.println("MetaFileMaker: computeBlockSize: " + blocksize);
+	}
+	
+	public class MetaData {
+		private final Headers headers;
+		private final List<ChecksumPair> list;
+
+		public MetaData(Headers headers, List<ChecksumPair> list) {
+			this.headers = headers;
+			this.list = list;
+		}
+
+		public Headers getHeaders() {
+			return headers;
+		}
+
+		public List<ChecksumPair> getChecksums() {
+			return list;
+		}
+		
+		
 	}
 }

@@ -41,13 +41,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.Locale;
+import jazsync.jazsyncmake.MetaFileMaker.MetaData;
 
 import org.jarsync.ChecksumPair;
 import org.jarsync.Configuration;
@@ -76,31 +73,30 @@ public class FileMaker {
 	 * @param inputFile - the "local" file, containing data which needs to be merged
 	 * with that on the server
 	 */
-	public void make(File inputFile, File metafile, RangeLoader rangeLoader) {
-		System.out.println("make");
-				
+	public void make(File inputFile, File metafile, RangeLoader rangeLoader) throws Exception {
 		MetaFileReader mfr = new MetaFileReader(metafile);
-		System.out.println("FileMaker: block count: " + mfr.getBlockCount() + " - size: " + mfr.getBlocksize());
 		MakeContext makeContext = new MakeContext(mfr.getHashtable(), new long[mfr.getBlockCount()]);
-
-		Arrays.fill(makeContext.fileMap, -1);
-				
+		Arrays.fill(makeContext.fileMap, -1);				
 		double complete = mapMatcher(inputFile, mfr, makeContext);
-		System.out.println("local file percentage complete: " + complete);
 		// Note if complete is zero better to download whole file
 		fileMaker(inputFile, mfr, rangeLoader, makeContext);
 	}
+	
+	public void make(File fLocal, MetaData metaData, LocalFileRangeLoader rangeLoader) {
+		MetaFileReader mfr = new MetaFileReader(metaData);
+	}
+	
 
 	/**
 	 * Method for completing file
 	 */
-	private void fileMaker(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext mc) {
+	private void fileMaker(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext mc) throws Exception {
 		System.out.println("fileMaker: input: " + inputFile.getAbsolutePath());
 		try {
 			double a = 10;
 			int range = 0;
 			int blockLength = 0;
-			File newFile = new File(mfr.getFilename() + ".part");
+			File newFile = new File(inputFile.getName() + ".part");
 			if (newFile.exists()) {
 				newFile.delete();
 			}
@@ -203,24 +199,7 @@ public class FileMaker {
 		return ranges;
 	}
 
-	/**
-	 * Parsing out date from metafile into long value
-	 * @return Time as long value in milliseconds passed since 1.1.1970
-	 */
-	private long getMTime(MetaFileReader mfr) {
-		long mtime = 0;
-		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", Locale.US);
-			Date date = sdf.parse(mfr.getMtime());
-			mtime = date.getTime();
-		} catch (ParseException e) {
-			System.out.println("Metafile is containing a wrong time format. "
-					+ "Using today's date.");
-			Date today = new Date();
-			mtime = today.getTime();
-		}
-		return mtime;
-	}
+
 
 	/**
 	 * Reads file and map it's data into the fileMap.
@@ -442,6 +421,7 @@ public class FileMaker {
 		}
 		return false;
 	}
+
 	
 	public class MakeContext {
 		final ChainingHash hashtable;

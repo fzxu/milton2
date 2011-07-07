@@ -36,7 +36,7 @@ import java.security.NoSuchAlgorithmException;
  * @author Tomáš Hlavnička
  */
 public class SHA1 {
-    private String filename;
+    private File file;
     private FileInputStream fis;
     private MessageDigest sha1;
     private StringBuilder sb;
@@ -46,7 +46,7 @@ public class SHA1 {
      * @param filename Name and path to a file
      */
     public SHA1(String filename){
-        this.filename=filename;
+        this.file = new File(filename);
     }
 
     /**
@@ -54,7 +54,7 @@ public class SHA1 {
      * @param file File for calculation
      */
     public SHA1(File file){
-        this.filename=file.getName();
+        this.file = file;
     }
 
     /**
@@ -64,7 +64,7 @@ public class SHA1 {
     public String SHA1sum(){
         try {
             sha1 = MessageDigest.getInstance("SHA1");
-            fis = new FileInputStream(filename);
+            fis = new FileInputStream(file);
             byte[] dataBytes = new byte[1024];
 
             int read = 0;

@@ -1,6 +1,5 @@
 package com.bradmcevoy.property;
 
-import com.bradmcevoy.property.PropertySource.PropertyAccessibility;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
