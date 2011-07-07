@@ -24,7 +24,7 @@
       USA
  */
 
-package jazsync.jazsync;
+package com.ettrema.zsync;
 
 import java.util.ArrayList;
 import java.util.Arrays;

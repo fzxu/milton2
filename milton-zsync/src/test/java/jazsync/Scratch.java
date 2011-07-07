@@ -5,11 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
-import jazsync.jazsync.FileMaker;
-import jazsync.jazsync.LocalFileRangeLoader;
-import jazsync.jazsync.SHA1;
-import jazsync.jazsyncmake.MetaFileMaker;
-import jazsync.jazsyncmake.MetaFileMaker.MetaData;
+import com.ettrema.zsync.FileMaker;
+import com.ettrema.zsync.LocalFileRangeLoader;
+import com.ettrema.zsync.SHA1;
+import com.ettrema.zsync.MetaFileMaker;
+import com.ettrema.zsync.MetaFileMaker.MetaData;
 
 import org.junit.Before;
 import org.junit.Test;

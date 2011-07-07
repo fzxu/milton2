@@ -23,7 +23,7 @@ Free Software Foundation, Inc.,
 Boston, MA  02111-1307
 USA
  */
-package jazsync.jazsync;
+package com.ettrema.zsync;
 
 
 import java.io.BufferedReader;
@@ -33,8 +33,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import jazsync.jazsyncmake.HeaderMaker.Headers;
-import jazsync.jazsyncmake.MetaFileMaker.MetaData;
+import com.ettrema.zsync.HeaderMaker.Headers;
+import com.ettrema.zsync.MetaFileMaker.MetaData;
 
 import org.jarsync.ChecksumPair;
 

@@ -6,7 +6,6 @@ import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.Utils.CancelledException;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import jazsync.jazsync.RangeLoader;
 
 /**
  *

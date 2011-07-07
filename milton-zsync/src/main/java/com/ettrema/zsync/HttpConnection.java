@@ -24,7 +24,7 @@
       USA
  */
 
-package jazsync.jazsync;
+package com.ettrema.zsync;
 
 import com.ettrema.http.DataRange;
 import org.base64coder.Base64Coder;

@@ -23,7 +23,7 @@ Free Software Foundation, Inc.,
 Boston, MA  02111-1307
 USA
  */
-package jazsync.jazsync;
+package com.ettrema.zsync;
 
 import com.ettrema.http.DataRange;
 import java.io.File;
@@ -44,7 +44,7 @@ import java.security.Security;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import jazsync.jazsyncmake.MetaFileMaker.MetaData;
+import com.ettrema.zsync.MetaFileMaker.MetaData;
 
 import org.jarsync.ChecksumPair;
 import org.jarsync.Configuration;

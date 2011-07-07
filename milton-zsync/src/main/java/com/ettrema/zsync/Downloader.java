@@ -1,4 +1,4 @@
-package jazsync.jazsync;
+package com.ettrema.zsync;
 
 import com.ettrema.http.DataRange;
 import java.io.IOException;

@@ -23,7 +23,7 @@ Free Software Foundation, Inc.,
 Boston, MA  02111-1307
 USA
  */
-package jazsync.jazsyncmake;
+package com.ettrema.zsync;
 
 import com.bradmcevoy.io.StreamUtils;
 import java.io.BufferedWriter;
@@ -43,9 +43,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import jazsync.jazsync.Rsum;
-import jazsync.jazsync.SHA1;
-import jazsync.jazsyncmake.HeaderMaker.Headers;
+import com.ettrema.zsync.Rsum;
+import com.ettrema.zsync.SHA1;
+import com.ettrema.zsync.HeaderMaker.Headers;
 
 import org.jarsync.ChecksumPair;
 import org.jarsync.Configuration;

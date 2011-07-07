@@ -23,7 +23,7 @@
       USA
  */
 
-package jazsync.jazsync;
+package com.ettrema.zsync;
 
 import java.io.File;
 import java.io.FileInputStream;

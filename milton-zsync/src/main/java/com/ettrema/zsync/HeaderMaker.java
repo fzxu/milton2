@@ -24,13 +24,13 @@
       USA
  */
 
-package jazsync.jazsyncmake;
+package com.ettrema.zsync;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import jazsync.jazsync.SHA1;
+import com.ettrema.zsync.SHA1;
 /**
  * Simple class for creating headers for metafile
  * @author Tomáš Hlavnička
