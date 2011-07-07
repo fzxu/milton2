@@ -1,6 +1,7 @@
 package jazsync.jazsync;
 
-import java.util.ArrayList;
+import com.ettrema.http.DataRange;
+import java.util.List;
 
 /**
  *
@@ -8,6 +9,6 @@ import java.util.ArrayList;
  */
 public interface RangeLoader {
 
-	public byte[] get(ArrayList<DataRange> rangeList);
+	public byte[] get(List<DataRange> rangeList) throws Exception;
 	
 }

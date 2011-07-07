@@ -1,5 +1,6 @@
 package jazsync.jazsync;
 
+import com.ettrema.http.DataRange;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;

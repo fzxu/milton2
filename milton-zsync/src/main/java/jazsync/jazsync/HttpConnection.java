@@ -26,6 +26,7 @@
 
 package jazsync.jazsync;
 
+import com.ettrema.http.DataRange;
 import org.base64coder.Base64Coder;
 import java.io.FileOutputStream;
 import java.io.IOException;

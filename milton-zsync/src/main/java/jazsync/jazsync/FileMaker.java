@@ -25,6 +25,7 @@ USA
  */
 package jazsync.jazsync;
 
+import com.ettrema.http.DataRange;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

@@ -1,5 +1,6 @@
 package com.ettrema.httpclient;
 
+import com.ettrema.http.DataRange;
 import com.ettrema.httpclient.Utils.CancelledException;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -7,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  *
@@ -72,6 +74,10 @@ public class File extends Resource {
     }
 
     public void download(final OutputStream out, final ProgressListener listener) throws HttpException, CancelledException {
+        
+    }
+    
+    public void download(final OutputStream out, final ProgressListener listener, List<DataRange> rangeList) throws HttpException, CancelledException {
         if (listener != null) {
             listener.onProgress(0, this.name);
         }
@@ -90,7 +96,7 @@ public class File extends Resource {
                         throw ex;
                     }
                 }
-            });
+            }, rangeList);
         } catch(CancelledException e) {
             throw e;
         } catch(Throwable e) {

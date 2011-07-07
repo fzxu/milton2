@@ -1,12 +1,13 @@
 package jazsync.jazsync;
 
+import com.ettrema.http.DataRange;
 import com.bradmcevoy.io.StreamUtils;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -23,7 +24,7 @@ public class LocalFileRangeLoader implements RangeLoader{
 	}
 		
 	
-	public byte[] get(ArrayList<DataRange> rangeList) { 
+	public byte[] get(List<DataRange> rangeList) { 
 		System.out.println("LocalFileRangeLoader: get: rangeList: " + rangeList.size());
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		for(DataRange r : rangeList) {

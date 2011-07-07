@@ -23,7 +23,7 @@
       USA
  */
 
-package jazsync.jazsync;
+package com.ettrema.http;
 
 /**
  * Block range

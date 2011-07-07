@@ -3,6 +3,7 @@ package com.ettrema.httpclient;
 import com.bradmcevoy.common.Path;
 import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
+import com.ettrema.http.DataRange;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +24,6 @@ import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -206,6 +206,7 @@ public class Host extends Folder {
         notifyStartRequest();
         String s = urlEncode(newUri);
         PutMethod p = new PutMethod(s);
+        
         HttpMethodParams params = new HttpMethodParams();
         params.setSoTimeout(timeout);
         p.setParams(params);
@@ -306,9 +307,9 @@ public class Host extends Folder {
         }
     }
 
-    public synchronized void doGet(String url, StreamReceiver receiver) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
+    public synchronized void doGet(String url, StreamReceiver receiver,  List<DataRange> rangeList) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
         notifyStartRequest();
-        GetMethod m = new GetMethod(urlEncode(url));
+        RangedGetMethod m = new RangedGetMethod(urlEncode(url), rangeList);
         InputStream in = null;
         try {
             int res = client.executeMethod(m);
@@ -348,7 +349,7 @@ public class Host extends Folder {
                     throw new RuntimeException(ex);
                 }
             }
-        });
+        }, null);
         return out.toByteArray();
     }
 
