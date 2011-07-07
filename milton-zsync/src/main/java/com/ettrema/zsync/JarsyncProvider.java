@@ -37,10 +37,9 @@ package com.ettrema.zsync;
  */
 public final class JarsyncProvider extends java.security.Provider {
    public JarsyncProvider() {
-      super("JARSYNC", 1.3,
-            "Jarsync provider; implementing MD4, BrokenMD4");
+      super("JARSYNC", 1.3,"Jarsync provider; implementing MD4, BrokenMD4");
 
-      put("MessageDigest.MD4",       "org.jarsync.MD4");
-      put("MessageDigest.BrokenMD4", "org.jarsync.BrokenMD4");
+      put("MessageDigest.MD4",       "com.ettrema.zsync.MD4");
+      put("MessageDigest.BrokenMD4", "com.ettrema.zsync.BrokenMD4");
    }
 }

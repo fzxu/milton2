@@ -25,6 +25,7 @@ USA
  */
 package com.ettrema.zsync;
 
+import com.bradmcevoy.io.StreamUtils;
 import com.ettrema.http.DataRange;
 import java.io.File;
 import java.io.FileInputStream;
@@ -69,9 +70,19 @@ public class FileMaker {
      */
     public void make(File inputFile, File metafile, RangeLoader rangeLoader) throws Exception {
         MetaFileReader mfr = new MetaFileReader(metafile);
+        InputStream is = null;
+        try {
+            is = new FileInputStream(inputFile);        
+            make(mfr, is, inputFile.length(), rangeLoader);
+        } finally {
+            StreamUtils.close(is);
+        }
+    }
+
+    private void make(MetaFileReader mfr, InputStream is, long fileLength, RangeLoader rangeLoader) throws Exception {
         MakeContext makeContext = new MakeContext(mfr.getHashtable(), new long[mfr.getBlockCount()]);
         Arrays.fill(makeContext.fileMap, -1);
-        double complete = mapMatcher(inputFile, mfr, makeContext);
+        double complete = mapMatcher(is, fileLength, mfr, makeContext);
         // Note if complete is zero better to download whole file
         fileMaker(inputFile, mfr, rangeLoader, makeContext);
     }
@@ -195,9 +206,7 @@ public class FileMaker {
     /**
      * Reads file and map it's data into the fileMap.
      */
-    private double mapMatcher(File inputFile, MetaFileReader mfr, MakeContext mc) {
-        System.out.println("FileMaker: mapMatcher");
-        InputStream is = null;
+    private double mapMatcher(InputStream is, long fileLength, MetaFileReader mfr, MakeContext mc) {
         int bufferOffset = 0;
         try {
             Security.addProvider(new JarsyncProvider());
@@ -219,9 +228,6 @@ public class FileMaker {
             } else {
                 fileBuffer = new byte[mebiByte];
             }
-            is = new FileInputStream(inputFile);
-            File test = inputFile;
-            long fileLength = test.length();
             int n;
             byte newByte;
             boolean firstBlock = true;
