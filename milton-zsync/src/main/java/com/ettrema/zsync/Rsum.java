@@ -26,8 +26,6 @@
 
 package com.ettrema.zsync;
 
-import org.jarsync.RollingChecksum;
-
 /**
  * Implementation of rolling checksum for zsync purposes
  * @author Tomáš Hlavnička

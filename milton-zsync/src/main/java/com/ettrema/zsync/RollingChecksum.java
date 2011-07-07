@@ -30,7 +30,7 @@
    conditions of the GNU General Public License cover the whole
    combination. */
 
-package org.jarsync;
+package com.ettrema.zsync;
 
 /**
  * A general interface for 32-bit checksums that have the "rolling"

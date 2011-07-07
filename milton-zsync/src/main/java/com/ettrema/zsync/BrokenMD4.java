@@ -32,7 +32,7 @@
    conditions of the GNU General Public License cover the whole
    combination. */
 
-package org.jarsync;
+package com.ettrema.zsync;
 
 /**
  * <p>An implementation of Ron Rivest's MD4 message digest algorithm.

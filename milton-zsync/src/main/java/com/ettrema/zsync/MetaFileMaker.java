@@ -47,10 +47,6 @@ import com.ettrema.zsync.Rsum;
 import com.ettrema.zsync.SHA1;
 import com.ettrema.zsync.HeaderMaker.Headers;
 
-import org.jarsync.ChecksumPair;
-import org.jarsync.Configuration;
-import org.jarsync.Generator;
-import org.jarsync.JarsyncProvider;
 
 /**
  * Metafile making class

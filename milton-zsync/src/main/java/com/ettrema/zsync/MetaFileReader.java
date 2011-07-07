@@ -36,7 +36,6 @@ import java.util.List;
 import com.ettrema.zsync.HeaderMaker.Headers;
 import com.ettrema.zsync.MetaFileMaker.MetaData;
 
-import org.jarsync.ChecksumPair;
 
 /**
  * Class used to read metafile

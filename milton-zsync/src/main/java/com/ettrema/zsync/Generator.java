@@ -30,7 +30,7 @@
    combination. */
 
 
-package org.jarsync;
+package com.ettrema.zsync;
 
 import java.io.File;
 import java.io.FileInputStream;

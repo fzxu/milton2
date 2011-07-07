@@ -28,7 +28,7 @@ a combined work based on Jarsync.  Thus, the terms and conditions of
 the GNU General Public License cover the whole combination. */
 
 
-package org.jarsync;
+package com.ettrema.zsync;
 
 import java.util.Arrays;
 

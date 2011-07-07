@@ -28,7 +28,6 @@ package com.ettrema.zsync;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import org.jarsync.ChecksumPair;
 
 /**
  * Chaining hash table used to store block checksums loaded from metafile

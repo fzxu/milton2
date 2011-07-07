@@ -33,7 +33,7 @@
    conditions of the GNU General Public License cover the whole
    combination. */
 
-package org.jarsync;
+package com.ettrema.zsync;
 
 import java.io.IOException;
 import java.io.InputStream;

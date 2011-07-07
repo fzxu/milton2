@@ -29,7 +29,7 @@
    conditions of the GNU General Public License cover the whole
    combination. */
 
-package org.jarsync;
+package com.ettrema.zsync;
 
 /**
  * This provider implements the MD4 message digest, and is provided to
