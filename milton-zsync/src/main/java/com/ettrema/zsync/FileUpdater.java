@@ -110,7 +110,10 @@ public class FileUpdater {
 			log.info("Completed file: " + newFile.getAbsolutePath());
 			log.info("Checking checksums...");
 			SHA1 sha = new SHA1(newFile);
-			if (sha.SHA1sum().equals(mfr.getSha1())) {
+			String actual = sha.SHA1sum();
+			String expected = mfr.getSha1();
+			
+			if (actual.equals(expected)) {
 				log.info("checksum matches OK");
 //				System.out.println("used " + (mfr.getLength() - (mfr.getBlocksize() * missing)) + " " + "local, fetched " + (mfr.getBlocksize() * missing));
 //				new File(mfr.getFilename()).renameTo(new File(mfr.getFilename() + ".zs-old"));
@@ -120,7 +123,7 @@ public class FileUpdater {
 //				double overhead = ((double) (allData - (mfr.getBlocksize() * missing)) / ((double) (mfr.getBlocksize() * missing))) * 100;
 //				System.out.println("overhead: " + df.format(overhead) + "%");
 			} else {
-				throw new RuntimeException("Checksums don't match");
+				throw new RuntimeException("Checksums don't match - expected: " + expected + "  actual: " + actual);
 			}
 		} catch (IOException ex) {
 			throw new RuntimeException("Can't read or write, check your permissions.");

@@ -6,10 +6,9 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,11 +18,13 @@ public class GetHandler implements ExistingEntityHandler {
     private final Http11ResponseHandler responseHandler;
     private final HandlerHelper handlerHelper;
     private final ResourceHandlerHelper resourceHandlerHelper;
+	private final PartialGetHelper partialGetHelper;
 
     public GetHandler( Http11ResponseHandler responseHandler, HandlerHelper handlerHelper ) {
         this.responseHandler = responseHandler;
         this.handlerHelper = handlerHelper;
         this.resourceHandlerHelper = new ResourceHandlerHelper( handlerHelper, responseHandler );
+		partialGetHelper = new PartialGetHelper(responseHandler);
     }
 
     @Override
@@ -54,16 +55,6 @@ public class GetHandler implements ExistingEntityHandler {
         sendContent( manager, request, response, r, request.getParams() );
     }
 
-    public Range getRange( Request requestInfo ) {
-        // Thanks Igor!
-        String rangeHeader = requestInfo.getRangeHeader();
-        if( rangeHeader == null ) return null;
-        final Matcher matcher = Pattern.compile( "\\s*bytes\\s*=\\s*(\\d+)-(\\d+)" ).matcher( rangeHeader );
-        if( matcher.matches() ) {
-            return new Range( Long.parseLong( matcher.group( 1 ) ), Long.parseLong( matcher.group( 2 ) ) );
-        }
-        return null;
-    }
 
     /** Return true if the resource has not been modified
      */
@@ -157,10 +148,9 @@ public class GetHandler implements ExistingEntityHandler {
             if( request.getMethod().equals( Method.HEAD ) ) {
                 responseHandler.respondHead( resource, response, request );
             } else {
-                Range range = getRange( request );
-                if( range != null ) {
-                    log.trace( "partial" );
-                    responseHandler.respondPartialContent( resource, response, request, params, range );
+                List<Range> ranges = partialGetHelper.getRanges( request.getRangeHeader() );
+                if( ranges != null && ranges.size() > 0 ) {
+					partialGetHelper.sendPartialContent(resource, request, response, ranges, params);
                 } else {
                     if( log.isTraceEnabled() ) {
                         log.trace( "normal content: " + responseHandler.getClass().getCanonicalName() );

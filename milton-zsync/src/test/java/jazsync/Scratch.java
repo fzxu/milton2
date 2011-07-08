@@ -14,8 +14,6 @@ import com.ettrema.zsync.MetaFileMaker.MetaData;
 import org.junit.Before;
 import org.junit.Test;
 
-
-
 /**
  *
  * @author brad
@@ -26,21 +24,20 @@ public class Scratch {
 	FileMaker fileMaker;
 	File fIn;
 	File fLocal;
-	
+
 	@Before
 	public void setUp() {
 		fIn = new File("src/test/resources/jazsync/source.txt"); // this represents the remote file we want to download
 		System.out.println("fin: " + fIn.getAbsolutePath());
 		System.out.println(fIn.getAbsolutePath());
 
-		
+
 		fLocal = new File("src/test/resources/jazsync/dest.txt"); // this represents the current version of the local file we want to update
-		
+
 		metaFileMaker = new MetaFileMaker();
-		fileMaker = new FileMaker(); 		
+		fileMaker = new FileMaker();
 	}
 
-	
 	/**
 	 * So this basically works for downloading deltas to update a local file. But
 	 * what about uploading?
@@ -63,16 +60,20 @@ public class Scratch {
 	 * 
 	 */
 	@Test
-	public void test1() throws FileNotFoundException, Exception {		
-		File metaFile = metaFileMaker.make("/test", 32, fIn);		
-		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);		
-		System.out.println("local: " + fLocal.getAbsolutePath());		
+	public void test1() throws FileNotFoundException, Exception {
+		SHA1 sha = new SHA1(fIn);
+		String actual = sha.SHA1sum();
+		System.out.println("checksum of source file: " + actual);
+
+		File metaFile = metaFileMaker.make("/test", 32, fIn);
+		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);
+		System.out.println("local: " + fLocal.getAbsolutePath());
 		fileMaker.make(fLocal, metaFile, rangeLoader);
-		
+
 		System.out.println("----------------------------------------------");
-		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());				
+		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());
 	}
-	
+
 	/**
 	 * This is to simulate usage in a CMS, where we don't have a physical file
 	 * to work with
@@ -80,20 +81,19 @@ public class Scratch {
 	 * @throws FileNotFoundException 
 	 */
 	@Test
-	public void test2() throws FileNotFoundException, IOException {		
-		String sha1 = new SHA1(fIn).SHA1sum();
+	public void test2() throws FileNotFoundException, IOException {
 		FileInputStream dataIn = new FileInputStream(fIn);
-		MetaData metaData = metaFileMaker.make("/test", 32, fIn.length(), new Date(fIn.lastModified()), sha1, dataIn);
+		MetaData metaData = metaFileMaker.make("/test", 32, fIn.length(), new Date(fIn.lastModified()), dataIn);
 		dataIn.close();
-		
+
 		System.out.println("metaData ----------------");
 		System.out.println(metaData.getHeaders().toString());
-		
-		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);		
-		System.out.println("local: " + fLocal.getAbsolutePath());		
+
+		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);
+		System.out.println("local: " + fLocal.getAbsolutePath());
 		fileMaker.make(fLocal, metaData, rangeLoader);
 //		
 //		System.out.println("----------------------------------------------");
 //		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());				
-	}	
+	}
 }

@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -43,9 +42,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.ettrema.zsync.Rsum;
-import com.ettrema.zsync.SHA1;
 import com.ettrema.zsync.HeaderMaker.Headers;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 /**
  * Metafile making class
@@ -53,190 +52,217 @@ import com.ettrema.zsync.HeaderMaker.Headers;
  */
 public class MetaFileMaker {
 
-    {
-        Security.addProvider(new JarsyncProvider());
-    }
-    /** Default length of strong checksum (MD4) */
-    private final int STRONG_SUM_LENGTH = 16;
-    private HeaderMaker headerMaker = new HeaderMaker();
-    private Generator gen = new Generator();
+	{
+		Security.addProvider(new JarsyncProvider());
+	}
+	/** Default length of strong checksum (MD4) */
+	private final int STRONG_SUM_LENGTH = 16;
+	private HeaderMaker headerMaker = new HeaderMaker();
+	private Generator gen = new Generator();
 
-    public MetaFileMaker() {
-    }
+	public MetaFileMaker() {
+	}
 
-    public MetaData make(String url, int blocksize, long fileLength, Date lastMod, String sha1, InputStream fileData) {
+	public MetaData make(String url, int blocksize, long fileLength, Date lastMod, InputStream fileData) {
 
-        int[] hashLengths = analyzeFile(blocksize, fileLength);
+		int[] hashLengths = analyzeFile(blocksize, fileLength);
 
-        HeaderMaker.Headers headers = headerMaker.getFullHeader(lastMod, fileLength, url, blocksize, hashLengths, sha1);
+		HeaderMaker.Headers headers = headerMaker.getFullHeader(lastMod, fileLength, url, blocksize, hashLengths, null);
 
 
-        //appending block checksums into the metafile
-        try {
-            Configuration config = new Configuration();
-            config.strongSum = MessageDigest.getInstance("MD4");
-            config.weakSum = new Rsum();
-            config.blockLength = blocksize;
-            config.strongSumLength = hashLengths[2];
-            List<ChecksumPair> list = new ArrayList<ChecksumPair>((int) Math.ceil((double) fileLength / (double) blocksize));
-            list = gen.generateSums(fileData, config);
-            return new MetaData(headers, list);
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        } catch (NoSuchAlgorithmException nae) {
-            throw new RuntimeException(nae);
-        }
-    }
+		//appending block checksums into the metafile
+		try {
+			Configuration config = new Configuration();
+			config.strongSum = MessageDigest.getInstance("MD4");
+			config.weakSum = new Rsum();
+			config.blockLength = blocksize;
+			config.strongSumLength = hashLengths[2];
+			List<ChecksumPair> list = new ArrayList<ChecksumPair>((int) Math.ceil((double) fileLength / (double) blocksize));
+			MessageDigest sha1Digest = MessageDigest.getInstance("SHA1");
+			list = gen.generateSums(fileData, config, sha1Digest);
+			headers.sha1 = SHA1.toString(sha1Digest);
+			return new MetaData(headers, list);
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		} catch (NoSuchAlgorithmException nae) {
+			throw new RuntimeException(nae);
+		}
+	}
 
-    public File make(String url, int blocksize, File file) throws FileNotFoundException {
-        FileInputStream fin = null;
-        MetaData metaData;
-        SHA1 sh = new SHA1(file);
-        String sha1 = sh.SHA1sum();
-        try {
-            fin = new FileInputStream(file);
-            metaData = make(url, blocksize, file.length(), new Date(file.lastModified()), sha1, fin);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            StreamUtils.close(fin);
-        }
+	public File make(String url, int blocksize, File file) throws FileNotFoundException {
+		FileInputStream fin = null;
+		MetaData metaData;
+		try {
+			fin = new FileInputStream(file);
+			metaData = make(url, blocksize, file.length(), new Date(file.lastModified()), fin);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			StreamUtils.close(fin);
+		}
 
-        File outputFile = new File(file.getName() + ".zsynch");
+		File outputFile = new File(file.getName() + ".zsynch");
+		FileOutputStream fos = new FileOutputStream(outputFile);
+		try {
+			String header = headerMaker.toString(metaData.getHeaders());
+			try {
+				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(fos));
+				header.replaceAll("\n", System.getProperty("line.separator"));
+				out.write(header);
+				out.flush();
+			} catch (IOException e) {
+				throw new RuntimeException("Can't create .zsync metafile, check your permissions");
+			}
 
-        String header = headerMaker.toString(metaData.getHeaders());
-        try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(outputFile));
-            header.replaceAll("\n", System.getProperty("line.separator"));
-            out.write(header);
-            out.close();
-        } catch (IOException e) {
-            throw new RuntimeException("Can't create .zsync metafile, check your permissions");
-        }
+			//appending block checksums into the metafile
+			try {
+				List<ChecksumPair> list = metaData.getChecksums();
+				for (ChecksumPair p : list) {
+					int rsum_bytes = metaData.headers.hashLengths[1];
+					fos.write(intToBytes(p.getWeak(), rsum_bytes));
+					fos.write(p.getStrong());
+				}
+				return outputFile;
+			} catch (IOException ioe) {
+				throw new RuntimeException(ioe);
+			}
+		} finally {
+			StreamUtils.close(fos);
+		}
+	}
 
-        //appending block checksums into the metafile
-        try {
-            FileOutputStream fos = new FileOutputStream(outputFile, true);
-            List<ChecksumPair> list = metaData.getChecksums();
-            for (ChecksumPair p : list) {
-                int rsum_bytes = metaData.headers.hashLengths[1];
-                fos.write(intToBytes(p.getWeak(), rsum_bytes));
-                fos.write(p.getStrong());
-            }
-            return outputFile;
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
+	public void write(MetaData metaData, OutputStream out) {
+		String header = headerMaker.toString(metaData.getHeaders());
+		try {
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
+			writer.write(header);
+			writer.flush();
+		} catch (IOException e) {
+			throw new RuntimeException("Couldnt write zsync headers", e);
+		}
 
-    }
+		//appending block checksums into the metafile
+		try {
+			List<ChecksumPair> list = metaData.getChecksums();
+			for (ChecksumPair p : list) {
+				int rsum_bytes = metaData.headers.hashLengths[1];
+				out.write(intToBytes(p.getWeak(), rsum_bytes));
+				out.write(p.getStrong());
+			}
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		}
 
-    /**
-     * File analysis, computing lengths of weak and strong checksums and 
-     * sequence matches, storing the values into the array for easier handle
-     * Hash-lengths and number of sequence matches
-     * index 0 - seq_matches
-     * index 1 - weakSum length
-     * index 2 - strongSum length
-     */
-    private int[] analyzeFile(int blocksize, long fileLength) {
-        int[] hashLengths = new int[3];
-        hashLengths[2] = STRONG_SUM_LENGTH;
-        hashLengths[0] = fileLength > blocksize ? 2 : 1;
-        hashLengths[1] = (int) Math.ceil(((Math.log(fileLength)
-                + Math.log(blocksize)) / Math.log(2) - 8.6) / 8);
+	}
 
-        if (hashLengths[1] > 4) {
-            hashLengths[1] = 4;
-        }
-        if (hashLengths[1] < 2) {
-            hashLengths[1] = 2;
-        }
-        hashLengths[2] = (int) Math.ceil(
-                (20 + (Math.log(fileLength) + Math.log(1 + fileLength / blocksize)) / Math.log(2))
-                / hashLengths[0] / 8);
+	/**
+	 * File analysis, computing lengths of weak and strong checksums and 
+	 * sequence matches, storing the values into the array for easier handle
+	 * Hash-lengths and number of sequence matches
+	 * index 0 - seq_matches
+	 * index 1 - weakSum length
+	 * index 2 - strongSum length
+	 */
+	private int[] analyzeFile(int blocksize, long fileLength) {
+		int[] hashLengths = new int[3];
+		hashLengths[2] = STRONG_SUM_LENGTH;
+		hashLengths[0] = fileLength > blocksize ? 2 : 1;
+		hashLengths[1] = (int) Math.ceil(((Math.log(fileLength)
+				+ Math.log(blocksize)) / Math.log(2) - 8.6) / 8);
 
-        int strongSumLength2 =
-                (int) ((7.9 + (20 + Math.log(1 + fileLength / blocksize) / Math.log(2))) / 8);
-        if (hashLengths[2] < strongSumLength2) {
-            hashLengths[2] = strongSumLength2;
-        }
-        return hashLengths;
-    }
+		if (hashLengths[1] > 4) {
+			hashLengths[1] = 4;
+		}
+		if (hashLengths[1] < 2) {
+			hashLengths[1] = 2;
+		}
+		hashLengths[2] = (int) Math.ceil(
+				(20 + (Math.log(fileLength) + Math.log(1 + fileLength / blocksize)) / Math.log(2))
+				/ hashLengths[0] / 8);
 
-    /**
-     * Converting integer weakSum into byte array that zsync can read
-     * (htons byte order)
-     * @param number weakSum in integer form
-     * @return converted to byte array compatible with zsync (htons byte order)
-     */
-    private byte[] intToBytes(int number, int rsum_bytes) {
-        byte[] rsum = new byte[rsum_bytes];
-        switch (rsum_bytes) {
-            case 2:
-                rsum = new byte[]{(byte) (number >> 24), //[0]
-                    (byte) ((number << 8) >> 24)}; //[1]
-                break;
-            case 3:
-                rsum = new byte[]{(byte) ((number << 24) >> 24), //[2]
-                    (byte) (number >> 24), //[0]
-                    (byte) ((number << 8) >> 24)}; //[1]
-                break;
-            case 4:
-                rsum = new byte[]{(byte) ((number << 16) >> 24), //[2]
-                    (byte) ((number << 24) >> 24), //[3]
-                    (byte) (number >> 24), //[0]
-                    (byte) ((number << 8) >> 24)}; //[1]
-                break;
-        }
-        return rsum;
-    }
+		int strongSumLength2 =
+				(int) ((7.9 + (20 + Math.log(1 + fileLength / blocksize) / Math.log(2))) / 8);
+		if (hashLengths[2] < strongSumLength2) {
+			hashLengths[2] = strongSumLength2;
+		}
+		return hashLengths;
+	}
 
-    /**
-     * Calculates optimal blocksize for a file
-     */
-    public void computeBlockSize(int blocksize, long fileLength) {
-        int[][] array = new int[10][2];
-        array[0][0] = 2048;
-        array[0][1] = 2048;
-        for (int i = 1; i < array.length; i++) {
-            array[i][0] = array[i - 1][0] * 2;
-            array[i][1] = array[i][0];
-        }
-        //zarucime, ze se soubor rozdeli priblize na 50000 bloku
-        long constant = fileLength / 50000;
-        for (int i = 0; i < array.length; i++) {
-            array[i][0] = (int) Math.abs(array[i][0] - constant);
-        }
-        int min = array[0][0];
-        for (int i = 0; i < array.length; i++) {
-            if (array[i][0] < min) {
-                min = array[i][0];
-            }
-        }
-        for (int i = 0; i < array.length; i++) {
-            if (array[i][0] == min) {
-                blocksize = array[i][1];
-            }
-        }
-        System.out.println("MetaFileMaker: computeBlockSize: " + blocksize);
-    }
+	/**
+	 * Converting integer weakSum into byte array that zsync can read
+	 * (htons byte order)
+	 * @param number weakSum in integer form
+	 * @return converted to byte array compatible with zsync (htons byte order)
+	 */
+	private byte[] intToBytes(int number, int rsum_bytes) {
+		byte[] rsum = new byte[rsum_bytes];
+		switch (rsum_bytes) {
+			case 2:
+				rsum = new byte[]{(byte) (number >> 24), //[0]
+					(byte) ((number << 8) >> 24)}; //[1]
+				break;
+			case 3:
+				rsum = new byte[]{(byte) ((number << 24) >> 24), //[2]
+					(byte) (number >> 24), //[0]
+					(byte) ((number << 8) >> 24)}; //[1]
+				break;
+			case 4:
+				rsum = new byte[]{(byte) ((number << 16) >> 24), //[2]
+					(byte) ((number << 24) >> 24), //[3]
+					(byte) (number >> 24), //[0]
+					(byte) ((number << 8) >> 24)}; //[1]
+				break;
+		}
+		return rsum;
+	}
 
-    public class MetaData {
+	/**
+	 * Calculates optimal blocksize for a file
+	 */
+	public int computeBlockSize(long fileLength) {
+		int blocksize = 300;
+		int[][] array = new int[10][2];
+		array[0][0] = 2048;
+		array[0][1] = 2048;
+		for (int i = 1; i < array.length; i++) {
+			array[i][0] = array[i - 1][0] * 2;
+			array[i][1] = array[i][0];
+		}
+		//zarucime, ze se soubor rozdeli priblize na 50000 bloku
+		long constant = fileLength / 50000;
+		for (int i = 0; i < array.length; i++) {
+			array[i][0] = (int) Math.abs(array[i][0] - constant);
+		}
+		int min = array[0][0];
+		for (int i = 0; i < array.length; i++) {
+			if (array[i][0] < min) {
+				min = array[i][0];
+			}
+		}
+		for (int i = 0; i < array.length; i++) {
+			if (array[i][0] == min) {
+				blocksize = array[i][1];
+			}
+		}
+		return blocksize;
+	}
 
-        private final Headers headers;
-        private final List<ChecksumPair> list;
+	public class MetaData {
 
-        public MetaData(Headers headers, List<ChecksumPair> list) {
-            this.headers = headers;
-            this.list = list;
-        }
+		private final Headers headers;
+		private final List<ChecksumPair> list;
 
-        public Headers getHeaders() {
-            return headers;
-        }
+		public MetaData(Headers headers, List<ChecksumPair> list) {
+			this.headers = headers;
+			this.list = list;
+		}
 
-        public List<ChecksumPair> getChecksums() {
-            return list;
-        }
-    }
+		public Headers getHeaders() {
+			return headers;
+		}
+
+		public List<ChecksumPair> getChecksums() {
+			return list;
+		}
+	}
 }
