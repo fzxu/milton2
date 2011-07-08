@@ -25,7 +25,9 @@ USA
  */
 package com.ettrema.zsync;
 
+import com.bradmcevoy.http.Range;
 import java.io.File;
+import java.util.ArrayList;
 
 
 
@@ -33,7 +35,7 @@ import java.io.File;
 
 
 import java.util.Arrays;
-import com.ettrema.zsync.MetaFileMaker.MetaData;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,6 @@ import org.slf4j.LoggerFactory;
 public class FileMaker {
 
 	private static final Logger log = LoggerFactory.getLogger(FileMaker.class);
-	
 	private MapMatcher mapMatcher = new MapMatcher();
 	private FileUpdater fileUpdater = new FileUpdater();
 	private FileDownloader fileDownloader = new FileDownloader();
@@ -83,7 +84,8 @@ public class FileMaker {
 		MakeContext makeContext = new MakeContext(mfr.getHashtable(), new long[mfr.getBlockCount()]);
 		Arrays.fill(makeContext.fileMap, -1);
 		double complete = mapMatcher.mapMatcher(inputFile, mfr, makeContext);
-		File dest = File.createTempFile("zsyncM_", "_" + inputFile.getName());
+		File dest = null;
+		dest = File.createTempFile("zsyncM_", "_" + inputFile.getName());
 		if (complete == 0) {
 			log.info("local file has no corresponding blocks, so download whole file");
 			fileDownloader.downloadWholeFile(rangeLoader, dest);
@@ -93,7 +95,35 @@ public class FileMaker {
 		return dest;
 	}
 
-	public void make(File fLocal, MetaData metaData, LocalFileRangeLoader rangeLoader) {
-		MetaFileReader mfr = new MetaFileReader(metaData);
+	/**
+	 * Determine what ranges need to be provided to sync the file. 
+	 * 
+	 * @param mfr
+	 * @param inputFile
+	 * @param rangeLoader
+	 * @param dryRun
+	 * @return - null indicates everything is needed, ie whole file
+	 * @throws Exception 
+	 */
+	public List<Range> findMissingRanges(File inputFile, File metafile) throws Exception {
+		MetaFileReader mfr = new MetaFileReader(metafile);
+		MakeContext mc = new MakeContext(mfr.getHashtable(), new long[mfr.getBlockCount()]);
+		Arrays.fill(mc.fileMap, -1);
+		double complete = mapMatcher.mapMatcher(inputFile, mfr, mc);
+		if( complete == 0 ) {
+			return null;
+		}
+		List<Range> ranges = new ArrayList<Range>();
+		int blocksize = mfr.getBlocksize();
+		for (int i=0; i < mc.fileMap.length; i++) {
+			if (mc.fileMap[i] == -1) {
+				ranges.add(new Range(i * blocksize,(i * blocksize) + blocksize));
+			}
+		}
+		return ranges;		
 	}
+//
+//	public void make(File fLocal, MetaData metaData, LocalFileRangeLoader rangeLoader) {
+//		MetaFileReader mfr = new MetaFileReader(metaData);
+//	}
 }

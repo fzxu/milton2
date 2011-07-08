@@ -23,7 +23,6 @@ Free Software Foundation, Inc.,
 Boston, MA  02111-1307
 USA
  */
-
 package com.ettrema.zsync;
 
 import com.bradmcevoy.http.Range;
@@ -43,19 +42,17 @@ import org.slf4j.LoggerFactory;
  * @author brad, original work by Tomáš Hlavnička
  */
 public class FileUpdater {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(FileUpdater.class);
-	
 	/**
 	 * Maximum ranges to download in the range header
 	 */
 	private int maxRanges = 100;
-	
-	
+
 	/**
 	 * Method for completing file
 	 */
-	public  void update(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext mc, File newFile) throws Exception {
+	public void update(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext mc, File newFile) throws Exception {
 		log.trace("fileMaker: input: " + inputFile.getAbsolutePath());
 		try {
 			double a = 10;
@@ -63,12 +60,15 @@ public class FileUpdater {
 			int blockLength = 0;
 			List<Range> rangeList = null;
 			byte[] data = null;
+			FileChannel wChannel = null;
+
 			newFile.createNewFile();
+			log.trace("Writing new file: " + newFile.getAbsolutePath());
+			wChannel = new FileOutputStream(newFile, true).getChannel();
+
 			ByteBuffer buffer = ByteBuffer.allocate(mfr.getBlocksize());
 			log.trace("Reading from file: " + inputFile.getAbsolutePath());
 			FileChannel rChannel = new FileInputStream(inputFile).getChannel();
-			log.trace("Writing new file: " + newFile.getAbsolutePath());
-			FileChannel wChannel = new FileOutputStream(newFile, true).getChannel();
 			for (int i = 0; i < mc.fileMap.length; i++) {
 				mc.fileOffset = mc.fileMap[i];
 				if (mc.fileOffset != -1) {
@@ -82,13 +82,13 @@ public class FileUpdater {
 					if (!mc.rangeQueue) {
 						rangeList = rangeLookUp(i, mfr.getBlocksize(), mc);
 						range = rangeList.size();
-						data = rangeLoader.get(rangeList);						
+						data = rangeLoader.get(rangeList);
 					} else {
 						log.trace("     already have queued ranges: " + rangeList.size());
 					}
 					blockLength = calcBlockLength(i, mfr.getBlocksize(), (int) mfr.getLength());
-					int offset = (range - rangeList.size()) * mfr.getBlocksize();				
-					
+					int offset = (range - rangeList.size()) * mfr.getBlocksize();
+
 					buffer.put(data, offset, blockLength);
 					buffer.flip();
 					wChannel.write(buffer);
@@ -104,7 +104,7 @@ public class FileUpdater {
 			SHA1 sha = new SHA1(newFile);
 			String actual = sha.SHA1sum();
 			String expected = mfr.getSha1();
-			
+
 			if (actual.equals(expected)) {
 				log.info("checksum matches OK");
 //				System.out.println("used " + (mfr.getLength() - (mfr.getBlocksize() * missing)) + " " + "local, fetched " + (mfr.getBlocksize() * missing));
@@ -121,8 +121,8 @@ public class FileUpdater {
 		} catch (IOException ex) {
 			throw new RuntimeException("Can't read or write, check your permissions.");
 		}
-	}	
-	
+	}
+
 	/**
 	 * Instead of downloading single blocks, we can look into fieMap and collect
 	 * amount of missing blocks or end of map accurs. Single ranges are stored in
@@ -145,8 +145,8 @@ public class FileUpdater {
 			mc.rangeQueue = true;
 		}
 		return ranges;
-	}	
-	
+	}
+
 	private int calcBlockLength(int i, int blockSize, int length) {
 		if ((i * blockSize + blockSize) < length) {
 			return blockSize;
@@ -158,5 +158,4 @@ public class FileUpdater {
 	private int calcBlockLength_b(int i, int blockSize, int length) {
 		return blockSize + (length - (i * blockSize + blockSize));
 	}
-	
 }
