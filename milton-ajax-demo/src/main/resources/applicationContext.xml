@@ -44,7 +44,7 @@
 
 
     <bean id="console.resource.factory" class="com.ettrema.console.ConsoleResourceFactory">
-        <constructor-arg ref="filesystem.resource.factory" />
+        <constructor-arg ref="zsync.resource.factory" />
         <constructor-arg value="/webdav/console" />
         <constructor-arg value="/webdav" /> <!-- resource to test authentication against = host root -->
         <constructor-arg>
@@ -60,6 +60,10 @@
         </constructor-arg>
         <constructor-arg value="webdav"/> <!-- the web context path -->
     </bean>
+
+	<bean id="zsync.resource.factory" class="com.ettrema.zsync.ZSyncResourceFactory">
+		<constructor-arg ref="filesystem.resource.factory" /> 
+	</bean>
 
     <bean id="filesystem.resource.factory" class="com.ettrema.http.fs.FileSystemResourceFactory">
         <property name="securityManager" ref="milton.fs.security.manager" />
@@ -170,9 +174,10 @@
 
     <!-- This server will provide access to the same resources available on webdav
     via FTP -->
+	<!--
     <bean id="ftp.server" class="com.ettrema.ftp.MiltonFtpAdapter">
         <constructor-arg ref="filesystem.resource.factory"/>
         <constructor-arg ref="ftp.user.manager"/>
     </bean>
-
+-->
 </beans>

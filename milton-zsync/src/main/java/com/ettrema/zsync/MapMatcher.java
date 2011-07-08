@@ -233,7 +233,7 @@ public class MapMatcher {
      * @param i How much data we already progressed (value in percents)
      */
     private void progressBar(double i) {
-        System.out.println("progress: " + i + "%");
+        System.out.println("map match progress: " + i + "%");
     }
 	
     /**

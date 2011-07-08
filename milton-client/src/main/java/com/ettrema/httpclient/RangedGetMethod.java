@@ -3,8 +3,8 @@ package com.ettrema.httpclient;
 import com.ettrema.http.DataRange;
 import java.util.List;
 import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements the HTTP GET method.
@@ -36,14 +36,17 @@ public class RangedGetMethod extends HttpMethodBase {
 
     // -------------------------------------------------------------- Constants
     /** Log object for this class. */
-    private static final Log LOG = LogFactory.getLog(RangedGetMethod.class);
+    private static final Logger log = LoggerFactory.getLogger(RangedGetMethod.class);
 
     public RangedGetMethod(String uri, List<DataRange> dataRanges) {
         super(uri);    
-        if (dataRanges != null) {
+        if (dataRanges != null && !dataRanges.isEmpty()) {
             String rangeHeaderVal = getRangesRequest(dataRanges);
+			log.info("ranges: " + rangeHeaderVal);
             setRequestHeader("Range", "bytes=" + rangeHeaderVal);
-        }
+        } else {
+			log.info("No ranges to get");
+		}
     }
 
     private String getRangesRequest(List<DataRange> ranges) {
@@ -74,7 +77,7 @@ public class RangedGetMethod extends HttpMethodBase {
      *             version of HttpClient
      */
     public void recycle() {
-        LOG.trace("enter GetMethod.recycle()");
+        log.trace("enter GetMethod.recycle()");
 
         super.recycle();
         setFollowRedirects(true);

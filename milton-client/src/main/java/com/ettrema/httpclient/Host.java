@@ -135,7 +135,6 @@ public class Host extends Folder {
             path = path.substring(1);
         }
         String[] arr = path.split("/");
-        System.out.println("find: " + path);
         return _find(this, arr, 0);
 
     }

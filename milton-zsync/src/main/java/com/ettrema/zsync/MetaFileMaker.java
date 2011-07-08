@@ -134,14 +134,15 @@ public class MetaFileMaker {
 	public void write(MetaData metaData, OutputStream out) {
 		String header = headerMaker.toString(metaData.getHeaders());
 		try {
-			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
+			OutputStreamWriter osw = new OutputStreamWriter(out);
+			BufferedWriter writer = new BufferedWriter(osw);
 			writer.write(header);
 			writer.flush();
+			osw.flush();
 		} catch (IOException e) {
 			throw new RuntimeException("Couldnt write zsync headers", e);
 		}
 
-		//appending block checksums into the metafile
 		try {
 			List<ChecksumPair> list = metaData.getChecksums();
 			for (ChecksumPair p : list) {
@@ -152,7 +153,6 @@ public class MetaFileMaker {
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);
 		}
-
 	}
 
 	/**
@@ -220,7 +220,7 @@ public class MetaFileMaker {
 	 * Calculates optimal blocksize for a file
 	 */
 	public int computeBlockSize(long fileLength) {
-		int blocksize = 300;
+		int blocksize = 512;
 		int[][] array = new int[10][2];
 		array[0][0] = 2048;
 		array[0][1] = 2048;

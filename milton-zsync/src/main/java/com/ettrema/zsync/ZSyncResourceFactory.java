@@ -21,12 +21,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This resource factory allows resouces to be retrieved and updated using
  * the zsync protocol.
  * 
- * Process for updating a local file from a server file
+ * Client side process for updating a local file from a server file
  * a) assume the remote file is at path /somefile
  * b) retrieve zsync metadata (ie headers and checksums)
  *		GET /somefile/.zsync
@@ -35,18 +37,32 @@ import java.util.Map;
  *		Ranges: x-y, n-m, etc
  * d) merge the partial ranges
  * 
+ * Client side process for updating a server file with a local file
+ * a) assume the remote file is at path /somefile
+ * b) Find the data ranges to update by POSTing local metadata (headers+checksums)
+ *		POST /somefile/.zsync
+ *		Version: zsync-1.0.0
+ *		Blocksize: 256
+ * 
+ *      (eg response)
+ *		1222-1756
+ *		20000-20512
+ * c) Upload the metadata again and the checksums in a PUT
+ *		
  *
  * @author brad
  */
 public class ZSyncResourceFactory implements ResourceFactory {
 
+	private static final Logger log = LoggerFactory.getLogger(ZSyncResourceFactory.class);
+	
 	private String suffix = ".zsync";
 	
 	private ResourceFactory wrapped;
 	
 	private MetaFileMaker metaFileMaker;
 	
-	private int defaultBlockSize = 300;	
+	private int defaultBlockSize = 512;	
 	
 	private int maxMemorySize = 100000;
 
@@ -97,11 +113,12 @@ public class ZSyncResourceFactory implements ResourceFactory {
 		}
 
 		public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
+			log.info("sendContent: sending meta data");
 			Long fileLength = r.getContentLength();
-			int blocksize = defaultBlockSize;
-			if( fileLength != null ) {
-				blocksize = metaFileMaker.computeBlockSize(fileLength);
-			}			
+			int blocksize = 32; //defaultBlockSize;
+//			if( fileLength != null ) {
+//				blocksize = metaFileMaker.computeBlockSize(fileLength);
+//			}			
 			
 			MetaFileMaker.MetaData metaData;
 			if( r instanceof ZSyncResource ) {
@@ -123,8 +140,9 @@ public class ZSyncResourceFactory implements ResourceFactory {
                     metaData = metaFileMaker.make(realPath, blocksize, fileLength, r.getModifiedDate(), in);
                 } finally {
                     StreamUtils.close(in);
-                }								
+                }
 			}
+			metaFileMaker.write(metaData, out);
 			
 		}
 		

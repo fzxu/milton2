@@ -1,15 +1,24 @@
 package jazsync;
 
+import com.bradmcevoy.common.Path;
+import com.bradmcevoy.io.StreamUtils;
+import com.ettrema.httpclient.Host;
+import com.ettrema.httpclient.HttpException;
+import com.ettrema.httpclient.StreamReceiver;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import com.ettrema.zsync.FileMaker;
+import com.ettrema.zsync.HttpRangeLoader;
 import com.ettrema.zsync.LocalFileRangeLoader;
 import com.ettrema.zsync.SHA1;
 import com.ettrema.zsync.MetaFileMaker;
 import com.ettrema.zsync.MetaFileMaker.MetaData;
+import java.io.FileOutputStream;
+import org.junit.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -61,17 +70,21 @@ public class Scratch {
 	 */
 	@Test
 	public void test1() throws FileNotFoundException, Exception {
+		System.out.println("--------------------- test1 -----------------------");
 		SHA1 sha = new SHA1(fIn);
 		String actual = sha.SHA1sum();
 		System.out.println("checksum of source file: " + actual);
 
 		File metaFile = metaFileMaker.make("/test", 32, fIn);
+		System.out.println("generated meta file: " + metaFile.getAbsolutePath());
 		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);
 		System.out.println("local: " + fLocal.getAbsolutePath());
 		fileMaker.make(fLocal, metaFile, rangeLoader);
 
 		System.out.println("----------------------------------------------");
 		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());
+		System.out.println("----------------------------------------------");
+		System.out.println("----------------------------------------------");
 	}
 
 	/**
@@ -82,6 +95,7 @@ public class Scratch {
 	 */
 	@Test
 	public void test2() throws FileNotFoundException, IOException {
+		System.out.println("--------------------- test2 -----------------------");
 		FileInputStream dataIn = new FileInputStream(fIn);
 		MetaData metaData = metaFileMaker.make("/test", 32, fIn.length(), new Date(fIn.lastModified()), dataIn);
 		dataIn.close();
@@ -94,6 +108,43 @@ public class Scratch {
 		fileMaker.make(fLocal, metaData, rangeLoader);
 //		
 //		System.out.println("----------------------------------------------");
-//		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());				
+//		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());		
+		System.out.println("----------------------------------------------");
+		System.out.println("----------------------------------------------");
+		
 	}
+	
+	
+	@Test
+	public void test3() throws FileNotFoundException, IOException, HttpException, Exception {
+		// Get metadata from http server
+		System.out.println("--------------------- test3 -----------------------");
+		SHA1 sha1 = new SHA1("/home/brad/pgadmin.log");				
+		System.out.println("source sha1: " + sha1.SHA1sum());
+		
+		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
+		final File fRemoteMeta = File.createTempFile("milton-zsync-remotemeta", null);
+		String url = host.getHref(Path.path("/pgadmin.log/.zsync"));
+		host.doGet(url, new StreamReceiver() {
+
+			public void receive(InputStream in) throws IOException {
+				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
+				StreamUtils.readTo(in, fout, true, true);				
+			}
+		}, null);
+		System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
+		// Now build local file
+		com.ettrema.httpclient.File remoteFile = (com.ettrema.httpclient.File) host.find("/pgadmin.log");
+		Assert.assertNotNull(remoteFile);
+		HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
+		
+		System.out.println("local: " + fLocal.getAbsolutePath());
+		fileMaker.make(fLocal, fRemoteMeta, rangeLoader);
+//		
+//		System.out.println("----------------------------------------------");
+//		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());				
+		System.out.println("----------------------------------------------");
+		System.out.println("----------------------------------------------");
+		
+	}	
 }

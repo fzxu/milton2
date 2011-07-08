@@ -55,7 +55,7 @@ public class FileUpdater {
 	 * Method for completing file
 	 */
 	public  void update(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext mc, File newFile) throws Exception {
-		System.out.println("fileMaker: input: " + inputFile.getAbsolutePath());
+		log.trace("fileMaker: input: " + inputFile.getAbsolutePath());
 		try {
 			double a = 10;
 			int range = 0;
@@ -64,30 +64,28 @@ public class FileUpdater {
 			byte[] data = null;
 			newFile.createNewFile();
 			ByteBuffer buffer = ByteBuffer.allocate(mfr.getBlocksize());
-			System.out.println("Reading from file: " + inputFile.getAbsolutePath());
+			log.trace("Reading from file: " + inputFile.getAbsolutePath());
 			FileChannel rChannel = new FileInputStream(inputFile).getChannel();
-			System.out.println("Writing new file: " + newFile.getAbsolutePath());
+			log.trace("Writing new file: " + newFile.getAbsolutePath());
 			FileChannel wChannel = new FileOutputStream(newFile, true).getChannel();
 			System.out.println();
 			System.out.print("File completion: ");
 			for (int i = 0; i < mc.fileMap.length; i++) {
 				mc.fileOffset = mc.fileMap[i];
-				System.out.println("get map item: " + i + " - file offset: " + mc.fileOffset);
 				if (mc.fileOffset != -1) {
-					System.out.println("  read block from local file");
+					log.trace("  read block from local file");
 					rChannel.read(buffer, mc.fileOffset);
 					buffer.flip();
 					wChannel.write(buffer);
 					buffer.clear();
 				} else {
-					System.out.println("   read block from remote file");
+					log.trace("   read block from remote file");
 					if (!mc.rangeQueue) {
-						System.out.println("     range lookup: " + i);
 						rangeList = rangeLookUp(i, mfr.getBlocksize(), mc);
 						range = rangeList.size();
 						data = rangeLoader.get(rangeList);
 					} else {
-						System.out.println("     already have queued ranges: " + rangeList.size());
+						log.trace("     already have queued ranges: " + rangeList.size());
 					}
 					blockLength = calcBlockLength(i, mfr.getBlocksize(), (int) mfr.getLength());
 					buffer.put(data, (range - rangeList.size()) * mfr.getBlocksize(), blockLength);

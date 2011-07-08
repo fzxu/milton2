@@ -335,7 +335,11 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     class QuotaUsedBytesPropertyWriter implements StandardProperty<Long> {
 
         public Long getValue( PropFindableResource res ) {
-            return quotaDataAccessor.getQuotaUsed( res );
+			if( quotaDataAccessor != null ) {
+				return quotaDataAccessor.getQuotaUsed( res );
+			} else {
+				return null;
+			}
         }
 
         public String fieldName() {
@@ -350,7 +354,11 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
     class QuotaAvailableBytesPropertyWriter implements StandardProperty<Long> {
 
         public Long getValue( PropFindableResource res ) {
-            return quotaDataAccessor.getQuotaAvailable( res );
+			if( quotaDataAccessor != null ) {
+				return quotaDataAccessor.getQuotaAvailable( res );
+			} else {
+				return null;
+			}
         }
 
         public String fieldName() {

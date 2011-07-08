@@ -85,6 +85,7 @@ public class FileMaker {
 		double complete = mapMatcher.mapMatcher(inputFile, mfr, makeContext);
 		File dest = File.createTempFile("zsyncM_", "_" + inputFile.getName());
 		if (complete == 0) {
+			log.info("local file has no corresponding blocks, so download whole file");
 			fileDownloader.downloadWholeFile(rangeLoader, dest);
 		} else {
 			fileUpdater.update(inputFile, mfr, rangeLoader, makeContext, dest);

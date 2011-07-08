@@ -1,18 +1,15 @@
 package com.ettrema.httpclient;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
-import org.apache.commons.io.IOUtils;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,7 +130,6 @@ public class PropFindMethod extends EntityEnclosingMethod {
             quotaUsedBytes = RespUtils.asLong( el, "quota-used-bytes" );
             crc = RespUtils.asLong( el, "crc", NS_CLYDE );
             isCollection = RespUtils.hasChild( el, "collection" );
-            System.out.println("resp: " + name + " isCollection: " + isCollection);     
         }
     }
 }
