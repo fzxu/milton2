@@ -69,8 +69,6 @@ public class FileUpdater {
 			FileChannel rChannel = new FileInputStream(inputFile).getChannel();
 			log.trace("Writing new file: " + newFile.getAbsolutePath());
 			FileChannel wChannel = new FileOutputStream(newFile, true).getChannel();
-			System.out.println();
-			System.out.print("File completion: ");
 			for (int i = 0; i < mc.fileMap.length; i++) {
 				mc.fileOffset = mc.fileMap[i];
 				if (mc.fileOffset != -1) {
@@ -84,13 +82,13 @@ public class FileUpdater {
 					if (!mc.rangeQueue) {
 						rangeList = rangeLookUp(i, mfr.getBlocksize(), mc);
 						range = rangeList.size();
-						data = rangeLoader.get(rangeList);
+						data = rangeLoader.get(rangeList);						
 					} else {
 						log.trace("     already have queued ranges: " + rangeList.size());
 					}
 					blockLength = calcBlockLength(i, mfr.getBlocksize(), (int) mfr.getLength());
-					int offset = (range - rangeList.size()) * mfr.getBlocksize();
-					System.out.println("buffer put: " + offset + " - " + blockLength);
+					int offset = (range - rangeList.size()) * mfr.getBlocksize();				
+					
 					buffer.put(data, offset, blockLength);
 					buffer.flip();
 					wChannel.write(buffer);
@@ -98,13 +96,6 @@ public class FileUpdater {
 					rangeList.remove(0);
 					if (rangeList.isEmpty()) {
 						mc.rangeQueue = false;
-					}
-				}
-				if (log.isTraceEnabled()) {
-					if ((((double) i / ((double) mc.fileMap.length - 1)) * 100) >= a) {
-						double perc = ((double) i / ((double) mc.fileMap.length - 1)) * 100;
-						log.trace("Percent complete: " + perc + "%");
-						a += 10;
 					}
 				}
 			}
@@ -124,6 +115,7 @@ public class FileUpdater {
 //				double overhead = ((double) (allData - (mfr.getBlocksize() * missing)) / ((double) (mfr.getBlocksize() * missing))) * 100;
 //				System.out.println("overhead: " + df.format(overhead) + "%");
 			} else {
+				log.error("Checksums don't match - expected: " + expected + "  actual: " + actual);
 				throw new RuntimeException("Checksums don't match - expected: " + expected + "  actual: " + actual);
 			}
 		} catch (IOException ex) {
@@ -152,7 +144,6 @@ public class FileUpdater {
 		if (!ranges.isEmpty()) {
 			mc.rangeQueue = true;
 		}
-		System.out.println("rangeLookup: getting ranges: " + ranges.size());
 		return ranges;
 	}	
 	

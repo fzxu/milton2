@@ -68,7 +68,12 @@ public class DebugFilter implements Filter{
         }
 
         try {
-            File f = new File(logDir, counter + "_" + resp2.getStatus().code + ".resp");
+			File f;
+			if( resp2.getStatus() != null ) {
+				f = new File(logDir, counter + "_" + resp2.getStatus().code + ".resp");
+			} else {
+				f = new File(logDir, counter + "_UNKNOWN" + ".resp");
+			}
             fout = new FileOutputStream(f);
             resp2.record(fout);
         } catch (FileNotFoundException ex) {

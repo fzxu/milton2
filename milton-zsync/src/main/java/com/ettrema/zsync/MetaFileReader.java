@@ -71,7 +71,6 @@ public class MetaFileReader {
 	 * @return Boolean value notifying whether header ended or not (true = end of header)
 	 */
 	private boolean parseHeader(String s) {
-		System.out.println("MetaFileReader: parseHeader: " + s);
 		String subs;
 		int colonIndex;
 		if (s.equals("")) {
@@ -131,7 +130,7 @@ public class MetaFileReader {
 			}
 			in.close();
 		} catch (IOException e) {
-			System.out.println("IO problem in metafile header reading");
+			throw new RuntimeException("IO problem in metafile header reading", e);
 		}
 	}
 
@@ -157,12 +156,11 @@ public class MetaFileReader {
 			// Presvedcime se, ze jsme precetli cely soubor
 			if (offset < bytes.length) {
 				throw new IOException("Could not completely read file " + metafile.getName());
-			}
+			} 
 
-			// Zavre stream
 			is.close();
 		} catch (IOException e) {
-			System.out.println("IO problem in metafile reading");
+			throw new RuntimeException("IO problem in metafile reading", e);
 		}
 		// urci offset, kde konci hlavicka a zacinaji kontrolni soucty
 		fileOffset = 0;

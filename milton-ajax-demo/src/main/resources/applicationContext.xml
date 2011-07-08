@@ -153,7 +153,9 @@
         <property name="eventManager" ref="event.manager"/>
         <property name="filters">
             <list>
+<!--				
                 <ref bean="milton.debug.filter" />
+-->				
             </list>
         </property>
     </bean>

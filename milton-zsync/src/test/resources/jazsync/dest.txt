@@ -21,7 +21,7 @@ LINE 1: ...b.dattablespace AS spcoid, spcname, datallowconn, datconfig,...
 2011-03-30 10:36:36 ERROR  : ERROR:  column "datconfig" does not exist
 LINE 1: ...b.dattablespace AS spcoid, spcname, datallowconn, datconfig,...
                                                              ^
-2011-05-30 09:59:00 ERROR  : can't open file '/etc/postgresql/8.4/main/pg_hba.conf' (error 13: Permission denied)
+DDDDDDDDDDDDDDDDDDDDDDDDDD  : can't open file '/etc/postgresql/8.4/main/pg_hba.conf' (error 13: Permission denied)
 2011-01-11 15:41:08 ERROR  : Error connecting to the server: fe_sendauth: no password supplied
 
 2011-02-18 12:51:45 ERROR  : Could not resolve hostname painpod

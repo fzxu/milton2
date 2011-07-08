@@ -35,12 +35,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author brad, original work by Tomáš Hlavnička
  */
 public class MapMatcher {
+	
+	private static final Logger log = LoggerFactory.getLogger(MapMatcher.class);
 	
     private Generator gen = new Generator();	
 	
@@ -122,10 +126,6 @@ public class MapMatcher {
                         }
                     }
                     mc.fileOffset++;
-                    if ((((double) mc.fileOffset / (double) fileLength) * 100) >= a) {
-                        progressBar(((double) mc.fileOffset / (double) fileLength) * 100);
-                        a += 10;
-                    }
                     if (mc.fileOffset == fileLength) {
                         end = true;
                         break;
@@ -138,7 +138,6 @@ public class MapMatcher {
                 }
             }
 
-            System.out.println();
             double complete = matchControl(mfr, mc);
             mc.fileMap[mc.fileMap.length - 1] = -1;
             is.close();
@@ -146,7 +145,6 @@ public class MapMatcher {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         } catch (NoSuchAlgorithmException ex) {
-            System.out.println("Problem with MD4 checksum");
             throw new RuntimeException(ex);
         } finally {
 			StreamUtils.close(is);
@@ -227,14 +225,6 @@ public class MapMatcher {
         return false;
     }	
 	
-    /**
-     * Method is used to draw a progress bar of
-     * how far we are in file.
-     * @param i How much data we already progressed (value in percents)
-     */
-    private void progressBar(double i) {
-        System.out.println("map match progress: " + i + "%");
-    }
 	
     /**
      * Clears non-matching blocks and returns percentage
@@ -264,7 +254,7 @@ public class MapMatcher {
                 missing++;
             }
         }
-        System.out.println("matchControl: fileMap.length: " + fileMap.length + " - missing: " + missing);
+        log.trace("matchControl: fileMap.length: " + fileMap.length + " - missing: " + missing);
         return ((((double) fileMap.length - missing) / (double) fileMap.length) * 100);
     }
 	

@@ -1,14 +1,14 @@
 package com.ettrema.zsync;
 
 import com.bradmcevoy.http.Range;
-import com.bradmcevoy.io.ReadingException;
+import com.bradmcevoy.http.http11.PartialGetHelper;
 import com.bradmcevoy.io.StreamUtils;
-import com.bradmcevoy.io.WritingException;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -27,13 +27,13 @@ public class LocalFileRangeLoader implements RangeLoader{
 		
 	
 	public byte[] get(List<Range> rangeList) { 
-		System.out.println("LocalFileRangeLoader: get: rangeList: " + rangeList.size());
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		for(Range r : rangeList) {
-			System.out.println("  get range: " + r.getRange());
 			writeRange(r, bout);
 		}
-		return bout.toByteArray();
+		int expectedLength = HttpRangeLoader.calcExpectedLength(rangeList);
+		byte[] bytes = bout.toByteArray();
+		return bytes;
 	}
 
 	private void writeRange(Range r, ByteArrayOutputStream bout) {
@@ -42,13 +42,16 @@ public class LocalFileRangeLoader implements RangeLoader{
 			fin = new FileInputStream(file);
 			BufferedInputStream bufIn = new BufferedInputStream(fin);
 			bytesDownloaded += (r.getFinish() - r.getStart());
-			StreamUtils.readTo(bufIn, bout, true, false, r.getStart(), r.getFinish());						
+			PartialGetHelper.writeRange(bufIn, r, bout);
+			//StreamUtils.readTo(bufIn, bout, true, false, r.getStart(), r.getFinish());						
 		} catch (FileNotFoundException ex) {
 			throw new RuntimeException(ex);
-		} catch(ReadingException e) {
+		} catch(IOException e) {
 			throw new RuntimeException(e);
-		} catch(WritingException e) {
-			throw new RuntimeException(e);
+//		} catch(ReadingException e) {
+//			throw new RuntimeException(e);
+//		} catch(WritingException e) {
+//			throw new RuntimeException(e);
 		} finally {
 			StreamUtils.close(fin);			
 		}

@@ -61,10 +61,8 @@ public class FsFileResource extends FsResource implements CopyableResource, Dele
 	public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {		
 		FileInputStream in = null;
 		try {
-			System.out.println("file length: " + file.length());
 			in = new FileInputStream(file);
 			if (range != null) {
-				System.out.println("start: " + range.getStart());
 				log.debug("sendContent: ranged content: " + file.getAbsolutePath());
 				PartialGetHelper.writeRange(in, range, out);
 			} else {

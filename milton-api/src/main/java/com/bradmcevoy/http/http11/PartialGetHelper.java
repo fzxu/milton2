@@ -83,13 +83,19 @@ public class PartialGetHelper {
 			}
 			OutputStream responseOut = response.getOutputStream();
 			FileInputStream fin = null;
-			writeRanges(fin, ranges, responseOut);
+			try {
+				System.out.println("temp file length: " + temp.length());
+				fin = new FileInputStream(temp);
+				writeRanges(fin, ranges, responseOut);
+			} finally {
+				StreamUtils.close(fin);
+			}			
 		}
 	}
 
-	public static void writeRanges(InputStream fin, List<Range> ranges, OutputStream responseOut) throws IOException {
+	public static void writeRanges(InputStream in, List<Range> ranges, OutputStream responseOut) throws IOException {
 		try {
-			BufferedInputStream bufIn = new BufferedInputStream(fin);
+			InputStream bufIn = in; //new BufferedInputStream(in);
 			long pos = 0;
 			for (Range r : ranges) {
 				long skip = r.getStart() - pos;
@@ -99,7 +105,7 @@ public class PartialGetHelper {
 				pos = r.getFinish();
 			}
 		} finally {
-			StreamUtils.close(fin);
+			StreamUtils.close(in);
 		}
 	}
 
@@ -119,21 +125,19 @@ public class PartialGetHelper {
 	}
 
 	public static void sendBytes(InputStream in, OutputStream out, long length) throws IOException {
-		System.out.println("sendBytes: a: " + length);
+		System.out.println("sendBytes: " + length);
 		long numRead = 0;
 		byte[] b = new byte[1024];
 		while (numRead < length) {
 			long remainingBytes = length - numRead;
 			int maxLength = remainingBytes > 1024 ? 1024 : (int) remainingBytes;
-			System.out.println("remainin: " + remainingBytes + " - maxl: " + maxLength);
 			int s = in.read(b, 0, maxLength);
 			if( s < 0 ) {
-				System.out.println("no more data");
 				break;
 			}
-			System.out.println("s - " + s);
 			numRead += s;
 			out.write(b, 0, s);
+			System.out.println("sent bytes of length: " + s);
 		}
 
 	}

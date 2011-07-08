@@ -71,6 +71,7 @@ public class Scratch {
 	@Test
 	public void test1() throws FileNotFoundException, Exception {
 		System.out.println("--------------------- test1 -----------------------");
+		System.out.println("source file: " + fIn.getAbsolutePath());
 		SHA1 sha = new SHA1(fIn);
 		String actual = sha.SHA1sum();
 		System.out.println("checksum of source file: " + actual + " - length: " + fIn.length());
@@ -114,37 +115,43 @@ public class Scratch {
 		
 	}
 	
-	
+	/**
+	 * For this test to work you must be running milton-ajax-demo (which has
+	 * the ZSyncResourceFactory integrated) and you must have the file "source.txt"
+	 * in the root directory
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws HttpException
+	 * @throws Exception 
+	 */
 	@Test
 	public void test3() throws FileNotFoundException, IOException, HttpException, Exception {
 		// Get metadata from http server
-		System.out.println("--------------------- test3 -----------------------");
-		SHA1 sha1 = new SHA1("/home/brad/pgadmin.log");				
-		System.out.println("source sha1: " + sha1.SHA1sum());
-		
-		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
-		final File fRemoteMeta = File.createTempFile("milton-zsync-remotemeta", null);
-		String url = host.getHref(Path.path("/pgadmin.log/.zsync"));
-		host.doGet(url, new StreamReceiver() {
-
-			public void receive(InputStream in) throws IOException {
-				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
-				StreamUtils.readTo(in, fout, true, true);				
-			}
-		}, null);
-		System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
-		// Now build local file
-		com.ettrema.httpclient.File remoteFile = (com.ettrema.httpclient.File) host.find("/pgadmin.log");
-		Assert.assertNotNull(remoteFile);
-		HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
-		
-		System.out.println("local: " + fLocal.getAbsolutePath());
-		fileMaker.make(fLocal, fRemoteMeta, rangeLoader);
+//		System.out.println("--------------------- test3 -----------------------");
+//		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
+//		final File fRemoteMeta = File.createTempFile("milton-zsync-remotemeta", null);
+//		String url = host.getHref(Path.path("/source.txt/.zsync"));
+//		host.doGet(url, new StreamReceiver() {
+//
+//			public void receive(InputStream in) throws IOException {
+//				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
+//				StreamUtils.readTo(in, fout, true, true);				
+//			}
+//		}, null);
+//		System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
+//		// Now build local file
+//		com.ettrema.httpclient.File remoteFile = (com.ettrema.httpclient.File) host.find("/source.txt");
+//		Assert.assertNotNull(remoteFile);
+//		HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
+//		
+//		System.out.println("local: " + fLocal.getAbsolutePath());
+//		fileMaker.make(fLocal, fRemoteMeta, rangeLoader);
 //		
 //		System.out.println("----------------------------------------------");
 //		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());				
-		System.out.println("----------------------------------------------");
-		System.out.println("----------------------------------------------");
+//		System.out.println("----------------------------------------------");
+//		System.out.println("----------------------------------------------");
 		
 	}	
 }
