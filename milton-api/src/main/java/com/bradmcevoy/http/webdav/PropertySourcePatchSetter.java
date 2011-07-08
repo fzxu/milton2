@@ -93,6 +93,38 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
                 addErrorProp( errorProps, Status.SC_NOT_FOUND, entry.getKey(), "Unknown property" );
             }
         }
+        for( QName name : parseResult.getFieldsToRemove() ) {
+            boolean found = false;
+            for( PropertySource source : propertySources ) {
+                PropertyMetaData meta = source.getPropertyMetaData( name, r );
+                if( meta != null && !meta.isUnknown() ) {
+                    found = true;
+                    if( meta.isWritable() ) {
+                        try {
+                            source.clearProperty( name, r );
+                            knownProps.put( name, new ValueAndType( null, meta.getValueType() ) );
+                            break;
+                        } catch( NotAuthorizedException e ) {
+                            addErrorProp( errorProps, Response.Status.SC_UNAUTHORIZED, name, "Not authorised" );
+                            break;
+                        } catch( PropertySetException ex ) {
+                            addErrorProp( errorProps, ex.getStatus(), name, ex.getErrorNotes() );
+                            break;
+                        }
+                    } else {
+                        log.debug( "property is not writable in source: " + source.getClass() );
+                        addErrorProp( errorProps, Response.Status.SC_FORBIDDEN, name, "Property is read only" );
+                        break;
+                    }
+                } else {
+                    //log.debug( "not found in: " + source.getClass().getCanonicalName() );
+                }
+            }
+            if( !found ) {
+                log.debug( "property not found to remove: " + name );
+                addErrorProp( errorProps, Status.SC_NOT_FOUND, name, "Unknown property" );
+            }
+        }		
         if( log.isDebugEnabled() ) {
             if( errorProps.size() > 0 ) {
                 log.debug( "errorProps: " + errorProps.size() + " listing property sources:" );
