@@ -26,7 +26,7 @@ USA
 
 package com.ettrema.zsync;
 
-import com.ettrema.http.DataRange;
+import com.bradmcevoy.http.Range;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +61,7 @@ public class FileUpdater {
 			double a = 10;
 			int range = 0;
 			int blockLength = 0;
-			ArrayList<DataRange> rangeList = null;
+			List<Range> rangeList = null;
 			byte[] data = null;
 			newFile.createNewFile();
 			ByteBuffer buffer = ByteBuffer.allocate(mfr.getBlocksize());
@@ -88,7 +89,9 @@ public class FileUpdater {
 						log.trace("     already have queued ranges: " + rangeList.size());
 					}
 					blockLength = calcBlockLength(i, mfr.getBlocksize(), (int) mfr.getLength());
-					buffer.put(data, (range - rangeList.size()) * mfr.getBlocksize(), blockLength);
+					int offset = (range - rangeList.size()) * mfr.getBlocksize();
+					System.out.println("buffer put: " + offset + " - " + blockLength);
+					buffer.put(data, offset, blockLength);
 					buffer.flip();
 					wChannel.write(buffer);
 					buffer.clear();
@@ -135,11 +138,11 @@ public class FileUpdater {
 	 * @param i Offset in fileMap where to start looking
 	 * @return ArrayList with ranges for requesting
 	 */
-	private ArrayList<DataRange> rangeLookUp(int i, int blocksize, MakeContext mc) {
-		ArrayList<DataRange> ranges = new ArrayList<DataRange>();
+	private ArrayList<Range> rangeLookUp(int i, int blocksize, MakeContext mc) {
+		ArrayList<Range> ranges = new ArrayList<Range>();
 		for (; i < mc.fileMap.length; i++) {
 			if (mc.fileMap[i] == -1) {
-				ranges.add(new DataRange(i * blocksize,
+				ranges.add(new Range(i * blocksize,
 						(i * blocksize) + blocksize));
 			}
 			if (ranges.size() >= maxRanges) {

@@ -26,7 +26,7 @@
 
 package com.ettrema.zsync;
 
-import com.ettrema.http.DataRange;
+import com.bradmcevoy.http.Range;
 import org.base64coder.Base64Coder;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -115,9 +115,9 @@ public class HttpConnection {
      * Sets ranges for http request
      * @param ranges ArrayList of DataRange objects containing block ranges
      */
-    public void setRangesRequest(ArrayList<DataRange> ranges){
+    public void setRangesRequest(ArrayList<Range> ranges){
         StringBuilder sb = new StringBuilder();
-        for(DataRange d : ranges){
+        for(Range d : ranges){
             sb.append(d.getRange()).append(",");
         }
         sb.delete(sb.length()-1,sb.length());

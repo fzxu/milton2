@@ -1,6 +1,6 @@
 package com.ettrema.httpclient;
 
-import com.ettrema.http.DataRange;
+import com.bradmcevoy.http.Range;
 import java.util.List;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class RangedGetMethod extends HttpMethodBase {
     /** Log object for this class. */
     private static final Logger log = LoggerFactory.getLogger(RangedGetMethod.class);
 
-    public RangedGetMethod(String uri, List<DataRange> dataRanges) {
+    public RangedGetMethod(String uri, List<Range> dataRanges) {
         super(uri);    
         if (dataRanges != null && !dataRanges.isEmpty()) {
             String rangeHeaderVal = getRangesRequest(dataRanges);
@@ -49,9 +49,9 @@ public class RangedGetMethod extends HttpMethodBase {
 		}
     }
 
-    private String getRangesRequest(List<DataRange> ranges) {
+    private String getRangesRequest(List<Range> ranges) {
         StringBuilder sb = new StringBuilder();
-        for (DataRange d : ranges) {
+        for (Range d : ranges) {
             sb.append(d.getRange()).append(",");
         }
         sb.delete(sb.length() - 1, sb.length());

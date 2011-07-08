@@ -1,6 +1,6 @@
 package com.ettrema.zsync;
 
-import com.ettrema.http.DataRange;
+import com.bradmcevoy.http.Range;
 import java.util.List;
 
 /**
@@ -9,6 +9,6 @@ import java.util.List;
  */
 public interface RangeLoader {
 
-	public byte[] get(List<DataRange> rangeList) throws Exception;
+	public byte[] get(List<Range> rangeList) throws Exception;
 	
 }

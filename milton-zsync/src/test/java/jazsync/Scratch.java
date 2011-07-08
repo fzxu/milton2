@@ -73,7 +73,7 @@ public class Scratch {
 		System.out.println("--------------------- test1 -----------------------");
 		SHA1 sha = new SHA1(fIn);
 		String actual = sha.SHA1sum();
-		System.out.println("checksum of source file: " + actual);
+		System.out.println("checksum of source file: " + actual + " - length: " + fIn.length());
 
 		File metaFile = metaFileMaker.make("/test", 32, fIn);
 		System.out.println("generated meta file: " + metaFile.getAbsolutePath());

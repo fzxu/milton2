@@ -24,5 +24,13 @@ public class Range {
         return "bytes " + start + "-" + finish;
     }
 
+    /**
+     * Returns range in String format ("start-end"), ready to be put into
+     * HTTP range request
+     * @return Range of data in stream
+     */
+    public String getRange(){
+        return start + "-" + finish;
+    }	
 
 }

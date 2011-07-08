@@ -5,6 +5,7 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.CopyableResource;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.GetableResource;
+import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockResult;
 import com.bradmcevoy.http.LockTimeout;
@@ -39,8 +40,7 @@ import org.slf4j.LoggerFactory;
 public class FsDirectoryResource extends FsResource implements MakeCollectionableResource, PutableResource, CopyableResource, DeletableResource, MoveableResource, PropFindableResource, LockingCollectionResource, GetableResource {
 
 	private static final Logger log = LoggerFactory.getLogger(FsDirectoryResource.class);
-	
-	
+
 	public FsDirectoryResource(String host, FileSystemResourceFactory factory, File dir) {
 		super(host, factory, dir);
 		if (!dir.exists()) {
@@ -159,27 +159,27 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
 		w.open("html");
 		w.open("head");
 		w.writeText(""
-						+ "<script type=\"text/javascript\" language=\"javascript1.1\">\n"
-						+ "    var fNewDoc = false;\n"
-						+ "  </script>\n"
-						+ "  <script LANGUAGE=\"VBSCRIPT\">\n"
-						+ "    On Error Resume Next\n"
-						+ "    Set EditDocumentButton = CreateObject(\"SharePoint.OpenDocuments.3\")\n"
-						+ "    fNewDoc = IsObject(EditDocumentButton)\n"
-						+ "  </script>\n"
-						+ "  <script type=\"text/javascript\" language=\"javascript1.1\">\n"
-						+ "    var L_EditDocumentError_Text = \"The edit feature requires a SharePoint-compatible application and Microsoft Internet Explorer 4.0 or greater.\";\n"
-						+ "    var L_EditDocumentRuntimeError_Text = \"Sorry, couldnt open the document.\";\n"
-						+ "    function editDocument(strDocument) {\n"
-						+ "      if (fNewDoc) {\n"
-						+ "        if (!EditDocumentButton.EditDocument(strDocument)) {\n"
-						+ "          alert(L_EditDocumentRuntimeError_Text); \n"
-						+ "        }\n"
-						+ "      } else { \n"
-						+ "        alert(L_EditDocumentError_Text); \n"
-						+ "      }\n"
-						+ "    }\n"
-						+ "  </script>\n");
+				+ "<script type=\"text/javascript\" language=\"javascript1.1\">\n"
+				+ "    var fNewDoc = false;\n"
+				+ "  </script>\n"
+				+ "  <script LANGUAGE=\"VBSCRIPT\">\n"
+				+ "    On Error Resume Next\n"
+				+ "    Set EditDocumentButton = CreateObject(\"SharePoint.OpenDocuments.3\")\n"
+				+ "    fNewDoc = IsObject(EditDocumentButton)\n"
+				+ "  </script>\n"
+				+ "  <script type=\"text/javascript\" language=\"javascript1.1\">\n"
+				+ "    var L_EditDocumentError_Text = \"The edit feature requires a SharePoint-compatible application and Microsoft Internet Explorer 4.0 or greater.\";\n"
+				+ "    var L_EditDocumentRuntimeError_Text = \"Sorry, couldnt open the document.\";\n"
+				+ "    function editDocument(strDocument) {\n"
+				+ "      if (fNewDoc) {\n"
+				+ "        if (!EditDocumentButton.EditDocument(strDocument)) {\n"
+				+ "          alert(L_EditDocumentRuntimeError_Text); \n"
+				+ "        }\n"
+				+ "      } else { \n"
+				+ "        alert(L_EditDocumentError_Text); \n"
+				+ "      }\n"
+				+ "    }\n"
+				+ "  </script>\n");
 
 
 
@@ -191,11 +191,11 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
 			w.open("tr");
 
 			w.open("td");
-			String path = buildHref( uri, r.getName());
-			w.begin("a").writeAtt("href", path ).open().writeText(r.getName()).close();
-						
-			w.begin("a").writeAtt("href", "#").writeAtt("onclick","editDocument('" + path + "')").open().writeText("(edit with office)").close();
-						
+			String path = buildHref(uri, r.getName());
+			w.begin("a").writeAtt("href", path).open().writeText(r.getName()).close();
+
+			w.begin("a").writeAtt("href", "#").writeAtt("onclick", "editDocument('" + path + "')").open().writeText("(edit with office)").close();
+
 			w.close("td");
 
 			w.begin("td").open().writeText(r.getModifiedDate() + "").close();
@@ -220,11 +220,25 @@ public class FsDirectoryResource extends FsResource implements MakeCollectionabl
 	}
 
 	private String buildHref(String uri, String name) {
-		if( ssoPrefix == null ) {
-			return "http://test.ppod.com:8095" + uri + "/" + name;
+		String abUrl = HttpManager.request().getAbsoluteUrl();
+		log.warn("url: " + abUrl);
+		if (uri == null) {
+			uri = "";
+		}
+		if (ssoPrefix == null) {
+			return abUrl + name;
 		} else {
 			// This is to match up with the prefix set on SimpleSSOSessionProvider in MyCompanyDavServlet
-			return "http://test.ppod.com:8095" + "/" + ssoPrefix + uri + "/" + name;
+			String s = insertSsoPrefix(abUrl, ssoPrefix);
+			return s += name;
 		}
+	}
+
+	public static String insertSsoPrefix(String abUrl, String prefix) {
+		// need to insert the ssoPrefix immediately after the host and port
+		int pos = abUrl.indexOf("/", 8);
+		String s = abUrl.substring(0, pos) + "/" + prefix;
+		s += abUrl.substring(pos);
+		return s;
 	}
 }

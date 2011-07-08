@@ -28,17 +28,18 @@ import org.slf4j.LoggerFactory;
  * @author brad
  */
 public class PartialGetHelper {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(PartialGetHelper.class);
 	private final Http11ResponseHandler responseHandler;
 	private int maxMemorySize = 100000;
-	
+
 	public PartialGetHelper(Http11ResponseHandler responseHandler) {
 		this.responseHandler = responseHandler;
 	}
-	
+
 	public List<Range> getRanges(String rangeHeader) {
 		if (rangeHeader == null || rangeHeader.length() == 0) {
+			log.trace("getRanges: no range header");
 			return null;
 		}
 		if (rangeHeader.startsWith("bytes=")) {
@@ -52,16 +53,19 @@ public class PartialGetHelper {
 					list.add(r);
 				}
 			}
+			if (log.isTraceEnabled()) {
+				log.trace("getRanges: header: " + rangeHeader + " parsed ranges: " + list.size());
+			}
 			return list;
-			
+
 		} else {
 			return null;
 		}
 	}
-	
+
 	public void sendPartialContent(GetableResource resource, Request request, Response response, List<Range> ranges, Map<String, String> params) throws NotAuthorizedException, BadRequestException, IOException {
 		if (ranges.size() == 1) {
-			log.trace("partial get, single range");			
+			log.trace("partial get, single range");
 			Range r = ranges.get(0);
 			responseHandler.respondPartialContent(resource, response, request, params, r);
 		} else {
@@ -83,7 +87,7 @@ public class PartialGetHelper {
 		}
 	}
 
-	public void writeRanges(InputStream fin, List<Range> ranges, OutputStream responseOut) throws IOException {
+	public static void writeRanges(InputStream fin, List<Range> ranges, OutputStream responseOut) throws IOException {
 		try {
 			BufferedInputStream bufIn = new BufferedInputStream(fin);
 			long pos = 0;
@@ -94,31 +98,43 @@ public class PartialGetHelper {
 				sendBytes(bufIn, responseOut, length);
 				pos = r.getFinish();
 			}
-		} finally {			
+		} finally {
 			StreamUtils.close(fin);
 		}
 	}
 
+	public static void writeRange(InputStream in, Range r, OutputStream responseOut) throws IOException {
+		long skip = r.getStart();
+		in.skip(skip);
+		long length = r.getFinish() - r.getStart();
+		sendBytes(in, responseOut, length);
+	}
 
-	
 	public int getMaxMemorySize() {
 		return maxMemorySize;
 	}
-	
+
 	public void setMaxMemorySize(int maxMemorySize) {
 		this.maxMemorySize = maxMemorySize;
 	}
 
-	public void sendBytes(InputStream in, OutputStream out, long length) throws IOException {		
+	public static void sendBytes(InputStream in, OutputStream out, long length) throws IOException {
+		System.out.println("sendBytes: a: " + length);
 		long numRead = 0;
 		byte[] b = new byte[1024];
-		while( numRead < length) {
+		while (numRead < length) {
 			long remainingBytes = length - numRead;
-			int maxLength = remainingBytes > 1024 ? 1024 : (int)remainingBytes;
+			int maxLength = remainingBytes > 1024 ? 1024 : (int) remainingBytes;
+			System.out.println("remainin: " + remainingBytes + " - maxl: " + maxLength);
 			int s = in.read(b, 0, maxLength);
+			if( s < 0 ) {
+				System.out.println("no more data");
+				break;
+			}
+			System.out.println("s - " + s);
 			numRead += s;
 			out.write(b, 0, s);
 		}
-		
+
 	}
 }

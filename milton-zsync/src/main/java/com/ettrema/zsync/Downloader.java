@@ -1,6 +1,6 @@
 package com.ettrema.zsync;
 
-import com.ettrema.http.DataRange;
+import com.bradmcevoy.http.Range;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -123,7 +123,7 @@ public class Downloader {
         return offset;
     }
 
-	public byte[] getRanges(int blockLength, ArrayList<DataRange> rangeList) {
+	public byte[] getRanges(int blockLength, ArrayList<Range> rangeList) {
 		// TODO: get the url from somewhere and GET the specified ranges
 		return null;
 	}

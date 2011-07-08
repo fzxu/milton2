@@ -1,7 +1,7 @@
 package com.ettrema.zsync;
 
+import com.bradmcevoy.http.Range;
 import com.ettrema.httpclient.File;
-import com.ettrema.http.DataRange;
 import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.Utils.CancelledException;
 import java.io.ByteArrayOutputStream;
@@ -23,7 +23,7 @@ public class HttpRangeLoader implements RangeLoader {
         this.file = file;
     }
 
-    public byte[] get(List<DataRange> rangeList) throws HttpException, CancelledException {
+    public byte[] get(List<Range> rangeList) throws HttpException, CancelledException {
 		log.info("get: rangelist: " + rangeList.size());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -33,15 +33,15 @@ public class HttpRangeLoader implements RangeLoader {
 		int expectedLength = calcExpectedLength(rangeList);
 		System.out.println("expected length = " + expectedLength + " actual length: " + bytes.length);
 		if( expectedLength != bytes.length) {
-			throw new RuntimeException("Got an invalid data size");
+			log.warn("Got an unexpected data size!!");
 		}
 		return bytes;
     }
 
-	private int calcExpectedLength(List<DataRange> rangeList) {
+	private int calcExpectedLength(List<Range> rangeList) {
 		int l = 0;
-		for( DataRange r : rangeList) {
-			l += (r.getEnd() - r.getStart());
+		for( Range r : rangeList) {
+			l += (r.getFinish() - r.getStart());
 		}
 		return l;
 	}

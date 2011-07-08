@@ -1,9 +1,9 @@
 package com.ettrema.httpclient;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.Range;
 import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
-import com.ettrema.http.DataRange;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -306,7 +306,7 @@ public class Host extends Folder {
         }
     }
 
-    public synchronized void doGet(String url, StreamReceiver receiver,  List<DataRange> rangeList) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
+    public synchronized void doGet(String url, StreamReceiver receiver,  List<Range> rangeList) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
         notifyStartRequest();
         RangedGetMethod m = new RangedGetMethod(urlEncode(url), rangeList);
         InputStream in = null;
