@@ -50,14 +50,14 @@ import org.slf4j.LoggerFactory;
  * Client side process for updating a server file with a local file
  * a) assume the remote file is at path /somefile
  * b) Find the data ranges to update by POSTing local metadata (headers+checksums)
- *		PUT /somefile/.zsync
+ *		POST /somefile/.zsync
  *		Version: zsync-1.0.0
  *		Blocksize: 256
  * 
  *      (eg response)
  *		1222-1756
  *		20000-20512
- * c) Upload the metadata again and the checksums in a PUT
+ * c) Upload the new byte ranges requested in a PUT request
  *		
  *
  * @author brad
