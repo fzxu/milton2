@@ -6,17 +6,14 @@ import com.ettrema.httpclient.Host;
 import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.StreamReceiver;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import com.ettrema.zsync.FileMaker;
 import com.ettrema.zsync.HttpRangeLoader;
 import com.ettrema.zsync.LocalFileRangeLoader;
 import com.ettrema.zsync.SHA1;
 import com.ettrema.zsync.MetaFileMaker;
-import com.ettrema.zsync.MetaFileMaker.MetaData;
 import java.io.FileOutputStream;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.Part;
@@ -159,6 +156,8 @@ public class Scratch {
 
 	@Test
 	public void test_Upload_OverHTTP() throws FileNotFoundException, HttpException {
+		System.out.println();
+		System.out.println("--------------------- test4 -----------------------");
 		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
 		
 		File metaFile = metaFileMaker.make("/test", 32, fIn);
