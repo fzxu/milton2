@@ -1,10 +1,12 @@
 package jazsync;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.Range;
 import com.bradmcevoy.io.StreamUtils;
 import com.ettrema.httpclient.Host;
 import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.StreamReceiver;
+import com.ettrema.httpclient.Utils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,7 +16,10 @@ import com.ettrema.zsync.HttpRangeLoader;
 import com.ettrema.zsync.LocalFileRangeLoader;
 import com.ettrema.zsync.SHA1;
 import com.ettrema.zsync.MetaFileMaker;
+import com.ettrema.zsync.RangeListParser;
+import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
+import java.util.List;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.junit.Assert;
@@ -67,7 +72,7 @@ public class Scratch {
 	 * actualy update the file, or might be a NOOP
 	 * 
 	 */
-	@Test
+	//@Test
 	public void test_LocalOnly() throws FileNotFoundException, Exception {
 		System.out.println("--------------------- test1 -----------------------");
 		System.out.println("source file: " + fIn.getAbsolutePath());
@@ -93,7 +98,7 @@ public class Scratch {
 	 * 
 	 * @throws FileNotFoundException 
 	 */
-	@Test
+	//@Test
 	public void test2_NotWorking() throws FileNotFoundException, IOException {
 //		System.out.println("--------------------- test2 -----------------------");
 //		FileInputStream dataIn = new FileInputStream(fIn);
@@ -124,7 +129,7 @@ public class Scratch {
 	 * @throws HttpException
 	 * @throws Exception 
 	 */
-	@Test
+	//@Test
 	public void test_Download_Update_OverHTTP() throws FileNotFoundException, IOException, HttpException, Exception {
 		// Get metadata from http server
 		System.out.println("--------------------- test3 -----------------------");
@@ -133,6 +138,7 @@ public class Scratch {
 		String url = host.getHref(Path.path("/source.txt/.zsync"));
 		host.doGet(url, new StreamReceiver() {
 
+			@Override
 			public void receive(InputStream in) throws IOException {
 				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
 				StreamUtils.readTo(in, fout, true, true);
@@ -155,7 +161,7 @@ public class Scratch {
 	}
 
 	@Test
-	public void test_Upload_OverHTTP() throws FileNotFoundException, HttpException {
+	public void test_Upload_OverHTTP() throws FileNotFoundException, HttpException, IOException {
 		System.out.println();
 		System.out.println("--------------------- test4 -----------------------");
 		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
@@ -165,5 +171,19 @@ public class Scratch {
 		String url = host.getHref(Path.path("/source.txt/.zsync"));
 		String ranges = host.doPost(url, null, parts);
 		System.out.println("ranges: " + ranges);
+		
+		RangeListParser listParser = new RangeListParser();
+		List<Range> list = listParser.parse(new ByteArrayInputStream(ranges.getBytes()));
+		
+		LocalFileRangeLoader fileRangeLoader = new LocalFileRangeLoader(fIn);
+		byte[] data = fileRangeLoader.get(list);
+		System.out.println("sending bytes: " + data.length);
+		InputStream in = new ByteArrayInputStream(data);
+		int result = host.doPut(url, in, (long)data.length, null); 
+		Utils.processResultCode(result, url );
+		System.out.println("done!!");
+		
+		
+		
 	}
 }

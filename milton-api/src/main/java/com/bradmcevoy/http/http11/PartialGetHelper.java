@@ -7,7 +7,6 @@ import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.StreamUtils;
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,6 +63,7 @@ public class PartialGetHelper {
 	}
 
 	public void sendPartialContent(GetableResource resource, Request request, Response response, List<Range> ranges, Map<String, String> params) throws NotAuthorizedException, BadRequestException, IOException {
+		log.trace("sendPartialContent");
 		if (ranges.size() == 1) {
 			log.trace("partial get, single range");
 			Range r = ranges.get(0);
@@ -125,7 +125,7 @@ public class PartialGetHelper {
 	}
 
 	public static void sendBytes(InputStream in, OutputStream out, long length) throws IOException {
-		System.out.println("sendBytes: " + length);
+		log.trace("sendBytes: " + length);
 		long numRead = 0;
 		byte[] b = new byte[1024];
 		while (numRead < length) {
@@ -137,7 +137,6 @@ public class PartialGetHelper {
 			}
 			numRead += s;
 			out.write(b, 0, s);
-			System.out.println("sent bytes of length: " + s);
 		}
 
 	}

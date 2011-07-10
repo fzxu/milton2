@@ -69,10 +69,11 @@ public class FileUpdater {
 			ByteBuffer buffer = ByteBuffer.allocate(mfr.getBlocksize());
 			log.trace("Reading from file: " + inputFile.getAbsolutePath());
 			FileChannel rChannel = new FileInputStream(inputFile).getChannel();
+			log.trace("number of map entries: " + mc.fileMap.length);
 			for (int i = 0; i < mc.fileMap.length; i++) {
 				mc.fileOffset = mc.fileMap[i];
 				if (mc.fileOffset != -1) {
-					log.trace("  read block from local file");
+					log.trace("  read block from local file: " + mc.fileOffset);
 					rChannel.read(buffer, mc.fileOffset);
 					buffer.flip();
 					wChannel.write(buffer);
@@ -83,12 +84,13 @@ public class FileUpdater {
 						rangeList = rangeLookUp(i, mfr.getBlocksize(), mc);
 						range = rangeList.size();
 						data = rangeLoader.get(rangeList);
+						System.out.println("got data length: " + data.length);
 					} else {
 						log.trace("     already have queued ranges: " + rangeList.size());
 					}
 					blockLength = calcBlockLength(i, mfr.getBlocksize(), (int) mfr.getLength());
 					int offset = (range - rangeList.size()) * mfr.getBlocksize();
-
+					System.out.println("blockLength: " + blockLength + " data.length: " + data.length + "  offset: " + offset);
 					buffer.put(data, offset, blockLength);
 					buffer.flip();
 					wChannel.write(buffer);
@@ -130,12 +132,11 @@ public class FileUpdater {
 	 * @param i Offset in fileMap where to start looking
 	 * @return ArrayList with ranges for requesting
 	 */
-	private ArrayList<Range> rangeLookUp(int i, int blocksize, MakeContext mc) {
-		ArrayList<Range> ranges = new ArrayList<Range>();
+	private List<Range> rangeLookUp(int i, int blocksize, MakeContext mc) {
+		List<Range> ranges = new ArrayList<Range>();
 		for (; i < mc.fileMap.length; i++) {
 			if (mc.fileMap[i] == -1) {
-				ranges.add(new Range(i * blocksize,
-						(i * blocksize) + blocksize));
+				ranges.add(new Range(i * blocksize,(i * blocksize) + blocksize));
 			}
 			if (ranges.size() >= maxRanges) {
 				break;
@@ -148,7 +149,7 @@ public class FileUpdater {
 	}
 
 	private int calcBlockLength(int i, int blockSize, int length) {
-		if ((i * blockSize + blockSize) < length) {
+		if ((i+1) * blockSize < length) {
 			return blockSize;
 		} else {
 			return calcBlockLength_b(i, blockSize, length);

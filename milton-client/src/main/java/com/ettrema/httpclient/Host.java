@@ -30,7 +30,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.params.HttpMethodParams;
@@ -202,7 +201,7 @@ public class Host extends Folder {
 		return doPut(dest, content, contentLength, contentType);
 	}
 
-	synchronized int doPut(String newUri, InputStream content, Long contentLength, String contentType) {
+	public synchronized int doPut(String newUri, InputStream content, Long contentLength, String contentType) {
 		log.trace("put: " + newUri);
 		notifyStartRequest();
 		String s = urlEncode(newUri);

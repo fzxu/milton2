@@ -43,7 +43,7 @@ public class Utils {
         }
     }
 
-    static void processResultCode(int result, String href) throws com.ettrema.httpclient.HttpException {
+    public static void processResultCode(int result, String href) throws com.ettrema.httpclient.HttpException {
         if (result >= 200 && result < 300) {
             return;
         } else if (result >= 300 && result < 400) {
