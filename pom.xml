@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ettrema</groupId>
     <artifactId>milton</artifactId>
-    <version>1.6.2-SNAPSHOT</version>
+    <version>1.6.2</version>
     <packaging>pom</packaging>
     <name>Milton WebDav Parent</name>
     <url>http://milton.ettrema.com</url>
     <scm>
-        <connection>scm:svn:http://svn.ettrema.com/svn/milton/trunk/milton</connection>
+        <connection>scm:svn:http://svn.ettrema.com/svn/milton/tags/milton-1.6.2</connection>
     </scm>
     <distributionManagement>
         <repository>
@@ -59,7 +59,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.0</version>
+                <version>2.2</version>
                 <configuration>
                     <tagBase>http://svn.ettrema.com/svn/milton/tags</tagBase>
                 </configuration>
