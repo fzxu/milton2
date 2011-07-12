@@ -58,8 +58,8 @@ public class File extends Resource {
 		return host().doSyncDownload(this, localFile); 
 	}
 	
-	public void syncUpload(java.io.File localFile) {
-		host().syncUpload(this, localFile); 
+	public void syncUpload(java.io.File localFile) throws FileNotFoundException, HttpException, IOException {
+		host().syncUpload(this, localFile);
 	}
 	
 
