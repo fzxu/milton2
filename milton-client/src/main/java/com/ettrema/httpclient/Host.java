@@ -2,9 +2,18 @@ package com.ettrema.httpclient;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Range;
+import com.bradmcevoy.io.StreamUtils;
 import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
+import com.ettrema.zsync.FileMaker;
+import com.ettrema.zsync.HttpRangeLoader;
+import com.ettrema.zsync.LocalFileRangeLoader;
+import com.ettrema.zsync.MetaFileMaker;
+import com.ettrema.zsync.RangeListParser;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
@@ -18,18 +27,21 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.DeleteMethod;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.params.HttpMethodParams;
@@ -61,6 +73,8 @@ public class Host extends Folder {
 	final HttpClient client;
 	public final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
 	private String propFindXml = PROPFIND_XML;
+	private MetaFileMaker metaFileMaker = new MetaFileMaker();
+	private FileMaker fileMaker = new FileMaker();
 
 	static {
 //    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
@@ -307,9 +321,22 @@ public class Host extends Folder {
 		}
 	}
 
+	/**
+	 * 
+	 * @param url
+	 * @param receiver
+	 * @param rangeList - if null does a normal GET request
+	 * @throws com.ettrema.httpclient.HttpException
+	 * @throws com.ettrema.httpclient.Utils.CancelledException 
+	 */
 	public synchronized void doGet(String url, StreamReceiver receiver, List<Range> rangeList) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
 		notifyStartRequest();
-		RangedGetMethod m = new RangedGetMethod(urlEncode(url), rangeList);
+		HttpMethodBase m;
+		if( rangeList != null ) {
+			m = new RangedGetMethod(urlEncode(url), rangeList);
+		} else {
+			m = new GetMethod(urlEncode(url));
+		}
 		InputStream in = null;
 		try {
 			int res = client.executeMethod(m);
@@ -563,5 +590,43 @@ public class Host extends Folder {
 	 */
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
+	}
+
+	public java.io.File doSyncDownload(File remoteFile, java.io.File fLocalFile) throws com.ettrema.httpclient.HttpException, Exception {
+		final java.io.File fRemoteMeta = java.io.File.createTempFile("milton-zsync-remotemeta", null);
+		String url = remoteFile.href() + "/.zsync";
+		doGet(url, new StreamReceiver() {
+
+			@Override
+			public void receive(InputStream in) throws IOException {
+				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
+				StreamUtils.readTo(in, fout, true, true);
+			}
+		}, null);		
+		
+		HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
+		java.io.File mergedFile = fileMaker.make(fLocalFile, fRemoteMeta, rangeLoader);
+		return mergedFile;
+		
+	}
+
+	public void syncUpload(File aThis, java.io.File localFile) throws FileNotFoundException, com.ettrema.httpclient.HttpException, IOException {
+		int blockSize = metaFileMaker.computeBlockSize(localFile.length());
+		String url = aThis.href() + "/.zsync";		
+		java.io.File metaFile = metaFileMaker.make(url, blockSize, localFile);
+		Part[] parts = {new FilePart("meta", metaFile)};
+		String ranges = doPost(url, null, parts);
+		System.out.println("ranges: " + ranges);
+		
+		RangeListParser listParser = new RangeListParser();
+		List<Range> list = listParser.parse(new ByteArrayInputStream(ranges.getBytes()));
+		
+		LocalFileRangeLoader fileRangeLoader = new LocalFileRangeLoader(localFile);
+		byte[] data = fileRangeLoader.get(list);
+		System.out.println("sending bytes: " + data.length);
+		InputStream in = new ByteArrayInputStream(data);
+		int result = doPut(url, in, (long)data.length, null); 
+		Utils.processResultCode(result, url );
+		
 	}
 }
