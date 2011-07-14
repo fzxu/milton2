@@ -50,8 +50,32 @@ public interface PropertySource {
         }
     }
 
+	/**
+	 * Return the typed value of the given property. For example, if the property
+	 * is a date/time value it should generally return a java.util.Date. Milton
+	 * will take care of formatting types values into XML responses.
+	 * 
+	 * If the current user cannot read the requested property throw a NotAuthorizedException,
+	 * this will set the appropriate status against this 
+	 * 
+	 * @param name
+	 * @param r
+	 * @return
+	 * @throws NotAuthorizedException 
+	 */
     Object getProperty( QName name, Resource r ) throws NotAuthorizedException;
 
+	/**
+	 * Update the given property to the value given. If the value is invalid
+	 * throw a PropertySetException, and if the user is not permitted
+	 * to update the property throw a NotAuthorizedException
+	 * 
+	 * @param name
+	 * @param value
+	 * @param r
+	 * @throws com.bradmcevoy.property.PropertySource.PropertySetException
+	 * @throws NotAuthorizedException 
+	 */
     void setProperty( QName name, Object value, Resource r ) throws PropertySetException, NotAuthorizedException;
 
     /**
