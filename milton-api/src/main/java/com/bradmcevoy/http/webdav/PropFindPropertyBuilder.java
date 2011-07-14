@@ -13,7 +13,7 @@ import com.bradmcevoy.property.PropertySource.PropertyMetaData;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -106,6 +106,7 @@ public class PropFindPropertyBuilder {
                 href = href + "/";
             }
         }
+		System.out.println("processResource: href: " + href);		
         Set<QName> requestedFields;
         if (parseResult.isAllProp()) {
             requestedFields = findAllProps(resource);
@@ -151,7 +152,8 @@ public class PropFindPropertyBuilder {
             }
         }
 
-        Map<Status, List<NameAndError>> errorProperties = new HashMap<Status, List<NameAndError>>();
+        //Map<Status, List<NameAndError>> errorProperties = new HashMap<Status, List<NameAndError>>();
+		Map<Status, List<NameAndError>> errorProperties = new EnumMap<Status, List<NameAndError>>(Status.class);
         errorProperties.put(Status.SC_NOT_FOUND, unknownProperties);
         PropFindResponse r = new PropFindResponse(href, knownProperties, errorProperties);
         responses.add(r);
@@ -166,8 +168,9 @@ public class PropFindPropertyBuilder {
                     if (childName == null) {
                         log.warn("null name for resource of type: " + child.getClass() + " in folder: " + href + " WILL NOT be returned in PROPFIND response!!");
                     } else {
-                        String childHref = collectionHref + Utils.percentEncode(childName);
+                        String childHref = href + Utils.percentEncode(childName);
                         // Note that the new collection href, is just the current href
+						System.out.println("  next processResource: childHref: " + childHref + "  href: " + href + "   colHref: " + collectionHref);
                         processResource(responses, (PropFindableResource) child, parseResult, childHref, requestedDepth, currentDepth + 1, href);
                     }
                 }

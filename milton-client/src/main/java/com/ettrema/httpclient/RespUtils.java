@@ -28,8 +28,7 @@ public class RespUtils {
     public static String asString( Element el, String name ) {
         Element elChild = el.getChild( name, NS_DAV  );
         if( elChild == null ) {
-            log.debug("No child: " + name + " of " + el.getName());
-            
+            //log.debug("No child: " + name + " of " + el.getName());            
             return null;
         }
         return elChild.getText();
