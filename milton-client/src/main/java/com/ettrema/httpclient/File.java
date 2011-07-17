@@ -40,27 +40,27 @@ public class File extends Resource {
         return super.toString() + " (content type=" + this.contentType + ")";
     }
 
-	/**
-	 * Downloads necessary data to produce a local copy of this server file, based
-	 * on the current local file. This uses zsync, similar to rsync, but requires
-	 * the zsync extension to the webdav server
-	 * 
-	 * The local copy is stored as a temp file, which is the returned value. It
-	 * is up to the calling application to replace the original file with the
-	 * temp file
-	 * 
-	 * @param localFile
-	 * @return - a local file holding a copy of this server file
-	 * @throws Exception
-	 * @throws HttpException 
-	 */
-	public java.io.File syncDownload(java.io.File localFile) throws Exception, HttpException {
-		return host().doSyncDownload(this, localFile); 
-	}
-	
-	public void syncUpload(java.io.File localFile) throws FileNotFoundException, HttpException, IOException {
-		host().syncUpload(this, localFile);
-	}
+//	/**
+//	 * Downloads necessary data to produce a local copy of this server file, based
+//	 * on the current local file. This uses zsync, similar to rsync, but requires
+//	 * the zsync extension to the webdav server
+//	 * 
+//	 * The local copy is stored as a temp file, which is the returned value. It
+//	 * is up to the calling application to replace the original file with the
+//	 * temp file
+//	 * 
+//	 * @param localFile
+//	 * @return - a local file holding a copy of this server file
+//	 * @throws Exception
+//	 * @throws HttpException 
+//	 */
+//	public java.io.File syncDownload(java.io.File localFile) throws Exception, HttpException {
+//		return host().doSyncDownload(this, localFile); 
+//	}
+//	
+//	public void syncUpload(java.io.File localFile) throws FileNotFoundException, HttpException, IOException {
+//		host().syncUpload(this, localFile);
+//	}
 	
 
     public java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException, CancelledException {

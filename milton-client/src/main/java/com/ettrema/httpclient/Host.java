@@ -5,11 +5,7 @@ import com.bradmcevoy.http.Range;
 import com.bradmcevoy.io.StreamUtils;
 import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
-import com.ettrema.zsync.FileMaker;
-import com.ettrema.zsync.HttpRangeLoader;
-import com.ettrema.zsync.LocalFileRangeLoader;
-import com.ettrema.zsync.MetaFileMaker;
-import com.ettrema.zsync.RangeListParser;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -73,8 +69,8 @@ public class Host extends Folder {
 	final HttpClient client;
 	public final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
 	private String propFindXml = PROPFIND_XML;
-	private MetaFileMaker metaFileMaker = new MetaFileMaker();
-	private FileMaker fileMaker = new FileMaker();
+//	private MetaFileMaker metaFileMaker = new MetaFileMaker();
+//	private FileMaker fileMaker = new FileMaker();
 
 	static {
 //    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
@@ -591,42 +587,42 @@ public class Host extends Folder {
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
 	}
-
-	public java.io.File doSyncDownload(File remoteFile, java.io.File fLocalFile) throws com.ettrema.httpclient.HttpException, Exception {
-		final java.io.File fRemoteMeta = java.io.File.createTempFile("milton-zsync-remotemeta", null);
-		String url = remoteFile.href() + "/.zsync";
-		doGet(url, new StreamReceiver() {
-
-			@Override
-			public void receive(InputStream in) throws IOException {
-				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
-				StreamUtils.readTo(in, fout, true, true);
-			}
-		}, null);		
-		
-		HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
-		java.io.File mergedFile = fileMaker.make(fLocalFile, fRemoteMeta, rangeLoader);
-		return mergedFile;
-		
-	}
-
-	public void syncUpload(File aThis, java.io.File localFile) throws FileNotFoundException, com.ettrema.httpclient.HttpException, IOException {
-		int blockSize = metaFileMaker.computeBlockSize(localFile.length());
-		String url = aThis.href() + "/.zsync";		
-		java.io.File metaFile = metaFileMaker.make(url, blockSize, localFile);
-		Part[] parts = {new FilePart("meta", metaFile)};
-		String ranges = doPost(url, null, parts);
-		System.out.println("ranges: " + ranges);
-		
-		RangeListParser listParser = new RangeListParser();
-		List<Range> list = listParser.parse(new ByteArrayInputStream(ranges.getBytes()));
-		
-		LocalFileRangeLoader fileRangeLoader = new LocalFileRangeLoader(localFile);
-		byte[] data = fileRangeLoader.get(list);
-		System.out.println("sending bytes: " + data.length);
-		InputStream in = new ByteArrayInputStream(data);
-		int result = doPut(url, in, (long)data.length, null); 
-		Utils.processResultCode(result, url );
-		
-	}
+//
+//	public java.io.File doSyncDownload(File remoteFile, java.io.File fLocalFile) throws com.ettrema.httpclient.HttpException, Exception {
+//		final java.io.File fRemoteMeta = java.io.File.createTempFile("milton-zsync-remotemeta", null);
+//		String url = remoteFile.href() + "/.zsync";
+//		doGet(url, new StreamReceiver() {
+//
+//			@Override
+//			public void receive(InputStream in) throws IOException {
+//				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
+//				StreamUtils.readTo(in, fout, true, true);
+//			}
+//		}, null);		
+//		
+//		HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
+//		java.io.File mergedFile = fileMaker.make(fLocalFile, fRemoteMeta, rangeLoader);
+//		return mergedFile;
+//		
+//	}
+//
+//	public void syncUpload(File aThis, java.io.File localFile) throws FileNotFoundException, com.ettrema.httpclient.HttpException, IOException {
+//		int blockSize = metaFileMaker.computeBlockSize(localFile.length());
+//		String url = aThis.href() + "/.zsync";		
+//		java.io.File metaFile = metaFileMaker.make(url, blockSize, localFile);
+//		Part[] parts = {new FilePart("meta", metaFile)};
+//		String ranges = doPost(url, null, parts);
+//		System.out.println("ranges: " + ranges);
+//		
+//		RangeListParser listParser = new RangeListParser();
+//		List<Range> list = listParser.parse(new ByteArrayInputStream(ranges.getBytes()));
+//		
+//		LocalFileRangeLoader fileRangeLoader = new LocalFileRangeLoader(localFile);
+//		byte[] data = fileRangeLoader.get(list);
+//		System.out.println("sending bytes: " + data.length);
+//		InputStream in = new ByteArrayInputStream(data);
+//		int result = doPut(url, in, (long)data.length, null); 
+//		Utils.processResultCode(result, url );
+//		
+//	}
 }
