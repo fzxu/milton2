@@ -1,6 +1,7 @@
 package com.bradmcevoy.property;
 
 import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
@@ -16,7 +17,7 @@ public class MultiNamespaceCustomPropertySource implements PropertySource{
         return cpr.getProperty( name );
     }
 
-    public void setProperty( QName name, Object value, Resource r ) {
+    public void setProperty( QName name, Object value, Resource r ) throws PropertySetException, NotAuthorizedException {
         MultiNamespaceCustomPropertyResource cpr = (MultiNamespaceCustomPropertyResource) r;
         cpr.setProperty( name, value );
     }
@@ -36,7 +37,7 @@ public class MultiNamespaceCustomPropertySource implements PropertySource{
      * @param name
      * @param r
      */
-    public void clearProperty( QName name, Resource r ) {
+    public void clearProperty( QName name, Resource r ) throws PropertySetException, NotAuthorizedException {
         setProperty( name, null, r);
     }
 
