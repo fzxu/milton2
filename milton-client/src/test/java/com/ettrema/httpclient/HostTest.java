@@ -1,7 +1,10 @@
 package com.ettrema.httpclient;
 
+import com.bradmcevoy.common.Path;
+import com.ettrema.httpclient.PropFindMethod.Response;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 import junit.framework.TestCase;
 
 /**
@@ -53,7 +56,10 @@ public class HostTest extends TestCase {
     }
 
     public void testScratch() throws URISyntaxException, Exception {
-
+//		Host h = new Host("127.0.0.1", 8080, "me", "pwd", null);
+//		String url = h.getHref(Path.root);
+//		List<Response> resp = h.doPropFind(url, 5);
+//		System.out.println("resp: " + resp.size());
     }
 
 }
