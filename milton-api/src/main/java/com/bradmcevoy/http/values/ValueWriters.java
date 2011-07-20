@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default list of value writers. These are used to format strongly types
@@ -17,6 +19,8 @@ import javax.xml.namespace.QName;
  */
 public class ValueWriters {
 
+	private static final Logger log = LoggerFactory.getLogger( ValueWriters.class );
+	
     private final List<ValueWriter> writers;
 
     /**
@@ -87,9 +91,11 @@ public class ValueWriters {
     public Object parse(QName qname, Class valueType, String value) {
         for (ValueWriter vw : writers) {
             if (vw.supports(qname.getNamespaceURI(), qname.getLocalPart(), valueType)) {
+				log.trace("parse: Found supporting value writer {} ", vw);
                 return vw.parse(qname.getNamespaceURI(), qname.getLocalPart(), value);
             }
         }
+		log.warn("parse: No value writer supports: qname: " + qname + " type:" + valueType + " value:" + value );
         return null;
     }
 }

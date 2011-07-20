@@ -56,6 +56,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 	}
 
 	public PropFindResponse setProperties(String href, ParseResult parseResult, Resource r) {
+		log.trace("setProperties");
 		Map<QName, ValueAndType> knownProps = new HashMap<QName, ValueAndType>();
 
 		Map<Status, List<NameAndError>> errorProps = new EnumMap<Status, List<NameAndError>>(Status.class);
@@ -69,13 +70,16 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 					if (meta.isWritable()) {
 						Object val = parse(name, entry.getValue(), meta.getValueType());
 						try {
+							log.trace("setProperties: setProperty: name: {} source: []", name, source);
 							source.setProperty(name, val, r);
 							knownProps.put(name, new ValueAndType(null, meta.getValueType()));
 							break;
 						} catch (NotAuthorizedException e) {
+							log.trace("setProperties: NotAuthorised to write property: {}", name, e);
 							addErrorProp(errorProps, Response.Status.SC_UNAUTHORIZED, name, "Not authorised");
 							break;
 						} catch (PropertySetException ex) {
+							log.trace("setProperties: PropertySetException when writing property {}", name, ex);
 							addErrorProp(errorProps, ex.getStatus(), name, ex.getErrorNotes());
 							break;
 						}
@@ -102,6 +106,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 						found = true;
 						if (meta.isWritable()) {
 							try {
+								log.trace("clearProperty");
 								source.clearProperty(name, r);
 								knownProps.put(name, new ValueAndType(null, meta.getValueType()));
 								break;
