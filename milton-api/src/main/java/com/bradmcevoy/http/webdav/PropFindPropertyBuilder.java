@@ -105,8 +105,7 @@ public class PropFindPropertyBuilder {
             if (!href.endsWith("/")) {
                 href = href + "/";
             }
-        }
-		System.out.println("processResource: href: " + href);		
+        }	
         Set<QName> requestedFields;
         if (parseResult.isAllProp()) {
             requestedFields = findAllProps(resource);
@@ -170,7 +169,6 @@ public class PropFindPropertyBuilder {
                     } else {
                         String childHref = href + Utils.percentEncode(childName);
                         // Note that the new collection href, is just the current href
-						System.out.println("  next processResource: childHref: " + childHref + "  href: " + href + "   colHref: " + collectionHref);
                         processResource(responses, (PropFindableResource) child, parseResult, childHref, requestedDepth, currentDepth + 1, href);
                     }
                 }
