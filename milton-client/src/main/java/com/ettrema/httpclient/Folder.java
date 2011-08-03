@@ -70,6 +70,11 @@ public class Folder extends Resource {
         return thisDir;
     }
 
+	/**
+	 * Empty the cached children for this folder
+	 * 
+	 * @throws IOException 
+	 */
     public void flush() throws IOException {
         cache.remove(this);
     }
@@ -110,7 +115,6 @@ public class Folder extends Resource {
             }
 
             cache.put(this, children);
-            System.out.println("Folder: children: loaded resources: " + Resource.getCount());
         }       
 
         return children;

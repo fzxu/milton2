@@ -34,8 +34,7 @@ public class PropFindMethod extends EntityEnclosingMethod {
         return "PROPFIND";
     }
 
-    public Document getResponseAsDocument() throws IOException {
-        System.out.println("getResponseAsDocument");
+    public Document getResponseAsDocument() throws IOException {        
         InputStream in = getResponseBodyAsStream();
 //        IOUtils.copy( in, out );
 //        String xml = out.toString();
@@ -66,7 +65,6 @@ public class PropFindMethod extends EntityEnclosingMethod {
             }
             Element root = document.getRootElement();
             List<Element> responseEls = RespUtils.getElements(root, "response");
-            System.out.println("resps: " + responseEls.size());
             for( Element el : responseEls) {
                 Response resp = new Response( serverDate, el );
                 

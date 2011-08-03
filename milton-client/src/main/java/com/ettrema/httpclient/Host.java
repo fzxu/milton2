@@ -2,14 +2,10 @@ package com.ettrema.httpclient;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Range;
-import com.bradmcevoy.io.StreamUtils;
 import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
@@ -37,7 +33,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.params.HttpMethodParams;
@@ -140,6 +135,10 @@ public class Host extends Folder {
 	 * @throws com.ettrema.httpclient.HttpException
 	 */
 	public Resource find(String path) throws IOException, com.ettrema.httpclient.HttpException {
+		return find(path, false);
+	}
+	
+	public Resource find(String path, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException {
 		if (path == null || path.length() == 0 || path.equals("/")) {
 			return this;
 		}
@@ -147,24 +146,22 @@ public class Host extends Folder {
 			path = path.substring(1);
 		}
 		String[] arr = path.split("/");
-		return _find(this, arr, 0);
-
+		return _find(this, arr, 0, invalidateCache);		
 	}
+	
 
-	public static Resource _find(Folder parent, String[] arr, int i) throws IOException, com.ettrema.httpclient.HttpException {
+	public static Resource _find(Folder parent, String[] arr, int i, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException {
 		String childName = arr[i];
-		System.out.println("_find: " + childName + " " + i);
 
+		parent.flush();
 		Resource child = parent.child(childName);
 		if (i == arr.length - 1) {
 			System.out.println("  child: " + child);
 			return child;
 		} else {
-			if (child instanceof Folder) {
-				System.out.println("  go to parent");
-				return _find((Folder) child, arr, i + 1);
+			if (child instanceof Folder) {				
+				return _find((Folder) child, arr, i + 1, invalidateCache);
 			} else {
-				System.out.println("  not found");
 				return null;
 			}
 		}
