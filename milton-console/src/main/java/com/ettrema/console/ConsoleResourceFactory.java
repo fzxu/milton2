@@ -65,7 +65,7 @@ public class ConsoleResourceFactory implements ResourceFactory {
             path = stripConsolePath( path, consolePath );
             Resource secureResource = wrappedFactory.getResource( host, secureResourcePath );
             if( secureResource == null ) {
-                throw new IllegalArgumentException( "Could not locate a resource to authorise against. path: " + secureResourcePath + " - resourceFactory: " + wrappedFactory.getClass() );
+                throw new IllegalArgumentException( "Could not locate a resource to authorise against. path: " + secureResourcePath + " - resourceFactory: " + wrappedFactory.getClass() + " host: " + host );
             }
             
             if( path.endsWith( "index.html" ) ) {

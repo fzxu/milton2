@@ -16,6 +16,7 @@ import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropPatchSetter;
 import com.bradmcevoy.property.PropertyAuthoriser;
 import com.bradmcevoy.property.PropertySource;
+import com.ettrema.common.LogUtils;
 import com.ettrema.event.EventManager;
 import java.util.Arrays;
 import java.util.List;
@@ -54,9 +55,7 @@ public class JsonResourceFactory implements ResourceFactory {
 	}
 
 	public Resource getResource(String host, String sPath) {
-		if (log.isTraceEnabled()) {
-			log.trace(host + " :: " + sPath);
-		}
+		LogUtils.trace(log, "getResource", host, sPath);
 		Path path = Path.path(sPath);
 		Path parent = path.getParent();
 		Request request = HttpManager.request();
@@ -65,19 +64,24 @@ public class JsonResourceFactory implements ResourceFactory {
 		// This is to support a use case where a developer wants their resources to
 		// be accessible through milton-json, but don't want to use DAV urls. Instead
 		// they use a parameter and DO NOT implement PostableResource. 
-		if ( request.getMethod().equals(Method.POST) ) {
+		if (request.getMethod().equals(Method.POST)) {
 			Resource wrappedResource = wrapped.getResource(host, sPath);
 			if (wrappedResource != null && !(wrappedResource instanceof PostableResource)) {
+				LogUtils.trace(log, "getResource: is post, and got a: ", wrappedResource.getClass());
 				return new PostJsonResource(host, encodedPath, wrappedResource, methodParamName, this);
 			}
-		} else if ( request.getMethod().equals(Method.GET) && isMatchingContentType(request.getAcceptHeader())) {
-			log.trace("getResource: matches content type");
+		}
+		if (request.getMethod().equals(Method.GET) && isMatchingContentType(request.getAcceptHeader())) {
 			Resource wrappedResource = wrapped.getResource(host, sPath);
 			if (wrappedResource != null) {
+				log.trace("getResource: matches content type, and found wrapped resource");
 				return wrapResource(host, wrappedResource, Method.PROPFIND.code, encodedPath);
+			} else {
+				LogUtils.trace(log, "getResource: is GET and matched type, but found no actual resource on", sPath);
 			}
-
-		} else if (isMatchingPath(parent)) {
+		}
+		if (isMatchingPath(parent)) {
+			log.trace("getResource: is matching path");
 			Path resourcePath = parent.getParent();
 			if (resourcePath != null) {
 				String method = path.getName();
@@ -87,6 +91,7 @@ public class JsonResourceFactory implements ResourceFactory {
 				}
 			}
 		} else {
+			log.trace("getResource: not matching path");
 			return wrapped.getResource(host, sPath);
 		}
 		return null;
