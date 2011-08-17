@@ -9,31 +9,25 @@ import com.bradmcevoy.http.*;
  */
 public class ConflictException extends MiltonException {
 
-     private final String message;
-    
-    /**
-     * The resource idenfitied by the URI.
-     *
-     * @param r
-     */
-    public ConflictException(Resource r) {
-        super(r);
-        this.message = "Conflict exception: " + r.getName();
-    }
-    
-    public ConflictException(Resource r, String message) {
-        super(r);
-        this.message = message;
-    }
+	private final String message;
 
-    @Override
-    public String getMessage() {
-        return super.getMessage();
-    }
-    
-    
-    
-    
-    
+	/**
+	 * The resource idenfitied by the URI.
+	 *
+	 * @param r
+	 */
+	public ConflictException(Resource r) {
+		super(r);
+		this.message = "Conflict exception: " + r.getName();
+	}
 
+	public ConflictException(Resource r, String message) {
+		super(r);
+		this.message = message;
+	}
+
+	@Override
+	public String getMessage() {
+		return message;
+	}
 }
