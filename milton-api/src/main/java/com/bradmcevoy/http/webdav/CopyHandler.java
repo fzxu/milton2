@@ -44,23 +44,19 @@ public class CopyHandler implements ExistingEntityHandler {
         resourceHandlerHelper.process(httpManager, request, response, this);
     }
 
+	
     public void processExistingResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, BadRequestException, ConflictException {
         CopyableResource r = (CopyableResource) resource;
-        String sDest = request.getDestinationHeader();
-        sDest = HttpManager.decodeUrl(sDest);
-        URI destUri = URI.create(sDest);
-        sDest = destUri.getPath();
-
-        Dest dest = new Dest(destUri.getHost(), sDest);
+        Dest dest = Utils.getDecodedDestination(request.getDestinationHeader());
         Resource rDest = manager.getResourceFactory().getResource(dest.host, dest.url);
         log.debug("process: copying from: " + r.getName() + " -> " + dest.url + "/" + dest.name);
 
         if (rDest == null) {
-            log.debug("process: destination parent does not exist: " + sDest);
-            responseHandler.respondConflict(resource, response, request, "Destination does not exist: " + sDest);
+            log.debug("process: destination parent does not exist: " + dest);
+            responseHandler.respondConflict(resource, response, request, "Destination does not exist: " + dest);
         } else if (!(rDest instanceof CollectionResource)) {
             log.debug("process: destination exists but is not a collection");
-            responseHandler.respondConflict(resource, response, request, "Destination exists but is not a collection: " + sDest);
+            responseHandler.respondConflict(resource, response, request, "Destination exists but is not a collection: " + dest);
         } else {
             log.debug("process: copy resource to: " + rDest.getName());
 
@@ -92,7 +88,7 @@ public class CopyHandler implements ExistingEntityHandler {
                                     wasDeleted = true;
                                 } else {
                                     log.warn("copy destination exists and is a collection so must be deleted, but does not implement: " + DeletableResource.class);
-                                    responseHandler.respondConflict(rExisting, response, request, sDest);
+                                    responseHandler.respondConflict(rExisting, response, request, dest.toString());
                                     return;
                                 }
                             }

@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import java.net.URI;
 
 public class MoveHandler implements ExistingEntityHandler {
 
@@ -55,22 +54,15 @@ public class MoveHandler implements ExistingEntityHandler {
 
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         MoveableResource r = (MoveableResource) resource;
-        String sDest = request.getDestinationHeader();
-        //sDest = HttpManager.decodeUrl(sDest);
-        log.debug( "dest header1: " + sDest );
-        URI destUri = URI.create( sDest );
-        sDest = destUri.getPath();
-        log.debug( "dest header2: " + sDest );
-        Dest dest = new Dest( destUri.getHost(), sDest );
-        log.debug( "looking for destination parent: " + dest.host + " - " + dest.url );
+        Dest dest = Utils.getDecodedDestination(request.getDestinationHeader());
         Resource rDest = manager.getResourceFactory().getResource( dest.host, dest.url );
         log.debug( "process: moving from: " + r.getName() + " -> " + dest.url + " with name: " + dest.name );
         if( rDest == null ) {
-            log.debug( "process: destination parent does not exist: " + sDest );
-            responseHandler.respondConflict( resource, response, request, "Destination parent does not exist: " + sDest );
+            log.debug( "process: destination parent does not exist: " + dest );
+            responseHandler.respondConflict( resource, response, request, "Destination parent does not exist: " + dest );
         } else if( !( rDest instanceof CollectionResource ) ) {
             log.debug( "process: destination exists but is not a collection" );
-            responseHandler.respondConflict( resource, response, request, "Destination exists but is not a collection: " + sDest );
+            responseHandler.respondConflict( resource, response, request, "Destination exists but is not a collection: " + dest );
         } else {
             boolean wasDeleted = false;
             CollectionResource colDest = (CollectionResource) rDest;
@@ -112,7 +104,7 @@ public class MoveHandler implements ExistingEntityHandler {
                 }
             } catch( ConflictException ex ) {
                 log.warn( "conflict", ex );
-                responseHandler.respondConflict( resource, response, request, sDest );
+                responseHandler.respondConflict( resource, response, request, dest.toString() );
             }
         }
         log.debug( "process: finished" );

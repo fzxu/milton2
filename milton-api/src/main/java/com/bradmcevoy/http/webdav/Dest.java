@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * The target url is parsed into the 3 components, host, parent url and name
  * to make it easier to differentiate between the name and folder of the destination
  */
-class Dest {
+public class Dest {
     
     private static final Logger log = LoggerFactory.getLogger(Dest.class);
     
@@ -57,4 +57,11 @@ class Dest {
         }
         name = sUrl.substring(pos+1);
     }
+
+	@Override
+	public String toString() {
+		return host + ":" + url + "/" + name;
+	}
+	
+	
 }

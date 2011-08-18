@@ -2,6 +2,7 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.Path;
 
+import com.bradmcevoy.http.webdav.Dest;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
@@ -347,4 +348,13 @@ public class Utils {
 			return parentHref + "/";
 		}
 	}
+	
+	
+	public static Dest getDecodedDestination(String destinationHeader ) { 
+        String sDest = destinationHeader;
+        URI destUri = URI.create(sDest);
+        sDest = destUri.getPath();
+		Dest dest = new Dest(destUri.getHost(), sDest);
+		return dest;
+	}	
 }

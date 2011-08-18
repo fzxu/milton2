@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.webdav.Dest;
 import junit.framework.TestCase;
 
 /**
@@ -100,5 +101,20 @@ public class UtilsTest extends TestCase {
         }
         System.out.println("");
     }
-    
+
+	public void testGetDecodedDestination_Simple() {
+		String testDest = "http://xyz.com/folder1/folder2/name";
+		Dest dest = Utils.getDecodedDestination(testDest);
+		assertEquals("xyz.com", dest.host);
+		assertEquals("/folder1/folder2", dest.url);
+		assertEquals("name", dest.name);
+	}
+	
+	public void testGetDecodedDestination_WithEncodedChars() {
+		String testDest = "http://xyz.com/folder1/folder2/na%20me";
+		Dest dest = Utils.getDecodedDestination(testDest);
+		assertEquals("xyz.com", dest.host);
+		assertEquals("/folder1/folder2", dest.url);
+		assertEquals("na me", dest.name);
+	}		
 }
