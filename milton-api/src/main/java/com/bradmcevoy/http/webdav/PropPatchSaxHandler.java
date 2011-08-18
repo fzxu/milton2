@@ -11,76 +11,84 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-
 public class PropPatchSaxHandler extends DefaultHandler {
 
-    private final static Logger log = LoggerFactory.getLogger( PropPatchSaxHandler.class );
+	private final static Logger log = LoggerFactory.getLogger(PropPatchSaxHandler.class);
+	private Stack<String> elementPath = new Stack<String>();
+	private Map<QName, String> attributesCurrent; // will switch between the following
+	private Map<QName, String> attributesSet = new LinkedHashMap<QName, String>();
+	private Map<QName, String> attributesRemove = new LinkedHashMap<QName, String>();
+	private StringBuilder sb = new StringBuilder();
+	private boolean inProp;
 
-    private Stack<String> elementPath = new Stack<String>();
+	@Override
+	public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
+		System.out.println("startElement: " + localName);
+		if (inProp) {
+			sb.append("<" + localName + ">");
+		}
+		if (elementPath.size() > 0) {
+			if (attributesCurrent != null) {
+				if (elementPath.peek().endsWith("prop")) {
+					inProp = true;
+				}
+			} else {
+				if (elementPath.peek().endsWith("set")) {
+					attributesCurrent = attributesSet;
+				}
+				if (elementPath.peek().endsWith("remove")) {
+					attributesCurrent = attributesRemove;
+				}
+			}
 
-    private Map<QName,String> attributesCurrent; // will switch between the following
-    private Map<QName, String> attributesSet = new LinkedHashMap<QName,String>();
-    private Map<QName, String> attributesRemove = new LinkedHashMap<QName,String>();
+		}
+		System.out.println("push: " + localName);
+		elementPath.push(localName);
+		super.startElement(uri, localName, name, attributes);
+	}
 
-    private StringBuilder sb = new StringBuilder();
+	@Override
+	public void characters(char[] ch, int start, int length) throws SAXException {
+		if (inProp) {
+			sb.append(ch, start, length);
+			System.out.println("inprop: " + sb);
+		}
+	}
 
-    private boolean inProp;
+	@Override
+	public void endElement(String uri, String localName, String name) throws SAXException {
+		System.out.println("end prop: " + localName);
+		elementPath.pop();
+		if (elementPath.size() > 0) {
+			if (elementPath.peek().endsWith("prop")) {
+				if (sb != null) {
+					String s = sb.toString().trim();
+					QName qname = new QName(uri, localName);
+					attributesCurrent.put(qname, s);
+				}
+				sb = new StringBuilder();
+			} else {
+				if (inProp) {
+					sb.append("</" + localName + ">");
+				}
 
-    @Override
-    public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
-        if(elementPath.size() > 0 ){
-            if( attributesCurrent != null ) {
-                if( elementPath.peek().endsWith("prop") ) inProp = true;
-            } else {
-                if( elementPath.peek().endsWith("set") ) {
-                    attributesCurrent = attributesSet;
-                }
-                if( elementPath.peek().endsWith("remove") ) {
-                    attributesCurrent = attributesRemove;
-                }
-            }
+				if (elementPath.peek().endsWith("set")) {
+					attributesCurrent = null;
+				} else if (elementPath.peek().endsWith("remove")) {
+					attributesCurrent = null;
+				}
+			}
 
-        }
-        elementPath.push(localName);
-        super.startElement(uri, localName, name, attributes);
-    }
+		}
 
-    @Override
-    public void characters(char[] ch, int start, int length) throws SAXException {
-        if(inProp){
-            sb.append(ch,start,length);
-        }
-    }
+		super.endElement(uri, localName, name);
+	}
 
-    @Override
-    public void endElement(String uri, String localName, String name) throws SAXException {
-        elementPath.pop();
-        if( elementPath.size()>0 ) {
-            if( elementPath.peek().endsWith("prop")){
-                if(sb!=null) {
-                    String s = sb.toString().trim();
-                    QName qname = new QName( uri, localName );
-                    log.debug( "push: " + localName);
-                    attributesCurrent.put(qname,s);
-                }
-                sb = new StringBuilder();
-            } else if( elementPath.peek().endsWith("set") ) {
-                attributesCurrent = null;
-            } else if( elementPath.peek().endsWith("remove") ) {
-                attributesCurrent = null;
-            }
-        }
+	public Map<QName, String> getAttributesToSet() {
+		return attributesSet;
+	}
 
-        super.endElement(uri, localName, name);
-    }
-
-    public Map<QName, String> getAttributesToSet() {
-        return attributesSet;
-    }
-
-    public Map<QName, String> getAttributesToRemove() {
-        return attributesRemove;
-    }
-
-
+	public Map<QName, String> getAttributesToRemove() {
+		return attributesRemove;
+	}
 }

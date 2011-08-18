@@ -1,6 +1,7 @@
 package com.bradmcevoy.http.values;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Holds a list of href values which will be written as a list of <href> elements
@@ -15,9 +16,7 @@ public class HrefList extends ArrayList<String> {
 
     public static HrefList asList(String... items) {
         HrefList l = new HrefList();
-        for (String s : items) {
-            l.add(s);
-        }
+		l.addAll(Arrays.asList(items));
         return l;
     }
 }

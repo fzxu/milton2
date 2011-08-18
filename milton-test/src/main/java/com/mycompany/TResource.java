@@ -1,6 +1,7 @@
 package com.mycompany;
 
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,7 +15,6 @@ import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockResult;
 import com.bradmcevoy.http.LockTimeout;
 import com.bradmcevoy.http.LockToken;
-import com.bradmcevoy.http.LockableResource;
 import com.bradmcevoy.http.MoveableResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.PropPatchableResource;
@@ -25,6 +25,9 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.http11.auth.DigestGenerator;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.bradmcevoy.http.webdav.PropPatchHandler.Fields;
+import java.text.DateFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class TResource implements GetableResource, PropFindableResource, DeletableResource, MoveableResource,
     CopyableResource, PropPatchableResource
@@ -46,8 +49,16 @@ public abstract class TResource implements GetableResource, PropFindableResource
     public TResource( TFolderResource parent, String name ) {
         this.parent = parent;
         this.name = name;
-        modDate = new Date();
-        createdDate = new Date();
+		try {
+			//modDate = new Date();
+			//createdDate = new Date();
+			createdDate = DateFormat.getDateInstance(DateFormat.SHORT).parse("1/1/2000");
+			modDate = DateFormat.getDateInstance(DateFormat.SHORT).parse("1/1/2005");
+		} catch (ParseException ex) {
+			Logger.getLogger(TResource.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		
+		
         if( parent != null ) {
             this.user = parent.user;
             this.password = parent.password;

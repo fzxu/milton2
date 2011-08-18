@@ -7,6 +7,7 @@
 
      <!-- Use the CustomFilter as an example of creating your own filter -->
      <!-- Alternatively, use MiltonServlet further below-->
+	 <!--
     <filter>
         <filter-name>CustomFilter</filter-name>
         <filter-class>com.mycompany.CustomFilter</filter-class>
@@ -16,6 +17,7 @@
         <filter-name>CustomFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+	-->
 
 <!--
     <filter>
@@ -28,6 +30,10 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 -->
+
+	<!-- NOTE: the servlet is currently not mapped to any urls, and the filter above is being used!! -->
+	<!-- Below is how most people use milton, but you should remove the filter definition above and enabled
+			the url mapping below to use it -->
     <servlet>
         <servlet-name>milton</servlet-name>
         <servlet-class>com.bradmcevoy.http.MiltonServlet</servlet-class>
@@ -60,12 +66,12 @@ will default to basic and digest authentication.
         </init-param>
 
     </servlet>
-<!--
+
     <servlet-mapping>
         <servlet-name>milton</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>    
--->
+
     <session-config>
         <session-timeout>
             30
