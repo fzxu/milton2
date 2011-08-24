@@ -84,7 +84,6 @@ public class PartialGetHelper {
 			OutputStream responseOut = response.getOutputStream();
 			FileInputStream fin = null;
 			try {
-				System.out.println("temp file length: " + temp.length());
 				fin = new FileInputStream(temp);
 				writeRanges(fin, ranges, responseOut);
 			} finally {
