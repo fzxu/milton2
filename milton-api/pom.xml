@@ -34,15 +34,15 @@
 
         <dependency>
             <scope>test</scope>
-            <groupId>easymock</groupId>
+            <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>2.4</version>
+            <version>3.0</version>
         </dependency>
         <dependency>
             <scope>test</scope>
-            <groupId>easymock</groupId>
+            <groupId>org.easymock</groupId>
             <artifactId>easymockclassextension</artifactId>
-            <version>2.4</version>
+            <version>3.0</version>
         </dependency>
         <dependency>
             <scope>test</scope>
