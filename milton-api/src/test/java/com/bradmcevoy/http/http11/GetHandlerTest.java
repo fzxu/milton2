@@ -3,7 +3,7 @@ package com.bradmcevoy.http.http11;
 import com.bradmcevoy.http.HandlerHelper;
 import junit.framework.TestCase;
 
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.*;
 
 /**
  *

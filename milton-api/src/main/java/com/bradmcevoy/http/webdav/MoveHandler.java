@@ -35,6 +35,7 @@ public class MoveHandler implements ExistingEntityHandler {
         this.deleteHelper = new DeleteHelperImpl( handlerHelper );
     }
 
+	@Override
     public String[] getMethods() {
         return new String[]{Method.MOVE.code};
     }
@@ -44,14 +45,17 @@ public class MoveHandler implements ExistingEntityHandler {
         return ( handler instanceof MoveableResource );
     }
 
+	@Override
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
         resourceHandlerHelper.processResource( manager, request, response, r, this );
     }
 
+	@Override
     public void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException {
         resourceHandlerHelper.process( httpManager, request, response, this );
     }
 
+	@Override
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         MoveableResource r = (MoveableResource) resource;
         Dest dest = Utils.getDecodedDestination(request.getDestinationHeader());

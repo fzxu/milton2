@@ -145,6 +145,7 @@ public class ServletResponse extends AbstractResponse {
 
     public Cookie setCookie( String name, String value ) {
         javax.servlet.http.Cookie c = new javax.servlet.http.Cookie( name, value );
+		c.setPath("/");
         r.addCookie( c );
         return new ServletCookie( c );
     }

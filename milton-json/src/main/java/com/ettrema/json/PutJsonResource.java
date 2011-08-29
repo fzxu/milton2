@@ -147,7 +147,6 @@ public class PutJsonResource extends JsonResource implements PostableResource {
         } else {
             arr = new NewFile[0];
         }
-        arr = newFiles.toArray(arr);
         Writer writer = new PrintWriter(out);
         JSON json = JSONSerializer.toJSON(arr, cfg);
         json.write(writer);
