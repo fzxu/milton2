@@ -30,13 +30,13 @@ public class DebugFilter implements Filter{
     private File logDir;
 
     public DebugFilter() {
-        logDir = new File(System.getProperty("user.home"));
-        log.debug( "logging to: " + logDir.getAbsolutePath());
+        logDir = new File(System.getProperty("java.io.tmpdir"));
+        log.info( "DebugFilter is logging requests to: " + logDir.getAbsolutePath());
     }
 
     public DebugFilter( File logDir ) {
         this.logDir = logDir;
-        log.debug( "logging to: " + logDir.getAbsolutePath());
+        log.info( "DebugFilter is logging requests to: " + logDir.getAbsolutePath());
     }
 
 
