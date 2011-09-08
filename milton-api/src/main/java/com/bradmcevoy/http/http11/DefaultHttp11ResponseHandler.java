@@ -210,7 +210,13 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
             cacheControlHelper.setCacheControl(gr, response, request.getAuthorization());
 
             Long contentLength = gr.getContentLength();
-            if (buffering == BUFFERING.always || (contentLength != null && buffering == BUFFERING.whenNeeded)) { // often won't know until rendered
+			boolean doBuffering;
+			if( buffering == null || buffering == BUFFERING.whenNeeded ) {
+				doBuffering = (contentLength == null); // if no content length then we buffer content to find content length
+			} else {
+				doBuffering = (buffering == BUFFERING.always); // if not null or whenNeeded then buffering is explicitly enabled or disabled
+			}
+            if (!doBuffering) { 
                 log.trace("sending content with known content length: " + contentLength);
                 response.setContentLengthHeader(contentLength);
                 sendContent(request, response, (GetableResource) resource, params, null, ct);
