@@ -67,16 +67,19 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         this.cacheControlHelper = cacheControlHelper;
     }
 
+	@Override
     public String generateEtag(Resource r) {
         return eTagGenerator.generateEtag(r);
     }
 
+	@Override
     public void respondWithOptions(Resource resource, Response response, Request request, List<String> methodsAllowed) {
         response.setStatus(Response.Status.SC_OK);
         response.setAllowHeader(methodsAllowed);
         response.setContentLengthHeader((long) 0);
     }
 
+	@Override
     public void respondNotFound(Response response, Request request) {
         response.setStatus(Response.Status.SC_NOT_FOUND);
         response.setContentTypeHeader("text/html");
@@ -88,6 +91,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
     }
 
+	@Override
     public void respondUnauthorised(Resource resource, Response response, Request request) {
         log.trace("respondUnauthorised");
         response.setStatus(Response.Status.SC_UNAUTHORIZED);
@@ -104,6 +108,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
     }
 
+	@Override
     public void respondMethodNotImplemented(Resource resource, Response response, Request request) {
 //        log.debug( "method not implemented. resource: " + resource.getClass().getName() + " - method " + request.getMethod() );
         try {
@@ -115,6 +120,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         }
     }
 
+	@Override
     public void respondMethodNotAllowed(Resource res, Response response, Request request) {
         log.debug("method not allowed. handler: " + this.getClass().getName() + " resource: " + res.getClass().getName());
         try {
@@ -132,6 +138,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
      * @param response
      * @param message - optional message to output in the body content
      */
+	@Override
     public void respondConflict(Resource resource, Response response, Request request, String message) {
         log.debug("respondConflict");
         try {
@@ -143,6 +150,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         }
     }
 
+	@Override
     public void respondRedirect(Response response, Request request, String redirectUrl) {
         if (redirectUrl == null) {
             throw new NullPointerException("redirectUrl cannot be null");
@@ -154,15 +162,18 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 //        response.setLocationHeader(redirectUrl);
     }
 
+	@Override
     public void respondExpectationFailed(Response response, Request request) {
         response.setStatus(Response.Status.SC_EXPECTATION_FAILED);
     }
 
+	@Override
     public void respondCreated(Resource resource, Response response, Request request) {
 //        log.debug( "respondCreated" );
         response.setStatus(Response.Status.SC_CREATED);
     }
 
+	@Override
     public void respondNoContent(Resource resource, Response response, Request request) {
 //        log.debug( "respondNoContent" );
         //response.setStatus(Response.Status.SC_OK);
@@ -170,6 +181,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         response.setStatus(Response.Status.SC_NO_CONTENT);
     }
 
+	@Override
     public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException, BadRequestException {
         log.debug("respondPartialContent: " + range.getStart() + " - " + range.getFinish());
         response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
@@ -191,10 +203,12 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         }
     }
 
+	@Override
     public void respondHead(Resource resource, Response response, Request request) {
         setRespondContentCommonHeaders(response, resource, Response.Status.SC_NO_CONTENT, request.getAuthorization());
     }
 
+	@Override
     public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException, BadRequestException {
         log.debug("respondContent: " + resource.getClass());
         Auth auth = request.getAuthorization();
@@ -233,7 +247,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
                 Long bufContentLength = tempOut.getSize();
                 if (contentLength != null) {
                     if (!contentLength.equals(bufContentLength)) {
-                        throw new RuntimeException("Lengthd dont match: " + contentLength + " != " + bufContentLength);
+                        throw new RuntimeException("Content Length specified by resource: " + contentLength + " is not equal to the size of content when generated: " + bufContentLength + " This error can be suppressed by setting the buffering property to whenNeeded or never");
                     }
                 }
                 log.trace("sending buffered content...");
@@ -256,6 +270,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         }
     }
 
+	@Override
     public void respondNotModified(GetableResource resource, Response response, Request request) {
         log.trace("respondNotModified");
         response.setStatus(Response.Status.SC_NOT_MODIFIED);
@@ -350,14 +365,17 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         }
     }
 
+	@Override
     public void respondBadRequest(Resource resource, Response response, Request request) {
         response.setStatus(Response.Status.SC_BAD_REQUEST);
     }
 
+	@Override
     public void respondForbidden(Resource resource, Response response, Request request) {
         response.setStatus(Response.Status.SC_FORBIDDEN);
     }
 
+	@Override
     public void respondDeleteFailed(Request request, Response response, Resource resource, Status status) {
         response.setStatus(status);
     }
@@ -366,6 +384,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         return authenticationService;
     }
 
+	@Override
     public void respondServerError(Request request, Response response, String reason) {
         try {
             response.setStatus(Status.SC_INTERNAL_SERVER_ERROR);
