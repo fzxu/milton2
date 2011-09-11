@@ -42,7 +42,8 @@ public class Auth {
         DIGEST,
         NEGOTIATE,
         FORM,
-        SESSION
+        SESSION,
+		NTLM
     };
     private Scheme scheme;
     private String user;
