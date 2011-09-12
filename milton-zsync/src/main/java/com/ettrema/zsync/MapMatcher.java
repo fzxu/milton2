@@ -1,7 +1,7 @@
 /* FileMaker.java
 
 FileMaker: File reading and making class
-Copyright (C) 2011 Tomáš Hlavnička <hlavntom@fel.cvut.cz>
+Copyright (C) 2011 TomÃ¡Å¡ HlavniÄ�ka <hlavntom@fel.cvut.cz>
 
 This file is a part of Jazsync.
 
@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author brad, original work by Tomáš Hlavnička
+ * @author brad, original work by TomÃ¡Å¡ HlavniÄ�ka
  */
 public class MapMatcher {
 	
@@ -217,8 +217,10 @@ public class MapMatcher {
                  * Nasledne po sobe muzeme tento zaznam z hash tabulky vymazat.
                  */
                 seq = link.getSequence();
-                mc.fileMap[seq] = mc.fileOffset;
-                mc.hashtable.delete(new ChecksumPair(weakSum, strongSum, blocksize * seq, blocksize, seq));
+                //mc.fileMap[seq] = mc.fileOffset;
+                mc.put(seq, mc.fileOffset);
+                //mc.hashtable.delete(new ChecksumPair(weakSum, strongSum, blocksize * seq, blocksize, seq));
+                mc.delete(new ChecksumPair(weakSum, strongSum, blocksize * seq, blocksize, seq));
                 return true;
             }
         }

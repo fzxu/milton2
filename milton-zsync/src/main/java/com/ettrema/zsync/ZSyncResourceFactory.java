@@ -27,9 +27,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.BufferedInputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * c) Upload the new byte ranges requested in a PUT request
  *		
  *
- * @author brad
+ *....
  */
 public class ZSyncResourceFactory implements ResourceFactory {
 
@@ -131,6 +134,9 @@ public class ZSyncResourceFactory implements ResourceFactory {
 
 		@Override
 		public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
+			if (1 + 2 == 3){
+				throw new RuntimeException(",bhjfjhf");
+			}
 			System.out.println("processForm: parameters: " + parameters + " files: " + files);
 
 			if (files.isEmpty()) {
@@ -204,8 +210,9 @@ public class ZSyncResourceFactory implements ResourceFactory {
 			metaFileMaker.write(metaData, out);
 		}
 
-		@Override
-		public void replaceContent(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
+		/*
+		//@Override
+		public void replaceContent2(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
 			log.trace("replaceContent: bytes: " + length);
 			try {
 				File metaFile = metaStore.getMetaData(r);
@@ -248,6 +255,7 @@ public class ZSyncResourceFactory implements ResourceFactory {
 			}
 
 		}
+		*/
 
 		@Override
 		public Long getMaxAgeSeconds(Auth auth) {
@@ -350,6 +358,58 @@ public class ZSyncResourceFactory implements ResourceFactory {
 				}
 			}
 
+
+		}
+
+		@Override
+		public void replaceContent(InputStream in, Long length)
+				throws BadRequestException, ConflictException,
+				NotAuthorizedException {
+	
+			log.trace("ZSync Replace Content: uploaded bytes " + length);
+			
+			try{
+				
+				File prevFile = File.createTempFile("milton-zsync", "prevFile");
+				FileOutputStream fout = new FileOutputStream(prevFile);
+				r.sendContent(fout, null, null, null);
+				StreamUtils.close(fout);
+				log.trace("Saved previous file to " + prevFile.getAbsolutePath());
+				
+				File uploadData = File.createTempFile("milton-zsync", "uploadData");
+				fout = new FileOutputStream(uploadData);
+				StreamUtils.readTo(in, fout);
+				StreamUtils.close(fout);
+				log.trace("Saved PUT data to " + uploadData.getAbsolutePath());
+				
+				File newFile = null;
+				BufferedInputStream uploadIn = null;
+				
+				try {
+					
+					uploadIn = new BufferedInputStream(new FileInputStream(uploadData));		
+					UploadReader um = new UploadReader(prevFile, uploadIn);
+					newFile = um.getUploadedFile();
+					log.trace("Assembled file and saved to " + newFile.getAbsolutePath());
+					
+					String actChecksum = new SHA1( newFile ).SHA1sum();
+					String expChecksum = um.getChecksum();
+					
+					if ( !actChecksum.equals( expChecksum )) {
+						throw new RuntimeException ( "Computed SHA1 checksum doesn't match expected checksum\n" +
+								"\tExpected: " + expChecksum + "\n" + "\tActual: " + actChecksum + "\n");
+					}
+					
+					
+				} finally {
+					StreamUtils.close(uploadIn);
+				}
+				
+				updateResourceContentActual(newFile);
+				
+			} catch (Exception ex){
+				throw new RuntimeException(ex);
+			}
 
 		}
 	}
