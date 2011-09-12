@@ -134,6 +134,7 @@ public class ZSyncResourceFactory implements ResourceFactory {
 
 		@Override
 		public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
+			// OK, I get the point, should probably be removed :)
 			if (1 + 2 == 3){
 				throw new RuntimeException(",bhjfjhf");
 			}
