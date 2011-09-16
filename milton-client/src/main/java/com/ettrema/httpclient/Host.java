@@ -6,6 +6,8 @@ import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
@@ -208,6 +210,16 @@ public class Host extends Folder {
 		return doPut(dest, content, contentLength, contentType);
 	}
 
+	public int doPut(String newUri, java.io.File file) throws FileNotFoundException {
+		InputStream in = null;
+		try {
+			in = new FileInputStream(file);
+			return doPut(newUri, in, file.length(), null);
+		} finally {
+			IOUtils.closeQuietly(in);
+		}
+	}
+	
 	public synchronized int doPut(String newUri, InputStream content, Long contentLength, String contentType) {
 		log.trace("put: " + newUri);
 		notifyStartRequest();

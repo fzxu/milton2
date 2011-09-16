@@ -44,7 +44,7 @@ public class IntegrationTests {
 	public void setUp() {
 		
 		//Change to the correct locations of local file and server file
-		filepath = "testfiles\\"; 
+		filepath = "testfiles" + File.separator; 
 		localcopy = new File( filepath + "localcopy.txt" );
 		servercopy = new File( filepath + "servercopy.txt" );
 		System.out.println("local file: " + localcopy.getAbsolutePath());
@@ -66,6 +66,7 @@ public class IntegrationTests {
 	
 		//Change to correct url of servercopy.txt
 		String url = host.getHref( Path.path( "servercopy.txt/.zsync" ) );
+		System.out.println("uploading to: " + url);
 		InputStream uploadIn = new FileInputStream( uploadFile );
 		
 		int result = host.doPut(url, uploadIn, uploadFile.length(), null );
@@ -113,7 +114,13 @@ public class IntegrationTests {
 		uploadIn.close();
 		
 		File assembledFile = new File( fileName );
-		FileUtils.moveFile( um.getUploadedFile() , assembledFile );
+		if( assembledFile.exists() ) {
+			if( !assembledFile.delete() ) {
+				throw new RuntimeException("Couldnt delete previous assembled file: " + assembledFile.getAbsolutePath());
+			}
+		}
+		File tempAssembled = um.assemble();
+		FileUtils.moveFile( tempAssembled, assembledFile );
 		
 		return assembledFile;
 		
@@ -135,6 +142,11 @@ public class IntegrationTests {
 		InputStream uploadIn = umx.getUploadStream();
 		
 		File uploadFile = new File( uploadFileName );
+		if( uploadFile.exists()) {
+			if( !uploadFile.delete()) {
+				throw new RuntimeException("Couldnt delete: " + uploadFile.getAbsolutePath());
+			}
+		}
 		FileOutputStream uploadOut = new FileOutputStream( uploadFile );
 		
 		IOUtils.copy( uploadIn, uploadOut );
@@ -159,8 +171,10 @@ public class IntegrationTests {
 		File zsfile = mkr.make( null , blocksize, servercopy );
 		File dest = new File ( filepath + fileName );
 		System.out.println("rename meta file to: " + dest.getAbsolutePath());
-		zsfile.renameTo( dest );
-		return zsfile;
+		if( !zsfile.renameTo( dest ) ) {
+			throw new RuntimeException("Failed to rename to: " + dest.getAbsolutePath());
+		}
+		return dest;
 	}
 	
 	

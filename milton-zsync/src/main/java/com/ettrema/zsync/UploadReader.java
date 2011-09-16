@@ -48,7 +48,6 @@ public class UploadReader {
 		this.serverCopy = serverFile;
 		this.uploadData = Upload.parse( uploadIn );
 		this.uploadedCopy = File.createTempFile( "zsync-upload", "newFile" );
-		this.init();
 	}
 
 	/**
@@ -56,7 +55,7 @@ public class UploadReader {
 	 * 
 	 * @throws IOException
 	 */
-	private void init() throws IOException{
+	public File assemble() throws IOException{
 		
 		if ( uploadData.getBlocksize() <= 0 ) {
 			throw new RuntimeException( "Invalid blocksize specified: " 
@@ -78,6 +77,7 @@ public class UploadReader {
 		moveBlocks( serverCopy, uploadData.getRelocList(), 
 				(int) uploadData.getBlocksize(), uploadedCopy);	
 
+		return uploadedCopy;
 	}
 	
 	/**
@@ -297,12 +297,5 @@ public class UploadReader {
 		
 		return uploadData.getSha1();
 	}
-	/**
-	 * Returns the File put together from the upload
-	 * 
-	 * @return The output File
-	 */
-	public File getUploadedFile() {
-		return uploadedCopy;
-	}
+
 }

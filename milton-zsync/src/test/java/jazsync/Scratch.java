@@ -1,7 +1,6 @@
 package jazsync;
 
 import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.Range;
 import com.bradmcevoy.io.StreamUtils;
 import com.ettrema.httpclient.Host;
 import com.ettrema.httpclient.HttpException;
@@ -16,12 +15,8 @@ import com.ettrema.zsync.HttpRangeLoader;
 import com.ettrema.zsync.LocalFileRangeLoader;
 import com.ettrema.zsync.SHA1;
 import com.ettrema.zsync.MetaFileMaker;
-import com.ettrema.zsync.RangeListParser;
-import java.io.ByteArrayInputStream;
+import com.ettrema.zsync.UploadMakerEx;
 import java.io.FileOutputStream;
-import java.util.List;
-import org.apache.commons.httpclient.methods.multipart.FilePart;
-import org.apache.commons.httpclient.methods.multipart.Part;
 import org.junit.Assert;
 
 import org.junit.Before;
@@ -72,7 +67,7 @@ public class Scratch {
 	 * actualy update the file, or might be a NOOP
 	 * 
 	 */
-	//@Test
+	@Test
 	public void test_LocalOnly() throws FileNotFoundException, Exception {
 		System.out.println("--------------------- test1 -----------------------");
 		System.out.println("source file: " + fIn.getAbsolutePath());
@@ -92,32 +87,6 @@ public class Scratch {
 		System.out.println("----------------------------------------------");
 	}
 
-	/**
-	 * This is to simulate usage in a CMS, where we don't have a physical file
-	 * to work with
-	 * 
-	 * @throws FileNotFoundException 
-	 */
-	//@Test
-	public void test2_NotWorking() throws FileNotFoundException, IOException {
-//		System.out.println("--------------------- test2 -----------------------");
-//		FileInputStream dataIn = new FileInputStream(fIn);
-//		MetaData metaData = metaFileMaker.make("/test", 32, fIn.length(), new Date(fIn.lastModified()), dataIn);
-//		dataIn.close();
-//
-//		System.out.println("metaData ----------------");
-//		System.out.println(metaData.getHeaders().toString());
-//
-//		LocalFileRangeLoader rangeLoader = new LocalFileRangeLoader(fIn);
-//		System.out.println("local: " + fLocal.getAbsolutePath());
-//		fileMaker.make(fLocal, metaData, rangeLoader); 
-////		
-////		System.out.println("----------------------------------------------");
-////		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());		
-//		System.out.println("----------------------------------------------");
-//		System.out.println("----------------------------------------------");
-
-	}
 
 	/**
 	 * For this test to work you must be running milton-ajax-demo (which has
@@ -129,7 +98,7 @@ public class Scratch {
 	 * @throws HttpException
 	 * @throws Exception 
 	 */
-	//@Test
+	@Test
 	public void test_Download_Update_OverHTTP() throws FileNotFoundException, IOException, HttpException, Exception {
 		// Get metadata from http server
 		System.out.println("--------------------- test3 -----------------------");
@@ -165,25 +134,23 @@ public class Scratch {
 		System.out.println();
 		System.out.println("--------------------- test4 -----------------------");
 		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
-		
-		File metaFile = metaFileMaker.make("/test", 32, fIn);
-		Part[] parts = {new FilePart("meta", metaFile)};
+		final File fRemoteMeta = File.createTempFile("milton-zsync-remotemeta", null);
 		String url = host.getHref(Path.path("/source.txt/.zsync"));
-		String ranges = host.doPost(url, null, parts);
-		System.out.println("ranges: " + ranges);
-		
-		RangeListParser listParser = new RangeListParser();
-		List<Range> list = listParser.parse(new ByteArrayInputStream(ranges.getBytes()));
-		
-		LocalFileRangeLoader fileRangeLoader = new LocalFileRangeLoader(fIn);
-		byte[] data = fileRangeLoader.get(list);
-		System.out.println("sending bytes: " + data.length);
-		InputStream in = new ByteArrayInputStream(data);
-		int result = host.doPut(url, in, (long)data.length, null); 
+		host.doGet(url, new StreamReceiver() {
+
+			@Override
+			public void receive(InputStream in) throws IOException {
+				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
+				StreamUtils.readTo(in, fout, true, true);
+			}
+		}, null);
+		System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
+	
+		UploadMakerEx umx = new UploadMakerEx( fIn, fRemoteMeta );
+		File uploadFile = umx.getUploadFile();
+		int result = host.doPut(url, uploadFile); 
 		Utils.processResultCode(result, url );
-		System.out.println("done!!");
-		
-		
+		System.out.println("done!!");		
 		
 	}
 }

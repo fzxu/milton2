@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.List;
 import com.ettrema.zsync.HeaderMaker.Headers;
 import com.ettrema.zsync.MetaFileMaker.MetaData;
+import java.io.FileNotFoundException;
 
 
 /**
@@ -129,6 +130,8 @@ public class MetaFileReader {
 				}
 			}
 			in.close();
+		} catch(FileNotFoundException e) {
+			throw new RuntimeException("File not found: " + metafile.getAbsolutePath(), e);
 		} catch (IOException e) {
 			throw new RuntimeException("IO problem in metafile header reading", e);
 		}

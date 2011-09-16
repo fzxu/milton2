@@ -45,6 +45,8 @@ import java.util.List;
 import com.ettrema.zsync.HeaderMaker.Headers;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Metafile making class
@@ -95,13 +97,21 @@ public class MetaFileMaker {
 		try {
 			fin = new FileInputStream(file);
 			metaData = make(url, blocksize, file.length(), new Date(file.lastModified()), fin);
+		} catch(FileNotFoundException e) {
+			throw new RuntimeException(file.getAbsolutePath(), e);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} finally {
 			StreamUtils.close(fin);
 		}
 
-		File outputFile = new File(file.getName() + ".zsynch");
+		//File outputFile = new File(file.getName() + ".zsynch");
+		File outputFile;
+		try {
+			outputFile = File.createTempFile(file.getName(), ".zsync");
+		} catch (IOException ex) {
+			throw new RuntimeException("Failed to create temp file. Please check permissions on the temporary files folder");
+		}
 		FileOutputStream fos = new FileOutputStream(outputFile);
 		try {
 			String header = headerMaker.toString(metaData.getHeaders());

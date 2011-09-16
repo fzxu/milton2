@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.ListIterator;
 
 import com.bradmcevoy.http.Range;
+import java.io.FileOutputStream;
+import org.apache.commons.io.IOUtils;
 
 /**
  * A slight variation of <code>UploadMaker</code> that accommodates updating of potentially
@@ -106,8 +108,7 @@ public class UploadMakerEx {
 	 * @return The List of Ranges that need to be uploaded 
 	 * @see UploadMaker#serversMissingRanges
 	 */
-	public static List<Range> serversMissingRangesEx(List<OffsetPair> reverseMap, 
-			long fileLength, int blockSize){
+	public static List<Range> serversMissingRangesEx(List<OffsetPair> reverseMap, long fileLength, int blockSize){
 		
 		List <Range> rangeList = new ArrayList<Range>(); 
 		Collections.sort(reverseMap, new OffsetPair.LocalSort()); 
@@ -142,8 +143,7 @@ public class UploadMakerEx {
 	 * @return The List of RelocateRanges that need to be sent to the server
 	 * @see {@link UploadMaker#serversRelocationRanges}
 	 */
-	public static List<RelocateRange> serversRelocationRangesEx(List<OffsetPair> reverseMap, 
-			int blockSize, long fileLength, boolean combineRanges){
+	public static List<RelocateRange> serversRelocationRangesEx(List<OffsetPair> reverseMap, int blockSize, long fileLength, boolean combineRanges){
 		
 		List<RelocateRange> ranges = new ArrayList<RelocateRange>();
 		Collections.sort(reverseMap, new OffsetPair.RemoteSort());
@@ -253,4 +253,25 @@ public class UploadMakerEx {
 		
 		return upload.getInputStream();
 	}
+	
+	
+	/**
+	 * Generates the upload content to a temp file.
+	 * 
+	 * @return
+	 * @throws IOException 
+	 */
+	public File getUploadFile() throws IOException {
+		
+		InputStream uploadIn = getUploadStream();
+		
+		File uploadFile = File.createTempFile("zsync-upload", localCopy.getName());
+		FileOutputStream uploadOut = new FileOutputStream( uploadFile );
+		
+		IOUtils.copy( uploadIn, uploadOut );
+		uploadIn.close();
+		uploadOut.close();
+		
+		return uploadFile;				
+	}	
 }

@@ -3,9 +3,7 @@ package com.ettrema.zsync;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.DigestResource;
-import com.bradmcevoy.http.FileItem;
 import com.bradmcevoy.http.GetableResource;
-import com.bradmcevoy.http.PostableResource;
 import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.ReplaceableResource;
@@ -52,15 +50,10 @@ import org.slf4j.LoggerFactory;
  * 
  * Client side process for updating a server file with a local file
  * a) assume the remote file is at path /somefile
- * b) Find the data ranges to update by POSTing local metadata (headers+checksums)
- *		POST /somefile/.zsync
- *		Version: zsync-1.0.0
- *		Blocksize: 256
- * 
- *      (eg response)
- *		1222-1756
- *		20000-20512
- * c) Upload the new byte ranges requested in a PUT request
+ * b) retrieve zsync metadata (ie headers and checksums)
+ *		GET /somefile/.zsync
+ * c) Calculate instructions and range data to send to server, based on the retrieved checksums
+ * d) send to server
  *		
  *
  *....
@@ -70,18 +63,13 @@ public class ZSyncResourceFactory implements ResourceFactory {
 	private static final Logger log = LoggerFactory.getLogger(ZSyncResourceFactory.class);
 	private String suffix = ".zsync";
 	private final ResourceFactory wrapped;
-	private MetaStore metaStore;
 	private MetaFileMaker metaFileMaker;
-	private FileMaker fileMaker;
 	private int defaultBlockSize = 512;
 	private int maxMemorySize = 100000;
 
 	public ZSyncResourceFactory(ResourceFactory wrapped) {
 		this.wrapped = wrapped;
-		File tempDir = new File(System.getProperty("java.io.tmpdir"));
-		this.metaStore = new FileMetaStore(tempDir);
 		metaFileMaker = new MetaFileMaker();
-		fileMaker = new FileMaker();
 	}
 
 	@Override
@@ -116,7 +104,7 @@ public class ZSyncResourceFactory implements ResourceFactory {
 		return wrapped;
 	}
 
-	public class ZSyncAdapterResource implements PostableResource, GetableResource, ReplaceableResource, DigestResource {
+	public class ZSyncAdapterResource implements GetableResource, ReplaceableResource, DigestResource {
 
 		private final GetableResource r;
 		private final String realPath;
@@ -132,40 +120,6 @@ public class ZSyncResourceFactory implements ResourceFactory {
 			this.host = host;
 		}
 
-		@Override
-		public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
-			// OK, I get the point, should probably be removed :)
-			if (1 + 2 == 3){
-				throw new RuntimeException(",bhjfjhf");
-			}
-			System.out.println("processForm: parameters: " + parameters + " files: " + files);
-
-			if (files.isEmpty()) {
-				log.warn("No meta file provided");
-				throw new BadRequestException(r);
-			} else {
-				try {
-					FileItem item = files.values().iterator().next();
-
-					File metaFile = metaStore.storeMetaData(r, item.getInputStream());
-
-					// copy content to a file
-					File tempData = File.createTempFile("milton-zsync", null);
-					FileOutputStream fDataOut = new FileOutputStream(tempData);
-					r.sendContent(fDataOut, null, null, null);
-					fDataOut.close();
-
-					// build the list of required ranges
-					ranges = fileMaker.findMissingRanges(tempData, metaFile);
-
-				} catch (IOException ex) {
-					throw new RuntimeException(ex);
-				} catch (Exception ex) {
-					throw new RuntimeException(ex);
-				}
-			}
-			return null;
-		}
 
 		@Override
 		public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
@@ -178,6 +132,54 @@ public class ZSyncResourceFactory implements ResourceFactory {
 			}
 
 		}
+		
+		@Override
+		public void replaceContent(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
+	
+			log.trace("ZSync Replace Content: uploaded bytes " + length);
+			
+			try{
+				
+				File prevFile = File.createTempFile("milton-zsync", "prevFile");
+				FileOutputStream fout = new FileOutputStream(prevFile);
+				r.sendContent(fout, null, null, null);
+				StreamUtils.close(fout);
+				log.trace("Saved previous file to " + prevFile.getAbsolutePath());
+				
+				File uploadData = File.createTempFile("milton-zsync", "uploadData");
+				fout = new FileOutputStream(uploadData);
+				StreamUtils.readTo(in, fout);
+				StreamUtils.close(fout);
+				log.trace("Saved PUT data to " + uploadData.getAbsolutePath());
+				
+				File newFile = null;
+				BufferedInputStream uploadIn = null;
+				
+				try {
+					
+					uploadIn = new BufferedInputStream(new FileInputStream(uploadData));		
+					UploadReader um = new UploadReader(prevFile, uploadIn);
+					newFile = um.assemble();
+					log.trace("Assembled file and saved to " + newFile.getAbsolutePath());
+					
+					String actChecksum = new SHA1( newFile ).SHA1sum();
+					String expChecksum = um.getChecksum();
+					
+					if ( !actChecksum.equals( expChecksum )) {
+						throw new RuntimeException ( "Computed SHA1 checksum doesn't match expected checksum\n" + "\tExpected: " + expChecksum + "\n" + "\tActual: " + actChecksum + "\n in temp file: " + newFile.getAbsolutePath() );
+					}
+					
+					
+				} finally {
+					StreamUtils.close(uploadIn);
+				}
+				
+				updateResourceContentActual(newFile);
+				
+			} catch (Exception ex){
+				throw new RuntimeException(ex);
+			}
+		}		
 
 		private void sendMetaData(Map<String, String> params, String contentType, OutputStream out) throws RuntimeException {
 			Long fileLength = r.getContentLength();
@@ -211,53 +213,43 @@ public class ZSyncResourceFactory implements ResourceFactory {
 			metaFileMaker.write(metaData, out);
 		}
 
-		/*
-		//@Override
-		public void replaceContent2(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
-			log.trace("replaceContent: bytes: " + length);
-			try {
-				File metaFile = metaStore.getMetaData(r);
-				if (metaFile == null) {
-					throw new BadRequestException(r, "No previous metadata was found for this version of this file");
-				}
-
-				// save new data to a temp file
-				File tempNewData = File.createTempFile("milton-zsync", "newdata");
-				FileOutputStream fout = new FileOutputStream(tempNewData);
-				StreamUtils.readTo(in, fout);
-				StreamUtils.close(fout);
-
-				log.trace("saved data from client to: " + tempNewData.getAbsolutePath());
-
-				// save current version to a temp file
-				File tempOldData = File.createTempFile("milton-zsync", "olddata");
-				fout = new FileOutputStream(tempOldData);
-				r.sendContent(fout, null, null, null);
-				StreamUtils.close(fout);
-				log.trace("saved current server file to: " + tempOldData.getAbsolutePath());
-
-				// merge old data, new data and the metadata
-				File mergedFile;
+		private void updateResourceContentActual(File mergedFile) throws FileNotFoundException, BadRequestException, ConflictException, NotAuthorizedException, IOException {
+			if (r instanceof ReplaceableResource) {
+				log.trace("updateResourceContentActual: " + mergedFile.getAbsolutePath() + ", resource is replaceable");
 				FileInputStream fin = null;
 				try {
-					fin = new FileInputStream(tempNewData);
-					RangeLoader rangeLoader = new PreChunkedRangeLoader(fin);
-					mergedFile = fileMaker.make(tempOldData, metaFile, rangeLoader);
-					log.trace("merged old and new data to: " + mergedFile.getAbsolutePath());
+					fin = new FileInputStream(mergedFile);
+					ReplaceableResource rr = (ReplaceableResource) r;
+					rr.replaceContent(fin, mergedFile.length());
 				} finally {
 					StreamUtils.close(fin);
 				}
-
-				// Now do the actual replace
-				updateResourceContentActual(mergedFile);
-
-			} catch (Exception ex) {
-				throw new RuntimeException(ex);
+			} else {
+				log.trace("updateResourceContentActual: " + mergedFile.getAbsolutePath() + ", resource is NOT replaceable, try to replace through parent");
+				String parentPath = Path.path(realPath).getParent().toString();
+				Resource rParent = wrapped.getResource(host, parentPath);
+				if (rParent == null) {
+					throw new RuntimeException("Failed to locate parent resource to update contents. parent: " + parentPath + " host: " + host);
+				}
+				if (rParent instanceof PutableResource) {
+					log.trace("found parent resource, implements PutableResource");
+					FileInputStream fin = null;
+					try {
+						fin = new FileInputStream(mergedFile);
+						PutableResource putable = (PutableResource) rParent;
+						putable.createNew(r.getName(), fin, mergedFile.length(), r.getContentType(null));
+					} finally {
+						StreamUtils.close(fin);
+					}
+				} else {
+					throw new RuntimeException("Tried to update non-replaceable resource by doing createNew on parent, but the parent doesnt implement PutableResource. parent path: " + parentPath + " host: " + host + " parent type: " + rParent.getClass());
+				}
 			}
 
-		}
-		*/
 
+		}
+
+		
 		@Override
 		public Long getMaxAgeSeconds(Auth auth) {
 			return null;
@@ -324,94 +316,6 @@ public class ZSyncResourceFactory implements ResourceFactory {
 				pw.println(range.getRange());
 			}
 			pw.flush();
-		}
-
-		private void updateResourceContentActual(File mergedFile) throws FileNotFoundException, BadRequestException, ConflictException, NotAuthorizedException, IOException {
-			if (r instanceof ReplaceableResource) {
-				log.trace("updateResourceContentActual: " + mergedFile.getAbsolutePath() + ", resource is replaceable");
-				FileInputStream fin = null;
-				try {
-					fin = new FileInputStream(mergedFile);
-					ReplaceableResource rr = (ReplaceableResource) r;
-					rr.replaceContent(fin, mergedFile.length());
-				} finally {
-					StreamUtils.close(fin);
-				}
-			} else {
-				log.trace("updateResourceContentActual: " + mergedFile.getAbsolutePath() + ", resource is NOT replaceable, try to replace through parent");
-				String parentPath = Path.path(realPath).getParent().toString();
-				Resource rParent = wrapped.getResource(host, parentPath);
-				if (rParent == null) {
-					throw new RuntimeException("Failed to locate parent resource to update contents. parent: " + parentPath + " host: " + host);
-				}
-				if (rParent instanceof PutableResource) {
-					log.trace("found parent resource, implements PutableResource");
-					FileInputStream fin = null;
-					try {
-						fin = new FileInputStream(mergedFile);
-						PutableResource putable = (PutableResource) rParent;
-						putable.createNew(r.getName(), fin, mergedFile.length(), r.getContentType(null));
-					} finally {
-						StreamUtils.close(fin);
-					}
-				} else {
-					throw new RuntimeException("Tried to update non-replaceable resource by doing createNew on parent, but the parent doesnt implement PutableResource. parent path: " + parentPath + " host: " + host + " parent type: " + rParent.getClass());
-				}
-			}
-
-
-		}
-
-		@Override
-		public void replaceContent(InputStream in, Long length)
-				throws BadRequestException, ConflictException,
-				NotAuthorizedException {
-	
-			log.trace("ZSync Replace Content: uploaded bytes " + length);
-			
-			try{
-				
-				File prevFile = File.createTempFile("milton-zsync", "prevFile");
-				FileOutputStream fout = new FileOutputStream(prevFile);
-				r.sendContent(fout, null, null, null);
-				StreamUtils.close(fout);
-				log.trace("Saved previous file to " + prevFile.getAbsolutePath());
-				
-				File uploadData = File.createTempFile("milton-zsync", "uploadData");
-				fout = new FileOutputStream(uploadData);
-				StreamUtils.readTo(in, fout);
-				StreamUtils.close(fout);
-				log.trace("Saved PUT data to " + uploadData.getAbsolutePath());
-				
-				File newFile = null;
-				BufferedInputStream uploadIn = null;
-				
-				try {
-					
-					uploadIn = new BufferedInputStream(new FileInputStream(uploadData));		
-					UploadReader um = new UploadReader(prevFile, uploadIn);
-					newFile = um.getUploadedFile();
-					log.trace("Assembled file and saved to " + newFile.getAbsolutePath());
-					
-					String actChecksum = new SHA1( newFile ).SHA1sum();
-					String expChecksum = um.getChecksum();
-					
-					if ( !actChecksum.equals( expChecksum )) {
-						throw new RuntimeException ( "Computed SHA1 checksum doesn't match expected checksum\n" +
-								"\tExpected: " + expChecksum + "\n" + "\tActual: " + actChecksum + "\n");
-					}
-					
-					
-				} finally {
-					StreamUtils.close(uploadIn);
-				}
-				
-				updateResourceContentActual(newFile);
-				
-			} catch (Exception ex){
-				throw new RuntimeException(ex);
-			}
-
-		}
+		}		
 	}
 }
