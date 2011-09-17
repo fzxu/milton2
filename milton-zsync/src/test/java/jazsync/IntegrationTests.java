@@ -170,6 +170,11 @@ public class IntegrationTests {
 		MetaFileMaker mkr = new MetaFileMaker();
 		File zsfile = mkr.make( null , blocksize, servercopy );
 		File dest = new File ( filepath + fileName );
+		if( dest.exists() ) {
+			if( !dest.delete()) {
+				throw new RuntimeException("Failed to delete previous meta file: " + dest.getAbsolutePath());
+			}
+		}
 		System.out.println("rename meta file to: " + dest.getAbsolutePath());
 		if( !zsfile.renameTo( dest ) ) {
 			throw new RuntimeException("Failed to rename to: " + dest.getAbsolutePath());

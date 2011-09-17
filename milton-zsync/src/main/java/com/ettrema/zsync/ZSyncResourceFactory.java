@@ -17,6 +17,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.bradmcevoy.io.BufferingOutputStream;
 import com.bradmcevoy.io.StreamUtils;
+import com.ettrema.common.LogUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -79,12 +80,13 @@ public class ZSyncResourceFactory implements ResourceFactory {
 			String realPath = p.getParent().toString();
 			Resource r = wrapped.getResource(host, realPath);
 			if (r == null) {
-				return null;
+				return new ZSyncAdapterResource(null, realPath, host); // will throw bad request
 			} else {
 				if (r instanceof GetableResource) {
+					LogUtils.trace(log, "Found existing compatible resource at", realPath);
 					return new ZSyncAdapterResource((GetableResource) r, realPath, host);
 				} else {
-					return null;
+					return new ZSyncAdapterResource(null, realPath, host); // will throw bad request
 				}
 			}
 		} else {
@@ -123,6 +125,9 @@ public class ZSyncResourceFactory implements ResourceFactory {
 
 		@Override
 		public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
+			if( r == null ) {
+				throw new BadRequestException(this,"No existing resource was found to map the zsync operation to");
+			}
 			if (ranges != null) {
 				log.info("sendContent: sending range data");
 				sendRangeData(out);
@@ -135,6 +140,9 @@ public class ZSyncResourceFactory implements ResourceFactory {
 		
 		@Override
 		public void replaceContent(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
+			if( r == null ) {
+				throw new BadRequestException(this,"No existing resource was found to map the zsync operation to");
+			}
 	
 			log.trace("ZSync Replace Content: uploaded bytes " + length);
 			
@@ -277,21 +285,33 @@ public class ZSyncResourceFactory implements ResourceFactory {
 
 		@Override
 		public Object authenticate(String user, String password) {
+			if( r == null ) {
+				return "ok"; // will fail with 400 anyway
+			}
 			return r.authenticate(user, password);
 		}
 
 		@Override
 		public boolean authorise(Request request, Method method, Auth auth) {
+			if( r == null ) {
+				return true; // will fail anyway
+			}
 			return r.authorise(request, method, auth);
 		}
 
 		@Override
 		public String getRealm() {
+			if( r == null ) {
+				return "Realm";
+			}
 			return r.getRealm();
 		}
 
 		@Override
 		public Date getModifiedDate() {
+			if( r == null ) {
+				return null;
+			}
 			return r.getModifiedDate();
 		}
 

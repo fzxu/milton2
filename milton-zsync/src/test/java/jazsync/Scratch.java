@@ -2,6 +2,7 @@ package jazsync;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.io.StreamUtils;
+import com.ettrema.httpclient.BadRequestException;
 import com.ettrema.httpclient.Host;
 import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.StreamReceiver;
@@ -87,7 +88,6 @@ public class Scratch {
 		System.out.println("----------------------------------------------");
 	}
 
-
 	/**
 	 * For this test to work you must be running milton-ajax-demo (which has
 	 * the ZSyncResourceFactory integrated) and you must have the file "source.txt"
@@ -105,28 +105,38 @@ public class Scratch {
 		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
 		final File fRemoteMeta = File.createTempFile("milton-zsync-remotemeta", null);
 		String url = host.getHref(Path.path("/source.txt/.zsync"));
-		host.doGet(url, new StreamReceiver() {
+		boolean notExisting = false;
+		try {
+			host.doGet(url, new StreamReceiver() {
 
-			@Override
-			public void receive(InputStream in) throws IOException {
-				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
-				StreamUtils.readTo(in, fout, true, true);
+				@Override
+				public void receive(InputStream in) throws IOException {
+					FileOutputStream fout = new FileOutputStream(fRemoteMeta);
+					StreamUtils.readTo(in, fout, true, true);
+				}
+			}, null);
+		} catch (HttpException e) {
+			if (e instanceof BadRequestException) {
+				notExisting = true;
 			}
-		}, null);
-		System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
-		// Now build local file
+		}
 		com.ettrema.httpclient.File remoteFile = (com.ettrema.httpclient.File) host.find("/source.txt");
-		Assert.assertNotNull(remoteFile);
-		HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
+		if (notExisting) {
+			throw new RuntimeException("Remote file doesnt exist");
+		} else {
+			System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
+			// Now build local file			
+			Assert.assertNotNull(remoteFile);
+			HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
 
-		System.out.println("local: " + fLocal.getAbsolutePath());
-		fileMaker.make(fLocal, fRemoteMeta, rangeLoader);
+			System.out.println("local: " + fLocal.getAbsolutePath());
+			fileMaker.make(fLocal, fRemoteMeta, rangeLoader);
 
-		System.out.println("----------------------------------------------");
-		System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());
-		System.out.println("----------------------------------------------");
-		System.out.println("----------------------------------------------");
-
+			System.out.println("----------------------------------------------");
+			System.out.println("Bytes downloaded: " + rangeLoader.getBytesDownloaded());
+			System.out.println("----------------------------------------------");
+			System.out.println("----------------------------------------------");
+		}
 	}
 
 	@Test
@@ -135,22 +145,36 @@ public class Scratch {
 		System.out.println("--------------------- test4 -----------------------");
 		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
 		final File fRemoteMeta = File.createTempFile("milton-zsync-remotemeta", null);
-		String url = host.getHref(Path.path("/source.txt/.zsync"));
-		host.doGet(url, new StreamReceiver() {
+		String baseUrl = host.getHref(Path.path("/source.txt"));
+		String url = baseUrl + "/.zsync";
+		boolean notExisting = false;
+		try {
+			host.doGet(url, new StreamReceiver() {
 
-			@Override
-			public void receive(InputStream in) throws IOException {
-				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
-				StreamUtils.readTo(in, fout, true, true);
+				@Override
+				public void receive(InputStream in) throws IOException {
+					FileOutputStream fout = new FileOutputStream(fRemoteMeta);
+					StreamUtils.readTo(in, fout, true, true);
+				}
+			}, null);
+		} catch (HttpException e) {
+			if (e instanceof BadRequestException) {
+				notExisting = true;
 			}
-		}, null);
-		System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
-	
-		UploadMakerEx umx = new UploadMakerEx( fIn, fRemoteMeta );
-		File uploadFile = umx.getUploadFile();
-		int result = host.doPut(url, uploadFile); 
-		Utils.processResultCode(result, url );
-		System.out.println("done!!");		
-		
+		}
+		if (notExisting) {
+			System.out.println("remote file does not exist, so will upload completely");
+			int result = host.doPut(baseUrl, fIn);
+			Utils.processResultCode(result, url);
+			System.out.println("done full upload!!  result: " + result);			
+		} else {
+			System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
+
+			UploadMakerEx umx = new UploadMakerEx(fIn, fRemoteMeta);
+			File uploadFile = umx.getUploadFile();
+			int result = host.doPut(url, uploadFile);
+			Utils.processResultCode(result, url);
+			System.out.println("done!!  result: " + result);
+		}
 	}
 }
