@@ -68,7 +68,7 @@ public class Scratch {
 	 * actualy update the file, or might be a NOOP
 	 * 
 	 */
-	@Test
+//	@Test
 	public void test_LocalOnly() throws FileNotFoundException, Exception {
 		System.out.println("--------------------- test1 -----------------------");
 		System.out.println("source file: " + fIn.getAbsolutePath());
@@ -98,7 +98,7 @@ public class Scratch {
 	 * @throws HttpException
 	 * @throws Exception 
 	 */
-	@Test
+//	@Test
 	public void test_Download_Update_OverHTTP() throws FileNotFoundException, IOException, HttpException, Exception {
 		// Get metadata from http server
 		System.out.println("--------------------- test3 -----------------------");
@@ -139,8 +139,8 @@ public class Scratch {
 		}
 	}
 
-	@Test
-	public void test_Upload_OverHTTP() throws FileNotFoundException, HttpException, IOException {
+//	@Test
+	public void test_Upload_OverHTTP_TextDoc() throws FileNotFoundException, HttpException, IOException {
 		System.out.println();
 		System.out.println("--------------------- test4 -----------------------");
 		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
@@ -177,4 +177,46 @@ public class Scratch {
 			System.out.println("done!!  result: " + result);
 		}
 	}
+	
+	
+	@Test
+	public void test_Upload_OverHTTP_WordDoc() throws FileNotFoundException, HttpException, IOException {
+		System.out.println();
+		System.out.println("--------------------- test4 -----------------------");
+		fIn = new File("testfiles/word-local-copy.doc");
+		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
+		final File fRemoteMeta = File.createTempFile("milton-zsync-remotemeta-wordDoc", null);
+		String baseUrl = host.getHref(Path.path("/word-server-copy.doc"));
+		String url = baseUrl + "/.zsync";
+		boolean notExisting = false;
+		try {
+			host.doGet(url, new StreamReceiver() {
+
+				@Override
+				public void receive(InputStream in) throws IOException {
+					FileOutputStream fout = new FileOutputStream(fRemoteMeta);
+					StreamUtils.readTo(in, fout, true, true);
+				}
+			}, null);
+		} catch (HttpException e) {
+			if (e instanceof BadRequestException) {
+				notExisting = true;
+			}
+		}
+		if (notExisting) {
+			System.out.println("remote file does not exist, so will upload completely");
+			int result = host.doPut(baseUrl, fIn);
+			Utils.processResultCode(result, url);
+			System.out.println("done full upload!!  result: " + result);			
+		} else {
+			System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
+
+			UploadMakerEx umx = new UploadMakerEx(fIn, fRemoteMeta);
+			File uploadFile = umx.getUploadFile();
+			System.out.println("Uploading: " + uploadFile.getAbsolutePath());
+			int result = host.doPut(url, uploadFile);
+			Utils.processResultCode(result, url);
+			System.out.println("done!!  result: " + result);
+		}
+	}	
 }

@@ -161,11 +161,12 @@ public class ZSyncResourceFactory implements ResourceFactory {
 				log.trace("Saved PUT data to " + uploadData.getAbsolutePath());
 				
 				File newFile = null;
+				InputStream fin = null;
 				BufferedInputStream uploadIn = null;
 				
 				try {
-					
-					uploadIn = new BufferedInputStream(new FileInputStream(uploadData));		
+					fin = new FileInputStream(uploadData);
+					uploadIn = new BufferedInputStream(fin);		
 					UploadReader um = new UploadReader(prevFile, uploadIn);
 					newFile = um.assemble();
 					log.trace("Assembled file and saved to " + newFile.getAbsolutePath());
@@ -180,6 +181,7 @@ public class ZSyncResourceFactory implements ResourceFactory {
 					
 				} finally {
 					StreamUtils.close(uploadIn);
+					StreamUtils.close(fin);
 				}
 				
 				updateResourceContentActual(newFile);

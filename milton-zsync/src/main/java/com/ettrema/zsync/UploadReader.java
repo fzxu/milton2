@@ -13,6 +13,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.http11.PartialGetHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * An object that performs the server side operations needed to assemble the file from a ZSync PUT. <p/>
  * 
@@ -31,80 +33,8 @@ import com.bradmcevoy.http.http11.PartialGetHelper;
  */
 public class UploadReader {
 
-	private File serverCopy;
-	private File uploadedCopy;
-	private Upload uploadData;
+	private static final Logger log = LoggerFactory.getLogger(UploadReader.class);
 	
-	/**
-	 * Constructor that parses the InputStream into an Upload and automatically assembles the
-	 * uploaded data, which it saves to a temporary file
-	 * 
-	 * @param destFile The server file to be updated
-	 * @param in A stream containing the ZSync PUT data
-	 * @throws IOException 
-	 */
-	public UploadReader(File serverFile, InputStream uploadIn) throws IOException{
-
-		this.serverCopy = serverFile;
-		this.uploadData = Upload.parse( uploadIn );
-		this.uploadedCopy = File.createTempFile( "zsync-upload", "newFile" );
-	}
-
-	/**
-	 * Invokes the methods to put together the uploaded file.
-	 * 
-	 * @throws IOException
-	 */
-	public File assemble() throws IOException{
-		
-		if ( uploadData.getBlocksize() <= 0 ) {
-			throw new RuntimeException( "Invalid blocksize specified: " 
-					+ uploadData.getBlocksize() );
-		}
-		
-		if ( uploadData.getFilelength() <= 0 ) {
-			throw new RuntimeException( "Invalid file length specified: " 
-					+ uploadData.getFilelength() );
-		}
-		
-		if ( StringUtils.isBlank( uploadData.getSha1() )) {
-			throw new RuntimeException( "No SHA1 checksum provided." );
-		}
-		copyFile( serverCopy, uploadedCopy, uploadData.getFilelength() );
-		
-		sendRanges( uploadData.getDataList(), uploadedCopy);
-		
-		moveBlocks( serverCopy, uploadData.getRelocList(), 
-				(int) uploadData.getBlocksize(), uploadedCopy);	
-
-		return uploadedCopy;
-	}
-	
-	/**
-	 * Copies the contents of the source file to the destination file and sets the destination
-	 * file's length.
-	 * 
-	 * @param inFile The source file	
-	 * @param outFile The destination file
-	 * @param length The desired length of the destination file
-	 * @throws IOException
-	 */
-	private static void copyFile ( File inFile, File outFile, long length ) throws IOException{
-	
-		InputStream fIn = new FileInputStream( inFile );
-		OutputStream fOut = new FileOutputStream ( outFile );
-		
-		PartialGetHelper.sendBytes( fIn, fOut, inFile.length() );
-		
-		fIn.close();
-		fOut.close();
-	
-		RandomAccessFile randAccess = new RandomAccessFile( outFile, "rw" );
-		randAccess.setLength( length );
-		randAccess.close();
-		
-	}
-
 	
 	/**
 	 * Copies blocks of data from the in array to the out array. 
@@ -151,18 +81,23 @@ public class UploadReader {
 		/*The FileChannels should be obtained from a RandomAccessFile rather than a 
 		 *Stream, or the position() method will not work correctly
 		 */
-		FileChannel rc = new RandomAccessFile(inFile, "r").getChannel();
-		FileChannel wc = new RandomAccessFile(outFile, "rw").getChannel();
-
-		
-		for (RelocateRange reloc: relocRanges){
-
+		FileChannel rc = null;
+		FileChannel wc = null;
+		try {
+			rc = new RandomAccessFile(inFile, "r").getChannel();
+			wc = new RandomAccessFile(outFile, "rw").getChannel();
 			
-			moveRange(rc, reloc, blocksize, wc);
+			
+			for (RelocateRange reloc : relocRanges) {
+				
+				
+				moveRange(rc, reloc, blocksize, wc);
+			}
+		} finally {
+			Util.close(rc);
+			Util.close(wc);
 		}
-		
-		rc.close();
-		wc.close();
+
 	}
 	
 	/**
@@ -239,16 +174,20 @@ public class UploadReader {
 		int BUFFER_SIZE = 16384;
 		byte[] buffer = new byte[BUFFER_SIZE];
 		
-		RandomAccessFile randAccess = new RandomAccessFile( outFile, "rw" );
-		for ( DataRange dataRange : dataRanges ){
-			
-			Range range = dataRange.getRange();
-			InputStream data = dataRange.getInputStream();
-			sendBytes( data, range, buffer, randAccess );
-			data.close();
+		RandomAccessFile randAccess = null;
+		try {
+			randAccess = new RandomAccessFile( outFile, "rw" );
+			for (DataRange dataRange : dataRanges) {
+				
+				Range range = dataRange.getRange();
+				InputStream data = dataRange.getInputStream();
+				sendBytes(data, range, buffer, randAccess);
+				data.close();
+			}
+		} finally {
+			Util.close(randAccess);
 		}
 		
-		randAccess.close();
 	
 	}
 	
@@ -287,6 +226,81 @@ public class UploadReader {
 		}
 	
 	}
+
+
+	private File serverCopy;
+	private File uploadedCopy;
+	private Upload uploadData;
+	
+	/**
+	 * Constructor that parses the InputStream into an Upload and automatically assembles the
+	 * uploaded data, which it saves to a temporary file
+	 * 
+	 * @param destFile The server file to be updated
+	 * @param in A stream containing the ZSync PUT data
+	 * @throws IOException 
+	 */
+	public UploadReader(File serverFile, InputStream uploadIn) throws IOException{
+
+		this.serverCopy = serverFile;
+		this.uploadData = Upload.parse( uploadIn );
+		this.uploadedCopy = File.createTempFile( "zsync-upload", "newFile" );
+	}
+
+	/**
+	 * Invokes the methods to put together the uploaded file.
+	 * 
+	 * @throws IOException
+	 */
+	public File assemble() throws IOException{
+		
+		if ( uploadData.getBlocksize() <= 0 ) {
+			throw new RuntimeException( "Invalid blocksize specified: " + uploadData.getBlocksize() );
+		}
+		
+		if ( uploadData.getFilelength() <= 0 ) {
+			throw new RuntimeException( "Invalid file length specified: " + uploadData.getFilelength() );
+		}
+		
+		if ( StringUtils.isBlank( uploadData.getSha1() )) {
+			throw new RuntimeException( "No SHA1 checksum provided." );
+		}
+		copyFile( serverCopy, uploadedCopy, uploadData.getFilelength() );
+		
+		sendRanges( uploadData.getDataList(), uploadedCopy);
+		
+		moveBlocks( serverCopy, uploadData.getRelocList(), 
+				(int) uploadData.getBlocksize(), uploadedCopy);	
+
+		return uploadedCopy;
+	}
+	
+	/**
+	 * Copies the contents of the source file to the destination file and sets the destination
+	 * file's length.
+	 * 
+	 * @param inFile The source file	
+	 * @param outFile The destination file
+	 * @param length The desired length of the destination file
+	 * @throws IOException
+	 */
+	private static void copyFile ( File inFile, File outFile, long length ) throws IOException{
+	
+		InputStream fIn = new FileInputStream( inFile );
+		OutputStream fOut = new FileOutputStream ( outFile );
+		
+		PartialGetHelper.sendBytes( fIn, fOut, inFile.length() );
+		
+		fIn.close();
+		fOut.close();
+	
+		RandomAccessFile randAccess = new RandomAccessFile( outFile, "rw" );
+		randAccess.setLength( length );
+		randAccess.close();
+		
+	}
+
+
 
 	/**
 	 * Returns the expected SHA1 checksum String received in the upload
