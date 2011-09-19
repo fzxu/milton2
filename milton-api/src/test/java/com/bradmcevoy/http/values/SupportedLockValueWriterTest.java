@@ -3,6 +3,7 @@ package com.bradmcevoy.http.values;
 import com.bradmcevoy.http.LockInfo;
 import com.bradmcevoy.http.LockTimeout;
 import com.bradmcevoy.http.LockToken;
+import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.webdav.WebDavProtocol.SupportedLocks;
 import java.io.ByteArrayOutputStream;
@@ -29,7 +30,8 @@ public class SupportedLockValueWriterTest extends TestCase {
 
 
 	public void testWriteValue() {
-		SupportedLocks locks = new SupportedLocks();
+		PropFindableResource res = null;
+		SupportedLocks locks = new SupportedLocks(res);
 		
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();

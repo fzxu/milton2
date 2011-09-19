@@ -7,6 +7,7 @@ import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import com.bradmcevoy.http.quota.DefaultStorageChecker;
 import com.bradmcevoy.http.quota.StorageChecker;
 import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
+import com.ettrema.common.LogUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -44,8 +45,9 @@ public class HandlerHelper {
 	 * have sent a CONTINUE status and processing should stop until the request body is sent
 	 */
 	public boolean checkExpects(Http11ResponseHandler responseHandler, Request request, Response response) {
-		if (enableExpectContinue) {
+		if (enableExpectContinue) {			
 			String s = request.getExpectHeader();
+			LogUtils.trace(log, "checkExpects", s);
 			if (s != null && s.length() > 0) {
 				response.setStatus(Response.Status.SC_CONTINUE);
 				return false;

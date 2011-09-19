@@ -184,6 +184,15 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
      * See SupportedLockValueWriter
      */
     public static class SupportedLocks {
+		private final PropFindableResource res;
+
+		public SupportedLocks(PropFindableResource res) {
+			this.res = res;
+		}
+
+		public PropFindableResource getResource() {
+			return res;
+		}				
     }
 
     public Object getProperty( QName name, Resource r ) {
@@ -409,7 +418,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
         public SupportedLocks getValue( PropFindableResource res ) {
             if( res instanceof LockableResource ) {
-                return new SupportedLocks();
+                return new SupportedLocks(res);
             } else {
                 return null;
             }
