@@ -47,14 +47,17 @@ public abstract class JsonResource implements DigestResource {
         return null;
     }
 
+	@Override
     public String getUniqueId() {
         return null;
     }
 
+	@Override
     public String getName() {
         return name;
     }
 
+	@Override
     public Object authenticate( String user, String password ) {
         if( log.isDebugEnabled()) {
             log.debug( "authenticate: " + user);
@@ -68,6 +71,7 @@ public abstract class JsonResource implements DigestResource {
         return o;
     }
 
+	@Override
     public Object authenticate( DigestResponse digestRequest ) {
         if( wrappedResource instanceof DigestResource) {
             return ((DigestResource)wrappedResource).authenticate( digestRequest );
@@ -76,6 +80,7 @@ public abstract class JsonResource implements DigestResource {
         }
     }
 
+	@Override
     public boolean isDigestAllowed() {
         return wrappedResource instanceof DigestResource;
     }
@@ -84,6 +89,7 @@ public abstract class JsonResource implements DigestResource {
 
 
 
+	@Override
     public boolean authorise( Request request, Method method, Auth auth ) {
         boolean b = wrappedResource.authorise( request, applicableMethod(), auth );
         if( log.isDebugEnabled()) {
@@ -96,14 +102,17 @@ public abstract class JsonResource implements DigestResource {
         return b;
     }
 
+	@Override
     public String getRealm() {
         return wrappedResource.getRealm();
     }
 
+	@Override
     public Date getModifiedDate() {
         return null;
     }
 
+	@Override
     public String checkRedirect( Request request ) {
         return null;
     }

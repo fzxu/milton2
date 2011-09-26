@@ -69,6 +69,7 @@ public class PutJsonResource extends JsonResource implements PostableResource {
         //return "application/json";
     }
 
+	@Override
     public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws ConflictException, NotAuthorizedException, BadRequestException {
         if (files.isEmpty()) {
             log.debug("no files uploaded");
@@ -136,6 +137,7 @@ public class PutJsonResource extends JsonResource implements PostableResource {
      * @throws IOException
      * @throws NotAuthorizedException
      */
+	@Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException {
         JsonConfig cfg = new JsonConfig();
         cfg.setIgnoreTransientFields(true);
@@ -144,6 +146,7 @@ public class PutJsonResource extends JsonResource implements PostableResource {
         NewFile[] arr;
         if (newFiles != null) {
             arr = new NewFile[newFiles.size()];
+			newFiles.toArray(arr);
         } else {
             arr = new NewFile[0];
         }

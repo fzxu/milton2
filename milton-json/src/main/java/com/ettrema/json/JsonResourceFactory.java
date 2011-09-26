@@ -54,6 +54,7 @@ public class JsonResourceFactory implements ResourceFactory {
 		this.propPatchHandler = new JsonPropPatchHandler(patchSetter, permissionService, eventManager);
 	}
 
+	@Override
 	public Resource getResource(String host, String sPath) {
 		LogUtils.trace(log, "getResource", host, sPath);
 		Path path = Path.path(sPath);
@@ -133,7 +134,7 @@ public class JsonResourceFactory implements ResourceFactory {
 				return new MoveJsonResource(host, (MoveableResource) wrappedResource, wrapped);
 			}
 		}
-		return null;
+		return wrappedResource;
 	}
 
 	public JsonPropFindHandler getPropFindHandler() {
