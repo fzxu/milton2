@@ -61,7 +61,7 @@ public class IntegrationTests {
 	 * 
 	 * @throws IOException
 	 */
-	@Test
+	//@Test
 	public void testFullUpload() throws IOException {
 		
 		Host host = new Host("localhost", "webdav", 8080, "user1", "pwd1", null, null);
@@ -99,7 +99,7 @@ public class IntegrationTests {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	@Test
+	//@Test
 	public void testMakeAndReadUpload() throws IOException, ParseException{
 		
 		File zsyncFile = createMetaFile("serverfile.zsync", blocksize, servercopy );
@@ -124,7 +124,7 @@ public class IntegrationTests {
 			throw new RuntimeException("Couldnt find: " + localSmallText.getAbsolutePath());
 		}
 		
-		File zsyncFile = createMetaFile("small-text.zsync", 16, serverSmallText ); // use blocksize of 10 bytes
+		File zsyncFile = createMetaFile("small-text.zsync", 8, serverSmallText ); // use blocksize of 10 bytes
 		File uploadFile = makeAndSaveUpload( localSmallText, zsyncFile, filepath + "small-text-local.UPLOADZS" );
 		System.out.println("Created upload file: " + uploadFile.getAbsolutePath());
 		File assembledFile = readSavedUpload( uploadFile, filepath + "small-text-assembled.txt", serverSmallText );

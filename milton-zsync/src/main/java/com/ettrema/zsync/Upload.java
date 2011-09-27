@@ -401,6 +401,7 @@ public class Upload {
 	 * Sets the blocksize used in the upload. The server needs this to translate block ranges into byte ranges
 	 */
 	public void setBlocksize(long blocksize) {
+		System.out.println("Upload: setBlockSize: " + blocksize);
 		this.blocksize = blocksize;
 	}
 
