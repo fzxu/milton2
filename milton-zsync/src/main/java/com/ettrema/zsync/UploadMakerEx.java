@@ -70,8 +70,7 @@ public class UploadMakerEx {
 	private void initMetaData(){
 		
 		this.metaFileReader = new MetaFileReader( serversMetafile );
-		this.uploadContext = new MakeContextEx( metaFileReader.getHashtable(),  
-				metaFileReader.getBlockCount(), metaFileReader.getBlocksize() );
+		this.uploadContext = new MakeContextEx( metaFileReader.getHashtable(), metaFileReader.getBlockCount(), metaFileReader.getBlocksize() );
 	}
 	
 	/**
@@ -93,10 +92,8 @@ public class UploadMakerEx {
 			return;
 		}*/
 		
-		InputStream dataRanges = serversMissingRangesEx( uploadContext.getReverseMap(),
-				localCopy, metaFileReader.getBlocksize() );
-		InputStream relocRanges = serversRelocationRangesEx( uploadContext.getReverseMap(), 
-				metaFileReader.getBlocksize(), localCopy.length(), true );
+		InputStream dataRanges = serversMissingRangesEx( uploadContext.getReverseMap(), localCopy, metaFileReader.getBlocksize() );
+		InputStream relocRanges = serversRelocationRangesEx( uploadContext.getReverseMap(),  metaFileReader.getBlocksize(), localCopy.length(), true );
 		
 		upload.setRelocStream( relocRanges );
 		upload.setDataStream( dataRanges );
@@ -164,8 +161,7 @@ public class UploadMakerEx {
 		RelocWriter relocRanges = new RelocWriter( 16384 );
 		Collections.sort(reverseMap, new OffsetPair.RemoteSort());
 		
-		for (ListIterator<OffsetPair> iter = reverseMap.listIterator()
-				; iter.hasNext(); ){
+		for (ListIterator<OffsetPair> iter = reverseMap.listIterator(); iter.hasNext(); ){
 			
 			OffsetPair pair = iter.next();
 			long localOffset = pair.localOffset;
@@ -191,6 +187,7 @@ public class UploadMakerEx {
 				}
 				
 				RelocateRange relocRange = new RelocateRange(blockRange, localOffset);
+				//System.out.println("new relocate range: " + relocRange);
 				relocRanges.add( relocRange );
 			}
 		}

@@ -19,7 +19,6 @@ import com.bradmcevoy.common.Path;
 import com.ettrema.httpclient.Host;
 import com.ettrema.zsync.MetaFileMaker;
 import com.ettrema.zsync.SHA1;
-import com.ettrema.zsync.UploadMaker;
 import com.ettrema.zsync.UploadMakerEx;
 import com.ettrema.zsync.UploadReader;
 
@@ -49,7 +48,9 @@ public class IntegrationTests {
 		localcopy = new File( filepath + "word-local-copy.doc" );
 		servercopy = new File( filepath + "word-server-copy.doc" );
 		
-		blocksize = 1024;
+		//blocksize = 1024;
+		blocksize = 64;
+		//blocksize = 1024 * 8;
 		
 		System.out.println("local file: " + localcopy.getAbsolutePath());
 		System.out.println("server file: " + servercopy.getAbsolutePath());
@@ -64,7 +65,7 @@ public class IntegrationTests {
 	public void testFullUpload() throws IOException {
 		
 		Host host = new Host("localhost", "webdav", 8080, "user1", "pwd1", null, null);
-		File zsyncFile = createMetaFile( "servercopy.zsync", blocksize );
+		File zsyncFile = createMetaFile( "servercopy.zsync", blocksize, servercopy );
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy2.UPLOADZS" );
 	
 		//Change to correct url of servercopy.txt
@@ -75,10 +76,21 @@ public class IntegrationTests {
 		int result = host.doPut(url, uploadIn, uploadFile.length(), null );
 		System.out.println( "Response: " + result );
 		uploadIn.close();
-		
+		System.out.println("Upload file: " + uploadFile.getAbsolutePath());
+		System.out.println("Upload size: " + formatBytes(uploadFile.length()));
 		Assert.assertEquals( 204, result );
 		
 	}
+	
+	private String formatBytes(long l) {
+		if( l < 1000 ) {
+			return l + " bytes";
+		} else if( l < 1000000) {
+			return l/1000 + "KB";
+		} else {
+			return l/1000000 + "MB";
+		}
+	}	
 	
 	/**
 	 * Writes/reads the upload stream to/from a File, and asserts whether the assembled File
@@ -90,15 +102,40 @@ public class IntegrationTests {
 	@Test
 	public void testMakeAndReadUpload() throws IOException, ParseException{
 		
-		File zsyncFile = createMetaFile("serverfile.zsync", blocksize );
+		File zsyncFile = createMetaFile("serverfile.zsync", blocksize, servercopy );
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy.UPLOADZS" );
-		File assembledFile = readSavedUpload( uploadFile, filepath + "assembledcopy.pdf" );
+		File assembledFile = readSavedUpload( uploadFile, filepath + "assembledcopy.pdf", servercopy );
 		
 		String localSha1 =  new SHA1( localcopy ).SHA1sum();
 		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
 		
 		Assert.assertEquals( localSha1, assembledSha1 );
 	}
+	
+	@Test
+	public void testMakeAndReadSmallTextUpload() throws IOException, ParseException{
+		System.out.println("------------------- testMakeAndReadSmallTextUpload -------------------------");
+		File serverSmallText = new File("testfiles/small-text-server.txt");
+		File localSmallText = new File("testfiles/small-text-local.txt");
+		if( !serverSmallText.exists()) {
+			throw new RuntimeException("Couldnt find: " + serverSmallText.getAbsolutePath());
+		}
+		if( !localSmallText.exists()) {
+			throw new RuntimeException("Couldnt find: " + localSmallText.getAbsolutePath());
+		}
+		
+		File zsyncFile = createMetaFile("small-text.zsync", 16, serverSmallText ); // use blocksize of 10 bytes
+		File uploadFile = makeAndSaveUpload( localSmallText, zsyncFile, filepath + "small-text-local.UPLOADZS" );
+		System.out.println("Created upload file: " + uploadFile.getAbsolutePath());
+		File assembledFile = readSavedUpload( uploadFile, filepath + "small-text-assembled.txt", serverSmallText );
+		System.out.println("Assesmbling to: " + assembledFile.getAbsolutePath());
+		
+		String localSha1 =  new SHA1( localSmallText ).SHA1sum();
+		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
+		
+		Assert.assertEquals( localSha1, assembledSha1 );
+		System.out.println("---------------------- End testMakeAndReadSmallTextUpload ------------------------");
+	}	
 	
 	/**
 	 * Reads the ZSync upload data that was saved to uploadFile, constructs an UploadReader
@@ -110,10 +147,10 @@ public class IntegrationTests {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	private File readSavedUpload( File uploadFile, String fileName ) throws IOException, ParseException {
+	private File readSavedUpload( File uploadFile, String fileName, File serverFile ) throws IOException, ParseException {
 		
 		InputStream uploadIn = new FileInputStream( uploadFile );
-		UploadReader um = new UploadReader( servercopy, uploadIn );
+		UploadReader um = new UploadReader( serverFile, uploadIn );
 		
 		File assembledFile = new File( fileName );
 		if( assembledFile.exists() ) {
@@ -142,7 +179,7 @@ public class IntegrationTests {
 	 */
 	private File makeAndSaveUpload(File localFile, File zsFile, String uploadFileName) throws IOException {
 		
-		UploadMakerEx umx = new UploadMakerEx( localcopy, zsFile );
+		UploadMakerEx umx = new UploadMakerEx( localFile, zsFile );
 		InputStream uploadIn = umx.makeUpload();
 		
 		File uploadFile = new File( uploadFileName );
@@ -170,10 +207,10 @@ public class IntegrationTests {
 	 * @return The created zsync File
 	 * @throws FileNotFoundException
 	 */
-	private File createMetaFile(String fileName, int blocksize) throws FileNotFoundException{
-		
+	private File createMetaFile(String fileName, int blocksize, File serverFile) throws FileNotFoundException{
+		System.out.println("createMetaFile: " + serverFile.getAbsolutePath());
 		MetaFileMaker mkr = new MetaFileMaker();
-		File zsfile = mkr.make( null , blocksize, servercopy );
+		File zsfile = mkr.make( null , blocksize, serverFile );
 		File dest = new File ( filepath + fileName );
 		if( dest.exists() ) {
 			if( !dest.delete()) {
@@ -184,6 +221,7 @@ public class IntegrationTests {
 		if( !zsfile.renameTo( dest ) ) {
 			throw new RuntimeException("Failed to rename to: " + dest.getAbsolutePath());
 		}
+		System.out.println("Created meta file of size: " + formatBytes(dest.length()));
 		return dest;
 	}
 	

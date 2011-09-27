@@ -49,8 +49,7 @@ public final class RelocateRange {
 	 */
 	@Override
 	public String toString(){
-		return "Relocate blocks " + blockRange.getRange() 
-			+ " to " + newOffset;
+		return "Relocate blocks " + blockRange.getRange() + " to " + newOffset;
 	}
 	
 	/**

@@ -209,6 +209,7 @@ public class MapMatcher {
 
     /**
      * Looks into hash table and check if got a hit
+	 * 
      * @param weakSum Weak rolling checksum
      * @param strongSum Strong MD4 checksum
      * @return True if we got a hit
@@ -226,11 +227,8 @@ public class MapMatcher {
             ChecksumPair link = mc.hashtable.findMatch(p);
             int seq;
             if (link != null) {
-                /** V pripade, ze nalezneme shodu si zapiseme do file mapy offset
-                 * bloku, kde muzeme dana data ziskat.
-                 * Nasledne po sobe muzeme tento zaznam z hash tabulky vymazat.
-                 */
                 seq = link.getSequence();
+				System.out.println("Matched block, block index: " + seq + " fileoffset: " + mc.fileOffset + " block size: " + blocksize);
                 //mc.fileMap[seq] = mc.fileOffset;
                 mc.put(seq, mc.fileOffset);
                 //mc.hashtable.delete(new ChecksumPair(weakSum, strongSum, blocksize * seq, blocksize, seq));
