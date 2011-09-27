@@ -1,8 +1,11 @@
 package com.ettrema.zsync;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.BufferOverflowException;
@@ -18,21 +21,23 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.bradmcevoy.http.Range;
+import com.bradmcevoy.io.BufferingOutputStream;
+import com.bradmcevoy.io.StreamUtils;
 
 /**
  * A container for the information transmitted in a ZSync PUT upload. The information currently consists of some
- * headers (file length, block size, etc...), a list of RelocateRanges for relocating matching blocks, 
- * and a sequence of data chunks (along with their ranges). The Upload class also contains methods for 
+ * headers (file length, block size, etc...), an InputStream containing a list of RelocateRanges for relocating matching blocks, 
+ * and an InputStream containing a sequence of data chunks (along with their ranges). The Upload class also contains methods for 
  * translating to/from a stream (getInputStream and parse, respectively).
  * 
- * @author Administrator
+ * @author Nick
  *
  */
 public class Upload {
 
 	/**
 	 * The character encoding used to convert Strings to bytes. The default is US-ASCII.
-	 * 
+	 * The methods involved in parsing assume one byte per character.
 	 */
 	public final static String CHARSET = "US-ASCII";
 	/**
@@ -65,13 +70,13 @@ public class Upload {
 	private String sha1;
 	private long blocksize;
 	private long filelength;
-	
-	private List<RelocateRange> relocList;
-	private List<DataRange> dataList;
 
+	private InputStream relocStream;
+	private InputStream dataStream;
 	
 	/**
-	 * Returns the list of headers in String format, in the proper format for upload.
+	 * Returns the list of headers in String format, in the proper format for upload. The
+	 * list is terminated by the LF character.
 	 *
 	 * @return A String containing the headers
 	 */
@@ -87,32 +92,9 @@ public class Upload {
 		return sbr.toString();
 	}
 	
-	private static String paramString( String key, Object value ){
+	public static String paramString( String key, Object value ){
 		
 		return key + ": " + value + LF;
-	}
-	
-	/**
-	 * Returns the list of RelocateRanges as a KEY:VALUE String, where the VALUE is a 
-	 * comma separated List, e.g.<p/>
-	 * 
-	 * "Relocate: 10-20/1234, 50-100/6789"
-	 * 
-	 * @return A String containing the RELOCATE key: value pair
-	 */
-	public String getRelocates(){
-		
-		StringBuilder relocString = new StringBuilder();
-		for ( Iterator<RelocateRange> iter = relocList.iterator(); iter.hasNext();){
-			
-			relocString.append( iter.next().getRelocation() );
-			
-			if (iter.hasNext()){
-				relocString.append(", ");
-			}
-		}
-		
-		return paramString( RELOCATE, relocString );
 	}
 	
 	/**
@@ -120,19 +102,18 @@ public class Upload {
 	 */
 	public Upload(){
 		
-		this.relocList = new ArrayList<RelocateRange>();
-		this.dataList = new ArrayList<DataRange>();
-
+		//this.relocList = new ArrayList<RelocateRange>();
+		//this.dataList = new ArrayList<DataRange>();
 	}
 
 	/**
 	 * Parses the InputStream into an Upload object.<p/>
 	 * 
-	 * The method initially reads from the InputStream one line at a time, invoking parseParam
-	 * on each line, until it reaches a "blank" line, ie a line that is null or contains only whitespace.
-	 * It then switches over to parsing data ranges, which means reading a line, parsing the "Range" key value pair, 
-	 * and then reading the exact number of bytes specified in the range. This continues until another "blank"
-	 * line is reached, which marks the end of the upload.
+	 * The method initially parses the headers from the InputStream by reading the sequence of keys (the String preceding the first colon in each line) 
+	 * and values ( the String following the colon and terminated by the LF character ) and invoking {@link #parseParam} on each key value pair. 
+	 * If the key is RELOCATE, then the value is not read, but is copied into a BufferingOutputStream and stored in the relocStream field. Parsing of headers
+	 * continues until a "blank" line is reached, ie a line that is null or contains only whitespace, which indicates the beginning of the data section.
+	 * A reference to the remaining InputStream is then stored in the dataStream field.<p/>
 	 * 
 	 * @param in The InputStream containing the ZSync upload
 	 * @return A filled in Upload object
@@ -141,35 +122,52 @@ public class Upload {
 	
 		Upload um = new Upload();
 		int bytesRead = 0; //Enables a ParseException to specify the offset
-		
+
 		try{
-			//Maximum number of bytes allowed in a line (Needs to accommodate long RelocateRange Lists).
-			int MAX_SEARCH = 2000000; 
-			//Byte value of the LF character. Assumes that LF is one byte.
-			int NEWLINE = new String( Character.toString( LF ) ).getBytes( CHARSET )[0];
-			
-			String line;
-			while ( !StringUtils.isBlank( line = readLine( in, NEWLINE, MAX_SEARCH ) ) ) {
+			//Maximum number of bytes to search for delimiters
+			int MAX_SEARCH = 1024; 
+
+			String key;
+			//Parse headers until a null/all-whitespace line is encountered
+			while ( !StringUtils.isBlank( ( key = readKey( in, MAX_SEARCH ) ) ) ) {
 				
-				um.parseParam( line );
-				bytesRead += line.length();
-			}
-
-			while ( !StringUtils.isBlank( line = readLine( in, NEWLINE, MAX_SEARCH ) ) ) {
-
-				KeyValue kv = KeyValue.parseKV( line );
-				if ( !kv.KEY.equals( RANGE ) ) {
+				/*
+				 * Add one to bytesRead since the delimiter was read but omitted from the String. 
+				 * The final value of bytesRead may end up off by one if the end of input is reached, since no 
+				 * delimiter is read in that case.
+				 */
+				bytesRead += key.length() + 1;
+				key = key.trim();
+				
+				if ( key.equalsIgnoreCase( RELOCATE ) ) {
+					/*
+					 * Copies the Relocate values to a BufferingOutputStream
+					 */
+					BufferingOutputStream relocOut = new BufferingOutputStream( 16384 );
+					bytesRead += copyLine( in, 1024*1024*64, relocOut );
+					relocOut.close();
 					
-					throw new ParseException( "Could not find 'Range' value in \""
-							+ line +"\". ", 0 );
-				} 
-				
-				DataRange dataRange = new DataRange( Range.parse( kv.VALUE ), in );
-				um.dataList.add( dataRange );
-				bytesRead += line.length() + dataRange.getLength();
-				in.skip(1); //Skips the LF at the end of the data chunk. Assumes LF is one byte.
+					um.setRelocStream( relocOut.getInputStream() );
+					
+				} else {
+					/*
+					 * Key is not "Relocate", so parse header
+					 */
+					String value = readValue( in, MAX_SEARCH );
+					bytesRead += value.length() + 1;
+					value = value.trim();
+					
+					um.parseParam( key, value );
+				}
 			}
 			
+			/*
+			 * A blank line has been read, indicating the end of the headers, so the unread
+			 * portion of the InputStream is the byte range section. 
+			 */
+			
+			um.setDataStream( in );
+
 		} catch ( IOException e ) {
 			throw new RuntimeException( "Couldn't parse upload, IOException.", e );
 			
@@ -177,28 +175,143 @@ public class Upload {
 			
 			//Set the offset of the ParseException to bytesRead
 			ParseException ex = new ParseException( e.getMessage(), bytesRead );
-			throw new RuntimeException( "Couldn't parse upload, ParseException at byte " 
-					+ bytesRead + "\n" + ex.getMessage(), ex );
+			throw new RuntimeException(  ex );
 		} 
 
 		return um;
 	}
-
-	/**
-	 * Parses a String header by invoking KeyValue.parseKV() on the input String. It sets the appropriate field in upload
-	 * if the KEY is recognized and ignores KEYs that are not recognized.
-	 * 
-	 * @param s The String to be parsed into a 
-	 * @throws ParseException if the input String can't be split into a (key, value), or if the value of a recognized
-	 * key cannot be properly parsed
-	 */
-	private void parseParam(String s) throws ParseException{
-		
-		KeyValue kv = KeyValue.parseKV(s);
-		
-		String key = kv.KEY;
-		String value = kv.VALUE;
 	
+	/**
+	 * Returns the next String terminated by one of the specified delimiters or the end of the InputStream.<p/>
+	 * 
+	 * This method simply reads from an InputStream one byte at a time, up to maxsearch bytes, until it reads a byte equal to one of the delimiters
+	 * or reaches the end of the stream. It uses the CHARSET encoding to translate the bytes read into a String, which it returns with delimiter excluded, 
+	 * or it throws a ParseException if maxSearch bytes are read without reaching a delimiter or the end of the stream.<p/>
+	 * 
+	 * A non-buffering method is used because a buffering reader would likely pull in part of the binary data
+	 * from the InputStream. An alternative is to use a BufferedReader with a given buffer size and use
+	 * mark and reset to get back binary data pulled into the buffer.
+	 * 
+	 * @param in The InputStream to read from
+	 * @param delimiters A list of byte values, each of which indicates the end of a token
+	 * @param maxsearch The maximum number of bytes to search for a delimiter
+	 * @return The String containing the CHARSET decoded String with delimiter excluded
+	 * @throws IOException
+	 * @throws ParseException If a delimiter byte is not found within maxsearch reads
+	 */
+	public static String readToken( InputStream in, byte[] delimiters, int maxsearch ) throws ParseException, IOException {
+		
+		if ( maxsearch <= 0 ) {
+			throw new RuntimeException( "readToken: Invalid maxsearch " + maxsearch );
+		}
+		
+		ByteBuffer bytes = ByteBuffer.allocate( maxsearch );
+		byte nextByte;
+		
+		try {
+			
+			read:
+			while ( ( nextByte = (byte) in.read() ) > -1 ) {
+				
+				for ( byte delimiter : delimiters ) {		
+					if ( nextByte == delimiter ) {
+						break read;
+					} 
+				}
+				bytes.put( nextByte );
+			}
+		
+			bytes.flip();
+			return Charset.forName( CHARSET ).decode( bytes ).toString();
+			
+		} catch ( BufferOverflowException ex ) {
+			
+			throw new ParseException( "Could not find delimiter within " +  
+					maxsearch + " bytes.", 0 );
+		}
+	}
+	
+	/**
+	 * Helper method that reads the String preceding the first colon or newline in the InputStream.
+	 * 
+	 * @param in The InputStream to read from
+	 * @param maxsearch The maximum number of bytes allowed in the key
+	 * @return The CHARSET encoded String that was read
+	 * @throws ParseException If a colon, newline, or end of input is not reached within maxsearch reads
+	 * @throws IOException
+	 */
+	private static String readKey ( InputStream in, int maxsearch ) throws ParseException, IOException {
+		
+		byte NEWLINE = Character.toString( LF ).getBytes( CHARSET )[0];
+		byte COLON = ":".getBytes( CHARSET )[0];
+		byte[] delimiters = { NEWLINE, COLON };
+		
+		return readToken( in, delimiters, maxsearch );
+	}
+	
+	/**
+	 * Helper method that reads the String preceding the first newline in the InputStream.
+	 * 
+	 * @param in The InputStream to read from
+	 * @param maxsearch The maximum number of bytes allowed in the value
+	 * @return The CHARSET encoded String that was read
+	 * @throws ParseException If a newline or end of input is not reached within maxsearch reads
+	 * @throws IOException
+	 */
+	public static String readValue ( InputStream in, int maxsearch ) throws ParseException, IOException {
+		
+		byte NEWLINE = Character.toString( LF ).getBytes( CHARSET )[0];
+		byte[] delimiters = { NEWLINE };
+		
+		return readToken( in, delimiters, maxsearch );
+	}
+	
+	/**
+	 * A helper method that reads from an InputStream and copies to an OutputStream until the LF character is read (The LF is not
+	 * copied to the OutputStream). An exception is thrown if maxsearch bytes are read without encountering LF. This is used by {@link #parse} 
+	 * to copy the relocate values into a BufferingOutputStream. 
+	 * 
+	 * @param in The InputStream to read from
+	 * @param maxsearch The maximum number of bytes to search for a newline
+	 * @param out The OutputStream to copy into
+	 * @return The number of bytes read from in
+	 * @throws IOException
+	 * @throws ParseException If a newline is not found within maxsearch reads
+	 */
+	private static int copyLine( InputStream in, int maxsearch, OutputStream out ) throws IOException, ParseException {
+		
+		if ( maxsearch <= 0 ) {
+			throw new RuntimeException( "copyLine: Invalid maxsearch " + maxsearch );
+		}
+		
+		byte nextByte, bytesRead = 0;
+		byte NEWLINE = Character.toString( LF ).getBytes( CHARSET )[0];
+		
+		while ( (nextByte = (byte) in.read()) > -1 ) {
+			
+			if ( ++bytesRead > maxsearch ) {
+				throw new ParseException( "Could not find delimiter within " +  
+						maxsearch + " bytes.", 0 );
+			}
+			if ( nextByte == NEWLINE ) {
+				break;
+			}
+			out.write( nextByte );
+		}
+		
+		return bytesRead;
+	}
+	
+	/**
+	 * Parses a String header by setting the appropriate field in upload if the key is recognized 
+	 * and ignoring keys that are not recognized.
+	 * 
+	 * @param key The key String with leading/trailing whitespace omitted
+	 * @param value The value String with leading/trailing whitespace omitted
+	 * @throws ParseException if the value of a recognized key cannot be properly parsed
+	 */
+	private void parseParam( String key, String value  ) throws ParseException {
+		
 		if (StringUtils.isBlank( key ) || StringUtils.isBlank( value )) {
 			
 			return;
@@ -212,140 +325,39 @@ public class Upload {
 				this.setBlocksize(Long.parseLong(value));
 			} else if (key.equalsIgnoreCase(SHA_1)){
 				this.setSha1( value );
-			} else if (key.equalsIgnoreCase(RELOCATE)){
-				this.relocList = parseRelocs( value );
-			}
+			} 
 		} catch (NumberFormatException ex) {
 			
-			throw new ParseException( "Cannot parse " + s + " into a long.", -1 );
+			throw new ParseException( "Cannot parse " + value + " into a long.", -1 );
 		}
-
-		
 	}
 	
 	/**
-	 * Reads a line of text from an InputStream without buffering. <p/>
-	 * 
-	 * This method simply reads the bytes from in one at a time, up to maxSearch, until it either reads
-	 * a byte equaling newLine or reaches the end of the stream. It uses the CHARSET encoding to translate 
-	 * the bytes read into a String, which it returns with newLine included, or it throws a ParseException
-	 * if maxSearch bytes are read without reaching a newLine.<p/>
-	 * 
-	 * A non-buffering method is used because a buffering reader would likely pull in part of the binary data
-	 * from the InputStream. An alternative is to use a BufferedReader with a given buffer size and use
-	 * mark and reset to get back binary data pulled into the buffer.
-	 * 
-	 * @param in The InputStream to read from
-	 * @param newLine The byte value of the character marking the end of a line
-	 * @param maxSearch The maximum number of bytes allowed in a line
-	 * @return The String containing the CHARSET decoded String with newLine included
-	 * @throws IOException
-	 * @throws ParseException If a newLine byte is not found within maxSearch reads
-	 */
-	public static String readLine( InputStream in, int newLine, int maxSearch ) throws IOException, ParseException {
-
-		CharBuffer paramChars = null;
-		ByteBuffer paramBytes = ByteBuffer.allocate( maxSearch );
-		
-		int nextByte;
-		while ( ( nextByte = in.read() ) > -1 ){
-			
-			try {
-				
-				paramBytes.put( (byte) nextByte );
-				if ( nextByte == newLine ) {
-					
-					break;
-				}
-			
-			} catch (BufferOverflowException ex){
-				
-				throw new ParseException( "Could not find newline within " +  
-						maxSearch + " bytes.", 0 );
-			}
-		}
-
-		paramBytes.flip();
-		paramChars =  Charset.forName( CHARSET ).decode( paramBytes );
-		return paramChars.toString();
-
-	}
-	
-	/**
-	 * Parses a comma separated list of the form "A-B/C, L-M/N,..." into a List of RelocateRanges
-	 * 
-	 * @param relocString A String of comma separated RelocateRanges
-	 * @return The parsed List of RelocateRange objects
-	 * @throws ParseException If any of the listed items cannot be parsed into a RelocateRange
-	 */
-	private static List<RelocateRange> parseRelocs( String relocString ) throws ParseException{
-		
-		if (StringUtils.isBlank( relocString )) {
-			
-			return new ArrayList<RelocateRange>();
-		}
-		String[] rArray = relocString.split(",");
-		
-		List<RelocateRange> rList = new ArrayList<RelocateRange>();
-		for ( String reloc : rArray ){
-			
-			rList.add(  RelocateRange.parse( reloc )  );
-		}
-		
-		return rList;
-	}
-	/**
-	 * Returns an InputStream containing the properly formatted data portion of the ZSync upload.
-	 * This data portion consists of a sequence of chunks of binary data, each preceded by a Range: start-finish
-	 * key value String indicating the target location of the chunk. The chunk of data contains exactly 
-	 * finish - start bytes.
-	 * 
-	 * Note: This method should only be invoked once per Upload object, since the data may be flushed after
-	 * the returned stream is closed.
-	 * 
-	 * @return A stream containing the data portion of the upload
-	 * @throws UnsupportedEncodingException
-	 * @throws IOException
-	 */
-	
-	public InputStream getDataRanges() throws UnsupportedEncodingException, IOException{
-		
-		List<InputStream> streamList = new ArrayList<InputStream>();
-		
-		InputStream rangeStream;
-		InputStream dataStream;
-		
-		for ( DataRange dataRange: dataList ){
-			
-			String rangeString = dataRange.getRange().getRange();
-			String rangeKV = LF + paramString( RANGE, rangeString );
-			rangeStream = new ByteArrayInputStream( rangeKV.getBytes( CHARSET ) );
-			dataStream = dataRange.getInputStream();
-			streamList.add( new SequenceInputStream( rangeStream, dataStream ) );
-		}
-		
-		return new SequenceInputStream( new IteratorEnum<InputStream>( streamList ) );
-		
-	}
-	
-	/**
-	 * Returns an InputStream containing a complete ZSync upload (Params, RelocateRanges, and DataRanges), 
+	 * Returns an InputStream containing a complete ZSync upload (Params, Relocate stream, and ByteRange stream), 
 	 * ready to be sent as the body of a PUT request. <p/>
 	 * 
-	 * Note: In this implementation, any temporary files used to store the DataRanges will be automatically deleted when this stream
+	 * Note: In this implementation, any temporary file used to store the RelocateRanges will be automatically deleted when this stream
 	 * is closed, so a second invocation of this method on the same Upload object is likely to throw an exception.
 	 * Therefore, this method should be used only once per Upload object.
 	 * 
-	 * @return
+	 * @return The complete ZSync upload
 	 * @throws UnsupportedEncodingException
 	 * @throws IOException
 	 */
 	public InputStream getInputStream() throws UnsupportedEncodingException, IOException{
 
 		List<InputStream> streamList = new ArrayList<InputStream>();
+		
+		/*
+		 * The getParams and getRelocStream must be terminated by a single LF character.
+		 */
 		streamList.add( IOUtils.toInputStream( getParams() , CHARSET ) );
-		streamList.add( IOUtils.toInputStream( getRelocates() , CHARSET ));
-		streamList.add( getDataRanges() );
+		streamList.add( IOUtils.toInputStream( RELOCATE + ": ", CHARSET ) );
+		streamList.add( getRelocStream() ); 
+		/* Prepend the data portion with a blank line. */
+		streamList.add( IOUtils.toInputStream( Character.toString( LF ), CHARSET) ); 
+		streamList.add( getDataStream() );
+
 		return new SequenceInputStream( new IteratorEnum<InputStream>( streamList ) );
 	}
 
@@ -405,37 +417,44 @@ public class Upload {
 	public void setFilelength(long filelength) {
 		this.filelength = filelength;
 	}
-	
+
 	/**
+	 * 	
 	 * Gets the list of RelocateRanges, which tells the server which blocks of the previous
-	 * file to keep, and where to place them in the new file.
+	 * file to keep, and where to place them in the new file. The current format is a comma 
+	 * separated list terminated by LF.
+	 *
 	 */
-	public List<RelocateRange> getRelocList() {
-		return relocList;
+	public InputStream getRelocStream() {
+		return relocStream;
 	}
-	
+
 	/**
+	 * 	
 	 * Sets the list of RelocateRanges, which tells the server which blocks of the previous
-	 * file to keep, and where to place them in the new file.
+	 * file to keep, and where to place them in the new file. The current format is a comma 
+	 * separated list terminated by LF.
+	 *
+	 * @param relocStream 
 	 */
-	public void setRelocList(List<RelocateRange> relocList) {
-		this.relocList = relocList;
+	public void setRelocStream(InputStream relocStream) {
+		this.relocStream = relocStream;
 	}
 	
 	/**
-	 * Gets the list of uploaded data chunks ( byte Ranges and their associated data )
-	 * 
+	 * Gets the list of uploaded data chunks ( byte Ranges and their associated data ). 
 	 */
-	public List<DataRange> getDataList() {
-		return dataList;
+	public InputStream getDataStream() {
+		return dataStream;
 	}
-	
+
 	/**
-	 * Sets the list of data chunks to be uploaded ( byte Ranges and their associated data )
+	 * Sets the list of data chunks to be uploaded ( byte Ranges and their associated data ).  The stream
+	 * should contain no leading whitespace.
 	 * 
 	 */
-	public void setDataList(List<DataRange> dataList) {
-		this.dataList = dataList;
+	public void setDataStream(InputStream dataStream) {
+		this.dataStream = dataStream;
 	}
 
 	/**
@@ -446,7 +465,7 @@ public class Upload {
 	 *
 	 * @param <T> The type of object being enumerated
 	 */
-	private static class IteratorEnum <T> implements Enumeration<T>{
+	public static class IteratorEnum <T> implements Enumeration<T>{
 
 		Iterator<T> iter;
 		
@@ -466,12 +485,10 @@ public class Upload {
 			
 			return iter.next();
 		}
-		
-		
 	}
 	
 	/**
-	 * An object representing a (Key, Value) pair of Strings.
+	 * An object representing a (Key, Value) pair of Strings. Currently unused.
 	 * 
 	 * @author Nick
 	 *
@@ -511,6 +528,7 @@ public class Upload {
 			return new KeyValue( key, value );
 		}
 	}
+	
 
 
 }

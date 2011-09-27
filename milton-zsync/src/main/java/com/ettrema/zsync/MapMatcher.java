@@ -84,6 +84,11 @@ public class MapMatcher {
             boolean end = false;
             double a = 10;
             int blocksize = mfr.getBlocksize();
+            
+            //
+            long lastMatch = 0;
+            //
+            
             while (mc.fileOffset != fileLength) {
                 n = inBuf.read(fileBuffer, 0, len);
                 if (firstBlock) {
@@ -92,18 +97,24 @@ public class MapMatcher {
                     int weak = updateWeakSum(weakSum, mfr);
                     if (hashLookUp(weak, null, blocksize, mc)) {
                         strongSum = gen.generateStrongSum(fileBuffer, 0, blocksize, config);
-                        hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
+                        boolean match = hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
+                        if ( match ) lastMatch = mc.fileOffset;
                     }
                     mc.fileOffset++;
                     firstBlock = false;
                 }
+
                 for (; bufferOffset < fileBuffer.length; bufferOffset++) {
+                	
                     newByte = fileBuffer[bufferOffset];
                     if (mc.fileOffset + mfr.getBlocksize() > fileLength) {
                         newByte = 0;
                     }
                     weakSum = gen.generateRollSum(newByte, config);
-                    if (hashLookUp(updateWeakSum(weakSum, mfr), null, blocksize, mc)) {
+                    
+                    if ( mc.fileOffset >= lastMatch + blocksize &&
+                    		hashLookUp(updateWeakSum(weakSum, mfr), null, blocksize, mc)) {
+
                         if (mc.fileOffset + mfr.getBlocksize() > fileLength) {
                             if (n > 0) {
                                 Arrays.fill(fileBuffer, n, fileBuffer.length, (byte) 0);
@@ -119,12 +130,15 @@ public class MapMatcher {
                                 System.arraycopy(fileBuffer, 0, blockBuffer, mfr.getBlocksize() - bufferOffset - 1, bufferOffset + 1);
                             }
                             strongSum = gen.generateStrongSum(blockBuffer, 0, blocksize, config);
-                            hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
+                            boolean match = hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
+                            if ( match ) lastMatch = mc.fileOffset;
                         } else {
                             strongSum = gen.generateStrongSum(fileBuffer, bufferOffset - blocksize + 1, blocksize, config);
-                            hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
+                            boolean match = hashLookUp(updateWeakSum(weakSum, mfr), strongSum, blocksize, mc);
+                            if ( match ) lastMatch = mc.fileOffset;
                         }
                     }
+                    
                     mc.fileOffset++;
                     if (mc.fileOffset == fileLength) {
                         end = true;
@@ -139,7 +153,7 @@ public class MapMatcher {
             }
 
             double complete = matchControl(mfr, mc);
-            mc.fileMap[mc.fileMap.length - 1] = -1;
+            mc.removematch( mc.blockcount() - 1 );
             is.close();
             return complete;
         } catch (IOException ex) {
@@ -235,29 +249,30 @@ public class MapMatcher {
      */
     private double matchControl(MetaFileReader mfr, MakeContext mc) {
         int missing = 0;
-        long[] fileMap = mc.fileMap;
-        for (int i = 0; i < fileMap.length; i++) {
+        int blockCount = mc.blockcount();
+        //long[] fileMap = mc.fileMap;
+        for (int i = 0; i < blockCount; i++) {
             if (mfr.getSeqNum() == 2) { //pouze pokud kontrolujeme matching continuation
-                if (i > 0 && i < fileMap.length - 1) {
-                    if (fileMap[i - 1] == -1 && fileMap[i] != -1 && fileMap[i + 1] == -1) {
-                        fileMap[i] = -1;
+                if (i > 0 && i < blockCount - 1) {
+                    if (!mc.matched( i - 1 ) && !mc.matched( i + 1 )) {
+                        mc.removematch( i );
                     }
                 } else if (i == 0) {
-                    if (fileMap[i] != -1 && fileMap[i + 1] == -1) {
-                        fileMap[i] = -1;
+                    if (!mc.matched( i + 1 )) {
+                        mc.removematch( i );
                     }
-                } else if (i == fileMap.length - 1) {
-                    if (fileMap[i] != -1 && fileMap[i - 1] == -1) {
-                        fileMap[i] = -1;
+                } else if (i == blockCount - 1) {
+                    if (!mc.matched( i - 1 )) {
+                    	mc.removematch( i );
                     }
                 }
             }
-            if (fileMap[i] == -1) {
+            if (!mc.matched(i)) {
                 missing++;
             }
         }
-        log.trace("matchControl: fileMap.length: " + fileMap.length + " - missing: " + missing);
-        return ((((double) fileMap.length - missing) / (double) fileMap.length) * 100);
+        log.trace("matchControl: fileMap.length: " + blockCount + " - missing: " + missing);
+        return ((((double) blockCount - missing) / (double) blockCount) * 100);
     }
 	
 }

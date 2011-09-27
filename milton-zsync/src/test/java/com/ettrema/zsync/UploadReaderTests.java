@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -73,7 +74,8 @@ public class UploadReaderTests {
 		List<RelocateRange> relocs = new ArrayList<RelocateRange>();
 		relocs.add( new RelocateRange( new Range( 4, 6 ), 4 ) );
 		
-		UploadReader.moveBlocks(servercopy, relocs, blocksize, updatedcopy);
+		Enumeration<RelocateRange> relocEnum = new Upload.IteratorEnum<RelocateRange>(relocs);
+		UploadReader.moveBlocks(servercopy, relocEnum, blocksize, updatedcopy);
 		
 		byte[] updatedbytes = FileUtils.readFileToByteArray( updatedcopy );
 		
@@ -92,10 +94,11 @@ public class UploadReaderTests {
 		String inString = "MOVEBLOCKSXXXXXXXXXXXXXXXXXXXXXXXXX";
 		InputStream dataIn = new ByteArrayInputStream(inString.getBytes( "US-ASCII" ) );
 		
-		List<DataRange> ranges = new ArrayList<DataRange>();
-		ranges.add( new DataRange( new Range( 20, 30 ), dataIn ) );
+		List<ByteRange> ranges = new ArrayList<ByteRange>();
+		ranges.add( new ByteRange( new Range( 20, 30 ), dataIn ) );
 		
-		UploadReader.sendRanges( ranges, updatedcopy );
+		Enumeration<ByteRange> dataEnum = new Upload.IteratorEnum<ByteRange>(ranges);
+		UploadReader.sendRanges( dataEnum, updatedcopy );
 		
 		byte[] updatedbytes = FileUtils.readFileToByteArray( updatedcopy );
 		
@@ -125,7 +128,5 @@ public class UploadReaderTests {
 		updatedOut.close();
 		
 	}
-	
-	
 	
 }

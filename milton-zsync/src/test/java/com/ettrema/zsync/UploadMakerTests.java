@@ -1,9 +1,17 @@
 package com.ettrema.zsync;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -61,7 +69,7 @@ public class UploadMakerTests {
 	}
 	
 	@Test
-	public void testServersMissingRangesEx() {
+	public void testServersMissingRangesEx() throws UnsupportedEncodingException, IOException {
 		
 		List<OffsetPair> reverseMap = new ArrayList<OffsetPair>();
 		reverseMap.add(new OffsetPair(20, 2 ));
@@ -71,28 +79,24 @@ public class UploadMakerTests {
 		reverseMap.add(new OffsetPair(70, 7 ));
 		reverseMap.add(new OffsetPair(80, 8 ));
 		
-		List<Range> expRanges = new ArrayList<Range>();
-		expRanges.add(new Range(0, 20));
-		expRanges.add(new Range(30, 70));
-		expRanges.add(new Range(120, 200));
+		File testFile = createFile( 200 );
+		InputStream actStream = UploadMakerEx.serversMissingRangesEx( reverseMap,
+				testFile, blockSize );
 		
-		List<Range> actRanges = UploadMakerEx.serversMissingRangesEx(reverseMap, 
-				fileLength, blockSize);
+		String expString = "Range: 0-20\n"
+			+ "ABCDEFGHIJKLMNOPQRST\n"
+			+ "Range: 30-70\n"
+			+ "EFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQR\n"
+			+ "Range: 120-200\n"
+			+ "QRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQR";
 		
-		String expString = "", actString = "";
-		for (Range expRange: expRanges){
-			expString += expRange.getRange() + " ";
-		}
-		for (Range actRange: actRanges){
-			actString += actRange.getRange() + " ";
-		}
-		
+		String actString = IOUtils.toString( actStream, "US-ASCII" );
+		System.out.println( "serversMissingRangesEx: \n" + actString );
 		Assert.assertEquals( expString, actString );
-		
 	}
 	
 	@Test
-	public void testServersRelocationRangesEx() {
+	public void testServersRelocationRangesEx() throws UnsupportedEncodingException, IOException {
 		
 		List<OffsetPair> reverseMap = new ArrayList<OffsetPair>();
 		reverseMap.add(new OffsetPair(20, 2 ));
@@ -102,16 +106,39 @@ public class UploadMakerTests {
 		reverseMap.add(new OffsetPair(70, 7 ));
 		reverseMap.add(new OffsetPair(80, 8 ));
 		
-		List<RelocateRange> expRelocs = new ArrayList<RelocateRange>();
-		expRelocs.add(new RelocateRange(new Range(3, 6), 90));
-		
-		List<RelocateRange> actRelocs = UploadMakerEx.serversRelocationRangesEx(reverseMap,
+		InputStream actStream = UploadMakerEx.serversRelocationRangesEx(reverseMap,
 				blockSize, fileLength, true);
+			
+		String expString = "3-6/90\n";
+		String actString = IOUtils.toString( actStream, "US-ASCII" );
 		
-		String expString = Arrays.toString( expRelocs.toArray() );
-		String actString = Arrays.toString( actRelocs.toArray() );
-		
+		System.out.println( "serversRelocationRangesEx: \n" + actString );
 		Assert.assertEquals( expString , actString );
+	}
+	
+	/**
+	 * Creates a File of the specified length containing A-Z repeated
+	 * 
+	 * @param length
+	 * @return
+	 * @throws IOException
+	 */
+	private File createFile( int length ) throws IOException {
+		
+		File testFile = File.createTempFile("Test", "File");
+		FileOutputStream fOut = new FileOutputStream( testFile );
+		StringBuffer sbr = new StringBuffer( length );
+		
+		for ( int index = 0; index < length; index++ ) {
+			
+			char nextchar = (char) ('A' + index%26);
+			sbr.append( nextchar );
+		}
+		
+		fOut.write( sbr.toString().getBytes( "US-ASCII" ) );
+		fOut.close();
+		
+		return testFile;
 	}
 
 }

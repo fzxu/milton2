@@ -2,6 +2,7 @@ package com.ettrema.zsync;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -9,12 +10,11 @@ import java.util.List;
  * An extension of MakeContext that stores block matches in a way more suitable for upload.<p/>
  * 
  * This object differs from a MakeContext in that it allows multiple local blocks to be matched to a single remote block.
- * It does this by overriding the <code>put</code> method to save matches to a List of OffsetPairs, rather than 
+ * It does this by overriding the <code>put</code> method to save matches to an array of Lists, rather than 
  * to <code>fileMap</code>, which only allows one entry per remote block. It also overrides the <code>delete</code> 
- * method to do nothing, instead of removing the ChecksumPair from the hashtable.<p/>
+ * method to do nothing, instead of removing the ChecksumPair from the ChainingHash.<p/>
  * 
  * MakeContextEx is used internally by UploadMakerEx in place of MakeContext as an argument to MapMatcher.mapMatcher.<p/>
- * 
  * 
  * @see UploadMakerEx
  * @author Nick
@@ -22,18 +22,25 @@ import java.util.List;
  */
 public class MakeContextEx extends MakeContext {
 	
-	private List<OffsetPair> reverseMap;
+	/* An array storing a List of matches for each remote block */
+	private List<OffsetPair>[] matchMap;
+	/* The minimum local offset of the next match */
+	private long nextOffset;
+	private int blocksize;
 	
 	/**
-	 * Constructs a MakeContextEx from an already-initialized ChainingHash and a long array.
+	 * Constructs a MakeContextEx from an already-initialized ChainingHash.
 	 * 
 	 * @param hashtable The hashtable obtained from a MetaFileReader
-	 * @param fileMap An array whose size is the block count and whose values should be initialized to -1 
+	 * @param blockcount The number of blocks in the remote file
+	 * @param blocksize The number of bytes per block
 	 */
-	public MakeContextEx(ChainingHash hashtable, long[] fileMap) {
-		super(hashtable, fileMap);
-		reverseMap = new ArrayList<OffsetPair>();
-		
+	public MakeContextEx(ChainingHash hashtable, int blockcount, int blocksize) {
+		super(hashtable, null);
+
+		this.matchMap = new LinkedList[blockcount];
+		this.blocksize = blocksize;
+		this.nextOffset = 0;
 	}
 	
 	/**
@@ -44,16 +51,24 @@ public class MakeContextEx extends MakeContext {
 	 * @see OffsetPair
 	 */
 	public List<OffsetPair> getReverseMap() {
-		return reverseMap;
+		/*
+		 * Concatenates the Lists of OffsetPairs in matchMap into a single List
+		 */
+		List<OffsetPair> reverseMap = new LinkedList<OffsetPair>();
 		
+		for ( int blockIndex = 0; blockIndex < matchMap.length; blockIndex++ ) {
+			
+			if ( matchMap[blockIndex] != null ) {
+				
+				reverseMap.addAll( matchMap[blockIndex] );
+			}
+		}
+		return reverseMap;
 	}
 	
 	/**
-	 * Adds a match to the list of block matches.<p/> 
-	 * 
-	 * Note: For compatibility with MapMatcher (specifically, the <code>MapMatcher.matchControl</code> 
-	 * method), this uses the somewhat messy solution of storing matches in both the reverseMap 
-	 * and the fileMap.
+	 * Adds a match to the list of block matches. Matching of overlapping client-side blocks
+	 * is prevented.
 	 * 
 	 * @param blockIndex Index of the remote block
 	 * @param offset Byte offset of the local block
@@ -61,12 +76,27 @@ public class MakeContextEx extends MakeContext {
 	@Override
 	public void put(int blockIndex, long offset){
 		
-		if (blockIndex == super.fileMap.length){
+		/* Currently, a match to the last block of the remote file is not permitted */
+		if (blockIndex >= matchMap.length - 1){
 			
 			return;
 		}
-		reverseMap.add(new OffsetPair(offset, blockIndex));
-		super.fileMap[blockIndex] = offset;
+		
+		/*
+		 * Prevents matching a local block that overlaps the previous one, in case MapMatcher.mapMatcher
+		 * does not already prevent this.
+		 */
+		if (offset < nextOffset){
+			
+			return;
+		}
+		
+		if ( matchMap[blockIndex] == null ) {
+			
+			matchMap[blockIndex] = new LinkedList<OffsetPair>();
+		} 
+		matchMap[blockIndex].add( new OffsetPair(offset, blockIndex) );
+		nextOffset = offset +  blocksize; //Set nextOffset to past the end of the previous match
 	}
 	
 	/**
@@ -77,10 +107,36 @@ public class MakeContextEx extends MakeContext {
 	 */
 	@Override
 	public void delete(ChecksumPair key){
+		
 		return;
 	}
 
-
+	@Override
+	public boolean matched(int blockIndex) {
+		
+		if (blockIndex > 0 && blockIndex < this.blockcount()) {
+			
+			return matchMap[blockIndex] != null;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public void removematch(int blockIndex) {
+		
+		if (blockIndex > 0 && blockIndex < this.blockcount()) {
+			
+			matchMap[blockIndex] = null;
+		}
+	}
+	
+	@Override
+	public int blockcount() {
+		
+		return matchMap.length;
+	}
+	
 
 }
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+
+import org.apache.commons.io.IOUtils;
+
 import com.bradmcevoy.http.Range;
 
 /**
@@ -45,7 +49,7 @@ public class UploadMaker{
 	/**
 	 * The local file that will replace the server file
 	 */
-	public final File localcopy;
+	public final File localCopy;
 	
 	/**
 	 * The .zsync of the server file to be replaced
@@ -65,7 +69,7 @@ public class UploadMaker{
 	 */
 	public UploadMaker(File sourceFile, File destMeta) throws IOException{
 		
-		this.localcopy = sourceFile;
+		this.localCopy = sourceFile;
 		this.serversMetafile = destMeta;
 		this.upload = new Upload();
 		this.init();
@@ -90,7 +94,7 @@ public class UploadMaker{
 		Arrays.fill( makeContext.fileMap, -1 );
 		
 		MapMatcher matcher = new MapMatcher();
-		matcher.mapMatcher( localcopy, metaFileReader, makeContext );
+		matcher.mapMatcher( localCopy, metaFileReader, makeContext );
 		
 	}
 	
@@ -102,19 +106,18 @@ public class UploadMaker{
 	private void initUpload() throws IOException{
 
 		List<Range> ranges = serversMissingRanges( makeContext.fileMap, 
-				localcopy.length(), metaFileReader.getBlocksize() );
-		List<DataRange> dataRanges = getDataRanges( ranges, localcopy );
+				localCopy.length(), metaFileReader.getBlocksize() );
 		
 		List<RelocateRange> relocRanges = serversRelocationRanges( makeContext.fileMap, 
-				metaFileReader.getBlocksize(), localcopy.length(), true );
+				metaFileReader.getBlocksize(), localCopy.length(), true );
 
 		upload.setVersion( "testVersion" );
 		upload.setBlocksize( metaFileReader.getBlocksize() );
-		upload.setFilelength( localcopy.length() );
-		upload.setSha1(  new SHA1( localcopy ).SHA1sum()  );
-		upload.setRelocList( relocRanges );
-		upload.setDataList ( dataRanges );
-		
+		upload.setFilelength( localCopy.length() );
+		upload.setSha1(  new SHA1( localCopy ).SHA1sum()  );
+
+		upload.setRelocStream( getRelocStream( relocRanges ) );
+		upload.setDataStream( getDataStream( ranges, localCopy ) );
 	}
 	
 	/**
@@ -258,7 +261,7 @@ public class UploadMaker{
 
 	/**
 	 * Returns the List of DataRange objects containing the portions of the client file to be
-	 * uploaded to the server.
+	 * uploaded to the server. Currently unused.
 	 * 
 	 * @param ranges The List of Ranges from the client file needed by the server, which can be obtained
 	 * from {@link #serversMissingRanges(long[], long, int)}
@@ -293,6 +296,46 @@ public class UploadMaker{
 		
 		return upload.getInputStream();
 	}
+	
+	/**
+	 * Generates the relocStream portion of an Upload from a List of RelocateRanges.
+	 * 
+	 * @param relocList The List of RelocateRanges
+	 * @return An InputStream containing the relocStream portion of an Upload
+	 * @throws IOException
+	 */
+	private static InputStream getRelocStream( List<RelocateRange> relocList ) throws IOException{
+		
+		UploadMakerEx.RelocWriter relocWriter = new UploadMakerEx.RelocWriter( 16384 );
+		for ( RelocateRange reloc: relocList ) {
+			relocWriter.add( reloc );
+		}
+		return relocWriter.getInputStream();
+	}
+	
+	/**
+	 * Generates the dataStream portion of an Upload from the local file and a List of Ranges
+	 * 
+	 * @param ranges The List of byte ranges
+	 * @param local The local file being uploaded
+	 * @return The InputStream containing the dataStream portion of an Upload
+	 * @throws IOException
+	 */
+	private InputStream getDataStream( List<Range> ranges, File local ) throws IOException {
+		
+		UploadMakerEx.ByteRangeWriter dataWriter = new UploadMakerEx.ByteRangeWriter( 16384 );
+		RandomAccessFile randAccess = null;
+		
+		try{
+			
+			randAccess = new RandomAccessFile( local, "r" );
+			for ( Range range : ranges ) {
+				dataWriter.add( range , randAccess ); 
+			}
+			return dataWriter.getInputStream();
+		} finally {
+			Util.close( randAccess );
+		}
+	}
 
 }
-

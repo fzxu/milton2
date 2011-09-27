@@ -27,4 +27,18 @@ public class MakeContext {
 		hashtable.delete(key);
 	}
 	
+	public boolean matched(int blockIndex) {
+		
+		return fileMap[blockIndex] > -1;
+	}
+	
+	public void removematch(int blockIndex) {
+
+		fileMap[blockIndex] = -1;
+	}
+	
+	public int blockcount() {
+		
+		return fileMap.length;
+	}
 }

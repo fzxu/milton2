@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
 import com.bradmcevoy.http.Range;
+import com.bradmcevoy.io.BufferingOutputStream;
+
 import java.io.FileOutputStream;
 import org.apache.commons.io.IOUtils;
 
@@ -52,8 +52,8 @@ public class UploadMakerEx {
 	private Upload upload;
 	
 	/**
-	 * Constructor that invokes methods to map block-matches, and creates and fills in
-	 * an internal Upload object
+	 * Constructor that initializes an Upload object and invokes methods to parse
+	 * the zsync file.
 	 * 
 	 * @param sourceFile The client file to be uploaded
 	 * @param zsFile The zsync of the server's file
@@ -64,38 +64,42 @@ public class UploadMakerEx {
 		this.localCopy = sourceFile;
 		this.serversMetafile = zsFile;
 		this.upload = new Upload();
-
 		this.initMetaData();
-		this.initUpload();
 	}
 	
 	private void initMetaData(){
 		
 		this.metaFileReader = new MetaFileReader( serversMetafile );
-		this.uploadContext = new MakeContextEx( metaFileReader.getHashtable(), 
-				new long[metaFileReader.getBlockCount()] );
-		Arrays.fill( uploadContext.fileMap, -1 );
-		
-		MapMatcher matcher = new MapMatcher();
-		matcher.mapMatcher( localCopy, metaFileReader, uploadContext );
+		this.uploadContext = new MakeContextEx( metaFileReader.getHashtable(),  
+				metaFileReader.getBlockCount(), metaFileReader.getBlocksize() );
 	}
 	
+	/**
+	 * Invokes the methods to generate the information that needs to be sent to the server
+	 * and fills in the internal Upload object.
+	 * 
+	 * @throws IOException
+	 */
 	private void initUpload() throws IOException{
 	
-		
-		List<Range> ranges = serversMissingRangesEx( uploadContext.getReverseMap(),
-				localCopy.length(), metaFileReader.getBlocksize() );
-		List<DataRange> dataRanges = getDataRanges( ranges, localCopy );
-		
-		List<RelocateRange> relocRanges = serversRelocationRangesEx( uploadContext.getReverseMap(), 
-				metaFileReader.getBlocksize(), localCopy.length(), true );
-
 		upload.setVersion( "testVersion" );
 		upload.setBlocksize( metaFileReader.getBlocksize() );
 		upload.setFilelength( localCopy.length() );
 		upload.setSha1(  new SHA1( localCopy ).SHA1sum()  );
-		upload.setRelocList( relocRanges );
-		upload.setDataList ( dataRanges );
+		
+		/*
+		if ( upload.getSha1().equals( metaFileReader.getSha1() ) ) {
+			
+			return;
+		}*/
+		
+		InputStream dataRanges = serversMissingRangesEx( uploadContext.getReverseMap(),
+				localCopy, metaFileReader.getBlocksize() );
+		InputStream relocRanges = serversRelocationRangesEx( uploadContext.getReverseMap(), 
+				metaFileReader.getBlocksize(), localCopy.length(), true );
+		
+		upload.setRelocStream( relocRanges );
+		upload.setDataStream( dataRanges );
 	
 	}
 	
@@ -103,33 +107,43 @@ public class UploadMakerEx {
 	 * Determines the byte ranges from the client file that need to be uploaded to the server.
 	 * 
 	 * @param reverseMap The List of block-matches obtained from MakeContextEx
-	 * @param fileLength The length of the local file being uploaded
+	 * @param local The local file being uploaded
 	 * @param blockSize The block size used in reverseMap
-	 * @return The List of Ranges that need to be uploaded 
+	 * @return An InputStream containing the dataStream portion of an Upload
+	 * @throws IOException 
+	 * @throws UnsupportedEncodingException 
 	 * @see UploadMaker#serversMissingRanges
 	 */
-	public static List<Range> serversMissingRangesEx(List<OffsetPair> reverseMap, long fileLength, int blockSize){
+	public static InputStream serversMissingRangesEx(List<OffsetPair> reverseMap, File local, int blockSize) throws UnsupportedEncodingException, IOException{
 		
-		List <Range> rangeList = new ArrayList<Range>(); 
+		ByteRangeWriter dataWriter = new ByteRangeWriter( 16384 );
+		RandomAccessFile randAccess = null;
+		
 		Collections.sort(reverseMap, new OffsetPair.LocalSort()); 
-		reverseMap.add(new OffsetPair(fileLength, -1)); 
-		
-		
-		long prevEnd = 0;
-		
-		for (OffsetPair pair: reverseMap){
+		reverseMap.add(new OffsetPair(local.length(), -1)); 
+
+		try {
 			
-			long offset = pair.localOffset;
-			if (offset - prevEnd > 0){
+			randAccess = new RandomAccessFile( local, "r" );
+			long prevEnd = 0;
+			
+			for (OffsetPair pair: reverseMap){
 				
-				rangeList.add(new Range(prevEnd, offset));
+				long offset = pair.localOffset;
+				if (offset - prevEnd > 0){
+					
+					dataWriter.add(new Range(prevEnd, offset), randAccess );
+				}
+				prevEnd = offset + blockSize;
+				
 			}
-			prevEnd = offset + blockSize;
 			
+			return dataWriter.getInputStream();
+			
+		} finally {
+			Util.close( randAccess );
 		}
-		
-		return rangeList;
-		
+
 	}
 	
 	/**
@@ -140,12 +154,14 @@ public class UploadMakerEx {
 	 * @param blockSize The block size used to generate reverseMap
 	 * @param fileLength The length of the client file being uploaded
 	 * @param combineRanges Whether to combine consecutive block matches into a single RelocateRange
-	 * @return The List of RelocateRanges that need to be sent to the server
+	 * @return The InputStream of RelocateRanges that need to be sent to the server
+	 * @throws IOException 
+	 * @throws UnsupportedEncodingException 
 	 * @see {@link UploadMaker#serversRelocationRanges}
 	 */
-	public static List<RelocateRange> serversRelocationRangesEx(List<OffsetPair> reverseMap, int blockSize, long fileLength, boolean combineRanges){
+	public static InputStream serversRelocationRangesEx(List<OffsetPair> reverseMap, int blockSize, long fileLength, boolean combineRanges) throws UnsupportedEncodingException, IOException{
 		
-		List<RelocateRange> ranges = new ArrayList<RelocateRange>();
+		RelocWriter relocRanges = new RelocWriter( 16384 );
 		Collections.sort(reverseMap, new OffsetPair.RemoteSort());
 		
 		for (ListIterator<OffsetPair> iter = reverseMap.listIterator()
@@ -175,10 +191,11 @@ public class UploadMakerEx {
 				}
 				
 				RelocateRange relocRange = new RelocateRange(blockRange, localOffset);
-				ranges.add(relocRange);
+				relocRanges.add( relocRange );
 			}
 		}
-		return ranges;
+		
+		return relocRanges.getInputStream();
 	}
 	
 	/**
@@ -216,27 +233,30 @@ public class UploadMakerEx {
 		return new Range(blockIndex, currBlock + 1 );
 	}
 	
+	
 	/**
 	 * Constructs the List of DataRange objects containing the portions of the client file
-	 * to be uploaded to the server.
+	 * to be uploaded to the server. Currently unused.
 	 * 
 	 * @param ranges The List of Ranges from the client file needed by the server, which can be 
 	 * obtained from {@link #serversMissingRangesEx(List, long, int)}
 	 * @param local The client file to be uploaded
-	 * @return The List of DataRange objects containing client file portions to be uploaded
+	 * @return An InputStream containing the dataStream portion of an Upload
 	 * @throws IOException
 	 */
-	public static List<DataRange> getDataRanges (List<Range> ranges, File local) throws IOException{
+	public static InputStream getDataRanges (List<Range> ranges, File local) throws IOException{
 		
-		List <DataRange> dataRanges = new ArrayList <DataRange>();
+		int MAX_BUFFER = 1024*1024;
+		
+		ByteRangeWriter byteRanges = new ByteRangeWriter( MAX_BUFFER );
 		RandomAccessFile randAccess = new RandomAccessFile( local, "r" );
 
 		for ( Range range : ranges ) {
 			
-			dataRanges.add( new DataRange( range, randAccess ) );
+			byteRanges.add( range, randAccess );
 		}
-	
-		return dataRanges;
+
+		return byteRanges.getInputStream();
 	}
 	
 	/**
@@ -249,9 +269,30 @@ public class UploadMakerEx {
 	 * @throws UnsupportedEncodingException 
 	 * @throws IOException
 	 */
-	public InputStream getUploadStream() throws UnsupportedEncodingException, IOException{
+	public InputStream makeUpload() throws IOException{
 		
-		return upload.getInputStream();
+		try {
+			
+			System.out.print( "Matching client and server blocks..." );
+			long t0 = System.currentTimeMillis();
+			
+			MapMatcher matcher = new MapMatcher();
+			matcher.mapMatcher( localCopy, metaFileReader, uploadContext );
+			long t1 = System.currentTimeMillis();
+			
+			System.out.println( " " + ( t1 - t0 ) + " milliseconds" );
+			System.out.print( "Creating Upload..." );
+			long t2 = System.currentTimeMillis();
+			
+			this.initUpload();
+			long t3 = System.currentTimeMillis();
+			
+			System.out.println(" " + ( t3 - t2 ) + " milliseconds");
+			
+			return upload.getInputStream();
+		} catch ( IOException ex ) {
+			throw new RuntimeException(  ex  );
+		} 
 	}
 	
 	
@@ -263,7 +304,7 @@ public class UploadMakerEx {
 	 */
 	public File getUploadFile() throws IOException {
 		
-		InputStream uploadIn = getUploadStream();
+		InputStream uploadIn = makeUpload();
 		
 		File uploadFile = File.createTempFile("zsync-upload", localCopy.getName());
 		FileOutputStream uploadOut = new FileOutputStream( uploadFile );
@@ -274,4 +315,91 @@ public class UploadMakerEx {
 		
 		return uploadFile;				
 	}	
+	/**
+	 * An object used to create the relocStream portion of an Upload. <p/>
+	 * 
+	 * The relocStream portion consists of a comma separated sequence of RelocateRanges,
+	 * terminated by the LF character. 
+	 * 
+	 * @author Nick
+	 */
+	public static class RelocWriter {
+		
+		private BufferingOutputStream relocOut;
+		private boolean first;
+		
+		public RelocWriter( int buffersize ) {
+			this.relocOut = new BufferingOutputStream( buffersize );
+			this.first = true;
+		}
+		public void add( RelocateRange reloc ) throws UnsupportedEncodingException, IOException {
+			
+			String relocString = reloc.getRelocation();
+			if ( !first ) {
+				relocString = ", " + relocString;
+			}
+			first = false;
+			relocOut.write( relocString.getBytes( Upload.CHARSET ) );
+		}
+		
+		public InputStream getInputStream() throws IOException {
+			relocOut.write( Character.toString( Upload.LF ).getBytes( Upload.CHARSET)[0] );
+			relocOut.close();
+			return relocOut.getInputStream();
+		}
+	}
+	
+	/**
+	 * An object used to write the dataStream portion of an Upload.<p/>
+	 * 
+	 * This data portion consists of a sequence of chunks of binary data, each preceded by a Range: start-finish
+	 * key value String indicating the target location of the chunk. The chunk of data contains exactly 
+	 * finish - start bytes. 
+	 * 
+	 * @author Nick
+	 */
+	public static class ByteRangeWriter {
+		
+		private BufferingOutputStream dataOut;
+		private byte[] copyBuffer;
+		private boolean first;
+		
+		public ByteRangeWriter( int buffersize ) {
+			this.dataOut = new BufferingOutputStream( buffersize );
+			this.copyBuffer = new byte[2048];
+			this.first = true;
+		}
+		
+		public void add( Range range, RandomAccessFile randAccess ) throws UnsupportedEncodingException, IOException {
+			
+			/*
+			 * Write the Range Key:Value pair to dataOut
+			 */
+			String rangeKV = Upload.paramString( Upload.RANGE, range.getRange() );
+			if ( !first ) {
+				rangeKV = Upload.LF + rangeKV;
+			}
+			dataOut.write( rangeKV.getBytes( Upload.CHARSET ) );
+			first = false;
+			/*
+			 * Write the actual bytes to dataOut
+			 */
+			long bytesLeft = range.getFinish() - range.getStart();
+			int bytesRead = 0;
+			int bytesToRead = (int) Math.min( bytesLeft , copyBuffer.length );
+			
+			randAccess.seek( range.getStart() );
+			while ( bytesLeft > 0 ) {
+				bytesRead = randAccess.read( copyBuffer, 0, bytesToRead );
+				dataOut.write( copyBuffer, 0, bytesRead );
+				bytesLeft -= bytesRead;
+				bytesToRead = (int) Math.min( bytesLeft, copyBuffer.length );
+			}
+		}
+
+		public InputStream getInputStream() throws IOException {
+			dataOut.close();
+			return dataOut.getInputStream();
+		}
+	}
 }

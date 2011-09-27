@@ -19,6 +19,7 @@ import com.bradmcevoy.common.Path;
 import com.ettrema.httpclient.Host;
 import com.ettrema.zsync.MetaFileMaker;
 import com.ettrema.zsync.SHA1;
+import com.ettrema.zsync.UploadMaker;
 import com.ettrema.zsync.UploadMakerEx;
 import com.ettrema.zsync.UploadReader;
 
@@ -45,11 +46,13 @@ public class IntegrationTests {
 		
 		//Change to the correct locations of local file and server file
 		filepath = "testfiles" + File.separator; 
-		localcopy = new File( filepath + "localcopy.txt" );
-		servercopy = new File( filepath + "servercopy.txt" );
+		localcopy = new File( filepath + "word-local-copy.doc" );
+		servercopy = new File( filepath + "word-server-copy.doc" );
+		
+		blocksize = 1024;
+		
 		System.out.println("local file: " + localcopy.getAbsolutePath());
 		System.out.println("server file: " + servercopy.getAbsolutePath());
-		blocksize = 128;
 	}
 
 	/**
@@ -65,7 +68,7 @@ public class IntegrationTests {
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy2.UPLOADZS" );
 	
 		//Change to correct url of servercopy.txt
-		String url = host.getHref( Path.path( "servercopy.txt/.zsync" ) );
+		String url = host.getHref( Path.path( "word-server-copy.doc/.zsync" ) );
 		System.out.println("uploading to: " + url);
 		InputStream uploadIn = new FileInputStream( uploadFile );
 		
@@ -89,7 +92,7 @@ public class IntegrationTests {
 		
 		File zsyncFile = createMetaFile("serverfile.zsync", blocksize );
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy.UPLOADZS" );
-		File assembledFile = readSavedUpload( uploadFile, filepath + "assembledcopy.txt" );
+		File assembledFile = readSavedUpload( uploadFile, filepath + "assembledcopy.pdf" );
 		
 		String localSha1 =  new SHA1( localcopy ).SHA1sum();
 		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
@@ -111,7 +114,6 @@ public class IntegrationTests {
 		
 		InputStream uploadIn = new FileInputStream( uploadFile );
 		UploadReader um = new UploadReader( servercopy, uploadIn );
-		uploadIn.close();
 		
 		File assembledFile = new File( fileName );
 		if( assembledFile.exists() ) {
@@ -122,6 +124,8 @@ public class IntegrationTests {
 		File tempAssembled = um.assemble();
 		FileUtils.moveFile( tempAssembled, assembledFile );
 		
+		
+		uploadIn.close();
 		return assembledFile;
 		
 	}
@@ -139,9 +143,10 @@ public class IntegrationTests {
 	private File makeAndSaveUpload(File localFile, File zsFile, String uploadFileName) throws IOException {
 		
 		UploadMakerEx umx = new UploadMakerEx( localcopy, zsFile );
-		InputStream uploadIn = umx.getUploadStream();
+		InputStream uploadIn = umx.makeUpload();
 		
 		File uploadFile = new File( uploadFileName );
+
 		if( uploadFile.exists()) {
 			if( !uploadFile.delete()) {
 				throw new RuntimeException("Couldnt delete: " + uploadFile.getAbsolutePath());

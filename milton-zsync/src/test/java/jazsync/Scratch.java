@@ -181,7 +181,8 @@ public class Scratch {
 	
 	@Test
 	public void test_Upload_OverHTTP_WordDoc() throws FileNotFoundException, HttpException, IOException {
-		System.out.println();
+		long mem = Runtime.getRuntime().freeMemory();
+		System.out.println("mem: " + mem);
 		System.out.println("--------------------- test4 -----------------------");
 		fIn = new File("testfiles/word-local-copy.doc");
 		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
@@ -195,7 +196,8 @@ public class Scratch {
 				@Override
 				public void receive(InputStream in) throws IOException {
 					FileOutputStream fout = new FileOutputStream(fRemoteMeta);
-					StreamUtils.readTo(in, fout, true, true);
+					long size = StreamUtils.readTo(in, fout, true, true);
+					System.out.println("Downloaded remote meta file of size: " + formatBytes(size));
 				}
 			}, null);
 		} catch (HttpException e) {
@@ -212,11 +214,25 @@ public class Scratch {
 			System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
 
 			UploadMakerEx umx = new UploadMakerEx(fIn, fRemoteMeta);
+			//UploadMakerEx umx = new UploadMakerEx(fIn, fRemoteMeta);
 			File uploadFile = umx.getUploadFile();
+			System.out.println("Created upload file of size: " + formatBytes(uploadFile.length()));
 			System.out.println("Uploading: " + uploadFile.getAbsolutePath());
 			int result = host.doPut(url, uploadFile);
 			Utils.processResultCode(result, url);
 			System.out.println("done!!  result: " + result);
 		}
+		mem = mem - Runtime.getRuntime().freeMemory();
+		System.out.println("Memory change: " + formatBytes(mem));
 	}	
+	
+	private String formatBytes(long l) {
+		if( l < 1000 ) {
+			return l + " bytes";
+		} else if( l < 1000000) {
+			return l/1000 + "KB";
+		} else {
+			return l/1000000 + "MB";
+		}
+	}
 }
