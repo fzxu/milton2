@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.apache.commons.io.IOUtils;
 
 import com.bradmcevoy.http.Range;
 
@@ -72,10 +70,35 @@ public class UploadMaker{
 		this.localCopy = sourceFile;
 		this.serversMetafile = destMeta;
 		this.upload = new Upload();
-		this.init();
 	}
 	
-	private void init() throws IOException{
+	public InputStream makeUpload() throws IOException{
+		init();
+		try {
+			
+			System.out.print( "Matching client and server blocks..." );
+			long t0 = System.currentTimeMillis();
+			
+			MapMatcher matcher = new MapMatcher();
+			matcher.mapMatcher( localCopy, metaFileReader, makeContext );
+			long t1 = System.currentTimeMillis();
+			
+			System.out.println( " " + ( t1 - t0 ) + " milliseconds" );
+			System.out.print( "Creating Upload..." );
+			long t2 = System.currentTimeMillis();
+			
+			this.initUpload();
+			long t3 = System.currentTimeMillis();
+			
+			System.out.println(" " + ( t3 - t2 ) + " milliseconds");
+			
+			return upload.getInputStream();
+		} catch ( IOException ex ) {
+			throw new RuntimeException(  ex  );
+		} 
+	}	
+	
+	public void init() throws IOException{
 		
 		initMetaData();
 		initUpload();

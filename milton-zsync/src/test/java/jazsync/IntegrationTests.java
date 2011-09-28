@@ -19,7 +19,7 @@ import com.bradmcevoy.common.Path;
 import com.ettrema.httpclient.Host;
 import com.ettrema.zsync.MetaFileMaker;
 import com.ettrema.zsync.SHA1;
-import com.ettrema.zsync.UploadMakerEx;
+import com.ettrema.zsync.UploadMaker;
 import com.ettrema.zsync.UploadReader;
 
 /**
@@ -151,7 +151,7 @@ public class IntegrationTests {
 			throw new RuntimeException("Couldnt find: " + localSmallText.getAbsolutePath());
 		}
 		
-		File zsyncFile = createMetaFile("large-excel.zsync", 16, serverSmallText ); // use small blocksize
+		File zsyncFile = createMetaFile("large-excel.zsync", 256, serverSmallText ); // use small blocksize
 		File uploadFile = makeAndSaveUpload( localSmallText, zsyncFile, filepath + "large-csv.UPLOADZS" );
 		System.out.println("Created upload file: " + uploadFile.getAbsolutePath() + " of " + formatBytes(uploadFile.length()) );
 		File assembledFile = readSavedUpload( uploadFile, filepath + "large-csv-assembled.xls", serverSmallText );
@@ -206,7 +206,7 @@ public class IntegrationTests {
 	 */
 	private File makeAndSaveUpload(File localFile, File zsFile, String uploadFileName) throws IOException {
 		
-		UploadMakerEx umx = new UploadMakerEx( localFile, zsFile );
+		UploadMaker umx = new UploadMaker( localFile, zsFile );
 		InputStream uploadIn = umx.makeUpload();
 		
 		File uploadFile = new File( uploadFileName );
