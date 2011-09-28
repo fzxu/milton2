@@ -26,12 +26,13 @@ public class LocalFileRangeLoader implements RangeLoader{
 	}
 		
 	
+	@Override
 	public byte[] get(List<Range> rangeList) { 
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		for(Range r : rangeList) {
 			writeRange(r, bout);
 		}
-		int expectedLength = HttpRangeLoader.calcExpectedLength(rangeList);
+		int expectedLength = calcExpectedLength(rangeList);
 		byte[] bytes = bout.toByteArray();
 		return bytes;
 	}
@@ -61,6 +62,12 @@ public class LocalFileRangeLoader implements RangeLoader{
 		return bytesDownloaded;
 	}
 	
-	
+	public static  int calcExpectedLength(List<Range> rangeList) {
+		int l = 0;
+		for( Range r : rangeList) {
+			l += (r.getFinish() - r.getStart());
+		}
+		return l;
+	}	
 	
 }

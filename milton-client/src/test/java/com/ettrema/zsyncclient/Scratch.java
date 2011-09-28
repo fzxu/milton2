@@ -1,4 +1,4 @@
-package jazsync;
+package com.ettrema.zsyncclient;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.io.StreamUtils;
@@ -12,7 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import com.ettrema.zsync.FileMaker;
-import com.ettrema.zsync.HttpRangeLoader;
+import com.ettrema.httpclient.zsyncclient.HttpRangeLoader;
 import com.ettrema.zsync.LocalFileRangeLoader;
 import com.ettrema.zsync.SHA1;
 import com.ettrema.zsync.MetaFileMaker;

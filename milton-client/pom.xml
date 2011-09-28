@@ -71,7 +71,17 @@ might be something to do with the -jdk15 after the verson number
             <type>jar</type>
             <version>2.0.2</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.ettrema</groupId>
+            <artifactId>milton-zsync</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+			<scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
 
