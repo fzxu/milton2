@@ -17,7 +17,7 @@ public class SupportedLockValueWriter implements ValueWriter {
 	public void writeValue(XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes) {
 		Element supportedLocks = writer.begin("D:supportedlock").open();
 		SupportedLocks slocks = (SupportedLocks) val;
-		if (slocks.getResource() instanceof LockableResource) {
+		if (slocks != null && slocks.getResource() instanceof LockableResource) {
 			Element lockentry = writer.begin("D:lockentry").open();
 			writer.begin("D:lockscope").open(false).writeText("<D:exclusive/>").close();
 			writer.begin("D:locktype").open(false).writeText("<D:write/>").close();
