@@ -123,8 +123,7 @@ public class ChainingHash {
     public void displayTable(){
         for(int l=0;l<hashArray.size();l++){
             for(int i = 0;i<hashArray.get(l).size();i++){
-                System.out.println(l+". list: "
-                        +((ChecksumPair) (hashArray.get(l).get(i))).toString());
+                System.out.println(l+". list: " +((ChecksumPair) (hashArray.get(l).get(i))).toString());
             }
         }
     } 

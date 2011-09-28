@@ -84,13 +84,13 @@ public class FileUpdater {
 						rangeList = rangeLookUp(i, mfr.getBlocksize(), mc);
 						range = rangeList.size();
 						data = rangeLoader.get(rangeList);
-						System.out.println("got data length: " + data.length);
+						//System.out.println("got data length: " + data.length);
 					} else {
 						log.trace("     already have queued ranges: " + rangeList.size());
 					}
 					blockLength = calcBlockLength(i, mfr.getBlocksize(), (int) mfr.getLength());
 					int offset = (range - rangeList.size()) * mfr.getBlocksize();
-					System.out.println("blockLength: " + blockLength + " data.length: " + data.length + "  offset: " + offset);
+					//System.out.println("blockLength: " + blockLength + " data.length: " + data.length + "  offset: " + offset);
 					buffer.put(data, offset, blockLength);
 					buffer.flip();
 					wChannel.write(buffer);

@@ -45,11 +45,13 @@ public class IntegrationTests {
 		
 		//Change to the correct locations of local file and server file
 		filepath = "testfiles" + File.separator; 
-		localcopy = new File( filepath + "word-local-copy.doc" );
-		servercopy = new File( filepath + "word-server-copy.doc" );
+		//localcopy = new File( filepath + "word-local-copy.doc" );
+		//servercopy = new File( filepath + "word-server-copy.doc" );
+		localcopy = new File( filepath + "large-text-local.txt" );
+		servercopy = new File( filepath + "large-text-server.txt" );
 		
-		//blocksize = 1024;
-		blocksize = 64;
+		blocksize = 1024;
+		//blocksize = 64;
 		//blocksize = 1024 * 8;
 		
 		System.out.println("local file: " + localcopy.getAbsolutePath());
@@ -69,7 +71,7 @@ public class IntegrationTests {
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy2.UPLOADZS" );
 	
 		//Change to correct url of servercopy.txt
-		String url = host.getHref( Path.path( "word-server-copy.doc/.zsync" ) );
+		String url = host.getHref( Path.path( servercopy.getName() + "/.zsync" ) );
 		System.out.println("uploading to: " + url);
 		InputStream uploadIn = new FileInputStream( uploadFile );
 		
@@ -112,7 +114,7 @@ public class IntegrationTests {
 		Assert.assertEquals( localSha1, assembledSha1 );
 	}
 	
-	@Test
+	//@Test
 	public void testMakeAndReadSmallTextUpload() throws IOException, ParseException{
 		System.out.println("------------------- testMakeAndReadSmallTextUpload -------------------------");
 		File serverSmallText = new File("testfiles/small-text-server.txt");
@@ -124,7 +126,7 @@ public class IntegrationTests {
 			throw new RuntimeException("Couldnt find: " + localSmallText.getAbsolutePath());
 		}
 		
-		File zsyncFile = createMetaFile("small-text.zsync", 8, serverSmallText ); // use blocksize of 10 bytes
+		File zsyncFile = createMetaFile("small-text.zsync", 16, serverSmallText ); // use small blocksize
 		File uploadFile = makeAndSaveUpload( localSmallText, zsyncFile, filepath + "small-text-local.UPLOADZS" );
 		System.out.println("Created upload file: " + uploadFile.getAbsolutePath());
 		File assembledFile = readSavedUpload( uploadFile, filepath + "small-text-assembled.txt", serverSmallText );
@@ -136,6 +138,31 @@ public class IntegrationTests {
 		Assert.assertEquals( localSha1, assembledSha1 );
 		System.out.println("---------------------- End testMakeAndReadSmallTextUpload ------------------------");
 	}	
+	
+	@Test
+	public void testMakeAndRead_Large_CSV() throws IOException, ParseException{
+		System.out.println("------------------- testMakeAndRead_Large_CSV -------------------------");
+		File serverSmallText = new File("testfiles/large-csv-server.csv");
+		File localSmallText = new File("testfiles/large-csv-local.csv");
+		if( !serverSmallText.exists()) {
+			throw new RuntimeException("Couldnt find: " + serverSmallText.getAbsolutePath());
+		}
+		if( !localSmallText.exists()) {
+			throw new RuntimeException("Couldnt find: " + localSmallText.getAbsolutePath());
+		}
+		
+		File zsyncFile = createMetaFile("large-excel.zsync", 16, serverSmallText ); // use small blocksize
+		File uploadFile = makeAndSaveUpload( localSmallText, zsyncFile, filepath + "large-csv.UPLOADZS" );
+		System.out.println("Created upload file: " + uploadFile.getAbsolutePath() + " of " + formatBytes(uploadFile.length()) );
+		File assembledFile = readSavedUpload( uploadFile, filepath + "large-csv-assembled.xls", serverSmallText );
+		System.out.println("Assesmbling to: " + assembledFile.getAbsolutePath());
+		
+		String localSha1 =  new SHA1( localSmallText ).SHA1sum();
+		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
+		
+		Assert.assertEquals( localSha1, assembledSha1 );
+		System.out.println("---------------------- End testMakeAndRead_Large_CSV ------------------------");
+	}		
 	
 	/**
 	 * Reads the ZSync upload data that was saved to uploadFile, constructs an UploadReader
