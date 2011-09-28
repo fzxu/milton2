@@ -166,7 +166,7 @@ public class Scratch {
 			System.out.println("remote file does not exist, so will upload completely");
 			int result = host.doPut(baseUrl, fIn);
 			Utils.processResultCode(result, url);
-			System.out.println("done full upload!!  result: " + result);			
+			System.out.println("done full upload!!  result: " + result);
 		} else {
 			System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
 
@@ -177,17 +177,23 @@ public class Scratch {
 			System.out.println("done!!  result: " + result);
 		}
 	}
-	
-	
+
 	@Test
-	public void test_Upload_OverHTTP_WordDoc() throws FileNotFoundException, HttpException, IOException {
-		long mem = Runtime.getRuntime().freeMemory();
-		System.out.println("mem: " + mem);
+	public void test_Upload_OverHTTP_WordDoc() throws FileNotFoundException, HttpException, IOException, Exception {
+		doUploadTest("testfiles/word-local-copy.doc", "/word-server-copy.doc");
+		System.gc();
+		doUploadTest("testfiles/word-local-copy.doc", "/word-server-copy.doc");
+		System.gc();
+		doUploadTest("testfiles/homepage-local.psd", "/homepage-server.psd");
+	}
+
+	private void doUploadTest(String localFile, String remotePath) throws Exception {
 		System.out.println("--------------------- test4 -----------------------");
-		fIn = new File("testfiles/word-local-copy.doc");
+		fIn = new File(localFile);
+		System.out.println("sync local file: " + fIn.getAbsolutePath() + " with remote file: " + remotePath);
 		Host host = new Host("localhost", "webdav", 8080, "me", "pwd", null, null);
 		final File fRemoteMeta = File.createTempFile("milton-zsync-remotemeta-wordDoc", null);
-		String baseUrl = host.getHref(Path.path("/word-server-copy.doc"));
+		String baseUrl = host.getHref(Path.path(remotePath));
 		String url = baseUrl + "/.zsync";
 		boolean notExisting = false;
 		try {
@@ -205,34 +211,49 @@ public class Scratch {
 				notExisting = true;
 			}
 		}
+		Runtime rt = Runtime.getRuntime();
+		long startUsed = 0;
 		if (notExisting) {
 			System.out.println("remote file does not exist, so will upload completely");
 			int result = host.doPut(baseUrl, fIn);
 			Utils.processResultCode(result, url);
-			System.out.println("done full upload!!  result: " + result);			
+			System.out.println("done full upload!!  result: " + result);
 		} else {
 			System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
 
 			UploadMakerEx umx = new UploadMakerEx(fIn, fRemoteMeta);
+			System.gc();
+			System.out.println("Memory stats: " + formatBytes(rt.maxMemory()) + " - " + formatBytes(rt.totalMemory()) + " - " + formatBytes(rt.freeMemory()));
+			startUsed = rt.totalMemory() - rt.freeMemory();
+			System.out.println("mem: " + startUsed);
+
 			//UploadMakerEx umx = new UploadMakerEx(fIn, fRemoteMeta);
 			File uploadFile = umx.getUploadFile();
 			System.out.println("Created upload file of size: " + formatBytes(uploadFile.length()));
+
+			System.gc();
+			long endUsed = (rt.totalMemory() - rt.freeMemory());
+			System.out.println("Memory change1: " + formatBytes(endUsed - startUsed));
+
 			System.out.println("Uploading: " + uploadFile.getAbsolutePath());
 			int result = host.doPut(url, uploadFile);
 			Utils.processResultCode(result, url);
 			System.out.println("done!!  result: " + result);
 		}
-		mem = mem - Runtime.getRuntime().freeMemory();
-		System.out.println("Memory change: " + formatBytes(mem));
-	}	
-	
+		System.gc();
+		System.out.println("Memory stats: " + formatBytes(rt.maxMemory()) + " - " + formatBytes(rt.totalMemory()) + " - " + formatBytes(rt.freeMemory()));
+		long endUsed = (rt.totalMemory() - rt.freeMemory());
+		System.out.println("Start used memory: " + formatBytes(startUsed) + " end used memory: " + formatBytes(endUsed));
+		System.out.println("Memory change2: " + formatBytes(endUsed - startUsed));
+	}
+
 	private String formatBytes(long l) {
-		if( l < 1000 ) {
+		if (l < 1000) {
 			return l + " bytes";
-		} else if( l < 1000000) {
-			return l/1000 + "KB";
+		} else if (l < 3000000) {
+			return l / 1000 + "KB";
 		} else {
-			return l/1000000 + "MB";
+			return l / 1000000 + "MB (" + l + ")";
 		}
 	}
 }

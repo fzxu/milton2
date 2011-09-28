@@ -25,6 +25,7 @@ public class HttpRangeLoader implements RangeLoader {
         this.file = file;
     }
 
+	@Override
     public byte[] get(List<Range> rangeList) throws HttpException, CancelledException {
 		log.info("get: rangelist: " + rangeList.size());
         ByteArrayOutputStream out = new ByteArrayOutputStream();

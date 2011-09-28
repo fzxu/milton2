@@ -30,7 +30,6 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import com.ettrema.zsync.SHA1;
 /**
  * Simple class for creating headers for metafile
  * @author Tomáš Hlavnička
