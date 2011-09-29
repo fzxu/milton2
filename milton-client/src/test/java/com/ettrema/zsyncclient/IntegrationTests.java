@@ -33,7 +33,7 @@ public class IntegrationTests {
 	File localcopy;
 	File servercopy;
 	String filepath;
-	
+	Host host;
 	int blocksize;
 	
 	/**
@@ -43,19 +43,12 @@ public class IntegrationTests {
 	@Before
 	public void setUp() {
 		
-		//Change to the correct locations of local file and server file
-		filepath = "testfiles" + File.separator; 
-		//localcopy = new File( filepath + "word-local-copy.doc" );
-		//servercopy = new File( filepath + "word-server-copy.doc" );
-		localcopy = new File( filepath + "large-text-local.txt" );
-		servercopy = new File( filepath + "large-text-server.txt" );
+		filepath = "src" + File.separator + "test" + File.separator + "resources" + File.separator; 
 		
 		blocksize = 1024;
 		//blocksize = 64;
-		//blocksize = 1024 * 8;
-		
-		System.out.println("local file: " + localcopy.getAbsolutePath());
-		System.out.println("server file: " + servercopy.getAbsolutePath());
+		//blocksize = 1024 * 8;		
+		host = new Host("localhost", "webdav", 8080, "user1", "pwd1", null, null);
 	}
 
 	/**
@@ -63,12 +56,17 @@ public class IntegrationTests {
 	 * 
 	 * @throws IOException
 	 */
-	//@Test
-	public void testFullUpload() throws IOException {
+	@Test
+	public void testUpload_Large_Text() throws IOException {
+		localcopy = new File( filepath + "large-text-local.txt" );
+		servercopy = new File( filepath + "large-text-server.txt" );		
+				
+		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		host.doPut(baseUrl , servercopy);
 		
-		Host host = new Host("localhost", "webdav", 8080, "user1", "pwd1", null, null);
 		File zsyncFile = createMetaFile( "servercopy.zsync", blocksize, servercopy );
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy2.UPLOADZS" );
+		System.out.println("Created upload file: " + uploadFile.getAbsolutePath() + " of " + formatBytes(uploadFile.length()) );
 	
 		//Change to correct url of servercopy.txt
 		String url = host.getHref( Path.path( servercopy.getName() + "/.zsync" ) );
@@ -84,55 +82,28 @@ public class IntegrationTests {
 		
 	}
 	
-	private String formatBytes(long l) {
-		if( l < 1000 ) {
-			return l + " bytes";
-		} else if( l < 1000000) {
-			return l/1000 + "KB";
-		} else {
-			return l/1000000 + "MB";
-		}
-	}	
-	
-	/**
-	 * Writes/reads the upload stream to/from a File, and asserts whether the assembled File
-	 * has the same checksum as the client File.
-	 * 
-	 * @throws IOException
-	 * @throws ParseException
-	 */
-	//@Test
-	public void testMakeAndReadUpload() throws IOException, ParseException{
-		
-		File zsyncFile = createMetaFile("serverfile.zsync", blocksize, servercopy );
-		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy.UPLOADZS" );
-		File assembledFile = readSavedUpload( uploadFile, filepath + "assembledcopy.pdf", servercopy );
-		
-		String localSha1 =  new SHA1( localcopy ).SHA1sum();
-		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
-		
-		Assert.assertEquals( localSha1, assembledSha1 );
-	}
-	
-	//@Test
+	@Test
 	public void testMakeAndReadSmallTextUpload() throws IOException, ParseException{
 		System.out.println("------------------- testMakeAndReadSmallTextUpload -------------------------");
-		File serverSmallText = new File("testfiles/small-text-server.txt");
-		File localSmallText = new File("testfiles/small-text-local.txt");
-		if( !serverSmallText.exists()) {
-			throw new RuntimeException("Couldnt find: " + serverSmallText.getAbsolutePath());
+		servercopy = new File(filepath + "small-text-server.txt");
+		localcopy = new File(filepath + "small-text-local.txt");
+		if( !servercopy.exists()) {
+			throw new RuntimeException("Couldnt find: " + servercopy.getAbsolutePath());
 		}
-		if( !localSmallText.exists()) {
-			throw new RuntimeException("Couldnt find: " + localSmallText.getAbsolutePath());
+		if( !localcopy.exists()) {
+			throw new RuntimeException("Couldnt find: " + localcopy.getAbsolutePath());
 		}
 		
-		File zsyncFile = createMetaFile("small-text.zsync", 16, serverSmallText ); // use small blocksize
-		File uploadFile = makeAndSaveUpload( localSmallText, zsyncFile, filepath + "small-text-local.UPLOADZS" );
+		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		host.doPut(baseUrl , servercopy);		
+		
+		File zsyncFile = createMetaFile("small-text.zsync", 16, servercopy ); // use small blocksize
+		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "small-text-local.UPLOADZS" );
 		System.out.println("Created upload file: " + uploadFile.getAbsolutePath());
-		File assembledFile = readSavedUpload( uploadFile, filepath + "small-text-assembled.txt", serverSmallText );
+		File assembledFile = readSavedUpload( uploadFile, filepath + "small-text-assembled.txt", servercopy );
 		System.out.println("Assesmbling to: " + assembledFile.getAbsolutePath());
 		
-		String localSha1 =  new SHA1( localSmallText ).SHA1sum();
+		String localSha1 =  new SHA1( localcopy ).SHA1sum();
 		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
 		
 		Assert.assertEquals( localSha1, assembledSha1 );
@@ -142,22 +113,25 @@ public class IntegrationTests {
 	@Test
 	public void testMakeAndRead_Large_CSV() throws IOException, ParseException{
 		System.out.println("------------------- testMakeAndRead_Large_CSV -------------------------");
-		File serverSmallText = new File("testfiles/large-csv-server.csv");
-		File localSmallText = new File("testfiles/large-csv-local.csv");
-		if( !serverSmallText.exists()) {
-			throw new RuntimeException("Couldnt find: " + serverSmallText.getAbsolutePath());
+		servercopy = new File(filepath + "large-csv-server.csv");
+		localcopy = new File(filepath + "large-csv-local.csv");
+		if( !servercopy.exists()) {
+			throw new RuntimeException("Couldnt find: " + servercopy.getAbsolutePath());
 		}
-		if( !localSmallText.exists()) {
-			throw new RuntimeException("Couldnt find: " + localSmallText.getAbsolutePath());
+		if( !localcopy.exists()) {
+			throw new RuntimeException("Couldnt find: " + localcopy.getAbsolutePath());
 		}
 		
-		File zsyncFile = createMetaFile("large-excel.zsync", 256, serverSmallText ); // use small blocksize
-		File uploadFile = makeAndSaveUpload( localSmallText, zsyncFile, filepath + "large-csv.UPLOADZS" );
+		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		host.doPut(baseUrl , servercopy);
+		
+		
+		File zsyncFile = createMetaFile("large-excel.zsync", 256, servercopy ); // use small blocksize
+		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "large-csv.UPLOADZS" );
 		System.out.println("Created upload file: " + uploadFile.getAbsolutePath() + " of " + formatBytes(uploadFile.length()) );
-		File assembledFile = readSavedUpload( uploadFile, filepath + "large-csv-assembled.xls", serverSmallText );
-		System.out.println("Assesmbling to: " + assembledFile.getAbsolutePath());
+		File assembledFile = readSavedUpload( uploadFile, filepath + "large-csv-assembled.xls", servercopy );
 		
-		String localSha1 =  new SHA1( localSmallText ).SHA1sum();
+		String localSha1 =  new SHA1( localcopy ).SHA1sum();
 		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
 		
 		Assert.assertEquals( localSha1, assembledSha1 );
@@ -190,6 +164,7 @@ public class IntegrationTests {
 		
 		
 		uploadIn.close();
+		System.out.println("Assesmbled to: " + assembledFile.getAbsolutePath());		
 		return assembledFile;
 		
 	}
@@ -248,12 +223,38 @@ public class IntegrationTests {
 		if( !zsfile.renameTo( dest ) ) {
 			throw new RuntimeException("Failed to rename to: " + dest.getAbsolutePath());
 		}
-		System.out.println("Created meta file of size: " + formatBytes(dest.length()));
+		System.out.println("Created meta file of size: " + formatBytes(dest.length()) + " from source file of size: " + formatBytes(serverFile.length()) );
 		return dest;
 	}
 	
+	/**
+	 * Writes/reads the upload stream to/from a File, and asserts whether the assembled File
+	 * has the same checksum as the client File.
+	 * 
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	//@Test
+	public void testMakeAndReadUpload() throws IOException, ParseException{
+		
+		File zsyncFile = createMetaFile("serverfile.zsync", blocksize, servercopy );
+		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy.UPLOADZS" );
+		File assembledFile = readSavedUpload( uploadFile, filepath + "assembledcopy.pdf", servercopy );
+		
+		String localSha1 =  new SHA1( localcopy ).SHA1sum();
+		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
+		
+		Assert.assertEquals( localSha1, assembledSha1 );
+	}
+		
 	
-	
-	
-	
+	private String formatBytes(long l) {
+		if( l < 1000 ) {
+			return l + " bytes";
+		} else if( l < 1000000) {
+			return l/1000 + "KB";
+		} else {
+			return l/1000000 + "MB";
+		}
+	}			
 }

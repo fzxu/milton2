@@ -82,6 +82,11 @@ might be something to do with the -jdk15 after the verson number
             <version>4.8.2</version>
 			<scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>milton-zsync</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
 
