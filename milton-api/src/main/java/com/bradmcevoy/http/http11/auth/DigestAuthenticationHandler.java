@@ -50,6 +50,7 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         return b;
     }
 
+	@Override
     public Object authenticate( Resource r, Request request ) {
         DigestResource digestResource = (DigestResource) r;
         Auth auth = request.getAuthorization();
@@ -63,6 +64,7 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         }
     }
 
+	@Override
     public String getChallenge( Resource resource, Request request ) {
 
         String nonceValue = nonceProvider.createNonce( resource, request );
