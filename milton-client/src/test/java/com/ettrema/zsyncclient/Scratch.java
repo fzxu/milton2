@@ -114,7 +114,7 @@ public class Scratch {
 					FileOutputStream fout = new FileOutputStream(fRemoteMeta);
 					StreamUtils.readTo(in, fout, true, true);
 				}
-			}, null);
+			}, null, null);
 		} catch (HttpException e) {
 			if (e instanceof BadRequestException) {
 				notExisting = true;
@@ -127,7 +127,7 @@ public class Scratch {
 			System.out.println("meta file: " + fRemoteMeta.getAbsolutePath());
 			// Now build local file			
 			Assert.assertNotNull(remoteFile);
-			HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
+			HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile, null);
 
 			System.out.println("local: " + fLocal.getAbsolutePath());
 			fileMaker.make(fLocal, fRemoteMeta, rangeLoader);
@@ -156,7 +156,7 @@ public class Scratch {
 					FileOutputStream fout = new FileOutputStream(fRemoteMeta);
 					StreamUtils.readTo(in, fout, true, true);
 				}
-			}, null);
+			}, null, null);
 		} catch (HttpException e) {
 			if (e instanceof BadRequestException) {
 				notExisting = true;
@@ -164,7 +164,7 @@ public class Scratch {
 		}
 		if (notExisting) {
 			System.out.println("remote file does not exist, so will upload completely");
-			int result = host.doPut(baseUrl, fIn);
+			int result = host.doPut(baseUrl, fIn, null);
 			Utils.processResultCode(result, url);
 			System.out.println("done full upload!!  result: " + result);
 		} else {
@@ -172,7 +172,7 @@ public class Scratch {
 
 			UploadMakerEx umx = new UploadMakerEx(fIn, fRemoteMeta);
 			File uploadFile = umx.getUploadFile();
-			int result = host.doPut(url, uploadFile);
+			int result = host.doPut(url, uploadFile, null);
 			Utils.processResultCode(result, url);
 			System.out.println("done!!  result: " + result);
 		}
@@ -205,7 +205,7 @@ public class Scratch {
 					long size = StreamUtils.readTo(in, fout, true, true);
 					System.out.println("Downloaded remote meta file of size: " + formatBytes(size));
 				}
-			}, null);
+			}, null, null);
 		} catch (HttpException e) {
 			if (e instanceof BadRequestException) {
 				notExisting = true;
@@ -215,7 +215,7 @@ public class Scratch {
 		long startUsed = 0;
 		if (notExisting) {
 			System.out.println("remote file does not exist, so will upload completely");
-			int result = host.doPut(baseUrl, fIn);
+			int result = host.doPut(baseUrl, fIn, null);
 			Utils.processResultCode(result, url);
 			System.out.println("done full upload!!  result: " + result);
 		} else {
@@ -236,7 +236,7 @@ public class Scratch {
 			System.out.println("Memory change1: " + formatBytes(endUsed - startUsed));
 
 			System.out.println("Uploading: " + uploadFile.getAbsolutePath());
-			int result = host.doPut(url, uploadFile);
+			int result = host.doPut(url, uploadFile, null);
 			Utils.processResultCode(result, url);
 			System.out.println("done!!  result: " + result);
 		}

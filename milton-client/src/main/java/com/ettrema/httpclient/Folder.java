@@ -140,7 +140,7 @@ public class Folder extends Resource {
     }
 
     public void upload(File f) throws IOException, HttpException {
-        upload(f, null, null);
+        upload(f, null);
     }
 
     /**
@@ -150,46 +150,38 @@ public class Folder extends Resource {
      * @param throttle - optional, can be used to slow down the transfer
      * @throws IOException
      */
-    public void upload(File f, ProgressListener listener, Throttle throttle) throws IOException, HttpException {
+    public void upload(File f, ProgressListener listener) throws IOException, HttpException {
         if (f.isDirectory()) {
-            uploadFolder(f, listener, throttle);
+            uploadFolder(f, listener);
         } else {
-            uploadFile(f, listener, throttle);
+            uploadFile(f, listener);
         }
     }
 
-    protected void uploadFile(File f, ProgressListener listener, Throttle throttle) throws FileNotFoundException, IOException, HttpException {
-        NotifyingFileInputStream in = null;
-        try {
-            in = new NotifyingFileInputStream(f, listener, throttle);
-            upload(f.getName(), in, f.length());
-            flush();
-        } finally {
-            Utils.close(in);
-            listener.onComplete(f.getName());
-        }
+    protected void uploadFile(File f, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {		
+		host().doPut(name, f, listener);
     }
 
-    protected void uploadFolder(File folder, ProgressListener listener, Throttle throttle) throws IOException, HttpException {
+    protected void uploadFolder(File folder, ProgressListener listener) throws IOException, HttpException {
         if (folder.getName().startsWith(".")) {
             return;
         }
         Folder newFolder = createFolder(folder.getName());
         for (File f : folder.listFiles()) {
-            newFolder.upload(f, listener, throttle);
+            newFolder.upload(f, listener);
         }
     }
 
-    public com.ettrema.httpclient.File upload(String name, InputStream content, Integer contentLength) throws IOException, HttpException {
+    public com.ettrema.httpclient.File upload(String name, InputStream content, Integer contentLength, ProgressListener listener) throws IOException, HttpException {
         Long length = null;
         if (contentLength != null) {
             long l = contentLength;
             length = l;
         }
-        return upload(name, content, length);
+        return upload(name, content, length, listener);
     }
 
-    public com.ettrema.httpclient.File upload(String name, InputStream content, Long contentLength) throws IOException, HttpException {
+    public com.ettrema.httpclient.File upload(String name, InputStream content, Long contentLength, ProgressListener listener) throws IOException, HttpException {
         children(); // ensure children are loaded
         String newUri = href() + name;
         String contentType = URLConnection.guessContentTypeFromName(name);

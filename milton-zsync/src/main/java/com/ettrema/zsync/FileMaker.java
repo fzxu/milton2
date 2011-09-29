@@ -27,6 +27,7 @@ package com.ettrema.zsync;
 
 import com.bradmcevoy.http.Range;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -75,12 +76,12 @@ public class FileMaker {
 	 * @param rangeLoader - accessor object, to get the binary data of the "remote"
 	 * file
 	 */
-	public File make(File inputFile, File metafile, RangeLoader rangeLoader) throws Exception {
+	public File make(File inputFile, File metafile, RangeLoader rangeLoader) throws IOException {
 		MetaFileReader mfr = new MetaFileReader(metafile);
 		return make(mfr, inputFile, rangeLoader);
 	}
 
-	private File make(MetaFileReader mfr, File inputFile, RangeLoader rangeLoader) throws Exception {
+	private File make(MetaFileReader mfr, File inputFile, RangeLoader rangeLoader) throws IOException {
 		MakeContext makeContext = new MakeContext(mfr.getHashtable(), new long[mfr.getBlockCount()]);
 		Arrays.fill(makeContext.fileMap, -1);
 		double complete = mapMatcher.mapMatcher(inputFile, mfr, makeContext);

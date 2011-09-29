@@ -64,7 +64,7 @@ public class IntegrationTests {
 		servercopy = new File( filepath + "large-text-server.txt" );		
 				
 		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
-		host.doPut(baseUrl , servercopy);
+		host.doPut(baseUrl , servercopy, null);
 		
 		File zsyncFile = createMetaFile( "servercopy.zsync", blocksize, servercopy );
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "localcopy2.UPLOADZS" );
@@ -94,7 +94,7 @@ public class IntegrationTests {
 		}
 		
 		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
-		host.doPut(baseUrl , servercopy);		
+		host.doPut(baseUrl , servercopy, null);		
 		
 		File zsyncFile = createMetaFile("small-text.zsync", 16, servercopy ); // use small blocksize
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "small-text-local.UPLOADZS" );
@@ -121,7 +121,7 @@ public class IntegrationTests {
 		}
 		
 		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
-		host.doPut(baseUrl , servercopy);
+		host.doPut(baseUrl , servercopy, null);
 		
 		
 		File zsyncFile = createMetaFile("large-csv.zsync", 256, servercopy ); // use small blocksize
@@ -149,7 +149,7 @@ public class IntegrationTests {
 		}
 		
 		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
-		host.doPut(baseUrl , servercopy);
+		host.doPut(baseUrl , servercopy, null);
 		
 		
 		File zsyncFile = createMetaFile("large-excel.zsync", 256, servercopy ); // use small blocksize

@@ -18,7 +18,9 @@ import org.junit.Test;
 
 import com.bradmcevoy.http.Range;
 import com.ettrema.zsync.ByteRange;
+import com.ettrema.zsync.ByteRangeWriter;
 import com.ettrema.zsync.DataRange;
+import com.ettrema.zsync.RelocWriter;
 import com.ettrema.zsync.RelocateRange;
 import com.ettrema.zsync.Upload;
 import com.ettrema.zsync.UploadMakerEx;
@@ -107,12 +109,12 @@ public class UploadTests {
 		String inString = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXABCDEYZXXXXX";
 		randAccess.write( inString.getBytes( "US-ASCII" ) );
 		
-		UploadMakerEx.ByteRangeWriter dataRanges = new UploadMakerEx.ByteRangeWriter( 16384);
+		ByteRangeWriter dataRanges = new ByteRangeWriter( 16384);
 		dataRanges.add( new Range( 45, 50 ), randAccess );
 		dataRanges.add( new Range( 51, 52 ), randAccess );
 		um.setDataStream( dataRanges.getInputStream() );
 		
-		UploadMakerEx.RelocWriter relocRanges = new UploadMakerEx.RelocWriter( 16384 );
+		RelocWriter relocRanges = new RelocWriter( 16384 );
 		relocRanges.add( new RelocateRange( new Range( 2, 6 ), 123 ) );
 		relocRanges.add( new RelocateRange( new Range( 8, 98 ), 987 ) );
 		um.setRelocStream( relocRanges.getInputStream() );

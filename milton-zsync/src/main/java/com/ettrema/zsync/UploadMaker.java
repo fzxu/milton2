@@ -175,7 +175,7 @@ public class UploadMaker{
 		
 		LinkedList<Long> localOffsets = new LinkedList<Long>(); // List of local matching block offsets
 		//ArrayList<Range> rangeList = new ArrayList<Range>(); // output List
-		UploadMakerEx.ByteRangeWriter rangeList = new UploadMakerEx.ByteRangeWriter( 16384 );
+		ByteRangeWriter rangeList = new ByteRangeWriter( 16384 );
 		RandomAccessFile randAccess = null;
 		
 		long fileLength = local.length();
@@ -245,7 +245,7 @@ public class UploadMaker{
 			int blockSize, long fileLength, boolean combineRanges) throws IOException{
 		
 		//ArrayList<RelocateRange> ranges = new ArrayList<RelocateRange>();
-		UploadMakerEx.RelocWriter relocList = new UploadMakerEx.RelocWriter( 16384 );
+		RelocWriter relocList = new RelocWriter( 16384 );
 		
 		for (int blockIndex = 0; blockIndex < fileMap.length; blockIndex++){
 			
@@ -348,7 +348,7 @@ public class UploadMaker{
 	 */
 	public static InputStream getRelocStream( List<RelocateRange> relocList ) throws IOException{
 		
-		UploadMakerEx.RelocWriter relocWriter = new UploadMakerEx.RelocWriter( 16384 );
+		RelocWriter relocWriter = new RelocWriter( 16384 );
 		for ( RelocateRange reloc: relocList ) {
 			relocWriter.add( reloc );
 		}
@@ -365,7 +365,7 @@ public class UploadMaker{
 	 */
 	public static InputStream getDataStream( List<Range> ranges, File local ) throws IOException {
 		
-		UploadMakerEx.ByteRangeWriter dataWriter = new UploadMakerEx.ByteRangeWriter( 16384 );
+		ByteRangeWriter dataWriter = new ByteRangeWriter( 16384 );
 		RandomAccessFile randAccess = null;
 		
 		try{

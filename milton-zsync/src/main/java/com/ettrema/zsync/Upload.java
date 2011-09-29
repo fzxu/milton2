@@ -1,8 +1,5 @@
 package com.ettrema.zsync;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,7 +7,6 @@ import java.io.SequenceInputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -20,9 +16,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.bradmcevoy.http.Range;
 import com.bradmcevoy.io.BufferingOutputStream;
-import com.bradmcevoy.io.StreamUtils;
 
 /**
  * A container for the information transmitted in a ZSync PUT upload. The information currently consists of some
@@ -66,7 +60,6 @@ public class Upload {
 	public final static String RANGE = "Range";
 	
 	private String version;
-	private String contentLength;
 	private String sha1;
 	private long blocksize;
 	private long filelength;

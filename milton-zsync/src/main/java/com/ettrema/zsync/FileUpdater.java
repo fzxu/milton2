@@ -52,7 +52,7 @@ public class FileUpdater {
 	/**
 	 * Method for completing file
 	 */
-	public void update(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext mc, File newFile) throws Exception {
+	public void update(File inputFile, MetaFileReader mfr, RangeLoader rangeLoader, MakeContext mc, File newFile)  {
 		log.trace("fileMaker: input: " + inputFile.getAbsolutePath());
 		try {
 			double a = 10;

@@ -5,11 +5,14 @@ import com.bradmcevoy.http.Range;
 import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
 
+import com.ettrema.httpclient.zsyncclient.ZSyncClient;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -21,14 +24,12 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -38,6 +39,7 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,11 +65,11 @@ public class Host extends Folder {
 	 * time in milliseconds to be used for all timeout parameters
 	 */
 	private int timeout;
-	final HttpClient client;
-	public final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
+	private final HttpClient client;
+	private final TransferService transferService;
+	private final ZSyncClient zSyncClient;
+	private final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
 	private String propFindXml = PROPFIND_XML;
-//	private MetaFileMaker metaFileMaker = new MetaFileMaker();
-//	private FileMaker fileMaker = new FileMaker();
 
 	static {
 //    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
@@ -77,18 +79,18 @@ public class Host extends Folder {
 	}
 
 	public Host(String server, int port, String user, String password, ProxyDetails proxyDetails) {
-		this(server, null, port, user, password, proxyDetails, 30000, null);
+		this(server, null, port, user, password, proxyDetails, 30000, null, false);
 	}
 
 	public Host(String server, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
-		this(server, null, port, user, password, proxyDetails, 30000, cache); // defaul timeout of 30sec
+		this(server, null, port, user, password, proxyDetails, 30000, cache, false); // defaul timeout of 30sec
 	}
 
 	public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
-		this(server, rootPath, port, user, password, proxyDetails, 30000, cache); // defaul timeout of 30sec
+		this(server, rootPath, port, user, password, proxyDetails, 30000, cache, false); // defaul timeout of 30sec
 	}
 
-	public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout, Cache<Folder, List<Resource>> cache) {
+	public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout, Cache<Folder, List<Resource>> cache, boolean enableZSync) {
 		super((cache != null ? cache : new MemoryCache<Folder, List<Resource>>("resource-cache-default", 50, 20)));
 		if (server == null) {
 			throw new IllegalArgumentException("host name cannot be null");
@@ -125,6 +127,13 @@ public class Host extends Folder {
 				}
 			}
 		}
+		transferService = new TransferService(client, connectionListeners);
+		transferService.setTimeout(timeout);
+		if( enableZSync ) {
+			zSyncClient = new ZSyncClient(transferService);
+		} else {
+			zSyncClient = null;
+		}
 	}
 
 	/**
@@ -139,7 +148,7 @@ public class Host extends Folder {
 	public Resource find(String path) throws IOException, com.ettrema.httpclient.HttpException {
 		return find(path, false);
 	}
-	
+
 	public Resource find(String path, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException {
 		if (path == null || path.length() == 0 || path.equals("/")) {
 			return this;
@@ -148,9 +157,8 @@ public class Host extends Folder {
 			path = path.substring(1);
 		}
 		String[] arr = path.split("/");
-		return _find(this, arr, 0, invalidateCache);		
+		return _find(this, arr, 0, invalidateCache);
 	}
-	
 
 	public static Resource _find(Folder parent, String[] arr, int i, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException {
 		String childName = arr[i];
@@ -161,7 +169,7 @@ public class Host extends Folder {
 			System.out.println("  child: " + child);
 			return child;
 		} else {
-			if (child instanceof Folder) {				
+			if (child instanceof Folder) {
 				return _find((Folder) child, arr, i + 1, invalidateCache);
 			} else {
 				return null;
@@ -210,7 +218,16 @@ public class Host extends Folder {
 		return doPut(dest, content, contentLength, contentType);
 	}
 
-	public int doPut(String newUri, java.io.File file) throws FileNotFoundException {
+	public int doPut(String newUri, java.io.File file, ProgressListener listener) throws FileNotFoundException, HttpException {
+		if (zSyncClient != null) {
+			try {
+				return zSyncClient.upload(this, file, Path.path(newUri), listener);
+			} catch (NotFoundException e) {
+				// ZSync file was not found
+			} catch (IOException ex) {
+				throw new HttpException("Exception doing zsync upload", ex);
+			}
+		}
 		InputStream in = null;
 		try {
 			in = new FileInputStream(file);
@@ -218,8 +235,9 @@ public class Host extends Folder {
 		} finally {
 			IOUtils.closeQuietly(in);
 		}
+
 	}
-	
+
 	public synchronized int doPut(String newUri, InputStream content, Long contentLength, String contentType) {
 		log.trace("put: " + newUri);
 		notifyStartRequest();
@@ -328,41 +346,32 @@ public class Host extends Folder {
 
 	/**
 	 * 
-	 * @param url
+	 * @param url - fully qualified URL
 	 * @param receiver
 	 * @param rangeList - if null does a normal GET request
 	 * @throws com.ettrema.httpclient.HttpException
 	 * @throws com.ettrema.httpclient.Utils.CancelledException 
 	 */
-	public synchronized void doGet(String url, StreamReceiver receiver, List<Range> rangeList) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
-		notifyStartRequest();
-		HttpMethodBase m;
-		if( rangeList != null ) {
-			m = new RangedGetMethod(urlEncode(url), rangeList);
-		} else {
-			m = new GetMethod(urlEncode(url));
-		}
-		InputStream in = null;
-		try {
-			int res = client.executeMethod(m);
-			Utils.processResultCode(res, url);
-			in = m.getResponseBodyAsStream();
-			receiver.receive(in);
-		} catch (HttpException ex) {
-			m.abort();
-			throw new GenericHttpException(ex.getReasonCode(), url);
-		} catch (Utils.CancelledException ex) {
-			m.abort();
-			throw ex;
-		} catch (IOException ex) {
-			m.abort();
-			throw new RuntimeException(ex);
-		} finally {
-			Utils.close(in);
-			m.releaseConnection();
-			notifyFinishRequest();
-		}
+	public synchronized void doGet(String url, StreamReceiver receiver, List<Range> rangeList, ProgressListener listener) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
+		transferService.get(url, receiver, rangeList, listener);
 	}
+	
+	public synchronized void doGet(String url, final java.io.File file, ProgressListener listener) throws IOException, NotFoundException, com.ettrema.httpclient.HttpException {
+		if (zSyncClient != null) {
+			zSyncClient.download(this, Path.path(url), file, listener);
+		} else {
+			transferService.get(url, new StreamReceiver() {
+
+				@Override
+				public void receive(InputStream in) throws IOException {
+					OutputStream out = FileUtils.openOutputStream(file);
+					BufferedOutputStream bout = new BufferedOutputStream(out);
+					IOUtils.copy(in, bout);
+					
+				}
+			}, null, listener);
+		}
+	}	
 
 	public synchronized void options(String path) throws java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
 		String url = this.href() + path;
@@ -372,8 +381,9 @@ public class Host extends Folder {
 	public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
 		String url = this.href() + path;
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		doGet(url, new StreamReceiver() {
+		transferService.get(url, new StreamReceiver() {
 
+			@Override
 			public void receive(InputStream in) {
 				try {
 					IOUtils.copy(in, out);
@@ -381,7 +391,7 @@ public class Host extends Folder {
 					throw new RuntimeException(ex);
 				}
 			}
-		}, null);
+		}, null, null);
 		return out.toByteArray();
 	}
 
@@ -490,6 +500,12 @@ public class Host extends Folder {
 		return s;
 	}
 
+	/**
+	 * Returns the fully qualified URL for the given path
+	 * 
+	 * @param path
+	 * @return 
+	 */
 	public String getHref(Path path) {
 		String s = "http://" + server;
 		if (this.port != 80) {
@@ -535,17 +551,6 @@ public class Host extends Folder {
 		//s = s.replace( " ", "%20" );
 	}
 
-	void notifyStartRequest() {
-		for (ConnectionListener l : connectionListeners) {
-			l.onStartRequest();
-		}
-	}
-
-	void notifyFinishRequest() {
-		for (ConnectionListener l : connectionListeners) {
-			l.onFinishRequest();
-		}
-	}
 
 	public String getPropFindXml() {
 		return propFindXml;
@@ -595,43 +600,22 @@ public class Host extends Folder {
 	 */
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
+		transferService.setTimeout(timeout);
 	}
-//
-//	public java.io.File doSyncDownload(File remoteFile, java.io.File fLocalFile) throws com.ettrema.httpclient.HttpException, Exception {
-//		final java.io.File fRemoteMeta = java.io.File.createTempFile("milton-zsync-remotemeta", null);
-//		String url = remoteFile.href() + "/.zsync";
-//		doGet(url, new StreamReceiver() {
-//
-//			@Override
-//			public void receive(InputStream in) throws IOException {
-//				FileOutputStream fout = new FileOutputStream(fRemoteMeta);
-//				StreamUtils.readTo(in, fout, true, true);
-//			}
-//		}, null);		
-//		
-//		HttpRangeLoader rangeLoader = new HttpRangeLoader(remoteFile);
-//		java.io.File mergedFile = fileMaker.make(fLocalFile, fRemoteMeta, rangeLoader);
-//		return mergedFile;
-//		
-//	}
-//
-//	public void syncUpload(File aThis, java.io.File localFile) throws FileNotFoundException, com.ettrema.httpclient.HttpException, IOException {
-//		int blockSize = metaFileMaker.computeBlockSize(localFile.length());
-//		String url = aThis.href() + "/.zsync";		
-//		java.io.File metaFile = metaFileMaker.make(url, blockSize, localFile);
-//		Part[] parts = {new FilePart("meta", metaFile)};
-//		String ranges = doPost(url, null, parts);
-//		System.out.println("ranges: " + ranges);
-//		
-//		RangeListParser listParser = new RangeListParser();
-//		List<Range> list = listParser.parse(new ByteArrayInputStream(ranges.getBytes()));
-//		
-//		LocalFileRangeLoader fileRangeLoader = new LocalFileRangeLoader(localFile);
-//		byte[] data = fileRangeLoader.get(list);
-//		System.out.println("sending bytes: " + data.length);
-//		InputStream in = new ByteArrayInputStream(data);
-//		int result = doPut(url, in, (long)data.length, null); 
-//		Utils.processResultCode(result, url );
-//		
-//	}
+
+	public ZSyncClient getzSyncClient() {
+		return zSyncClient;
+	}
+
+	private void notifyStartRequest() {
+		for (ConnectionListener l : connectionListeners) {
+			l.onStartRequest();
+		}
+	}
+
+	private void notifyFinishRequest() {
+		for (ConnectionListener l : connectionListeners) {
+			l.onFinishRequest();
+		}
+	}	
 }
