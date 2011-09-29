@@ -74,7 +74,7 @@ public class IntegrationTests {
 		String url = host.getHref( Path.path( servercopy.getName() + "/.zsync" ) );
 		InputStream uploadIn = new FileInputStream( uploadFile );
 		
-		int result = host.doPut(url, uploadIn, uploadFile.length(), null );
+		int result = host.doPut(url, uploadIn, uploadFile.length(), null, null );
 		uploadIn.close();
 		Assert.assertEquals( 204, result );
 		System.out.println("");

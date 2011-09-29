@@ -2,9 +2,11 @@ package com.ettrema.httpclient;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Range;
+import com.bradmcevoy.http.Response;
 import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
 
+import com.ettrema.common.LogUtils;
 import com.ettrema.httpclient.zsyncclient.ZSyncClient;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,15 +32,12 @@ import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -215,13 +214,24 @@ public class Host extends Folder {
 
 	public int doPut(Path path, InputStream content, Long contentLength, String contentType) {
 		String dest = getHref(path);
-		return doPut(dest, content, contentLength, contentType);
+		return doPut(dest, content, contentLength, contentType, null);
 	}
 
+	/**
+	 * 
+	 * @param newUri
+	 * @param file
+	 * @param listener
+	 * @return - the result code
+	 * @throws FileNotFoundException
+	 * @throws HttpException 
+	 */
 	public int doPut(String newUri, java.io.File file, ProgressListener listener) throws FileNotFoundException, HttpException {
 		if (zSyncClient != null) {
 			try {
-				return zSyncClient.upload(this, file, Path.path(newUri), listener);
+				int bytes = zSyncClient.upload(this, file, Path.path(newUri), listener);
+				LogUtils.trace(log, "doPut: uploaded: ", bytes, " bytes");
+				return Response.Status.SC_OK.code;
 			} catch (NotFoundException e) {
 				// ZSync file was not found
 			} catch (IOException ex) {
@@ -231,41 +241,25 @@ public class Host extends Folder {
 		InputStream in = null;
 		try {
 			in = new FileInputStream(file);
-			return doPut(newUri, in, file.length(), null);
+			return doPut(newUri, in, file.length(), null, listener);
 		} finally {
 			IOUtils.closeQuietly(in);
 		}
 
 	}
 
-	public synchronized int doPut(String newUri, InputStream content, Long contentLength, String contentType) {
-		log.trace("put: " + newUri);
-		notifyStartRequest();
-		String s = urlEncode(newUri);
-		PutMethod p = new PutMethod(s);
-
-		HttpMethodParams params = new HttpMethodParams();
-		params.setSoTimeout(timeout);
-		p.setParams(params);
-		try {
-			RequestEntity requestEntity;
-			if (contentLength == null) {
-				log.trace("no content length");
-				requestEntity = new InputStreamRequestEntity(content, contentType);
-			} else {
-				requestEntity = new InputStreamRequestEntity(content, contentLength, contentType);
-			}
-			p.setRequestEntity(requestEntity);
-			int result = host().client.executeMethod(p);
-			return result;
-		} catch (HttpException ex) {
-			throw new RuntimeException(ex);
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		} finally {
-			p.releaseConnection();
-			notifyFinishRequest();
-		}
+	/**
+	 * Uploads the data. Does not do any file syncronisation
+	 * 
+	 * @param newUri
+	 * @param content
+	 * @param contentLength
+	 * @param contentType
+	 * @return - the result code
+	 */
+	public synchronized int doPut(String newUri, InputStream content, Long contentLength, String contentType, ProgressListener listener) {
+		LogUtils.trace(log, "doPut", newUri);
+		return transferService.put(newUri, content, contentLength, contentType, listener);
 	}
 
 	public synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException {

@@ -1,6 +1,7 @@
 package com.ettrema.httpclient;
 
 import com.ettrema.cache.Cache;
+import com.ettrema.common.LogUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -61,6 +62,7 @@ public class Folder extends Resource {
         return host().doPost(href() + relativePath, params);
     }
 
+	@Override
     public File downloadTo(File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {
         File thisDir = new File(destFolder, this.name);
         thisDir.mkdir();
@@ -158,8 +160,20 @@ public class Folder extends Resource {
         }
     }
 
-    protected void uploadFile(File f, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {		
-		host().doPut(name, f, listener);
+	public com.ettrema.httpclient.File uploadFile(File f) throws FileNotFoundException, IOException, HttpException {		
+		return uploadFile(f, null);
+	}
+	
+    public com.ettrema.httpclient.File uploadFile(File f, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {		
+		String newUri = href() + name;		
+		children(); // ensure children are loaded
+		int resultCode = host().doPut(newUri, f, listener);
+		LogUtils.trace(log, "uploadFile", newUri," result", resultCode);
+		Utils.processResultCode(resultCode, newUri);
+        com.ettrema.httpclient.File child = new com.ettrema.httpclient.File(this, name, null, f.length());
+        flush();
+        notifyOnChildAdded(child);
+        return child;		
     }
 
     protected void uploadFolder(File folder, ProgressListener listener) throws IOException, HttpException {
@@ -186,7 +200,7 @@ public class Folder extends Resource {
         String newUri = href() + name;
         String contentType = URLConnection.guessContentTypeFromName(name);
         log.trace("upload: " + newUri);
-        int result = host().doPut(newUri, content, contentLength, contentType);
+        int result = host().doPut(newUri, content, contentLength, contentType, listener);
         Utils.processResultCode(result, newUri);
         com.ettrema.httpclient.File child = new com.ettrema.httpclient.File(this, name, contentType, contentLength);
         com.ettrema.httpclient.Resource oldChild = this.child(child.name);
