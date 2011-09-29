@@ -45,8 +45,6 @@ import java.util.List;
 import com.ettrema.zsync.HeaderMaker.Headers;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Metafile making class
@@ -92,6 +90,7 @@ public class MetaFileMaker {
 	}
 
 	public File make(String url, int blocksize, File file) throws FileNotFoundException {
+		long tm = System.currentTimeMillis();
 		FileInputStream fin = null;
 		MetaData metaData;
 		try {
@@ -138,7 +137,10 @@ public class MetaFileMaker {
 			}
 		} finally {
 			StreamUtils.close(fos);
+			tm = System.currentTimeMillis() - tm;			
+			System.out.println("Made meta file in: " + tm + "ms");
 		}
+		
 	}
 
 	public void write(MetaData metaData, OutputStream out) {

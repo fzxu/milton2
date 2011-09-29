@@ -73,12 +73,15 @@ public class UploadMaker{
 	}
 	
 	public InputStream makeUpload() throws IOException{
-		init();
+	
+		this.initMetaData();
+		
 		try {
 			
 			System.out.print( "Matching client and server blocks..." );
 			long t0 = System.currentTimeMillis();
 			
+			/* Rolling checksum procedure */
 			MapMatcher matcher = new MapMatcher();
 			matcher.mapMatcher( localCopy, metaFileReader, makeContext );
 			long t1 = System.currentTimeMillis();
@@ -87,6 +90,7 @@ public class UploadMaker{
 			System.out.print( "Creating Upload..." );
 			long t2 = System.currentTimeMillis();
 			
+			/* Computing upload and writing to BufferingOutputStreams */
 			this.initUpload();
 			long t3 = System.currentTimeMillis();
 			
@@ -116,8 +120,8 @@ public class UploadMaker{
 				new long[ metaFileReader.getBlockCount() ] );
 		Arrays.fill( makeContext.fileMap, -1 );
 		
-		MapMatcher matcher = new MapMatcher();
-		matcher.mapMatcher( localCopy, metaFileReader, makeContext );
+		//MapMatcher matcher = new MapMatcher();
+		//matcher.mapMatcher( localCopy, metaFileReader, makeContext );
 		
 	}
 	
@@ -128,10 +132,10 @@ public class UploadMaker{
 	 */
 	private void initUpload() throws IOException{
 
-		List<Range> ranges = serversMissingRanges( makeContext.fileMap, 
-				localCopy.length(), metaFileReader.getBlocksize() );
+		InputStream ranges = serversMissingRanges( makeContext.fileMap, 
+				localCopy, metaFileReader.getBlocksize() );
 		
-		List<RelocateRange> relocRanges = serversRelocationRanges( makeContext.fileMap, 
+		InputStream relocRanges = serversRelocationRanges( makeContext.fileMap, 
 				metaFileReader.getBlocksize(), localCopy.length(), true );
 
 		upload.setVersion( "testVersion" );
@@ -139,8 +143,8 @@ public class UploadMaker{
 		upload.setFilelength( localCopy.length() );
 		upload.setSha1(  new SHA1( localCopy ).SHA1sum()  );
 
-		upload.setRelocStream( getRelocStream( relocRanges ) );
-		upload.setDataStream( getDataStream( ranges, localCopy ) );
+		upload.setRelocStream( relocRanges );
+		upload.setDataStream( ranges );
 	}
 	
 	/**
@@ -158,9 +162,10 @@ public class UploadMaker{
 	 * @param blockSize The size of a block. Must correspond to block size used in <code>fileMap</code>
 	 * 
 	 * @return The List of byte Ranges that need to be sent
+	 * @throws IOException 
 	 */
-	public static List<Range> serversMissingRanges(long[] fileMap, 
-			long fileLength, int blockSize){
+	public static InputStream serversMissingRanges(long[] fileMap, 
+			File local, int blockSize) throws IOException{
 		
 		/*
 		 * The ranges are determined by sorting the offset values in the fileMap array, 
@@ -169,43 +174,55 @@ public class UploadMaker{
 		 */
 		
 		LinkedList<Long> localOffsets = new LinkedList<Long>(); // List of local matching block offsets
-		ArrayList<Range> rangeList = new ArrayList<Range>(); // output List
+		//ArrayList<Range> rangeList = new ArrayList<Range>(); // output List
+		UploadMakerEx.ByteRangeWriter rangeList = new UploadMakerEx.ByteRangeWriter( 16384 );
+		RandomAccessFile randAccess = null;
 		
-		for (long offset: fileMap){
-			if (offset > -1 && offset < fileLength - blockSize){
-				localOffsets.add(offset);
-			}
-		}
+		long fileLength = local.length();
 		
-		localOffsets.add(fileLength); //Marks the end of the file
-		Collections.sort(localOffsets); //Sort the blocks by their local offsets
-
-		//Remove duplicate offsets
-		Long prev = null;
-		for (ListIterator<Long> iter = localOffsets.listIterator(); iter.hasNext(); ){
+		try {
 			
-			Long curr = iter.next();
-			if (prev != null && curr.equals(prev)){
+			randAccess = new RandomAccessFile( local, "r" );
+			
+			for (long offset: fileMap){
+				if (offset > -1 && offset < fileLength - blockSize){
+					localOffsets.add(offset);
+				}
+			}
+			
+			localOffsets.add(fileLength); //Marks the end of the file
+			Collections.sort(localOffsets); //Sort the blocks by their local offsets
+
+			//Remove duplicate offsets
+			Long prev = null;
+			for (ListIterator<Long> iter = localOffsets.listIterator(); iter.hasNext(); ){
 				
-				iter.remove();
+				Long curr = iter.next();
+				if (prev != null && curr.equals(prev)){
+					
+					iter.remove();
+				}
+				else{
+					prev = curr;
+				}
 			}
-			else{
-				prev = curr;
-			}
-		}
 
-		/*Add the Range between the end of the previous block and the start of the 
-		 * current one, if that Range is > 0
-		 */
-		long prevEnd = 0; 
-		for (Long offset: localOffsets){
-			if (offset - prevEnd > 0){
-				rangeList.add(new Range(prevEnd, offset));
+			/*Add the Range between the end of the previous block and the start of the 
+			 * current one, if that Range is > 0
+			 */
+			long prevEnd = 0; 
+			for (Long offset: localOffsets){
+				if (offset - prevEnd > 0){
+					rangeList.add(new Range(prevEnd, offset), randAccess);
+				}
+				prevEnd = offset + blockSize;
 			}
-			prevEnd = offset + blockSize;
-		}
 
-		return rangeList;
+		} finally {
+			Util.close( randAccess );
+		}
+		
+		return rangeList.getInputStream();
 	}
 	
 	
@@ -221,12 +238,14 @@ public class UploadMaker{
 	 * @param fileLength The length of the local file to be uploaded
 	 * @param combineRanges Whether consecutive matches should be combined into a single RelocateRange
 	 * @return A list of RelocateRange instructions to be sent to the server
+	 * @throws IOException 
 	 * 
 	 */
-	public static List<RelocateRange> serversRelocationRanges(long[] fileMap, 
-			int blockSize, long fileLength, boolean combineRanges){
+	public static InputStream serversRelocationRanges(long[] fileMap, 
+			int blockSize, long fileLength, boolean combineRanges) throws IOException{
 		
-		ArrayList<RelocateRange> ranges = new ArrayList<RelocateRange>();
+		//ArrayList<RelocateRange> ranges = new ArrayList<RelocateRange>();
+		UploadMakerEx.RelocWriter relocList = new UploadMakerEx.RelocWriter( 16384 );
 		
 		for (int blockIndex = 0; blockIndex < fileMap.length; blockIndex++){
 			
@@ -250,10 +269,10 @@ public class UploadMaker{
 				}
 				
 				RelocateRange relocRange = new RelocateRange(blockRange, localOffset);
-				ranges.add(relocRange);
+				relocList.add( relocRange );
 			}
 		}
-		return ranges;
+		return relocList.getInputStream();
 	}
 
 
@@ -327,7 +346,7 @@ public class UploadMaker{
 	 * @return An InputStream containing the relocStream portion of an Upload
 	 * @throws IOException
 	 */
-	private static InputStream getRelocStream( List<RelocateRange> relocList ) throws IOException{
+	public static InputStream getRelocStream( List<RelocateRange> relocList ) throws IOException{
 		
 		UploadMakerEx.RelocWriter relocWriter = new UploadMakerEx.RelocWriter( 16384 );
 		for ( RelocateRange reloc: relocList ) {
@@ -344,7 +363,7 @@ public class UploadMaker{
 	 * @return The InputStream containing the dataStream portion of an Upload
 	 * @throws IOException
 	 */
-	private InputStream getDataStream( List<Range> ranges, File local ) throws IOException {
+	public static InputStream getDataStream( List<Range> ranges, File local ) throws IOException {
 		
 		UploadMakerEx.ByteRangeWriter dataWriter = new UploadMakerEx.ByteRangeWriter( 16384 );
 		RandomAccessFile randAccess = null;

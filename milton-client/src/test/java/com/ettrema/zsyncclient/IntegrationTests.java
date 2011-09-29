@@ -35,6 +35,7 @@ public class IntegrationTests {
 	String filepath;
 	Host host;
 	int blocksize;
+	long startUsed; // memory
 	
 	/**
 	 * Initializes localcopy and servercopy. These should be changed to reflect actual location of the client
@@ -58,6 +59,7 @@ public class IntegrationTests {
 	 */
 	@Test
 	public void testUpload_Large_Text() throws IOException {
+		System.out.println("XXXXXXXXXXXXXXXXXXXXx  testUpload_Large_Text   XXXXXXXXXXXXXXXXXXXXXXXXxx ");
 		localcopy = new File( filepath + "large-text-local.txt" );
 		servercopy = new File( filepath + "large-text-server.txt" );		
 				
@@ -70,21 +72,18 @@ public class IntegrationTests {
 	
 		//Change to correct url of servercopy.txt
 		String url = host.getHref( Path.path( servercopy.getName() + "/.zsync" ) );
-		System.out.println("uploading to: " + url);
 		InputStream uploadIn = new FileInputStream( uploadFile );
 		
 		int result = host.doPut(url, uploadIn, uploadFile.length(), null );
-		System.out.println( "Response: " + result );
 		uploadIn.close();
-		System.out.println("Upload file: " + uploadFile.getAbsolutePath());
-		System.out.println("Upload size: " + formatBytes(uploadFile.length()));
 		Assert.assertEquals( 204, result );
-		
+		System.out.println("");
+		System.out.println("");
 	}
 	
 	@Test
 	public void testMakeAndReadSmallTextUpload() throws IOException, ParseException{
-		System.out.println("------------------- testMakeAndReadSmallTextUpload -------------------------");
+		System.out.println("XXXXXXXXXXXXXXXXXXXXXX testMakeAndReadSmallTextUpload XXXXXXXXXXXXXXXXXXXXXXXXxxxxxx");
 		servercopy = new File(filepath + "small-text-server.txt");
 		localcopy = new File(filepath + "small-text-local.txt");
 		if( !servercopy.exists()) {
@@ -99,20 +98,19 @@ public class IntegrationTests {
 		
 		File zsyncFile = createMetaFile("small-text.zsync", 16, servercopy ); // use small blocksize
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "small-text-local.UPLOADZS" );
-		System.out.println("Created upload file: " + uploadFile.getAbsolutePath());
 		File assembledFile = readSavedUpload( uploadFile, filepath + "small-text-assembled.txt", servercopy );
-		System.out.println("Assesmbling to: " + assembledFile.getAbsolutePath());
 		
 		String localSha1 =  new SHA1( localcopy ).SHA1sum();
 		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
 		
 		Assert.assertEquals( localSha1, assembledSha1 );
-		System.out.println("---------------------- End testMakeAndReadSmallTextUpload ------------------------");
+		System.out.println("");
+		System.out.println("");
 	}	
 	
 	@Test
 	public void testMakeAndRead_Large_CSV() throws IOException, ParseException{
-		System.out.println("------------------- testMakeAndRead_Large_CSV -------------------------");
+		System.out.println("XXXXXXXXXXXXXXXXXXXXXxxx    testMakeAndRead_Large_CSV    XXXXXXXXXXXXXXXXXXXXXXXXXXX");
 		servercopy = new File(filepath + "large-csv-server.csv");
 		localcopy = new File(filepath + "large-csv-local.csv");
 		if( !servercopy.exists()) {
@@ -126,16 +124,44 @@ public class IntegrationTests {
 		host.doPut(baseUrl , servercopy);
 		
 		
-		File zsyncFile = createMetaFile("large-excel.zsync", 256, servercopy ); // use small blocksize
+		File zsyncFile = createMetaFile("large-csv.zsync", 256, servercopy ); // use small blocksize
 		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "large-csv.UPLOADZS" );
-		System.out.println("Created upload file: " + uploadFile.getAbsolutePath() + " of " + formatBytes(uploadFile.length()) );
 		File assembledFile = readSavedUpload( uploadFile, filepath + "large-csv-assembled.xls", servercopy );
 		
 		String localSha1 =  new SHA1( localcopy ).SHA1sum();
 		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
 		
 		Assert.assertEquals( localSha1, assembledSha1 );
-		System.out.println("---------------------- End testMakeAndRead_Large_CSV ------------------------");
+		System.out.println("");
+		System.out.println("");
+	}		
+	
+	@Test
+	public void testMakeAndRead_Large_Excel() throws IOException, ParseException{
+		System.out.println("XXXXXXXXXXXXXXXXXXXXXxxx    Large Excel    XXXXXXXXXXXXXXXXXXXXXXXXXXX");
+		servercopy = new File(filepath + "large-excel-server.xls");
+		localcopy = new File(filepath + "large-excel-local.xls");
+		if( !servercopy.exists()) {
+			throw new RuntimeException("Couldnt find: " + servercopy.getAbsolutePath());
+		}
+		if( !localcopy.exists()) {
+			throw new RuntimeException("Couldnt find: " + localcopy.getAbsolutePath());
+		}
+		
+		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		host.doPut(baseUrl , servercopy);
+		
+		
+		File zsyncFile = createMetaFile("large-excel.zsync", 256, servercopy ); // use small blocksize
+		File uploadFile = makeAndSaveUpload( localcopy, zsyncFile, filepath + "large-csv.UPLOADZS" );
+		File assembledFile = readSavedUpload( uploadFile, filepath + "large-csv-assembled.xls", servercopy );
+		
+		String localSha1 =  new SHA1( localcopy ).SHA1sum();
+		String assembledSha1 = new SHA1( assembledFile ).SHA1sum();
+		
+		Assert.assertEquals( localSha1, assembledSha1 );
+		System.out.println("");
+		System.out.println("");
 	}		
 	
 	/**
@@ -159,7 +185,10 @@ public class IntegrationTests {
 				throw new RuntimeException("Couldnt delete previous assembled file: " + assembledFile.getAbsolutePath());
 			}
 		}
+		long tm = System.currentTimeMillis();
 		File tempAssembled = um.assemble();
+		tm = System.currentTimeMillis() - tm;
+		System.out.println("Assembled file in: " + tm + "ms");
 		FileUtils.moveFile( tempAssembled, assembledFile );
 		
 		
@@ -180,7 +209,11 @@ public class IntegrationTests {
 	 * @throws IOException
 	 */
 	private File makeAndSaveUpload(File localFile, File zsFile, String uploadFileName) throws IOException {
+		System.out.println("------------- makeAndSaveUpload --------------------");
 		
+		System.gc();
+		Runtime rt = Runtime.getRuntime();
+				
 		UploadMaker umx = new UploadMaker( localFile, zsFile );
 		InputStream uploadIn = umx.makeUpload();
 		
@@ -193,9 +226,17 @@ public class IntegrationTests {
 		}
 		FileOutputStream uploadOut = new FileOutputStream( uploadFile );
 		
+		System.gc();
+		System.out.println("Memory stats: " + formatBytes(rt.maxMemory()) + " - " + formatBytes(rt.totalMemory()) + " - " + formatBytes(rt.freeMemory()));
+		long endUsed = (rt.totalMemory() - rt.freeMemory());
+		System.out.println("Start used memory: " + formatBytes(startUsed) + " end used memory: " + formatBytes(endUsed) + " - delta: " + formatBytes(endUsed - startUsed));
+		System.out.println("");
+
 		IOUtils.copy( uploadIn, uploadOut );
 		uploadIn.close();
 		uploadOut.close();
+		
+		System.out.println("Created upload of size: " + formatBytes(uploadFile.length()) + " from local file: " + formatBytes(localFile.length()));		
 		
 		return uploadFile;
 		
@@ -210,9 +251,19 @@ public class IntegrationTests {
 	 * @throws FileNotFoundException
 	 */
 	private File createMetaFile(String fileName, int blocksize, File serverFile) throws FileNotFoundException{
-		System.out.println("createMetaFile: " + serverFile.getAbsolutePath());
+		System.out.println("---------------- createMetaFile -------------------" );
+		
+		System.gc();
+		Runtime rt = Runtime.getRuntime();
+		startUsed = rt.totalMemory() - rt.freeMemory();
+		
 		MetaFileMaker mkr = new MetaFileMaker();
 		File zsfile = mkr.make( null , blocksize, serverFile );
+		System.gc();
+		System.out.println("Memory stats: " + formatBytes(rt.maxMemory()) + " - " + formatBytes(rt.totalMemory()) + " - " + formatBytes(rt.freeMemory()));
+		long endUsed = (rt.totalMemory() - rt.freeMemory());
+		System.out.println("Start used memory: " + formatBytes(startUsed) + " end used memory: " + formatBytes(endUsed) + " - delta: " + formatBytes(endUsed - startUsed));
+		
 		File dest = new File ( filepath + fileName );
 		if( dest.exists() ) {
 			if( !dest.delete()) {
@@ -224,6 +275,7 @@ public class IntegrationTests {
 			throw new RuntimeException("Failed to rename to: " + dest.getAbsolutePath());
 		}
 		System.out.println("Created meta file of size: " + formatBytes(dest.length()) + " from source file of size: " + formatBytes(serverFile.length()) );
+		System.out.println("");
 		return dest;
 	}
 	
