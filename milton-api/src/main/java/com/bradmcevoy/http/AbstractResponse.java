@@ -24,14 +24,17 @@ public abstract class AbstractResponse implements Response {
         return getNonStandardHeader(header.code);
     }
 
+	@Override
     public void setContentEncodingHeader(ContentEncoding encoding) {
         setResponseHeader(Response.Header.CONTENT_ENCODING, encoding.code);
     }
 
+	@Override
     public Long getContentLength() {
         return contentLength;
     }
 
+	@Override
     public void setDateHeader(Date date) {
         setAnyDateHeader(Header.DATE, date);
     }
@@ -40,6 +43,7 @@ public abstract class AbstractResponse implements Response {
 //    public void setAuthenticateHeader(String realm) {
 //        setResponseHeader(Header.WWW_AUTHENTICATE, "Basic realm=\"" + realm + "\"");
 //    }
+	@Override
     public void setContentRangeHeader(long start, long finish, Long totalLength) {
         String l = totalLength == null ? "*" : totalLength.toString();
 
@@ -56,6 +60,7 @@ public abstract class AbstractResponse implements Response {
         setResponseHeader(Header.CONTENT_RANGE, s);
     }
 
+	@Override
     public void setContentLengthHeader(Long totalLength) {
         String s = totalLength == null ? "" : totalLength.toString();
         setResponseHeader(Header.CONTENT_LENGTH, s);
@@ -63,14 +68,17 @@ public abstract class AbstractResponse implements Response {
 
     }
 
+	@Override
     public void setContentTypeHeader(String type) {
         setResponseHeader(Header.CONTENT_TYPE, type);
     }
 
+	@Override
     public String getContentTypeHeader() {
         return getResponseHeader(Header.CONTENT_TYPE);
     }
 
+	@Override
     public void setCacheControlMaxAgeHeader(Long delta) {
         if (delta != null) {
             setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.MAX_AGE.code + "=" + delta);
@@ -79,6 +87,7 @@ public abstract class AbstractResponse implements Response {
         }
     }
 
+	@Override
     public void setCacheControlPrivateMaxAgeHeader(Long delta) {
         if (delta != null) {
             setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.PRIVATE.code + " " + CacheControlResponse.MAX_AGE.code + "=" + delta);
@@ -87,6 +96,7 @@ public abstract class AbstractResponse implements Response {
         }
     }
 
+	@Override
     public void setExpiresHeader(Date expiresAt) {
         if (expiresAt == null) {
             setResponseHeader(Header.EXPIRES, null);
@@ -95,24 +105,29 @@ public abstract class AbstractResponse implements Response {
         }
     }
 
+	@Override
     public void setEtag(String uniqueId) {
         setResponseHeader(Header.ETAG, uniqueId);
     }
 
+	@Override
     public void setLastModifiedHeader(Date date) {
         setAnyDateHeader(Header.LAST_MODIFIED, date);
     }
 
+	@Override
     public void setCacheControlNoCacheHeader() {
         setResponseHeader(Header.CACHE_CONTROL, CacheControlResponse.NO_CACHE.code);
     }
 
+	@Override
     public void setLocationHeader(String redirectUrl) {
         setResponseHeader(Header.LOCATION, redirectUrl);
     }
 
+	@Override
     public void setAllowHeader(List<String> methodsAllowed) {
-        if (methodsAllowed == null || methodsAllowed.size() == 0) {
+        if (methodsAllowed == null || methodsAllowed.isEmpty()) {
             return;
         }
         StringBuilder sb = null;
@@ -127,21 +142,26 @@ public abstract class AbstractResponse implements Response {
         setResponseHeader(Header.ALLOW, sb.toString());
     }
 
+	@Override
     public void setLockTokenHeader(String s) {
         setResponseHeader(Header.LOCK_TOKEN, s);
     }
 
+	@Override
     public void setDavHeader(String supportedLevels) {
         setResponseHeader(Header.DAV, supportedLevels);
     }
 
+	@Override
     public void setVaryHeader(String value) {
         setResponseHeader(Header.VARY, value);
     }
 
+	@Override
     public void close() {
     }
 
+	@Override
     public void sendRedirect(String url) {
         if (log.isTraceEnabled()) {
             log.trace("sendRedirect: " + url);

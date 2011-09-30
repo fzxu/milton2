@@ -16,6 +16,7 @@ public class DefaultCacheControlHelper implements CacheControlHelper {
     private static final Logger log = LoggerFactory.getLogger( DefaultCacheControlHelper.class );
     private boolean usePrivateCache = false;
 
+	@Override
     public void setCacheControl( final GetableResource resource, final Response response, Auth auth ) {
         Long delta = resource.getMaxAgeSeconds( auth );
         if( log.isTraceEnabled() ) {
