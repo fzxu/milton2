@@ -43,7 +43,8 @@ public class Auth {
         NEGOTIATE,
         FORM,
         SESSION,
-		NTLM
+		NTLM,
+		OAUTH
     };
     private Scheme scheme;
     private String user;
