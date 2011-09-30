@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.List;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
@@ -39,7 +40,7 @@ public class TransferService {
 		if (rangeList != null) {
 			m = new RangedGetMethod(Host.urlEncode(url), rangeList);
 		} else {
-			m = new StreamingGetMethod(Host.urlEncode(url), listener); 
+			m = new GetMethod(Host.urlEncode(url)); 
 		}
 		InputStream in = null;
 		NotifyingFileInputStream nin = null;
