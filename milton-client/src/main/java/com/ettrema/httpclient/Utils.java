@@ -35,16 +35,21 @@ public class Utils {
 		}
 	}
 
-	public static void write(InputStream in, OutputStream out, final ProgressListener listener) throws IOException {
+	public static long write(InputStream in, OutputStream out, final ProgressListener listener) throws IOException {
+		long bytes = 0;
 		byte[] arr = new byte[1024];
 		int s = in.read(arr);
+		bytes += s;
 		while (s >= 0) {
 			if (listener != null && listener.isCancelled()) {
 				throw new CancelledException();
 			}
 			out.write(arr, 0, s);
 			s = in.read(arr);
+			bytes += s;
+			listener.onProgress(bytes, null, null);
 		}
+		return bytes;
 	}
 
 	/**
@@ -57,13 +62,14 @@ public class Utils {
 	 * @param listener
 	 * @throws IOException 
 	 */
-	public static void writeBuffered(InputStream in, OutputStream out, final ProgressListener listener) throws IOException {
+	public static long writeBuffered(InputStream in, OutputStream out, final ProgressListener listener) throws IOException {
 		BufferedOutputStream bout = null;
 		try {
 			bout = new BufferedOutputStream(out);
-			Utils.write(in, out, listener);
+			long bytes = Utils.write(in, out, listener);
 			bout.flush();
 			out.flush();
+			return bytes;
 		} finally {			
 			Utils.close(bout);
 			Utils.close(out);

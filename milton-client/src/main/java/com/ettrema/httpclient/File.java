@@ -1,6 +1,8 @@
 package com.ettrema.httpclient;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Range;
+import com.ettrema.common.LogUtils;
 import com.ettrema.httpclient.Utils.CancelledException;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -8,13 +10,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author mcevoyb
  */
 public class File extends Resource {
-
+	private static final Logger log = LoggerFactory.getLogger(File.class);
 	public final String contentType;
 	public final Long contentLength;
 
@@ -56,18 +60,22 @@ public class File extends Resource {
 	}
 
 	public void downloadToFile(java.io.File dest, ProgressListener listener) throws FileNotFoundException, HttpException, CancelledException {
+		LogUtils.trace(log, "downloadToFile", this.name);
 		if (listener != null) {
-			listener.onProgress(0, this.name);
+			listener.onProgress(0, dest.length(), this.name);
 		}
 		try {
-			host().doGet(href(), dest, listener);
+			Path path = path();
+			System.out.println("Path: " + path);
+			host().doGet(path, dest, listener);
 		} catch (CancelledException e) {
 			throw e;
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
 		if (listener != null) {
-			listener.onProgress(100, this.name);
+			long length = dest.length();
+			listener.onProgress(length, length, this.name);
 			listener.onComplete(this.name);
 		}
 	}
@@ -78,9 +86,10 @@ public class File extends Resource {
 
 	public void download(final OutputStream out, final ProgressListener listener, List<Range> rangeList) throws HttpException, CancelledException {
 		if (listener != null) {
-			listener.onProgress(0, this.name);
+			listener.onProgress(0, null, this.name);
 		}
-		try {
+		final long[] bytesArr = new long[1];
+		try {			
 			host().doGet(href(), new StreamReceiver() {
 
 				@Override
@@ -89,7 +98,8 @@ public class File extends Resource {
 						throw new RuntimeException("Download cancelled");
 					}
 					try {
-						Utils.write(in, out, listener);
+						long bytes = Utils.write(in, out, listener);
+						bytesArr[0] = bytes;
 					} catch (CancelledException cancelled) {
 						throw cancelled;
 					} catch (IOException ex) {
@@ -104,7 +114,8 @@ public class File extends Resource {
 			Utils.close(out);
 		}
 		if (listener != null) {
-			listener.onProgress(100, this.name);
+			long l = bytesArr[0];
+			listener.onProgress(l, l, this.name);
 			listener.onComplete(this.name);
 		}
 	}

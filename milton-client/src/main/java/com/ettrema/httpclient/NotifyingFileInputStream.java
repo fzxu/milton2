@@ -14,7 +14,7 @@ class NotifyingFileInputStream extends InputStream {
     private final ProgressListener listener;
     private final String fileName;
     private long pos;
-    private long totalLength;
+    private Long totalLength;
     // the system time we last notified the progress listener
     private long timeLastNotify;
     private long bytesSinceLastNotify;
@@ -28,7 +28,15 @@ class NotifyingFileInputStream extends InputStream {
         this.timeLastNotify = System.currentTimeMillis();
     }
 	
-    public NotifyingFileInputStream(InputStream in, long length, String path, ProgressListener listener) throws IOException {
+	/**
+	 * 
+	 * @param in - the input stream containing file data
+	 * @param length - maybe null if unknown
+	 * @param path
+	 * @param listener
+	 * @throws IOException 
+	 */
+    public NotifyingFileInputStream(InputStream in, Long length, String path, ProgressListener listener) throws IOException {
         this.fin = in;
 		this.wrapped = new BufferedInputStream(fin);
         this.listener = listener;
@@ -61,6 +69,9 @@ class NotifyingFileInputStream extends InputStream {
     }
 
     void notifyListener(int numBytes) {
+		if( listener == null ) {
+			return ;
+		}
 		listener.onRead(pos);
         bytesSinceLastNotify += numBytes;
         if (bytesSinceLastNotify < 1000) {
@@ -70,16 +81,7 @@ class NotifyingFileInputStream extends InputStream {
         int timeDiff = (int) (System.currentTimeMillis() - timeLastNotify);
         if (timeDiff > 10) {
             timeLastNotify = System.currentTimeMillis();
-            //                log.trace("notifyListener: name: " + fileName);
-            if (totalLength <= 0) {
-                listener.onProgress(100, fileName);
-            } else {
-                int percent = (int) ((pos * 100 / totalLength));
-                if (percent > 100) {
-                    percent = 100;
-                }
-                listener.onProgress(percent, fileName);
-            }
+			listener.onProgress(pos, totalLength, fileName);
             bytesSinceLastNotify = 0;
         }
     }

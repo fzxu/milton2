@@ -11,6 +11,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
+
 /**
  *
  * @author brad
@@ -28,7 +30,7 @@ public class Scratch {
 		fOrig = new File("src/test/resources/large-text-server.txt"); // this represents the remote file we want to download
 		fUpdated = new File("src/test/resources/large-text-local.txt"); // this represents the current version of the local file we want to update
 		fTemp = File.createTempFile("milton-test", "orig");
-		host = new Host("localhost", "webdav", 8080, "user1", "pwd1", null, null);
+		host = new Host("localhost", "webdav", 8080, "user1", "pwd1", null, 30000, null, true);
 		pl = new TestProgressListener();
 		FileUtils.copyFile(fOrig, fTemp);
 	}
@@ -43,11 +45,12 @@ public class Scratch {
 			r.delete();
 		}
 		System.out.println("Upload original file");
-		com.ettrema.httpclient.File newFile = host.uploadFile(fOrig, pl);
+		com.ettrema.httpclient.File newFile = host.uploadFile(remoteName, fOrig, pl);
 		System.out.println("Uploaded bytes: " + pl.uploadedBytes);
 		System.out.println("Created: " + newFile.href());
-		System.out.println("Now update file");
-		newFile = host.uploadFile(fUpdated, pl );
+		System.out.println("Now update file, should only be small ----------------------------");
+		newFile = host.uploadFile(remoteName, fUpdated, pl );		
+		assertEquals("/" + remoteName , newFile.path().toString());
 		System.out.println("Uploaded bytes: " + pl.uploadedBytes);
 		System.out.println("Doing incremental download");
 		newFile.downloadToFile(fTemp, pl);
@@ -57,17 +60,14 @@ public class Scratch {
 
 	class TestProgressListener implements ProgressListener {
 
-		long uploadedBytes;
+		Long uploadedBytes;
 		
 		@Override
 		public void onRead(long bytes) {
 			
 		}
 
-		@Override
-		public void onProgress(int percent, String fileName) {
-			System.out.print(percent + "%");
-		}
+
 
 		@Override
 		public void onComplete(String fileName) {
@@ -78,6 +78,17 @@ public class Scratch {
 		@Override
 		public boolean isCancelled() {
 			return false;
+		}
+
+		@Override
+		public void onProgress(long bytesRead, Long totalBytes, String fileName) {
+			uploadedBytes = bytesRead;
+			if( totalBytes != null && totalBytes > 0) {
+				int perc = (int)(bytesRead * 100 / totalBytes);
+				System.out.print(perc + "%, ");
+			} else {
+				System.out.print(bytesRead + ", ");
+			}
 		}
 		
 	}

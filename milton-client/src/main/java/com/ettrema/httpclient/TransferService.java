@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.util.List;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
@@ -40,14 +39,16 @@ public class TransferService {
 		if (rangeList != null) {
 			m = new RangedGetMethod(Host.urlEncode(url), rangeList);
 		} else {
-			m = new GetMethod(Host.urlEncode(url));
+			m = new StreamingGetMethod(Host.urlEncode(url), listener); 
 		}
 		InputStream in = null;
+		NotifyingFileInputStream nin = null;
 		try {
 			int res = client.executeMethod(m);
 			Utils.processResultCode(res, url);
 			in = m.getResponseBodyAsStream();
-			receiver.receive(in);
+			nin = new NotifyingFileInputStream(in, m.getResponseContentLength(), url, listener);
+			receiver.receive(nin);
 		} catch (org.apache.commons.httpclient.HttpException ex) {
 			m.abort();
 			throw new GenericHttpException(ex.getReasonCode(), url);

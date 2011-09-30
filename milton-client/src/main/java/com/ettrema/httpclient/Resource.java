@@ -1,5 +1,6 @@
 package com.ettrema.httpclient;
 
+import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.DateUtils;
 import com.bradmcevoy.http.DateUtils.DateParseException;
 import com.ettrema.cache.Cache;
@@ -253,6 +254,17 @@ public abstract class Resource {
             return parent.href() + name;
         }
     }
+	
+    public Path path() {
+        if (parent == null) {
+            return Path.root;
+            //return encodedName();
+        } else {
+            //return parent.href() + encodedName();
+            return parent.path().child(name);
+        }
+    }
+	
 
     public Date getModifiedDate() {
         return modifiedDate;

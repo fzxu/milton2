@@ -1,5 +1,6 @@
 package com.ettrema.httpclient;
 
+import com.bradmcevoy.common.Path;
 import com.ettrema.cache.Cache;
 import com.ettrema.common.LogUtils;
 import java.io.File;
@@ -164,13 +165,26 @@ public class Folder extends Resource {
 		return uploadFile(f, null);
 	}
 	
-    public com.ettrema.httpclient.File uploadFile(File f, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {		
-		String newUri = href() + name;		
+	/**
+	 * Load a new file into this folder, and return a reference
+	 * 
+	 * @param f
+	 * @param listener
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws HttpException 
+	 */
+	public com.ettrema.httpclient.File uploadFile(File f, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {		
+		return uploadFile(f.getName(), f, listener);
+	}
+    public com.ettrema.httpclient.File uploadFile(String newName, File f, ProgressListener listener) throws FileNotFoundException, IOException, HttpException {		
+		Path newPath = path().child(newName);
 		children(); // ensure children are loaded
-		int resultCode = host().doPut(newUri, f, listener);
-		LogUtils.trace(log, "uploadFile", newUri," result", resultCode);
-		Utils.processResultCode(resultCode, newUri);
-        com.ettrema.httpclient.File child = new com.ettrema.httpclient.File(this, name, null, f.length());
+		int resultCode = host().doPut(newPath, f, listener);
+		LogUtils.trace(log, "uploadFile", newPath," result", resultCode);
+		Utils.processResultCode(resultCode, newPath.toString());
+        com.ettrema.httpclient.File child = new com.ettrema.httpclient.File(this, newName, null, f.length());
         flush();
         notifyOnChildAdded(child);
         return child;		

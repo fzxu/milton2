@@ -63,7 +63,8 @@ public class IntegrationTests {
 		localcopy = new File( filepath + "large-text-local.txt" );
 		servercopy = new File( filepath + "large-text-server.txt" );		
 				
-		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		//String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		Path baseUrl = Path.path(servercopy.getName());
 		host.doPut(baseUrl , servercopy, null);
 		
 		File zsyncFile = createMetaFile( "servercopy.zsync", blocksize, servercopy );
@@ -93,7 +94,8 @@ public class IntegrationTests {
 			throw new RuntimeException("Couldnt find: " + localcopy.getAbsolutePath());
 		}
 		
-		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		//String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		Path baseUrl = Path.path(servercopy.getName());
 		host.doPut(baseUrl , servercopy, null);		
 		
 		File zsyncFile = createMetaFile("small-text.zsync", 16, servercopy ); // use small blocksize
@@ -120,7 +122,8 @@ public class IntegrationTests {
 			throw new RuntimeException("Couldnt find: " + localcopy.getAbsolutePath());
 		}
 		
-		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		//String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		Path baseUrl = Path.path(servercopy.getName());
 		host.doPut(baseUrl , servercopy, null);
 		
 		
@@ -148,7 +151,8 @@ public class IntegrationTests {
 			throw new RuntimeException("Couldnt find: " + localcopy.getAbsolutePath());
 		}
 		
-		String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		//String baseUrl = host.getHref( Path.path( servercopy.getName() ) );
+		Path baseUrl = Path.path(servercopy.getName());
 		host.doPut(baseUrl , servercopy, null);
 		
 		

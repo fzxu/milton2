@@ -89,13 +89,13 @@ public class Host extends Folder {
 		this(server, rootPath, port, user, password, proxyDetails, 30000, cache, false); // defaul timeout of 30sec
 	}
 
-	public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeout, Cache<Folder, List<Resource>> cache, boolean enableZSync) {
+	public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeoutMillis, Cache<Folder, List<Resource>> cache, boolean enableZSync) {
 		super((cache != null ? cache : new MemoryCache<Folder, List<Resource>>("resource-cache-default", 50, 20)));
 		if (server == null) {
 			throw new IllegalArgumentException("host name cannot be null");
 		}
 		this.rootPath = rootPath;
-		this.timeout = timeout;
+		this.timeout = timeoutMillis;
 		this.server = server;
 		this.port = port;
 		this.user = user;
@@ -110,8 +110,8 @@ public class Host extends Folder {
 			client.getParams().setAuthenticationPreemptive(true);
 		}
 		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-		client.getParams().setSoTimeout(timeout);
-		client.getParams().setConnectionManagerTimeout(timeout);
+		client.getParams().setSoTimeout(timeoutMillis);
+		client.getParams().setConnectionManagerTimeout(timeoutMillis);
 		if (proxyDetails != null) {
 			if (proxyDetails.isUseSystemProxy()) {
 				System.setProperty("java.net.useSystemProxies", "true");
@@ -127,7 +127,7 @@ public class Host extends Folder {
 			}
 		}
 		transferService = new TransferService(client, connectionListeners);
-		transferService.setTimeout(timeout);
+		transferService.setTimeout(timeoutMillis);
 		if( enableZSync ) {
 			zSyncClient = new ZSyncClient(transferService);
 		} else {
@@ -226,14 +226,15 @@ public class Host extends Folder {
 	 * @throws FileNotFoundException
 	 * @throws HttpException 
 	 */
-	public int doPut(String newUri, java.io.File file, ProgressListener listener) throws FileNotFoundException, HttpException {
+	public int doPut(Path remotePath, java.io.File file, ProgressListener listener) throws FileNotFoundException, HttpException {
 		if (zSyncClient != null) {
 			try {
-				int bytes = zSyncClient.upload(this, file, Path.path(newUri), listener);
+				int bytes = zSyncClient.upload(this, file, remotePath, listener);
 				LogUtils.trace(log, "doPut: uploaded: ", bytes, " bytes");
 				return Response.Status.SC_OK.code;
 			} catch (NotFoundException e) {
 				// ZSync file was not found
+				System.out.println("Not found: " + remotePath);
 			} catch (IOException ex) {
 				throw new HttpException("Exception doing zsync upload", ex);
 			}
@@ -241,6 +242,7 @@ public class Host extends Folder {
 		InputStream in = null;
 		try {
 			in = new FileInputStream(file);
+			String newUri = this.getHref(remotePath);
 			return doPut(newUri, in, file.length(), null, listener);
 		} finally {
 			IOUtils.closeQuietly(in);
@@ -350,10 +352,12 @@ public class Host extends Folder {
 		transferService.get(url, receiver, rangeList, listener);
 	}
 	
-	public synchronized void doGet(String url, final java.io.File file, ProgressListener listener) throws IOException, NotFoundException, com.ettrema.httpclient.HttpException {
+	public synchronized void doGet(Path path, final java.io.File file, ProgressListener listener) throws IOException, NotFoundException, com.ettrema.httpclient.HttpException {
+		LogUtils.trace(log, "doGet", path);
 		if (zSyncClient != null) {
-			zSyncClient.download(this, Path.path(url), file, listener);
+			zSyncClient.download(this, path, file, listener);
 		} else {
+			String url = this.getHref(path);
 			transferService.get(url, new StreamReceiver() {
 
 				@Override

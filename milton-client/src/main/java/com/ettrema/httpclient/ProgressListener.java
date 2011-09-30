@@ -1,8 +1,12 @@
 package com.ettrema.httpclient;
 
 /**
+ * Use this for three purposes
+ *	a. implement a bandwidth throttle by putting a delay in onRead
+ *  b. display progress information to the user in onProgress and onComplete
+ *  c. allow the user to cancel transfers by implementing isCancelled
  *
- * @author j2ee
+ * @author bradm
  */
 public interface ProgressListener {
 
@@ -18,11 +22,17 @@ public interface ProgressListener {
 	 * Called occasionally, after a reasonable period has passed so is suitable
 	 * for GUI updates
 	 * 
-	 * @param percent
+	 * @param bytesRead
+	 * @param totalBytes - is null if unknown
+	 * @param fileName - name of the file being transferred
+	 */
+    void onProgress( long bytesRead, Long totalBytes, String fileName );
+
+	/**
+	 * Called on completion
+	 * 
 	 * @param fileName 
 	 */
-    void onProgress( int percent, String fileName );
-
     void onComplete( String fileName );
 
     /**

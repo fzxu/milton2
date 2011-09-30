@@ -70,15 +70,7 @@ public class NotifyingFileOutputStream extends FileOutputStream {
         int timeDiff = (int) (System.currentTimeMillis() - timeLastNotify);
         if (timeDiff > 10) {
             timeLastNotify = System.currentTimeMillis();
-            if (length == null || length <= 0) {
-                listener.onProgress(100, fileName);
-            } else {
-                int percent = (int) ((pos * 100 / length));
-                if (percent > 100) {
-                    percent = 100;
-                }
-                listener.onProgress(percent, fileName);
-            }
+			listener.onProgress(numBytes, length , fileName);
             bytesSinceLastNotify = 0;
         }
     }
