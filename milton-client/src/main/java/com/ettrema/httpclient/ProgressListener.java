@@ -14,9 +14,9 @@ public interface ProgressListener {
 	 * Called on every read operation. If you implement any logic in here
 	 * is must be fast!
 	 * 
-	 * @param bytes 
+	 * @param bytes - the number of bytes read
 	 */
-	void onRead(long bytes);
+	void onRead(int bytes);
 	
 	/**
 	 * Called occasionally, after a reasonable period has passed so is suitable

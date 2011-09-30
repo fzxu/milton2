@@ -60,6 +60,7 @@ public class NotifyingFileOutputStream extends FileOutputStream {
     }
 
     void notifyListener(int numBytes) throws IOException{
+		listener.onRead(numBytes);
         if( listener.isCancelled() ) {
             throw new CancelledException();
         }

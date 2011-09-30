@@ -72,7 +72,7 @@ class NotifyingFileInputStream extends InputStream {
 		if( listener == null ) {
 			return ;
 		}
-		listener.onRead(pos);
+		listener.onRead(numBytes);
         bytesSinceLastNotify += numBytes;
         if (bytesSinceLastNotify < 1000) {
             //                log.trace( "notifyListener: not enough bytes: " + bytesSinceLastNotify);

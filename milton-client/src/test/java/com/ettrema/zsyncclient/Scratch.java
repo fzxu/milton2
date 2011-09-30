@@ -63,11 +63,9 @@ public class Scratch {
 		Long uploadedBytes;
 		
 		@Override
-		public void onRead(long bytes) {
+		public void onRead(int bytes) {
 			
 		}
-
-
 
 		@Override
 		public void onComplete(String fileName) {
@@ -89,7 +87,6 @@ public class Scratch {
 			} else {
 				System.out.print(bytesRead + ", ");
 			}
-		}
-		
+		}		
 	}
 }

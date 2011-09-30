@@ -616,4 +616,8 @@ public class Host extends Folder {
 			l.onFinishRequest();
 		}
 	}	
+	
+	public void addConnectionListener(ConnectionListener e) {
+		connectionListeners.add(e);
+	}
 }
