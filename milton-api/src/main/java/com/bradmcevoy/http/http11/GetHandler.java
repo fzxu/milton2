@@ -39,6 +39,7 @@ public class GetHandler implements ExistingEntityHandler {
         resourceHandlerHelper.processResource( manager, request, response, r, this, true, request.getParams(), null );
     }
 
+	@Override
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         if( log.isTraceEnabled() ) {
             log.trace( "process: " + request.getAbsolutePath() );
@@ -91,6 +92,8 @@ public class GetHandler implements ExistingEntityHandler {
         log.trace( "checkIfModifiedSince" );
         Long maxAgeSecs = resource.getMaxAgeSeconds( requestInfo.getAuthorization() );
 
+		// Null maxAge indicates that the resource implementor does not want
+		// this resource to be cached
         if( maxAgeSecs == null ) {
             log.trace( "checkIfModifiedSince: null max age" );
             return false; // if null, always generate a fresh response
@@ -101,26 +104,33 @@ public class GetHandler implements ExistingEntityHandler {
                 log.trace( " no modified date header" );
                 return false;
             }
-            long timeNow = System.currentTimeMillis();
-            long timeRequest = dtRequest.getTime() + 1000; // allow for rounding to nearest second
-            long timeElapsed = timeNow - timeRequest;
+            long timeNowMs = System.currentTimeMillis();
+            long timeRequestMs = dtRequest.getTime() + 1000; // allow for rounding to nearest second
+            long timeElapsedMs = timeNowMs - timeRequestMs;
+			long timeElapsed = timeElapsedMs / 1000;
+			// If the max-age period has elapsed then we don't bother to check if
+			// it has actually been modified. This is useful for dyamically generated
+			// resources (ie JSP's) which we want cached for a fixed period, but the modified
+			// date doesnt reflect that the content will change
             if( timeElapsed > maxAgeSecs ) {
                 log.trace( "its been longer then the max age period, so generate fresh response" );
                 return false;
             } else {
-                Date dtCurrent = resource.getModifiedDate();
-                if( dtCurrent == null ) {
+				// If max-age hasnt elapsed we check to see if the resource has
+				// actually been modified since the date in the request header
+                Date dtResourceModified = resource.getModifiedDate();
+                if( dtResourceModified == null ) {
                     if( log.isTraceEnabled() ) {
                         log.trace( "no modified date on resource: " + resource.getClass().getCanonicalName() );
                     }
                     return true;
                 }
 
-                long timeActual = dtCurrent.getTime();
-                boolean unchangedSince = ( timeRequest >= timeActual );
+                long resModifiedMs = dtResourceModified.getTime();
+                boolean unchangedSince = ( timeRequestMs >= resModifiedMs );
                 if( log.isTraceEnabled() ) {
-                    log.trace( "times as long: " + dtCurrent.getTime() + " - " + dtRequest.getTime() );
-                    log.trace( "checkModifiedSince: actual: " + dtCurrent + " - request:" + dtRequest + " = " + unchangedSince + " (true indicates no change)" );
+                    log.trace( "times as long: resource modified " + dtResourceModified.getTime() + " - modified since header: " + dtRequest.getTime() );
+                    log.trace( "checkModifiedSince: actual: " + dtResourceModified + " - request:" + dtRequest + " = " + unchangedSince + " (true indicates no change)" );
                 }
 
                 // If the modified time requested is greater or equal then the actual modified time, do not generate response
