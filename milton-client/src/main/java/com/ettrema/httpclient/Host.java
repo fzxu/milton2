@@ -7,6 +7,7 @@ import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
 
 import com.ettrema.common.LogUtils;
+import com.ettrema.httpclient.Utils.CancelledException;
 import com.ettrema.httpclient.zsyncclient.ZSyncClient;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -22,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -165,7 +167,6 @@ public class Host extends Folder {
 		parent.flush();
 		Resource child = parent.child(childName);
 		if (i == arr.length - 1) {
-			System.out.println("  child: " + child);
 			return child;
 		} else {
 			if (child instanceof Folder) {
@@ -376,20 +377,24 @@ public class Host extends Folder {
 		doOptions(url);
 	}
 
-	public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
+	public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException {
 		String url = this.href() + path;
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		transferService.get(url, new StreamReceiver() {
+		try {
+			transferService.get(url, new StreamReceiver() {
 
-			@Override
-			public void receive(InputStream in) {
-				try {
-					IOUtils.copy(in, out);
-				} catch (IOException ex) {
-					throw new RuntimeException(ex);
+				@Override
+				public void receive(InputStream in) {
+					try {
+						IOUtils.copy(in, out);
+					} catch (IOException ex) {
+						throw new RuntimeException(ex);
+					}
 				}
-			}
-		}, null, null);
+			}, null, null);
+		} catch (CancelledException ex) {
+			throw new RuntimeException("Should never happen because no progress listener is set", ex);
+		}
 		return out.toByteArray();
 	}
 
