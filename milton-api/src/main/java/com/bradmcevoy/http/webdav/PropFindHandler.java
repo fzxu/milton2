@@ -7,6 +7,7 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -65,6 +66,7 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
         this.propertyBuilder = propertyBuilder;
     }
 
+	@Override
     public String[] getMethods() {
         return new String[]{Method.PROPFIND.code};
     }
@@ -74,10 +76,12 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
         return ( handler instanceof PropFindableResource );
     }
 
+	@Override
     public void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException {
         resourceHandlerHelper.process( httpManager, request, response, this );
     }
 
+	@Override
     public void processResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, ConflictException, BadRequestException {
         long t = System.currentTimeMillis();
         try {
@@ -115,6 +119,7 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
         }
     }
 
+	@Override
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         log.trace( "processExistingResource" );
         PropFindableResource pfr = (PropFindableResource) resource;
@@ -138,7 +143,13 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
             }
             responseHandler.respondUnauthorised( resource, response, request );
         } else {
-            List<PropFindResponse> propFindResponses = propertyBuilder.buildProperties( pfr, depth, parseResult, url );
+            List<PropFindResponse> propFindResponses;
+			try {
+				propFindResponses = propertyBuilder.buildProperties( pfr, depth, parseResult, url );
+			} catch (URISyntaxException ex) {
+				log.error("Exception parsing url. request class: " + request.getClass() + ". Please check the client application is usign percentage encoding (see http://en.wikipedia.org/wiki/Percent-encoding)");
+				throw new RuntimeException("Exception parsing url, indicating the requested URL is not correctly encoded. Please check the client application. Requested url is: " + url, ex);
+			}
             if( log.isTraceEnabled() ) {
                 log.trace( "responses: " + propFindResponses.size() );
             }
@@ -156,10 +167,12 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
         return set;
     }
 
+	@Override
     public PropertyAuthoriser getPermissionService() {
         return permissionService;
     }
 
+	@Override
     public void setPermissionService( PropertyAuthoriser permissionService ) {
         this.permissionService = permissionService;
     }
