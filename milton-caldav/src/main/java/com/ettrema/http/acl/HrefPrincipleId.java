@@ -17,10 +17,12 @@ public class HrefPrincipleId implements Principal.PrincipleId {
         this.type = new QName(WebDavProtocol.DAV_URI, "href");
     }
 
+	@Override
     public QName getIdType() {
         return type;
     }
 
+	@Override
     public String getValue() {
         return url;
     }

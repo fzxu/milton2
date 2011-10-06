@@ -8,7 +8,6 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.http11.CustomPostHandler;
 import com.bradmcevoy.http.values.HrefList;
-import com.bradmcevoy.http.values.WrappedHref;
 import com.bradmcevoy.http.webdav.PropertyMap;
 import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
@@ -48,30 +47,36 @@ public class ACLProtocol implements HttpExtension, PropertySource {
      * 
      * @return
      */
+	@Override
     public Set<Handler> getHandlers() {
         return Collections.EMPTY_SET;
     }
 
 
+	@Override
     public Object getProperty( QName name, Resource r ) {
         log.debug( "getProperty: " + name.getLocalPart() );
         return propertyMap.getProperty( name, r );
     }
 
+	@Override
     public void setProperty( QName name, Object value, Resource r ) {
         log.debug( "setProperty: " + name.getLocalPart() );
         throw new UnsupportedOperationException( "Not supported yet." );
     }
 
+	@Override
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
         log.debug( "getPropertyMetaData: " + name.getLocalPart() );
         return propertyMap.getPropertyMetaData( name, r );
     }
 
+	@Override
     public void clearProperty( QName name, Resource r ) {
         throw new UnsupportedOperationException( "Not supported yet." );
     }
 
+	@Override
     public List<QName> getAllPropertyNames( Resource r ) {
         log.debug( "getAllPropertyNames" );
         List<QName> list = new ArrayList<QName>();
@@ -79,16 +84,19 @@ public class ACLProtocol implements HttpExtension, PropertySource {
         return list;
     }
 
+	@Override
     public List<CustomPostHandler> getCustomPostHandlers() {
         return null;
     }
 
     class PrincipalUrl implements StandardProperty<String> {
 
+		@Override
         public String fieldName() {
             return "principal-URL";
         }
 
+		@Override
         public String getValue( PropFindableResource res ) {
             if( res instanceof AccessControlledResource ) {
                 AccessControlledResource acr = (AccessControlledResource) res;
@@ -99,6 +107,7 @@ public class ACLProtocol implements HttpExtension, PropertySource {
             }
         }
 
+		@Override
         public Class<String> getValueClass() {
             return String.class;
         }
@@ -111,10 +120,12 @@ public class ACLProtocol implements HttpExtension, PropertySource {
      */
     class PrincipalCollectionSetProperty implements StandardProperty<HrefList> {
 
+		@Override
         public String fieldName() {
             return "principal-collection-set";
         }
 
+		@Override
         public HrefList getValue( PropFindableResource res ) {
             if( res instanceof AccessControlledResource ) {
                 AccessControlledResource acr = (AccessControlledResource) res;
@@ -125,6 +136,7 @@ public class ACLProtocol implements HttpExtension, PropertySource {
 
         }
 
+		@Override
         public Class<HrefList> getValueClass() {
             return HrefList.class;
         }
@@ -132,10 +144,12 @@ public class ACLProtocol implements HttpExtension, PropertySource {
 
     class CurrentUserPrivledges implements StandardProperty<PriviledgeList> {
 
+		@Override
         public String fieldName() {
             return "current-user-privilege-set";
         }
 
+		@Override
         public PriviledgeList getValue( PropFindableResource res ) {
             if( res instanceof AccessControlledResource ) {
                 AccessControlledResource acr = (AccessControlledResource) res;
@@ -148,6 +162,7 @@ public class ACLProtocol implements HttpExtension, PropertySource {
             }
         }
 
+		@Override
         public Class<PriviledgeList> getValueClass() {
             return PriviledgeList.class;
         }

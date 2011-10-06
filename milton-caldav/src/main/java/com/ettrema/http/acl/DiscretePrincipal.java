@@ -28,13 +28,16 @@ public class DiscretePrincipal implements Principal{
         return url;
     }
 
+	@Override
     public PrincipleId getIdenitifer() {
         return new PrincipleId() {
 
+			@Override
             public QName getIdType() {
                 return ID_TYPE;
             }
 
+			@Override
             public String getValue() {
                 return url;
             }

@@ -121,18 +121,22 @@ public class PropPatchHandler implements ExistingEntityHandler, PropertyHandler 
         this.responseHandler = responseHandler;
     }
 
+	@Override
     public String[] getMethods() {
         return new String[]{Method.PROPPATCH.code};
     }
 
+	@Override
     public boolean isCompatible( Resource r ) {
         return patchSetter.supports( r );
     }
 
+	@Override
     public void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException {
         resourceHandlerHelper.process( httpManager, request, response, this );
     }
 
+	@Override
     public void processResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, ConflictException, BadRequestException {
         long t = System.currentTimeMillis();
         try {
@@ -166,6 +170,7 @@ public class PropPatchHandler implements ExistingEntityHandler, PropertyHandler 
         }
     }
 
+	@Override
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         // todo: check if token header
         try {
@@ -214,10 +219,12 @@ public class PropPatchHandler implements ExistingEntityHandler, PropertyHandler 
         return set;
     }
 
+	@Override
     public PropertyAuthoriser getPermissionService() {
         return permissionService;
     }
 
+	@Override
     public void setPermissionService( PropertyAuthoriser permissionService ) {
         this.permissionService = permissionService;
     }
@@ -265,6 +272,7 @@ public class PropPatchHandler implements ExistingEntityHandler, PropertyHandler 
             return removeFields.size() + setFields.size();
         }
 
+		@Override
         public Iterator<Field> iterator() {
             List<Field> list = new ArrayList<Field>( removeFields );
             list.addAll( setFields );

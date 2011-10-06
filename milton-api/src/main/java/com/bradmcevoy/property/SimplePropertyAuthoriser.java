@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
  */
 public class SimplePropertyAuthoriser implements PropertyAuthoriser {
 
+	@Override
     public Set<CheckResult> checkPermissions( Request request, Method method, PropertyPermission perm, Set<QName> fields, Resource resource ) {
         Auth auth = request.getAuthorization();
         if( auth != null && auth.getTag() != null ) {

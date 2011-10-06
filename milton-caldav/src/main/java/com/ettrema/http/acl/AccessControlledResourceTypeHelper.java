@@ -21,11 +21,13 @@ public class AccessControlledResourceTypeHelper implements ResourceTypeHelper {
         this.wrapped = wrapped;
     }
 
+	@Override
     public List<QName> getResourceTypes( Resource r ) {
         List<QName> list = wrapped.getResourceTypes( r );
         return list;
     }
 
+	@Override
     public List<String> getSupportedLevels( Resource r ) {
         log.trace( "getSupportedLevels" );
         List<String> list = wrapped.getSupportedLevels( r );
