@@ -130,7 +130,7 @@ public class Host extends Folder {
 		}
 		transferService = new TransferService(client, connectionListeners);
 		transferService.setTimeout(timeoutMillis);
-		if( enableZSync ) {
+		if (enableZSync) {
 			zSyncClient = new ZSyncClient(transferService);
 		} else {
 			zSyncClient = null;
@@ -163,8 +163,9 @@ public class Host extends Folder {
 
 	public static Resource _find(Folder parent, String[] arr, int i, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException {
 		String childName = arr[i];
-
-		parent.flush();
+		if (invalidateCache) {
+			parent.flush();
+		}
 		Resource child = parent.child(childName);
 		if (i == arr.length - 1) {
 			return child;
@@ -352,7 +353,7 @@ public class Host extends Folder {
 	public synchronized void doGet(String url, StreamReceiver receiver, List<Range> rangeList, ProgressListener listener) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
 		transferService.get(url, receiver, rangeList, listener);
 	}
-	
+
 	public synchronized void doGet(Path path, final java.io.File file, ProgressListener listener) throws IOException, NotFoundException, com.ettrema.httpclient.HttpException {
 		LogUtils.trace(log, "doGet", path);
 		if (zSyncClient != null) {
@@ -366,11 +367,11 @@ public class Host extends Folder {
 					OutputStream out = FileUtils.openOutputStream(file);
 					BufferedOutputStream bout = new BufferedOutputStream(out);
 					IOUtils.copy(in, bout);
-					
+
 				}
 			}, null, listener);
 		}
-	}	
+	}
 
 	public synchronized void options(String path) throws java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
 		String url = this.href() + path;
@@ -554,7 +555,6 @@ public class Host extends Folder {
 		//s = s.replace( " ", "%20" );
 	}
 
-
 	public String getPropFindXml() {
 		return propFindXml;
 	}
@@ -620,8 +620,8 @@ public class Host extends Folder {
 		for (ConnectionListener l : connectionListeners) {
 			l.onFinishRequest();
 		}
-	}	
-	
+	}
+
 	public void addConnectionListener(ConnectionListener e) {
 		connectionListeners.add(e);
 	}

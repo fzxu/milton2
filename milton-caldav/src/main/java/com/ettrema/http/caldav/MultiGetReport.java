@@ -9,6 +9,7 @@ import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.PropFindXmlGenerator;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.ettrema.http.report.Report;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,10 +40,12 @@ public class MultiGetReport implements Report {
         this.xmlGenerator = xmlGenerator;
     }
 
+	@Override
     public String getName() {
         return "calendar-multiget";
     }
 
+	@Override
     public String process( String host, Resource calendar, Document doc ) {
         log.debug( "process" );
         // The requested properties
@@ -62,7 +65,11 @@ public class MultiGetReport implements Report {
             if( r != null ) {
                 if( r instanceof PropFindableResource ) {
                     PropFindableResource pfr = (PropFindableResource) r;
-                    respProps.addAll( propertyBuilder.buildProperties( pfr, 0, parseResult, href ) );
+					try {
+						respProps.addAll( propertyBuilder.buildProperties( pfr, 0, parseResult, href ) );
+					} catch (URISyntaxException ex) {
+						throw new RuntimeException("There was an unencoded url requested: " + href, ex);
+					}
                 } else {
                     // todo
                 }
