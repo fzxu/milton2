@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -92,7 +93,12 @@ public class JsonPropFindHandler {
             String href = encodedUrl.replace("/_DAV/PROPFIND", "");
             log.debug("prop builder: " + propertyBuilder.getClass());
             ParseResult parseResult = new ParseResult(false, fields);
-            List<PropFindResponse> props = propertyBuilder.buildProperties(wrappedResource, depth, parseResult, href);
+            List<PropFindResponse> props;
+			try {
+				props = propertyBuilder.buildProperties(wrappedResource, depth, parseResult, href);
+			} catch (URISyntaxException ex) {
+				throw new RuntimeException("Requested url is not properly encoded: " + href, ex);
+			}
 
             String where = params.get("where");
             filterResults(props, where);
