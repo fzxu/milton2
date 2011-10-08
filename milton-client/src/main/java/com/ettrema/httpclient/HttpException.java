@@ -7,12 +7,22 @@ package com.ettrema.httpclient;
 public abstract class HttpException extends Exception {
     private static final long serialVersionUID = 1L;
 
-    final int result;
-    final String href;
+    private final int result;
+    private final String href;
 
     public HttpException( int result, String href ) {
         super( "http error: " + result + " - " + href );
         this.result = result;
         this.href = href;
     }
+
+	public int getResult() {
+		return result;
+	}
+
+	public String getHref() {
+		return href;
+	}
+	
+	
 }

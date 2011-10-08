@@ -4,14 +4,16 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author mcevoyb
  */
 public class Utils {
+
+	private static final Logger log = LoggerFactory.getLogger(Utils.class);
 
 	public static void close(InputStream in) {
 		try {
@@ -20,7 +22,7 @@ public class Utils {
 			}
 			in.close();
 		} catch (IOException ex) {
-			Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
+			log.warn("Exception closing stream: " + ex.getMessage());
 		}
 	}
 
@@ -31,7 +33,7 @@ public class Utils {
 			}
 			out.close();
 		} catch (IOException ex) {
-			Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
+			log.warn("Exception closing stream: " + ex.getMessage());
 		}
 	}
 
@@ -40,14 +42,23 @@ public class Utils {
 		byte[] arr = new byte[1024];
 		int s = in.read(arr);
 		bytes += s;
-		while (s >= 0) {
-			if (listener != null && listener.isCancelled()) {
-				throw new CancelledException();
+		try {
+			while (s >= 0) {
+				if (listener != null && listener.isCancelled()) {
+					throw new CancelledException();
+				}
+				out.write(arr, 0, s);
+				s = in.read(arr);
+				bytes += s;
+				if (listener != null) {
+					listener.onProgress(bytes, null, null);
+				}
 			}
-			out.write(arr, 0, s);
-			s = in.read(arr);
-			bytes += s;
-			listener.onProgress(bytes, null, null);
+		} catch (IOException e) {
+			throw e;
+		} catch (Throwable e) {
+			log.error("exception copying bytes", e);
+			throw new RuntimeException(e);
 		}
 		return bytes;
 	}
@@ -70,7 +81,7 @@ public class Utils {
 			bout.flush();
 			out.flush();
 			return bytes;
-		} finally {			
+		} finally {
 			Utils.close(bout);
 			Utils.close(out);
 		}

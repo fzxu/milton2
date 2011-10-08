@@ -488,18 +488,19 @@ public class Host extends Folder {
 	@Override
 	public String href() {
 		String s = "http://" + server;
-		if (this.port != 80) {
+		if (this.port != 80 && this.port > 0) {
 			s += ":" + this.port;
 		}
-		s += "/";
+
 		if (rootPath != null && rootPath.length() > 0) {
-			if (!rootPath.equals("/")) {
-				s = s + rootPath;
+			if (!rootPath.startsWith("/")) {
+				s += "/";
 			}
+			s = s + rootPath;
+		} else {
+			s += "/";
 		}
-		if (!s.endsWith("/")) {
-			s = s + "/";
-		}
+
 		//log.trace("host href: " + s);
 		return s;
 	}
