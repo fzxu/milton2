@@ -22,7 +22,7 @@ public class DefaultCacheControlHelper implements CacheControlHelper {
         if( log.isTraceEnabled() ) {
             log.trace( "setCacheControl: " + delta + " - " + resource.getClass() );
         }
-        if( delta != null ) {
+        if( delta != null && delta > 0 ) {
             if( usePrivateCache && auth != null ) {
                 response.setCacheControlPrivateMaxAgeHeader( delta );
                 //response.setCacheControlMaxAgeHeader(delta);
