@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.ettrema</groupId>
         <artifactId>milton</artifactId>
-        <version>1.6.6</version>
+        <version>1.6.7-SNAPSHOT</version>
     </parent>
     <groupId>com.ettrema</groupId>
     <artifactId>milton-ftp</artifactId>
