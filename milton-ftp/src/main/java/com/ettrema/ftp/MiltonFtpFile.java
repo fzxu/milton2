@@ -23,6 +23,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.io.BufferingOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -309,6 +310,7 @@ public class MiltonFtpFile implements FtpFile {
         }
     }
 
+	@Override
     public InputStream createInputStream( long offset ) throws IOException {
         if( r instanceof GetableResource ) {
             GetableResource gr = (GetableResource) r;
@@ -318,7 +320,10 @@ public class MiltonFtpFile implements FtpFile {
                 gr.sendContent( out, null, null, ct );
                 out.close();
                 return out.getInputStream();
-            } catch( BadRequestException ex ) {
+            } catch (NotFoundException ex) {
+				log.warn("Not found exception", ex);
+				return null;
+			} catch( BadRequestException ex ) {
                 log.warn( "bad request", ex );
                 return null;
             } catch( NotAuthorizedException ex ) {
