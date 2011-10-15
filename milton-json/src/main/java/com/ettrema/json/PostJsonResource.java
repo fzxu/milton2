@@ -9,6 +9,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class PostJsonResource extends JsonResource implements PostableResource {
 		return Method.POST;
 	}
 
+	@Override
 	public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
 		String method = parameters.get(methodParamName);
 		
@@ -57,7 +59,8 @@ public class PostJsonResource extends JsonResource implements PostableResource {
 		}
 	}
 
-	public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
+	@Override
+	public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
 		if( res == null) {
 			String method = params.get(methodParamName);
 			res = jsonResourceFactory.wrapResource(host, this, method, href);
