@@ -6,6 +6,7 @@ import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -125,8 +126,12 @@ public class ResourceHandlerHelper {
                     return;
                 }
             }
-
-            handler.processExistingResource( manager, request, response, resource );
+			try {
+				handler.processExistingResource( manager, request, response, resource );
+			} catch (NotFoundException ex) {
+				log.warn("Not found exception thrown from handler: " + handler.getClass(), ex);
+				responseHandler.respondNotFound(response, request);
+			}
         } finally {
             t = System.currentTimeMillis() - t;
             manager.onProcessResourceFinish( request, response, resource, t );

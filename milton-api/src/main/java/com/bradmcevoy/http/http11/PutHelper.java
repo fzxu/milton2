@@ -11,6 +11,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.slf4j.Logger;
@@ -171,7 +172,7 @@ public class PutHelper {
      * @param range
      * @param tempOut
      */
-    public void applyPartialUpdate(GetableResource replacee, Request request, Range range, OutputStream tempOut) throws NotAuthorizedException, BadRequestException {
+    public void applyPartialUpdate(GetableResource replacee, Request request, Range range, OutputStream tempOut) throws NotAuthorizedException, BadRequestException, NotFoundException {
         try {
             replacee.sendContent(tempOut, null, null, null);
         } catch (IOException ex) {

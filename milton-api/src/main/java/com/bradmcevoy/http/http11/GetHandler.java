@@ -5,6 +5,7 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class GetHandler implements ExistingEntityHandler {
     }
 
 	@Override
-    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
         if( log.isTraceEnabled() ) {
             log.trace( "process: " + request.getAbsolutePath() );
         }
@@ -153,7 +154,7 @@ public class GetHandler implements ExistingEntityHandler {
         return ( handler instanceof GetableResource );
     }
 
-    private void sendContent( HttpManager manager, Request request, Response response, GetableResource resource, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
+    private void sendContent( HttpManager manager, Request request, Response response, GetableResource resource, Map<String, String> params ) throws NotAuthorizedException, BadRequestException, NotFoundException {
         try {
             if( request.getMethod().equals( Method.HEAD ) ) {
                 responseHandler.respondHead( resource, response, request );
@@ -168,6 +169,8 @@ public class GetHandler implements ExistingEntityHandler {
                     responseHandler.respondContent( resource, response, request, params );
                 }
             }
+		} catch(NotFoundException e) {
+			throw e;
         } catch( NotAuthorizedException notAuthorizedException ) {
             throw notAuthorizedException;
         } catch( BadRequestException badRequestException ) {

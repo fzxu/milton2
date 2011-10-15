@@ -3,6 +3,7 @@ package com.bradmcevoy.http;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 
 /**
  *
@@ -16,7 +17,7 @@ public interface Handler {
      */
     String[] getMethods();
 
-    void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException;
+    void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException, NotFoundException;
 
     /**
      *

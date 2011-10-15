@@ -41,10 +41,12 @@ public class StaticResourceFactory implements ResourceFactory, Initable {
         log.debug( "root: " + root.getAbsolutePath() + " - context:" + context );
     }
 
+	@Override
     public void init( ApplicationConfig config, HttpManager manager ) {
         this.config = config;
     }
 
+	@Override
     public Resource getResource( String host, String url ) {
         File file;
         if( root != null ) {
@@ -87,6 +89,7 @@ public class StaticResourceFactory implements ResourceFactory, Initable {
         }
     }
 
+	@Override
     public void destroy( HttpManager manager ) {
     }
 

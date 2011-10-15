@@ -21,6 +21,7 @@ public class MultipleResourceFactory implements ResourceFactory {
         this.factories = factories;
     }
 
+	@Override
     public Resource getResource( String host, String url ) {
         if( log.isTraceEnabled() ) {
             log.trace( "getResource: " + url );
@@ -37,7 +38,9 @@ public class MultipleResourceFactory implements ResourceFactory {
         }
         if( theResource == null ) {
             log.debug( "no resource factory supplied a resouce" );
-        }
+        } else {
+			System.out.println("multi rf got a : " + theResource.getClass());
+		}
         return theResource;
     }
 
@@ -58,6 +61,7 @@ public class MultipleResourceFactory implements ResourceFactory {
         for( ResourceFactory rf : factories ) {
             Resource r = rf.getResource( host, url );
             if( r != null ) {
+				System.out.println("multi rf got a resource from: " + rf.getClass());
                 return r;
             }
         }

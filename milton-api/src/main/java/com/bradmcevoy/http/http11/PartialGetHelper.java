@@ -6,6 +6,7 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.io.StreamUtils;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -62,7 +63,7 @@ public class PartialGetHelper {
 		}
 	}
 
-	public void sendPartialContent(GetableResource resource, Request request, Response response, List<Range> ranges, Map<String, String> params) throws NotAuthorizedException, BadRequestException, IOException {
+	public void sendPartialContent(GetableResource resource, Request request, Response response, List<Range> ranges, Map<String, String> params) throws NotAuthorizedException, BadRequestException, IOException, NotFoundException {
 		log.trace("sendPartialContent");
 		if (ranges.size() == 1) {
 			log.trace("partial get, single range");

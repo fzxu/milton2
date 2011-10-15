@@ -2,6 +2,7 @@ package com.bradmcevoy.http.http11;
 
 import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
 import java.io.IOException;
 
@@ -51,6 +52,7 @@ public class PutHandler implements Handler {
         }
     }
 
+	@Override
     public String[] getMethods() {
         return new String[]{Method.PUT.code};
     }
@@ -61,7 +63,7 @@ public class PutHandler implements Handler {
     }
 
     @Override
-    public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException, ConflictException, BadRequestException {
+    public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         if( !handlerHelper.checkExpects( responseHandler, request, response ) ) {
             return;
         }
@@ -221,7 +223,7 @@ public class PutHandler implements Handler {
      * @param response
      * @param replacee
      */
-    private void processReplace( HttpManager manager, Request request, Response response, ReplaceableResource replacee ) throws BadRequestException, NotAuthorizedException, ConflictException {
+    private void processReplace( HttpManager manager, Request request, Response response, ReplaceableResource replacee ) throws BadRequestException, NotAuthorizedException, ConflictException, NotFoundException {
         if( !handlerHelper.checkAuthorisation( manager, replacee, request ) ) {
             responseHandler.respondUnauthorised( replacee, response, request );
             return;
@@ -291,7 +293,7 @@ public class PutHandler implements Handler {
         log.debug( "process: finished" );
     }
 
-    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
+    public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
         String host = request.getHostHeader();
         String urlToCreateOrUpdate = HttpManager.decodeUrl( request.getAbsolutePath() );
         log.debug( "process request: host: " + host + " url: " + urlToCreateOrUpdate );

@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import java.io.OutputStream;
@@ -59,7 +60,7 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
     }
 
     @Override
-    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
+    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException, NotFoundException {
         if( resource instanceof GetableResource ) {
             GetableResource r = (GetableResource) resource;
 
@@ -78,6 +79,8 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                     gzipOut.flush();
                     gzipOut.close();
                     tempOut.flush();
+				} catch(NotFoundException e) {
+					throw e;
                 } catch( Exception ex ) {
                     tempOut.deleteTempFileIfExists();
                     throw new RuntimeException( ex );

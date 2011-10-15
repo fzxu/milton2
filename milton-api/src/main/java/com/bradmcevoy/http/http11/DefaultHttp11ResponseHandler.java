@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.io.BufferingOutputStream;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
@@ -182,7 +183,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
 	@Override
-    public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException, BadRequestException {
+    public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException, BadRequestException, NotFoundException {
         log.debug("respondPartialContent: " + range.getStart() + " - " + range.getFinish());
         response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
         response.setContentRangeHeader(range.getStart(), range.getFinish(), resource.getContentLength());
@@ -209,7 +210,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
     }
 
 	@Override
-    public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException, BadRequestException {
+    public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException, BadRequestException, NotFoundException {
         log.debug("respondContent: " + resource.getClass());
         Auth auth = request.getAuthorization();
         setRespondContentCommonHeaders(response, resource, auth);
@@ -239,7 +240,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
                 BufferingOutputStream tempOut = new BufferingOutputStream(maxMemorySize);
                 try {
                     ((GetableResource) resource).sendContent(tempOut, null, params, ct);
-                    tempOut.close();
+                    tempOut.close();					
                 } catch (IOException ex) {
                     tempOut.deleteTempFileIfExists();
                     throw new RuntimeException("Exception generating buffered content", ex);
@@ -289,7 +290,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
         cacheControlHelper.setCacheControl(resource, response, request.getAuthorization());
     }
 
-    protected void sendContent(Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType) throws NotAuthorizedException, BadRequestException {
+    protected void sendContent(Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType) throws NotAuthorizedException, BadRequestException, NotFoundException {
         long l = System.currentTimeMillis();
         log.trace("sendContent");
         OutputStream out = outputStreamForResponse(request, response, resource);

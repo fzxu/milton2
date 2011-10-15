@@ -32,6 +32,7 @@ public class StaticResource implements GetableResource {
         this.contentType = contentType;
     }
 
+	@Override
     public String getUniqueId() {
         return file.hashCode() + "";
     }
@@ -40,6 +41,7 @@ public class StaticResource implements GetableResource {
         return this.getName().compareTo(res.getName());
     }    
     
+	@Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         BufferedInputStream bin = new BufferedInputStream(fis);
@@ -50,14 +52,17 @@ public class StaticResource implements GetableResource {
         }        
     }
 
+	@Override
     public String getName() {
         return file.getName();
     }
 
+	@Override
     public Object authenticate(String user, String password) {
         return "ok";
     }
 
+	@Override
     public boolean authorise(Request request, Request.Method method, Auth auth) {
         return true;
     }
@@ -66,16 +71,19 @@ public class StaticResource implements GetableResource {
         return "ettrema";   //TODO
     }
 
+	@Override
     public Date getModifiedDate() {        
         Date dt = new Date(file.lastModified());
 //        log.debug("static resource modified: " + dt);
         return dt;
     }
 
+	@Override
     public Long getContentLength() {
         return file.length();
     }
 
+	@Override
     public String getContentType(String preferredList) {
         Collection mimeTypes = MimeUtil.getMimeTypes( file );
         StringBuilder sb = null;

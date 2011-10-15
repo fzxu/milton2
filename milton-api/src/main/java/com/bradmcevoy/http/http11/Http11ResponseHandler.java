@@ -8,6 +8,7 @@ import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.util.List;
 import java.util.Map;
 
@@ -38,8 +39,8 @@ public interface Http11ResponseHandler extends ETagGenerator {
      * @param request
      */
     void respondNoContent(Resource resource, Response response,Request request);
-    void respondContent(Resource resource, Response response, Request request, Map<String,String> params) throws NotAuthorizedException, BadRequestException;
-    void respondPartialContent(GetableResource resource, Response response, Request request, Map<String,String> params, Range range) throws NotAuthorizedException, BadRequestException;
+    void respondContent(Resource resource, Response response, Request request, Map<String,String> params) throws NotAuthorizedException, BadRequestException, NotFoundException;
+    void respondPartialContent(GetableResource resource, Response response, Request request, Map<String,String> params, Range range) throws NotAuthorizedException, BadRequestException, NotFoundException;
     void respondCreated(Resource resource, Response response, Request request);
     void respondUnauthorised(Resource resource, Response response, Request request);
     void respondMethodNotImplemented(Resource resource, Response response, Request request);

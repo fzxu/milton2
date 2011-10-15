@@ -60,6 +60,7 @@ public class MiltonServlet implements Servlet {
     private ServletConfig config;
     protected ServletHttpManager httpManager;
 
+	@Override
     public void init( ServletConfig config ) throws ServletException {
         try {
             this.config = config;
@@ -151,35 +152,47 @@ public class MiltonServlet implements Servlet {
         }
     }
 
+	@Override
     public void destroy() {
         log.debug( "destroy" );
         if( httpManager == null ) return;
         httpManager.destroy( httpManager );
     }
 
+	@Override
     public void service( javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse ) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         HttpServletResponse resp = (HttpServletResponse) servletResponse;
         try {
-            originalRequest.set( req );
-            originalResponse.set( resp );
+            setThreadlocals( req , resp);
             tlServletConfig.set( config );
             Request request = new ServletRequest( req );
             Response response = new ServletResponse( resp );
             httpManager.process( request, response );
         } finally {
-            originalRequest.remove();
-            originalResponse.remove();
+            clearThreadlocals();
             tlServletConfig.remove();
             servletResponse.getOutputStream().flush();
             servletResponse.flushBuffer();
         }
     }
 
+	public static  void clearThreadlocals() {
+		originalRequest.remove();
+		originalResponse.remove();
+	}
+
+	public static  void setThreadlocals(HttpServletRequest req, HttpServletResponse resp) {
+		originalRequest.set( req );
+		originalResponse.set( resp );
+	}
+
+	@Override
     public String getServletInfo() {
         return "MiltonServlet";
     }
 
+	@Override
     public ServletConfig getServletConfig() {
         return config;
     }

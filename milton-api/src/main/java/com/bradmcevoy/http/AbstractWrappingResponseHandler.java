@@ -2,6 +2,7 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.quota.StorageChecker.StorageErrorReason;
 import java.util.List;
 import java.util.Map;
@@ -34,11 +35,13 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
         this.wrapped = wrapped;
     }
 
+	@Override
     public String generateEtag( Resource r ) {
         return wrapped.generateEtag( r );
     }
 
-    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
+	@Override
+    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException, NotFoundException {
         wrapped.respondContent( resource, response, request, params );
     }
 
@@ -50,14 +53,17 @@ public abstract class AbstractWrappingResponseHandler implements WebDavResponseH
         return wrapped;
     }
 
+	@Override
     public void respondNoContent( Resource resource, Response response, Request request ) {
         wrapped.respondNoContent( resource, response, request );
     }
 
-    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException {
+	@Override
+    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException, NotFoundException {
         wrapped.respondPartialContent( resource, response, request, params, range );
     }
 
+	@Override
     public void respondCreated( Resource resource, Response response, Request request ) {
         wrapped.respondCreated( resource, response, request );
     }

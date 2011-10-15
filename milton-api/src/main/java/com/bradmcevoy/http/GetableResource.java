@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.util.Map;
 
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 
 /**
  * webDAV GET and HEAD
@@ -43,7 +44,7 @@ public interface GetableResource extends Resource {
      * throw an IOException if there was an internal error generating the response (eg if reading from a database)
      * @throws com.bradmcevoy.http.exceptions.NotAuthorizedException
      */
-    public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException;
+    public void sendContent( OutputStream out, Range range, Map<String,String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException;
 
     /** How many seconds to allow the content to be cached for, or null if caching is not allowed
      *

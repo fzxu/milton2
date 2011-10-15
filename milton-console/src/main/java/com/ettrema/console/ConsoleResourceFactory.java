@@ -59,8 +59,8 @@ public class ConsoleResourceFactory implements ResourceFactory {
         this.dojoJsContent = loadContent( "dojo.js" );
     }
 
-    public Resource getResource( String host, String path ) {
-        log.debug( "path: " + path + " ::::::::::: consolePath:" + consolePath );
+	@Override
+    public Resource getResource( String host, String path ) {        
         if( path.startsWith( consolePath ) ) {
             path = stripConsolePath( path, consolePath );
             Resource secureResource = wrappedFactory.getResource( host, secureResourcePath );

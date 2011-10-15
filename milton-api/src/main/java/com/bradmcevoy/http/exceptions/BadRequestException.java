@@ -20,6 +20,11 @@ public class BadRequestException extends MiltonException {
         super(r);
         this.reason = reason;
     }
+	
+    public BadRequestException(String reason) {
+        super(null);
+        this.reason = reason;
+    }	
 
     /**
      * Optional property, which describe the cause of the exception

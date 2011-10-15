@@ -12,6 +12,7 @@ import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler;
 import com.bradmcevoy.http.http11.DefaultHttp11ResponseHandler.BUFFERING;
 import com.bradmcevoy.http.http11.Http11ResponseHandler;
@@ -70,10 +71,12 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         this.propFindXmlGenerator = propFindXmlGenerator;
     }
 
+	@Override
     public String generateEtag( Resource r ) {
         return wrapped.generateEtag( r );
     }
 
+	@Override
     public void respondWithOptions( Resource resource, Response response, Request request, List<String> methodsAllowed ) {
         wrapped.respondWithOptions( resource, response, request, methodsAllowed );
         List<String> supportedLevels = resourceTypeHelper.getSupportedLevels( resource );
@@ -82,6 +85,7 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         response.setNonStandardHeader( "MS-Author-Via", "DAV" );
     }
 
+	@Override
     public void responseMultiStatus( Resource resource, Response response, Request request, List<HrefStatus> statii ) {
         response.setStatus( Response.Status.SC_MULTI_STATUS );
         response.setDateHeader( new Date() );
@@ -102,15 +106,17 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
 
     }
 
+	@Override
     public void respondNoContent( Resource resource, Response response, Request request ) {
         wrapped.respondNoContent( resource, response, request );
     }
 
-    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException {
+	@Override
+    public void respondContent( Resource resource, Response response, Request request, Map<String, String> params ) throws NotAuthorizedException, BadRequestException, NotFoundException {
         wrapped.respondContent( resource, response, request, params );
     }
 
-    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException {
+    public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException, NotFoundException {
         wrapped.respondPartialContent( resource, response, request, params, range );
     }
 

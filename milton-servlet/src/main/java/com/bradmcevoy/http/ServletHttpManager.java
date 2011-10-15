@@ -4,6 +4,14 @@ import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Just extends the normal HttpManager to support initialising filters from
+ * servlet init params.
+ * 
+ * Note the init method used here is a bit pants, and you should probably not use it.
+ * 
+ * @author bradm
+ */
 public class ServletHttpManager extends HttpManager implements Initable {
     
     private static final Logger log = LoggerFactory.getLogger(ServletHttpManager.class);
@@ -21,6 +29,7 @@ public class ServletHttpManager extends HttpManager implements Initable {
         super(resourceFactory);
     }
     
+	@Override
     public void init(ApplicationConfig config,HttpManager manager) {
         log.debug("init");
         if( resourceFactory != null ) { 
@@ -58,6 +67,7 @@ public class ServletHttpManager extends HttpManager implements Initable {
         }
     }
     
+	@Override
     public void destroy(HttpManager manager) {
         log.debug("destroy");
         if( resourceFactory != null ) {

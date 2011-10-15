@@ -50,17 +50,20 @@ public class SpringResourceFactoryFactory implements ResourceFactoryFactory{
 
     ApplicationContext context;
 
+	@Override
     public void init() {
         context = new ClassPathXmlApplicationContext(new String[] {"applicationContext.xml"});
     }
 
 
     
+	@Override
     public ResourceFactory createResourceFactory() {
         ResourceFactory rf = (ResourceFactory) context.getBean("milton.resource.factory");
         return rf;
     }
 
+	@Override
     public WebDavResponseHandler createResponseHandler() {
         return  (WebDavResponseHandler) context.getBean("milton.response.handler");
     }
