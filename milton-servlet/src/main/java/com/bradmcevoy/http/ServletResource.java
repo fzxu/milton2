@@ -1,5 +1,6 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.common.ContentTypeUtils;
 import eu.medsea.mimeutil.MimeType;
 import java.io.File;
 import java.io.IOException;
@@ -93,23 +94,7 @@ public class ServletResource implements GetableResource {
 
 	@Override
 	public String getContentType(String preferredList) {
-		Collection mimeTypes = MimeUtil.getMimeTypes(file);
-		StringBuilder sb = null;
-		for (Object o : mimeTypes) {
-			MimeType mt = (MimeType) o;
-			if (sb == null) {
-				sb = new StringBuilder();
-			} else {
-				sb.append(",");
-			}
-			sb.append(mt.toString());
-		}
-		if (sb == null) {
-			return null;
-		}
-		String mime = sb.toString();
-		MimeType mt = MimeUtil.getPreferedMimeType(preferredList, mime);
-		return mt.toString();
+		return ContentTypeUtils.findContentTypes(file);
 	}
 
 	@Override
