@@ -17,6 +17,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import com.bradmcevoy.io.FileUtils;
 import com.bradmcevoy.io.RandomFileOutputStream;
+import com.ettrema.common.LogUtils;
 import com.ettrema.event.NewFolderEvent;
 import com.ettrema.event.PutEvent;
 import java.io.BufferedInputStream;
@@ -157,11 +158,11 @@ public class PutHandler implements Handler {
             return;
         }
 
-        log.debug( "process: putting to: " + folder.getName() );
+        LogUtils.debug( log, "process: putting to: ", folder.getName() );
         try {
             Long l = putHelper.getContentLength( request );
             String ct = putHelper.findContentTypes( request, newName );
-            log.debug( "PutHandler: creating resource of type: " + ct );
+            LogUtils.debug(log, "PutHandler: creating resource of type: ", ct );
             Resource newlyCreated = folder.createNew( newName, request.getInputStream(), l, ct );
             manager.getEventManager().fireEvent( new PutEvent( newlyCreated ) );
         } catch( IOException ex ) {
