@@ -116,4 +116,10 @@ public abstract class JsonResource implements DigestResource {
     public String checkRedirect( Request request ) {
         return null;
     }
+
+	public Resource getWrappedResource() {
+		return wrappedResource;
+	}
+	
+	
 }

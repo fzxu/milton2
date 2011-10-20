@@ -88,13 +88,16 @@ public class JsonResourceFactory implements ResourceFactory {
 				String method = path.getName();
 				Resource wrappedResource = wrapped.getResource(host, resourcePath.toString());
 				if (wrappedResource != null) {
-					return wrapResource(host, wrappedResource, method, encodedPath);
+					Resource r = wrapResource(host, wrappedResource, method, encodedPath);
+					LogUtils.trace(log, "returning a", r.getClass());
+					return r;
 				}
 			}
 		} else {
 			log.trace("getResource: not matching path");
 			return wrapped.getResource(host, sPath);
 		}
+		System.out.println("nope, nothing");
 		return null;
 	}
 
@@ -103,10 +106,12 @@ public class JsonResourceFactory implements ResourceFactory {
 	}
 
 	public Resource wrapResource(String host, Resource wrappedResource, String method, String href) {
-		System.out.println("wrapResource: " + method);
+		LogUtils.trace(log, "wrapResource: " , method);
 		if (Request.Method.PROPFIND.code.equals(method)) {
 			if (wrappedResource instanceof PropFindableResource) {
 				return new PropFindJsonResource((PropFindableResource) wrappedResource, propFindHandler, href, maxAgeSecsPropFind);
+			} else {
+				log.warn("Located a resource for PROPFIND path, but it does not implement PropFindableResource: " + wrappedResource.getClass());
 			}
 		}
 		if (Request.Method.PROPPATCH.code.equals(method)) {
@@ -124,13 +129,11 @@ public class JsonResourceFactory implements ResourceFactory {
 		}
 		if (Request.Method.COPY.code.equals(method)) {
 			if (wrappedResource instanceof CopyableResource) {
-				System.out.println("copy reso");
 				return new CopyJsonResource(host, (CopyableResource) wrappedResource, wrapped);
 			}
 		}
 		if (Request.Method.MOVE.code.equals(method)) {
 			if (wrappedResource instanceof MoveableResource) {
-				System.out.println("move res");
 				return new MoveJsonResource(host, (MoveableResource) wrappedResource, wrapped);
 			}
 		}

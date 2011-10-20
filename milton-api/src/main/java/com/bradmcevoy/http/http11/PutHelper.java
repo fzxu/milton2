@@ -12,6 +12,7 @@ import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.common.LogUtils;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.slf4j.Logger;
@@ -138,10 +139,15 @@ public class PutHelper {
      * @return
      */
     public String findContentTypes( Request request, String newName ) {
-        String ct = request.getContentTypeHeader();
-        if( ct != null ) return ct;
+//        String ct = request.getContentTypeHeader();
+//        if( ct != null ) {
+//			LogUtils.trace(log, "findContentTypes: got header: " + ct);
+//			return ct;
+//		}
 
-        return ContentTypeUtils.findContentTypes( newName );
+        String s = ContentTypeUtils.findContentTypes( newName );
+		LogUtils.trace(log, "findContentTypes: got type from name. Type: " + s);
+		return s;
     }
 
 

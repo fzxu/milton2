@@ -31,6 +31,7 @@ public class PropFindJsonResource extends JsonResource implements GetableResourc
 
 	@Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException {
+		System.out.println("XXXXXXXXXXXXXXXXXXXXXXx sendContent");
         //jsonPropFindHandler.sendContent( wrappedResource, encodedUrl, out, range, params, contentType );
         jsonPropFindHandler.sendContent(wrappedResource, encodedUrl, out, range, params, contentType);
     }
@@ -66,4 +67,6 @@ public class PropFindJsonResource extends JsonResource implements GetableResourc
         }
         return super.getMaxAgeSeconds(auth);
     }
+
+	
 }
