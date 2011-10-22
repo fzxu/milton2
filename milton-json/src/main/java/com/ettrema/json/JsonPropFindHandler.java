@@ -13,6 +13,7 @@ import com.bradmcevoy.http.webdav.ResourceTypeHelper;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.http.webdav.WebDavResourceTypeHelper;
 import com.bradmcevoy.property.PropertySource;
+import com.ettrema.common.LogUtils;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -91,8 +92,8 @@ public class JsonPropFindHandler {
             }
 
             String href = encodedUrl.replace("/_DAV/PROPFIND", "");
-            log.debug("prop builder: " + propertyBuilder.getClass());
             ParseResult parseResult = new ParseResult(false, fields);
+            LogUtils.debug(log, "prop builder: ", propertyBuilder.getClass(), "href", href);			
             List<PropFindResponse> props;
 			try {
 				props = propertyBuilder.buildProperties(wrappedResource, depth, parseResult, href);

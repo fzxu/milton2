@@ -97,7 +97,6 @@ public class JsonResourceFactory implements ResourceFactory {
 			log.trace("getResource: not matching path");
 			return wrapped.getResource(host, sPath);
 		}
-		System.out.println("nope, nothing");
 		return null;
 	}
 

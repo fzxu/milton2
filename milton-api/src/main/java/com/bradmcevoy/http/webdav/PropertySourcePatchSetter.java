@@ -51,12 +51,14 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 	 * @param r
 	 * @return
 	 */
+	@Override
 	public boolean supports(Resource r) {
 		return true;
 	}
 
+	@Override
 	public PropFindResponse setProperties(String href, ParseResult parseResult, Resource r) {
-		log.trace("setProperties");
+		log.trace("setProperties: resource type: {}", r.getClass());
 		Map<QName, ValueAndType> knownProps = new HashMap<QName, ValueAndType>();
 
 		Map<Status, List<NameAndError>> errorProps = new EnumMap<Status, List<NameAndError>>(Status.class);
@@ -70,7 +72,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 					if (meta.isWritable()) {
 						Object val = parse(name, entry.getValue(), meta.getValueType());
 						try {
-							log.trace("setProperties: setProperty: name: {} source: []", name, source);
+							log.trace("setProperties: name: {} source: {}", name, source.getClass());
 							source.setProperty(name, val, r);
 							knownProps.put(name, new ValueAndType(null, meta.getValueType()));
 							break;

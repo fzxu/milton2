@@ -66,7 +66,6 @@ public class File extends Resource {
 		}
 		try {
 			Path path = path();
-			System.out.println("Path: " + path);
 			host().doGet(path, dest, listener);
 		} catch (CancelledException e) {
 			throw e;

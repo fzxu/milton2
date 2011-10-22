@@ -241,8 +241,6 @@ public class Folder extends Resource {
 
     private Folder handlerCreateFolderException(String newUri, String name) throws IOException, HttpException {
         // folder probably exists, so flush children
-        System.out.println("-----------------------------------------");
-        System.out.println("MKCOL method not allowed on : " + newUri);
         this.flush();
         Resource child = this.child(name);
         if (child instanceof Folder) {

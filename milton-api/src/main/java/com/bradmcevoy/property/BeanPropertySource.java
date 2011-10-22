@@ -25,6 +25,7 @@ public class BeanPropertySource implements PropertySource {
     private static final Logger log = LoggerFactory.getLogger( BeanPropertySource.class );
     private static final Object[] NOARGS = new Object[0];
 
+	@Override
     public Object getProperty( QName name, Resource r ) throws NotAuthorizedException {
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
         if( pd == null ) {
@@ -42,6 +43,7 @@ public class BeanPropertySource implements PropertySource {
         }
     }
 
+	@Override
     public void setProperty( QName name, Object value, Resource r ) throws NotAuthorizedException, PropertySetException {
         log.debug( "setProperty: " + name + " = " + value );
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
@@ -67,6 +69,7 @@ public class BeanPropertySource implements PropertySource {
         }
     }
 
+	@Override
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
         log.debug( "getPropertyMetaData" );
         BeanPropertyResource anno = getAnnotation( r );
@@ -112,10 +115,12 @@ public class BeanPropertySource implements PropertySource {
         }
     }
 
+	@Override
     public void clearProperty( QName name, Resource r ) throws NotAuthorizedException {
         setProperty( name, null, r );
     }
 
+	@Override
     public List<QName> getAllPropertyNames( Resource r ) {
         BeanPropertyResource anno = getAnnotation( r );
         if( anno == null ) return null;

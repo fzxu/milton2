@@ -59,7 +59,6 @@ public class MoveJsonResource extends JsonResource implements PostableResource {
             CollectionResource colDestParent = (CollectionResource) rDestParent;
             if( colDestParent.child( pDest.getName()) == null ) {
                 try {
-                    System.out.println("move to: " + colDestParent.getName());
                     wrapped.moveTo( colDestParent, pDest.getName() );
                 } catch( ConflictException ex ) {
                     log.warn( "Exception copying to: " + pDest.getName(), ex);

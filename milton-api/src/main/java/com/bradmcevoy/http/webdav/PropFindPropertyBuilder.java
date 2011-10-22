@@ -10,6 +10,7 @@ import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropFindResponse.NameAndError;
 import com.bradmcevoy.property.PropertySource;
 import com.bradmcevoy.property.PropertySource.PropertyMetaData;
+import com.ettrema.common.LogUtils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -66,6 +67,7 @@ public class PropFindPropertyBuilder {
 	 * @return
 	 */
 	public List<PropFindResponse> buildProperties(PropFindableResource pfr, int depth, PropFindRequestFieldParser.ParseResult parseResult, String url) throws URISyntaxException {
+		LogUtils.trace(log, "buildProperties: ", pfr.getClass());
 		List<PropFindResponse> propFindResponses = new ArrayList<PropFindResponse>();
 		appendResponses(propFindResponses, pfr, depth, parseResult, url);
 		return propFindResponses;
@@ -111,6 +113,7 @@ public class PropFindPropertyBuilder {
 		Iterator<QName> it = requestedFields.iterator();
 		while (it.hasNext()) {
 			QName field = it.next();
+			LogUtils.trace(log, "processResource:", field);
 			if (field.getLocalPart().equals("href")) {
 				knownProperties.put(field, new ValueAndType(href, String.class));
 			} else {
@@ -121,6 +124,7 @@ public class PropFindPropertyBuilder {
 						Object val;
 						try {
 							val = source.getProperty(field, resource);
+							LogUtils.trace(log, "processResource: got value", val, "from source", source.getClass());
 							knownProperties.put(field, new ValueAndType(val, meta.getValueType()));
 						} catch (NotAuthorizedException ex) {
 							unknownProperties.add(new NameAndError(field, "Not authorised"));

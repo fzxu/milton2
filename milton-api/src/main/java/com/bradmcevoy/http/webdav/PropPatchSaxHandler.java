@@ -23,7 +23,6 @@ public class PropPatchSaxHandler extends DefaultHandler {
 
 	@Override
 	public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
-		System.out.println("startElement: " + localName);
 		if (inProp) {
 			sb.append("<" + localName + ">");
 		}
@@ -42,7 +41,6 @@ public class PropPatchSaxHandler extends DefaultHandler {
 			}
 
 		}
-		System.out.println("push: " + localName);
 		elementPath.push(localName);
 		super.startElement(uri, localName, name, attributes);
 	}
@@ -51,13 +49,11 @@ public class PropPatchSaxHandler extends DefaultHandler {
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		if (inProp) {
 			sb.append(ch, start, length);
-			System.out.println("inprop: " + sb);
 		}
 	}
 
 	@Override
 	public void endElement(String uri, String localName, String name) throws SAXException {
-		System.out.println("end prop: " + localName);
 		elementPath.pop();
 		if (elementPath.size() > 0) {
 			if (elementPath.peek().endsWith("prop")) {

@@ -13,6 +13,7 @@ import com.bradmcevoy.http.webdav.PropPatchableSetter;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.property.DefaultPropertyAuthoriser;
 import com.bradmcevoy.property.PropertyAuthoriser;
+import com.ettrema.common.LogUtils;
 import com.ettrema.event.EventManager;
 import com.ettrema.event.PropPatchEvent;
 import java.util.HashMap;
@@ -78,7 +79,7 @@ public class JsonPropPatchHandler {
             log.trace( "authorisation errors" );
             throw new NotAuthorizedException( wrappedResource );
         } else {
-            log.trace( "setting properties" );
+            LogUtils.trace(log, "setting properties with", patchSetter.getClass() );
             PropFindResponse resp = patchSetter.setProperties( encodedUrl, parseResult, wrappedResource );
             if( eventManager != null ) {
                 log.trace( "fire event" );

@@ -236,7 +236,7 @@ public class Host extends Folder {
 				return Response.Status.SC_OK.code;
 			} catch (NotFoundException e) {
 				// ZSync file was not found
-				System.out.println("Not found: " + remotePath);
+				log.trace("Not found: " + remotePath);
 			} catch (IOException ex) {
 				throw new HttpException("Exception doing zsync upload", ex);
 			}

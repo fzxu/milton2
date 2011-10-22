@@ -38,7 +38,6 @@ public class ServletResource implements GetableResource {
 		this.localPath = localPath;
 		this.req = req;
 		this.response = response;
-		System.out.println("created servlet res: " + file.getAbsolutePath());
 	}
 
 	@Override
@@ -52,7 +51,6 @@ public class ServletResource implements GetableResource {
 
 	@Override
 	public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException {
-		System.out.println("sendContent: " + localPath);
 		try {
 			MyResponse myResponse = new MyResponse(HttpManager.response(), out);
 			req.getRequestDispatcher(localPath).include(req, myResponse);
