@@ -36,6 +36,7 @@ public abstract class TResource extends AbstractResource implements GetableResou
 
     protected abstract Object clone( TFolderResource newParent );
 
+	@Override
     public String getPrincipalURL() {
         //return user;
 			if( user != null && user.length() > 0 ) {
@@ -45,6 +46,7 @@ public abstract class TResource extends AbstractResource implements GetableResou
 			}
     }
 
+	@Override
     public HrefList getPrincipalCollectionHrefs() {
         return TResourceFactory.getPrincipalCollectionHrefs();
     }
@@ -71,14 +73,17 @@ public abstract class TResource extends AbstractResource implements GetableResou
         }
     }
 
+	@Override
     public Long getContentLength() {
         return null;
     }
 
+	@Override
     public Long getMaxAgeSeconds( Auth auth ) {
         return (long) 10;
     }
 
+	@Override
     public void moveTo( CollectionResource rDest, String name ) {
         log.debug( "moving.." );
         TFolderResource d = (TFolderResource) rDest;
@@ -88,10 +93,12 @@ public abstract class TResource extends AbstractResource implements GetableResou
         this.name = name;
     }
 
+	@Override
     public Date getCreateDate() {
         return createdDate;
     }
 
+	@Override
     public void delete() {
         if( this.parent == null ) {
             throw new RuntimeException( "attempt to delete root" );
@@ -103,6 +110,7 @@ public abstract class TResource extends AbstractResource implements GetableResou
         this.parent.children.remove( this );
     }
 
+	@Override
     public void copyTo( CollectionResource toCollection, String name ) {
         TResource rClone;
         rClone = (TResource) this.clone( (TFolderResource) toCollection );
@@ -133,6 +141,7 @@ public abstract class TResource extends AbstractResource implements GetableResou
         printer.print( s );
     }
 
+	@Override
     public final LockResult lock( LockTimeout lockTimeout, LockInfo lockInfo ) {
         log.trace( "Lock : " + lockTimeout + " info : " + lockInfo + " on resource : " + getName() + " in : " + parent );
         LockToken token = new LockToken();
@@ -143,6 +152,7 @@ public abstract class TResource extends AbstractResource implements GetableResou
         return LockResult.success( token );
     }
 
+	@Override
     public final LockResult refreshLock( String tokenId ) {
         log.trace( "RefreshLock : " + tokenId + " on resource : " + getName() + " in : " + parent );
         //throw new UnsupportedOperationException("Not supported yet.");
@@ -154,29 +164,35 @@ public abstract class TResource extends AbstractResource implements GetableResou
         return LockResult.success( token );
     }
 
+	@Override
     public void unlock( String arg0 ) {
         log.trace( "UnLock : " + arg0 + " on resource : " + getName() + " in : " + parent );
         currentLock = null;
         //throw new UnsupportedOperationException("Not supported yet.");
     }
 
+	@Override
     public final LockToken getCurrentLock() {
         log.trace( "GetCurrentLock" );
         return currentLock;
     }
 
+	@Override
     public boolean isDigestAllowed() {
         return true;
     }
 
+	@Override
     public Map<Principal, List<Priviledge>> getAccessControlList() {
       throw new UnsupportedOperationException("Not supported yet.");
     }
 
+	@Override
     public List<Priviledge> getPriviledges(Auth auth) {
       throw new UnsupportedOperationException("Not supported yet.");
     }
 
+	@Override
     public void setPriviledges(Principal principal, boolean isGrantOrDeny, List<Priviledge> privs) {
       throw new UnsupportedOperationException("Not supported yet.");
     }
