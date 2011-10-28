@@ -19,6 +19,7 @@ import com.bradmcevoy.io.BufferingOutputStream;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
+import com.ettrema.sso.ExternalIdentityProvider;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 
@@ -27,332 +28,327 @@ import org.apache.commons.io.IOUtils;
  */
 public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
-    public enum BUFFERING {
-        always,
-        never,
-        whenNeeded
-    }
+	public enum BUFFERING {
 
-    private static final Logger log = LoggerFactory.getLogger( DefaultHttp11ResponseHandler.class );
-    public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
-    public static final String NOT_FOUND_HTML = "<html><body><h1>${url} Not Found (404)</h1></body></html>";
-    public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
-    public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
-    public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
-    public static final String NOT_AUTHORISED_HTML = "<html><body><h1>Not authorised</h1></body></html>";
-    private final AuthenticationService authenticationService;
-    private final ETagGenerator eTagGenerator;
-    private CacheControlHelper cacheControlHelper = new DefaultCacheControlHelper();
-    private int maxMemorySize = 100000;
-    private BUFFERING buffering;
+		always,
+		never,
+		whenNeeded
+	}
+	private static final Logger log = LoggerFactory.getLogger(DefaultHttp11ResponseHandler.class);
+	public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
+	public static final String NOT_FOUND_HTML = "<html><body><h1>${url} Not Found (404)</h1></body></html>";
+	public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
+	public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
+	public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
+	public static final String NOT_AUTHORISED_HTML = "<html><body><h1>Not authorised</h1></body></html>";
+	private final AuthenticationService authenticationService;
+	private final ETagGenerator eTagGenerator;
+	private CacheControlHelper cacheControlHelper = new DefaultCacheControlHelper();
+	private int maxMemorySize = 100000;
+	private BUFFERING buffering;
 
-    public DefaultHttp11ResponseHandler(AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
-        this.eTagGenerator = new DefaultETagGenerator();
-    }
+	public DefaultHttp11ResponseHandler(AuthenticationService authenticationService) {
+		this.authenticationService = authenticationService;
+		this.eTagGenerator = new DefaultETagGenerator();
+	}
 
-    public DefaultHttp11ResponseHandler(AuthenticationService authenticationService, ETagGenerator eTagGenerator) {
-        this.authenticationService = authenticationService;
-        this.eTagGenerator = eTagGenerator;
-    }
+	public DefaultHttp11ResponseHandler(AuthenticationService authenticationService, ETagGenerator eTagGenerator) {
+		this.authenticationService = authenticationService;
+		this.eTagGenerator = eTagGenerator;
+	}
 
-    /**
-     * Defaults to com.bradmcevoy.http.http11.DefaultCacheControlHelper
-     * @return
-     */
-    public CacheControlHelper getCacheControlHelper() {
-        return cacheControlHelper;
-    }
+	/**
+	 * Defaults to com.bradmcevoy.http.http11.DefaultCacheControlHelper
+	 * @return
+	 */
+	public CacheControlHelper getCacheControlHelper() {
+		return cacheControlHelper;
+	}
 
-    public void setCacheControlHelper(CacheControlHelper cacheControlHelper) {
-        this.cacheControlHelper = cacheControlHelper;
-    }
-
-	@Override
-    public String generateEtag(Resource r) {
-        return eTagGenerator.generateEtag(r);
-    }
+	public void setCacheControlHelper(CacheControlHelper cacheControlHelper) {
+		this.cacheControlHelper = cacheControlHelper;
+	}
 
 	@Override
-    public void respondWithOptions(Resource resource, Response response, Request request, List<String> methodsAllowed) {
-        response.setStatus(Response.Status.SC_OK);
-        response.setAllowHeader(methodsAllowed);
-        response.setContentLengthHeader((long) 0);
-    }
+	public String generateEtag(Resource r) {
+		return eTagGenerator.generateEtag(r);
+	}
 
 	@Override
-    public void respondNotFound(Response response, Request request) {
-        response.setStatus(Response.Status.SC_NOT_FOUND);
-        response.setContentTypeHeader("text/html");
-        PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
-
-        String s = NOT_FOUND_HTML.replace("${url}", request.getAbsolutePath());
-        pw.print(s);
-        pw.flush();
-
-    }
+	public void respondWithOptions(Resource resource, Response response, Request request, List<String> methodsAllowed) {
+		response.setStatus(Response.Status.SC_OK);
+		response.setAllowHeader(methodsAllowed);
+		response.setContentLengthHeader((long) 0);
+	}
 
 	@Override
-    public void respondUnauthorised(Resource resource, Response response, Request request) {
-        log.trace("respondUnauthorised");
-        response.setStatus(Response.Status.SC_UNAUTHORIZED);
-        List<String> challenges = authenticationService.getChallenges(resource, request);
-        response.setAuthenticateHeader(challenges);
+	public void respondNotFound(Response response, Request request) {
+		response.setStatus(Response.Status.SC_NOT_FOUND);
+		response.setContentTypeHeader("text/html");
+		PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
 
-//        PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
-//
-//        // http://jira.ettrema.com:8080/browse/MIL-39
-//        String s = NOT_AUTHORISED_HTML.replace("${url}", request.getAbsolutePath());
-//        response.setContentLengthHeader((long)s.length());
-//        pw.print(s);
-//        pw.flush();
+		String s = NOT_FOUND_HTML.replace("${url}", request.getAbsolutePath());
+		pw.print(s);
+		pw.flush();
 
-    }
+	}
 
 	@Override
-    public void respondMethodNotImplemented(Resource resource, Response response, Request request) {
+	public void respondUnauthorised(Resource resource, Response response, Request request) {
+		log.trace("respondUnauthorised");
+		if (authenticationService.canUseExternalAuth(resource, request)) {
+			initiateExternalAuth(resource, request, response);
+		} else {
+			response.setStatus(Response.Status.SC_UNAUTHORIZED);
+			List<String> challenges = authenticationService.getChallenges(resource, request);
+			response.setAuthenticateHeader(challenges);
+		}
+	}
+
+	@Override
+	public void respondMethodNotImplemented(Resource resource, Response response, Request request) {
 //        log.debug( "method not implemented. resource: " + resource.getClass().getName() + " - method " + request.getMethod() );
-        try {
-            response.setStatus(Response.Status.SC_NOT_IMPLEMENTED);
-            OutputStream out = response.getOutputStream();
-            out.write(METHOD_NOT_IMPLEMENTED_HTML.getBytes());
-        } catch (IOException ex) {
-            log.warn("exception writing content");
-        }
-    }
+		try {
+			response.setStatus(Response.Status.SC_NOT_IMPLEMENTED);
+			OutputStream out = response.getOutputStream();
+			out.write(METHOD_NOT_IMPLEMENTED_HTML.getBytes());
+		} catch (IOException ex) {
+			log.warn("exception writing content");
+		}
+	}
 
 	@Override
-    public void respondMethodNotAllowed(Resource res, Response response, Request request) {
-        log.debug("method not allowed. handler: " + this.getClass().getName() + " resource: " + res.getClass().getName());
-        try {
-            response.setStatus(Response.Status.SC_METHOD_NOT_ALLOWED);
-            OutputStream out = response.getOutputStream();
-            out.write(METHOD_NOT_ALLOWED_HTML.getBytes());
-        } catch (IOException ex) {
-            log.warn("exception writing content");
-        }
-    }
+	public void respondMethodNotAllowed(Resource res, Response response, Request request) {
+		log.debug("method not allowed. handler: " + this.getClass().getName() + " resource: " + res.getClass().getName());
+		try {
+			response.setStatus(Response.Status.SC_METHOD_NOT_ALLOWED);
+			OutputStream out = response.getOutputStream();
+			out.write(METHOD_NOT_ALLOWED_HTML.getBytes());
+		} catch (IOException ex) {
+			log.warn("exception writing content");
+		}
+	}
 
-    /**
-     *
-     * @param resource
-     * @param response
-     * @param message - optional message to output in the body content
-     */
+	/**
+	 *
+	 * @param resource
+	 * @param response
+	 * @param message - optional message to output in the body content
+	 */
 	@Override
-    public void respondConflict(Resource resource, Response response, Request request, String message) {
-        log.debug("respondConflict");
-        try {
-            response.setStatus(Response.Status.SC_CONFLICT);
-            OutputStream out = response.getOutputStream();
-            out.write(CONFLICT_HTML.getBytes());
-        } catch (IOException ex) {
-            log.warn("exception writing content");
-        }
-    }
+	public void respondConflict(Resource resource, Response response, Request request, String message) {
+		log.debug("respondConflict");
+		try {
+			response.setStatus(Response.Status.SC_CONFLICT);
+			OutputStream out = response.getOutputStream();
+			out.write(CONFLICT_HTML.getBytes());
+		} catch (IOException ex) {
+			log.warn("exception writing content");
+		}
+	}
 
 	@Override
-    public void respondRedirect(Response response, Request request, String redirectUrl) {
-        if (redirectUrl == null) {
-            throw new NullPointerException("redirectUrl cannot be null");
-        }
-        log.trace("respondRedirect");
-        // delegate to the response, because this can be server dependent
-        response.sendRedirect(redirectUrl);
+	public void respondRedirect(Response response, Request request, String redirectUrl) {
+		if (redirectUrl == null) {
+			throw new NullPointerException("redirectUrl cannot be null");
+		}
+		log.trace("respondRedirect");
+		// delegate to the response, because this can be server dependent
+		response.sendRedirect(redirectUrl);
 //        response.setStatus(Response.Status.SC_MOVED_TEMPORARILY);
 //        response.setLocationHeader(redirectUrl);
-    }
+	}
 
 	@Override
-    public void respondExpectationFailed(Response response, Request request) {
-        response.setStatus(Response.Status.SC_EXPECTATION_FAILED);
-    }
+	public void respondExpectationFailed(Response response, Request request) {
+		response.setStatus(Response.Status.SC_EXPECTATION_FAILED);
+	}
 
 	@Override
-    public void respondCreated(Resource resource, Response response, Request request) {
+	public void respondCreated(Resource resource, Response response, Request request) {
 //        log.debug( "respondCreated" );
-        response.setStatus(Response.Status.SC_CREATED);
-    }
+		response.setStatus(Response.Status.SC_CREATED);
+	}
 
 	@Override
-    public void respondNoContent(Resource resource, Response response, Request request) {
+	public void respondNoContent(Resource resource, Response response, Request request) {
 //        log.debug( "respondNoContent" );
-        //response.setStatus(Response.Status.SC_OK);
-        // see comments in http://www.ettrema.com:8080/browse/MIL-87
-        response.setStatus(Response.Status.SC_NO_CONTENT);
-    }
+		//response.setStatus(Response.Status.SC_OK);
+		// see comments in http://www.ettrema.com:8080/browse/MIL-87
+		response.setStatus(Response.Status.SC_NO_CONTENT);
+	}
 
 	@Override
-    public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException, BadRequestException, NotFoundException {
-        log.debug("respondPartialContent: " + range.getStart() + " - " + range.getFinish());
-        response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
-        response.setContentRangeHeader(range.getStart(), range.getFinish(), resource.getContentLength());
-        response.setDateHeader(new Date());
-        String etag = eTagGenerator.generateEtag(resource);
-        if (etag != null) {
-            response.setEtag(etag);
-        }
-        String acc = request.getAcceptHeader();
-        String ct = resource.getContentType(acc);
-        if (ct != null) {
-            response.setContentTypeHeader(ct);
-        }
-        try {
-            resource.sendContent(response.getOutputStream(), range, params, ct);
-        } catch (IOException ex) {
-            log.warn("IOException writing to output, probably client terminated connection", ex);
-        }
-    }
+	public void respondPartialContent(GetableResource resource, Response response, Request request, Map<String, String> params, Range range) throws NotAuthorizedException, BadRequestException, NotFoundException {
+		log.debug("respondPartialContent: " + range.getStart() + " - " + range.getFinish());
+		response.setStatus(Response.Status.SC_PARTIAL_CONTENT);
+		response.setContentRangeHeader(range.getStart(), range.getFinish(), resource.getContentLength());
+		response.setDateHeader(new Date());
+		String etag = eTagGenerator.generateEtag(resource);
+		if (etag != null) {
+			response.setEtag(etag);
+		}
+		String acc = request.getAcceptHeader();
+		String ct = resource.getContentType(acc);
+		if (ct != null) {
+			response.setContentTypeHeader(ct);
+		}
+		try {
+			resource.sendContent(response.getOutputStream(), range, params, ct);
+		} catch (IOException ex) {
+			log.warn("IOException writing to output, probably client terminated connection", ex);
+		}
+	}
 
 	@Override
-    public void respondHead(Resource resource, Response response, Request request) {
-        setRespondContentCommonHeaders(response, resource, Response.Status.SC_NO_CONTENT, request.getAuthorization());
-    }
+	public void respondHead(Resource resource, Response response, Request request) {
+		setRespondContentCommonHeaders(response, resource, Response.Status.SC_NO_CONTENT, request.getAuthorization());
+	}
 
 	@Override
-    public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException, BadRequestException, NotFoundException {
-        log.debug("respondContent: " + resource.getClass());
-        Auth auth = request.getAuthorization();
-        setRespondContentCommonHeaders(response, resource, auth);
-        if (resource instanceof GetableResource) {
-            GetableResource gr = (GetableResource) resource;
-            String acc = request.getAcceptHeader();
-            String ct = gr.getContentType(acc);
-            if (ct != null) {
-                ct = pickBestContentType(ct);
-                response.setContentTypeHeader(ct);
-            }
-            cacheControlHelper.setCacheControl(gr, response, request.getAuthorization());
+	public void respondContent(Resource resource, Response response, Request request, Map<String, String> params) throws NotAuthorizedException, BadRequestException, NotFoundException {
+		log.debug("respondContent: " + resource.getClass());
+		Auth auth = request.getAuthorization();
+		setRespondContentCommonHeaders(response, resource, auth);
+		if (resource instanceof GetableResource) {
+			GetableResource gr = (GetableResource) resource;
+			String acc = request.getAcceptHeader();
+			String ct = gr.getContentType(acc);
+			if (ct != null) {
+				ct = pickBestContentType(ct);
+				response.setContentTypeHeader(ct);
+			}
+			cacheControlHelper.setCacheControl(gr, response, request.getAuthorization());
 
-            Long contentLength = gr.getContentLength();
+			Long contentLength = gr.getContentLength();
 			boolean doBuffering;
-			if( buffering == null || buffering == BUFFERING.whenNeeded ) {
+			if (buffering == null || buffering == BUFFERING.whenNeeded) {
 				doBuffering = (contentLength == null); // if no content length then we buffer content to find content length
 			} else {
 				doBuffering = (buffering == BUFFERING.always); // if not null or whenNeeded then buffering is explicitly enabled or disabled
 			}
-            if (!doBuffering) { 
-                log.trace("sending content with known content length: " + contentLength);
-                response.setContentLengthHeader(contentLength);
-                sendContent(request, response, (GetableResource) resource, params, null, ct);
-            } else {
-                log.trace("buffering content...");
-                BufferingOutputStream tempOut = new BufferingOutputStream(maxMemorySize);
-                try {
-                    ((GetableResource) resource).sendContent(tempOut, null, params, ct);
-                    tempOut.close();					
-                } catch (IOException ex) {
-                    tempOut.deleteTempFileIfExists();
-                    throw new RuntimeException("Exception generating buffered content", ex);
-                }
-                Long bufContentLength = tempOut.getSize();
-                if (contentLength != null) {
-                    if (!contentLength.equals(bufContentLength)) {
-                        throw new RuntimeException("Content Length specified by resource: " + contentLength + " is not equal to the size of content when generated: " + bufContentLength + " This error can be suppressed by setting the buffering property to whenNeeded or never");
-                    }
-                }
-                log.trace("sending buffered content...");
-                response.setContentLengthHeader(bufContentLength);
-                InputStream in = tempOut.getInputStream();
-                try {
-                    StreamUtils.readTo(in, response.getOutputStream());
-                } catch (ReadingException ex) {
-                    throw new RuntimeException(ex);
-                } catch (WritingException ex) {
-                    log.warn("exception writing, client probably closed connection", ex);
-                } finally {
-                    IOUtils.closeQuietly(in); // make sure we close to delete temporary file
-                }
-                return;
+			if (!doBuffering) {
+				log.trace("sending content with known content length: " + contentLength);
+				response.setContentLengthHeader(contentLength);
+				sendContent(request, response, (GetableResource) resource, params, null, ct);
+			} else {
+				log.trace("buffering content...");
+				BufferingOutputStream tempOut = new BufferingOutputStream(maxMemorySize);
+				try {
+					((GetableResource) resource).sendContent(tempOut, null, params, ct);
+					tempOut.close();
+				} catch (IOException ex) {
+					tempOut.deleteTempFileIfExists();
+					throw new RuntimeException("Exception generating buffered content", ex);
+				}
+				Long bufContentLength = tempOut.getSize();
+				if (contentLength != null) {
+					if (!contentLength.equals(bufContentLength)) {
+						throw new RuntimeException("Content Length specified by resource: " + contentLength + " is not equal to the size of content when generated: " + bufContentLength + " This error can be suppressed by setting the buffering property to whenNeeded or never");
+					}
+				}
+				log.trace("sending buffered content...");
+				response.setContentLengthHeader(bufContentLength);
+				InputStream in = tempOut.getInputStream();
+				try {
+					StreamUtils.readTo(in, response.getOutputStream());
+				} catch (ReadingException ex) {
+					throw new RuntimeException(ex);
+				} catch (WritingException ex) {
+					log.warn("exception writing, client probably closed connection", ex);
+				} finally {
+					IOUtils.closeQuietly(in); // make sure we close to delete temporary file
+				}
+				return;
 
 
-            }
+			}
 
-        }
-    }
+		}
+	}
 
 	@Override
-    public void respondNotModified(GetableResource resource, Response response, Request request) {
-        log.trace("respondNotModified");
-        response.setStatus(Response.Status.SC_NOT_MODIFIED);
-        response.setDateHeader(new Date());
-        String etag = eTagGenerator.generateEtag(resource);
-        if (etag != null) {
-            response.setEtag(etag);
-        }
+	public void respondNotModified(GetableResource resource, Response response, Request request) {
+		log.trace("respondNotModified");
+		response.setStatus(Response.Status.SC_NOT_MODIFIED);
+		response.setDateHeader(new Date());
+		String etag = eTagGenerator.generateEtag(resource);
+		if (etag != null) {
+			response.setEtag(etag);
+		}
 
-        // Note that we use a simpler modified date handling here then when
-        // responding with content, because in a not-modified situation the
-        // modified date MUST be that of the actual resource
-        Date modDate = resource.getModifiedDate();
-        response.setLastModifiedHeader(modDate);
+		// Note that we use a simpler modified date handling here then when
+		// responding with content, because in a not-modified situation the
+		// modified date MUST be that of the actual resource
+		Date modDate = resource.getModifiedDate();
+		response.setLastModifiedHeader(modDate);
 
-        cacheControlHelper.setCacheControl(resource, response, request.getAuthorization());
-    }
+		cacheControlHelper.setCacheControl(resource, response, request.getAuthorization());
+	}
 
-    protected void sendContent(Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType) throws NotAuthorizedException, BadRequestException, NotFoundException {
-        long l = System.currentTimeMillis();
-        log.trace("sendContent");
-        OutputStream out = outputStreamForResponse(request, response, resource);
-        try {
-            resource.sendContent(out, null, params, contentType);
-            out.flush();
-            if (log.isTraceEnabled()) {
-                l = System.currentTimeMillis() - l;
-                log.trace("sendContent finished in " + l + "ms");
-            }
-        } catch (IOException ex) {
-            log.warn("IOException sending content", ex);
-        }
-    }
+	protected void sendContent(Request request, Response response, GetableResource resource, Map<String, String> params, Range range, String contentType) throws NotAuthorizedException, BadRequestException, NotFoundException {
+		long l = System.currentTimeMillis();
+		log.trace("sendContent");
+		OutputStream out = outputStreamForResponse(request, response, resource);
+		try {
+			resource.sendContent(out, null, params, contentType);
+			out.flush();
+			if (log.isTraceEnabled()) {
+				l = System.currentTimeMillis() - l;
+				log.trace("sendContent finished in " + l + "ms");
+			}
+		} catch (IOException ex) {
+			log.warn("IOException sending content", ex);
+		}
+	}
 
-    protected OutputStream outputStreamForResponse(Request request, Response response, GetableResource resource) {
-        OutputStream outToUse = response.getOutputStream();
-        return outToUse;
-    }
+	protected OutputStream outputStreamForResponse(Request request, Response response, GetableResource resource) {
+		OutputStream outToUse = response.getOutputStream();
+		return outToUse;
+	}
 
-    protected void output(final Response response, final String s) {
-        PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
-        pw.print(s);
-        pw.flush();
-    }
+	protected void output(final Response response, final String s) {
+		PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
+		pw.print(s);
+		pw.flush();
+	}
 
-    protected void setRespondContentCommonHeaders(Response response, Resource resource, Auth auth) {
-        setRespondContentCommonHeaders(response, resource, Response.Status.SC_OK, auth);
-    }
+	protected void setRespondContentCommonHeaders(Response response, Resource resource, Auth auth) {
+		setRespondContentCommonHeaders(response, resource, Response.Status.SC_OK, auth);
+	}
 
-    protected void setRespondContentCommonHeaders(Response response, Resource resource, Response.Status status, Auth auth) {
-        response.setStatus(status);
-        response.setDateHeader(new Date());
-        String etag = eTagGenerator.generateEtag(resource);
-        if (etag != null) {
-            response.setEtag(etag);
-        }
-        setModifiedDate(response, resource, auth);
-    }
+	protected void setRespondContentCommonHeaders(Response response, Resource resource, Response.Status status, Auth auth) {
+		response.setStatus(status);
+		response.setDateHeader(new Date());
+		String etag = eTagGenerator.generateEtag(resource);
+		if (etag != null) {
+			response.setEtag(etag);
+		}
+		setModifiedDate(response, resource, auth);
+	}
 
-    /**
-    The modified date response header is used by the client for content
-    caching. It seems obvious that if we have a modified date on the resource
-    we should set it.
-    BUT, because of the interaction with max-age we should always set it
-    to the current date if we have max-age
-    The problem, is that if we find that a condition GET has an expired mod-date
-    (based on maxAge) then we want to respond with content (even if our mod-date
-    hasnt changed. But if we use the actual mod-date in that case, then the
-    browser will continue to use the old mod-date, so will forever more respond
-    with content. So we send a mod-date of now to ensure that future requests
-    will be given a 304 not modified.*
-     *
-     * @param response
-     * @param resource
-     * @param auth
-     */
-    public static void setModifiedDate(Response response, Resource resource, Auth auth) {
-        Date modDate = resource.getModifiedDate();
-        if (modDate != null) {
-            // HACH - see if this helps IE
-            response.setLastModifiedHeader(modDate);
+	/**
+	The modified date response header is used by the client for content
+	caching. It seems obvious that if we have a modified date on the resource
+	we should set it.
+	BUT, because of the interaction with max-age we should always set it
+	to the current date if we have max-age
+	The problem, is that if we find that a condition GET has an expired mod-date
+	(based on maxAge) then we want to respond with content (even if our mod-date
+	hasnt changed. But if we use the actual mod-date in that case, then the
+	browser will continue to use the old mod-date, so will forever more respond
+	with content. So we send a mod-date of now to ensure that future requests
+	will be given a 304 not modified.*
+	 *
+	 * @param response
+	 * @param resource
+	 * @param auth
+	 */
+	public static void setModifiedDate(Response response, Resource resource, Auth auth) {
+		Date modDate = resource.getModifiedDate();
+		if (modDate != null) {
+			// HACH - see if this helps IE
+			response.setLastModifiedHeader(modDate);
 //            if (resource instanceof GetableResource) {
 //                GetableResource gr = (GetableResource) resource;
 //                Long maxAge = gr.getMaxAgeSeconds(auth);
@@ -363,77 +359,104 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 //                }
 //            }
 //            response.setLastModifiedHeader(modDate);
-        }
-    }
+		}
+	}
 
 	@Override
-    public void respondBadRequest(Resource resource, Response response, Request request) {
-        response.setStatus(Response.Status.SC_BAD_REQUEST);
-    }
+	public void respondBadRequest(Resource resource, Response response, Request request) {
+		response.setStatus(Response.Status.SC_BAD_REQUEST);
+	}
 
 	@Override
-    public void respondForbidden(Resource resource, Response response, Request request) {
-        response.setStatus(Response.Status.SC_FORBIDDEN);
-    }
+	public void respondForbidden(Resource resource, Response response, Request request) {
+		response.setStatus(Response.Status.SC_FORBIDDEN);
+	}
 
 	@Override
-    public void respondDeleteFailed(Request request, Response response, Resource resource, Status status) {
-        response.setStatus(status);
-    }
+	public void respondDeleteFailed(Request request, Response response, Resource resource, Status status) {
+		response.setStatus(status);
+	}
 
-    public AuthenticationService getAuthenticationService() {
-        return authenticationService;
-    }
+	public AuthenticationService getAuthenticationService() {
+		return authenticationService;
+	}
 
 	@Override
-    public void respondServerError(Request request, Response response, String reason) {
-        try {
-            response.setStatus(Status.SC_INTERNAL_SERVER_ERROR);
-            OutputStream out = response.getOutputStream();
-            out.write(SERVER_ERROR_HTML.getBytes());
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
+	public void respondServerError(Request request, Response response, String reason) {
+		try {
+			response.setStatus(Status.SC_INTERNAL_SERVER_ERROR);
+			OutputStream out = response.getOutputStream();
+			out.write(SERVER_ERROR_HTML.getBytes());
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
 
-    /**
-     * Maximum size of data to hold in memory per request when buffering output
-     * data.
-     *
-     * @return
-     */
-    public int getMaxMemorySize() {
-        return maxMemorySize;
-    }
+	/**
+	 * Maximum size of data to hold in memory per request when buffering output
+	 * data.
+	 *
+	 * @return
+	 */
+	public int getMaxMemorySize() {
+		return maxMemorySize;
+	}
 
-    public void setMaxMemorySize(int maxMemorySize) {
-        this.maxMemorySize = maxMemorySize;
-    }
+	public void setMaxMemorySize(int maxMemorySize) {
+		this.maxMemorySize = maxMemorySize;
+	}
 
-    public BUFFERING getBuffering() {
-        return buffering;
-    }
+	public BUFFERING getBuffering() {
+		return buffering;
+	}
 
-    public void setBuffering(BUFFERING buffering) {
-        this.buffering = buffering;
-    }
+	public void setBuffering(BUFFERING buffering) {
+		this.buffering = buffering;
+	}
 
-    /**
-     * Sometimes we'll get a content type list, such as image/jpeg,image/pjpeg
-     *
-     * In this case we should pick the first in the list
-     *
-     * @param ct
-     * @return
-     */
-    private String pickBestContentType(String ct) {
-        if( ct == null ) {
-            return null;
-        } else if( ct.contains(",")) {
-            return ct.split(",")[0];
-        } else {
-            return ct;
-        }
-    }
+	/**
+	 * Sometimes we'll get a content type list, such as image/jpeg,image/pjpeg
+	 *
+	 * In this case we should pick the first in the list
+	 *
+	 * @param ct
+	 * @return
+	 */
+	private String pickBestContentType(String ct) {
+		if (ct == null) {
+			return null;
+		} else if (ct.contains(",")) {
+			return ct.split(",")[0];
+		} else {
+			return ct;
+		}
+	}
 
+	public void initiateExternalAuth(Resource resource, Request request, Response response) {
+		ExternalIdentityProvider eip = getSelectedIP(request);
+		if (eip == null) {
+			// means that the user needs to select 1, so generate appropriate page
+			
+		} else {
+			eip.initiateExternalAuth(resource, request, response);
+		}
+	}
+
+	private ExternalIdentityProvider getSelectedIP(Request request) {
+		List<ExternalIdentityProvider> list = authenticationService.getExternalIdentityProviders();
+		if (list.size() == 1) {
+			return list.get(0);
+		} else {
+			String ipName = request.getParams().get("_ip");
+			if (ipName != null && ipName.length() > 0) {
+				for (ExternalIdentityProvider eip : list) {
+					if (ipName.equals(eip.getName())) {
+						return eip;
+					}
+
+				}
+			}
+			return null;
+		}
+	}
 }
