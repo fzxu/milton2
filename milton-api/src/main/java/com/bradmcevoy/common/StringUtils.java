@@ -43,4 +43,21 @@ public abstract class StringUtils {
         }
         return (String[]) collection.toArray( new String[collection.size()] );
     }
+
+	/**
+	 * 
+	 * true iff the given string contains any of the given strings
+	 * 
+	 * @param ua
+	 * @param browserIds
+	 * @return 
+	 */
+	public static boolean contains(String ua, String[] browserIds) {	
+		for(String s : browserIds ) {
+			if( ua.contains(s)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
