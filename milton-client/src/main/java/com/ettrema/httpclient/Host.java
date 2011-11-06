@@ -364,9 +364,14 @@ public class Host extends Folder {
 
 				@Override
 				public void receive(InputStream in) throws IOException {
-					OutputStream out = FileUtils.openOutputStream(file);
-					BufferedOutputStream bout = new BufferedOutputStream(out);
-					IOUtils.copy(in, bout);
+					OutputStream out = null;
+					try {
+						out = FileUtils.openOutputStream(file);
+						BufferedOutputStream bout = new BufferedOutputStream(out);
+						IOUtils.copy(in, bout);
+					} finally {
+						IOUtils.closeQuietly(out);
+					}
 
 				}
 			}, null, listener);

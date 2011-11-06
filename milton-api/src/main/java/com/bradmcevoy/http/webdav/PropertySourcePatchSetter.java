@@ -142,6 +142,12 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 				}
 			}
 		}
+		System.out.println("is commitable: " + r.getClass());
+		if( r instanceof CommitableResource) {
+			System.out.println("yes");
+			CommitableResource cr = (CommitableResource) r;
+			cr.doCommit(knownProps, errorProps);
+		}
 		PropFindResponse resp = new PropFindResponse(href, knownProps, errorProps);
 		return resp;
 	}
@@ -159,5 +165,10 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 
 	private Object parse(QName key, String value, Class valueType) {
 		return valueWriters.parse(key, valueType, value);
+	}
+
+	public interface CommitableResource extends Resource {
+
+		void doCommit(Map<QName, ValueAndType> knownProps, Map<Status, List<NameAndError>> errorProps);
 	}
 }

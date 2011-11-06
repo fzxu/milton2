@@ -5,10 +5,10 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.ettrema.event.DeleteEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 
 public class CopyHandler implements ExistingEntityHandler {
 
@@ -27,6 +27,7 @@ public class CopyHandler implements ExistingEntityHandler {
         this.deleteHelper = new DeleteHelperImpl(handlerHelper);
     }
 
+	@Override
     public String[] getMethods() {
         return new String[]{Method.COPY.code};
     }
@@ -36,15 +37,18 @@ public class CopyHandler implements ExistingEntityHandler {
         return (handler instanceof CopyableResource);
     }
 
+	@Override
     public void processResource(HttpManager manager, Request request, Response response, Resource r) throws NotAuthorizedException, ConflictException, BadRequestException {
         resourceHandlerHelper.processResource(manager, request, response, r, this);
     }
 
+	@Override
     public void process(HttpManager httpManager, Request request, Response response) throws ConflictException, NotAuthorizedException, BadRequestException {
         resourceHandlerHelper.process(httpManager, request, response, this);
     }
 
 	
+	@Override
     public void processExistingResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, BadRequestException, ConflictException {
         CopyableResource r = (CopyableResource) resource;
         Dest dest = Utils.getDecodedDestination(request.getDestinationHeader());
@@ -84,7 +88,7 @@ public class CopyHandler implements ExistingEntityHandler {
                                 if (rExisting instanceof DeletableResource) {
                                     log.debug("copy destination exists and is deletable, delete it..");
                                     DeletableResource dr = (DeletableResource) rExisting;
-                                    deleteHelper.delete(dr);
+                                    deleteHelper.delete(dr, manager.getEventManager());
                                     wasDeleted = true;
                                 } else {
                                     log.warn("copy destination exists and is a collection so must be deleted, but does not implement: " + DeletableResource.class);

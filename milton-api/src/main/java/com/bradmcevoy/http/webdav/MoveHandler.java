@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.ettrema.event.MoveEvent;
 
 public class MoveHandler implements ExistingEntityHandler {
 
@@ -88,7 +89,7 @@ public class MoveHandler implements ExistingEntityHandler {
                             return;
                         }
                         log.debug( "deleting pre-existing destination resource" );
-                        deleteHelper.delete( drExisting );
+                        deleteHelper.delete(drExisting, manager.getEventManager());
                         wasDeleted = true;
                     } else {
                         log.warn( "destination exists, and overwrite header is set, but destination is not a DeletableResource" );
@@ -99,7 +100,8 @@ public class MoveHandler implements ExistingEntityHandler {
             }
             log.debug( "process: moving resource to: " + rDest.getName() );
             try {
-                r.moveTo( (CollectionResource) rDest, dest.name );
+				manager.getEventManager().fireEvent( new MoveEvent( resource, colDest, dest.name) );
+                r.moveTo( colDest, dest.name );
                 // See http://www.ettrema.com:8080/browse/MIL-87
                 if( wasDeleted) {
                     responseHandler.respondNoContent( resource, response, request ); 

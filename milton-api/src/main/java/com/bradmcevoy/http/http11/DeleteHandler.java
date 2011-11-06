@@ -10,7 +10,6 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.ettrema.event.DeleteEvent;
 
 public class DeleteHandler implements ExistingEntityHandler {
 
@@ -27,6 +26,7 @@ public class DeleteHandler implements ExistingEntityHandler {
         deleteHelper = new DeleteHelperImpl(handlerHelper);
     }
 
+	@Override
     public String[] getMethods() {
         return new String[]{Method.DELETE.code};
     }
@@ -47,10 +47,12 @@ public class DeleteHandler implements ExistingEntityHandler {
         resourceHandlerHelper.process(manager, request, response, this);
     }
 
+	@Override
     public void processResource(HttpManager manager, Request request, Response response, Resource r) throws NotAuthorizedException, ConflictException, BadRequestException {
         resourceHandlerHelper.processResource(manager, request, response, r, this);
     }
 
+	@Override
     public void processExistingResource(HttpManager manager, Request request, Response response, Resource resource) throws NotAuthorizedException, BadRequestException, ConflictException {
         log.debug("DELETE: " + request.getAbsoluteUrl());
 
@@ -62,8 +64,7 @@ public class DeleteHandler implements ExistingEntityHandler {
             return;
         }
 
-        manager.getEventManager().fireEvent( new DeleteEvent( resource ) );
-        deleteHelper.delete(r);
+        deleteHelper.delete(r, manager.getEventManager());
         log.debug("deleted ok");
         responseHandler.respondNoContent(resource, response, request);
 
