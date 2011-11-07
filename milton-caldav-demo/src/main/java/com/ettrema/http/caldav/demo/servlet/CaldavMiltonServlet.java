@@ -66,19 +66,6 @@ public class CaldavMiltonServlet implements Servlet {
 		
     }
 
-
-
-
-    protected <T> T instantiate( String className ) throws ServletException {
-        try {
-            Class c = Class.forName( className );
-            T rf = (T) c.newInstance();
-            return rf;
-        } catch( Throwable ex ) {
-            throw new ServletException( "Failed to instantiate: " + className, ex );
-        }
-    }
-
 	@Override
     public void destroy() {
 
@@ -99,7 +86,6 @@ public class CaldavMiltonServlet implements Servlet {
         }
     }
 
-
 	@Override
     public String getServletInfo() {
         return "CaldavMiltonServlet";
@@ -108,8 +94,5 @@ public class CaldavMiltonServlet implements Servlet {
 	@Override
     public ServletConfig getServletConfig() {
         return config;
-    }
-
-
-	
+    }	
 }
