@@ -28,6 +28,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * This is an example servlet to show how to use milton's caldav without spring
+ * 
+ * Currently this isnt used in this project.
+ * 
+ * Note that this is functionally equivalent to the spring xml configuration, just
+ * uses simple substitution of xml constructs (eg <constructur-arg>) with plain
+ * java equivalents.
  *
  * @author brad
  */
