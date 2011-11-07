@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -56,6 +55,12 @@ public class Host extends Folder {
 			+ "<d:resourcetype/><d:displayname/><d:getcontentlength/><d:creationdate/><d:getlastmodified/><d:iscollection/>"
 			+ "<d:quota-available-bytes/><d:quota-used-bytes/><c:crc/>"
 			+ "</d:prop></d:propfind>";
+	private static String LOCK_XML = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
+			+ "<D:lockinfo xmlns:D='DAV:'>"
+			+ "<D:lockscope><D:exclusive/></D:lockscope>"
+			+ "<D:locktype><D:write/></D:locktype>"
+			+ "<D:owner>${owner}</D:owner>"
+			+ "</D:lockinfo>";
 	private static final Logger log = LoggerFactory.getLogger(Host.class);
 	public final String server;
 	public final int port;
@@ -211,7 +216,47 @@ public class Host extends Folder {
 			p.releaseConnection();
 			notifyFinishRequest();
 		}
+	}
 
+	/**
+	 * Returns the lock token, which must be retained to unlock the resource
+	 * 
+	 * @param uri
+	 * @param owner
+	 * @return
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
+	public synchronized String doLock(String uri) throws com.ettrema.httpclient.HttpException {
+		notifyStartRequest();
+		LockMethod p = new LockMethod(urlEncode(uri));
+		try {
+			String lockXml = LOCK_XML.replace("${owner}", user);
+			RequestEntity requestEntity = new StringRequestEntity(lockXml, null, "UTF-8");
+			p.setRequestEntity(requestEntity);
+			int result = host().client.executeMethod(p);
+			Utils.processResultCode(result, uri);
+			return p.getLockToken();
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		} finally {
+			p.releaseConnection();
+			notifyFinishRequest();
+		}
+	}
+
+	public synchronized int doUnLock(String uri, String lockToken) throws com.ettrema.httpclient.HttpException {
+		notifyStartRequest();
+		UnLockMethod p = new UnLockMethod(urlEncode(uri), lockToken);
+		try {
+			int result = host().client.executeMethod(p);
+			Utils.processResultCode(result, uri);
+			return result;
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		} finally {
+			p.releaseConnection();
+			notifyFinishRequest();
+		}
 	}
 
 	public int doPut(Path path, InputStream content, Long contentLength, String contentType) {
@@ -365,11 +410,14 @@ public class Host extends Folder {
 				@Override
 				public void receive(InputStream in) throws IOException {
 					OutputStream out = null;
+					BufferedOutputStream bout = null;
 					try {
 						out = FileUtils.openOutputStream(file);
-						BufferedOutputStream bout = new BufferedOutputStream(out);
+						bout = new BufferedOutputStream(out);
 						IOUtils.copy(in, bout);
+						bout.flush();
 					} finally {
+						IOUtils.closeQuietly(bout);
 						IOUtils.closeQuietly(out);
 					}
 

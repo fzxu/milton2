@@ -71,6 +71,8 @@ public abstract class Resource {
     private final Long quotaUsedBytes;
     private final Long crc;
     final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
+	
+	private String lockToken; // set on lock, used on unlock
 
     public abstract java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException, Utils.CancelledException;
 
@@ -177,6 +179,20 @@ public abstract class Resource {
     public String post(Map<String, String> params) throws HttpException {
         return host().doPost(href(), params);
     }
+	
+    public void lock() throws HttpException {
+		if(lockToken != null ) {
+			log.warn("already locked: " + href() + " token: " + lockToken);
+		}
+        lockToken = host().doLock(href());
+    }	
+	
+    public int unlock() throws HttpException {
+		if(lockToken == null ) {
+			throw new IllegalStateException("Can't unlock, is not currently locked (no lock token) - " + href());
+		}
+        return host().doUnLock(href(), lockToken);
+    }		
 
     public void copyTo(Folder folder) throws IOException, HttpException {
         host().doCopy(href(), folder.href() + this.name);
@@ -285,4 +301,10 @@ public abstract class Resource {
     public Long getCrc() {
         return crc;
     }
+
+	public String getLockToken() {
+		return lockToken;
+	}
+	
+	
 }
