@@ -1,12 +1,23 @@
 package com.ettrema.http.caldav;
 
+import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.DigestResource;
+import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.Handler;
 import com.bradmcevoy.http.HandlerHelper;
 import com.bradmcevoy.http.HttpExtension;
 import com.bradmcevoy.http.PropFindableResource;
+import com.bradmcevoy.http.Range;
+import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.WellKnownResourceFactory.WellKnownHandler;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.bradmcevoy.http.http11.CustomPostHandler;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 import com.bradmcevoy.http.values.CData;
 import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.http.values.ValueWriters;
@@ -18,14 +29,19 @@ import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.http.webdav.WebDavResponseHandler;
 import com.bradmcevoy.property.PropertySource;
+import com.ettrema.common.LogUtils;
 import com.ettrema.http.CalendarCollection;
 import com.ettrema.http.CalendarResource;
 import com.ettrema.http.ICalResource;
 import com.ettrema.http.acl.ACLHandler;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.xml.namespace.QName;
 import org.slf4j.Logger;
@@ -35,7 +51,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author brad
  */
-public class CalDavProtocol implements HttpExtension, PropertySource {
+public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownHandler {
 
     private static final Logger log = LoggerFactory.getLogger( CalDavProtocol.class );
 
@@ -94,6 +110,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         customPostHandlers = Collections.unmodifiableList(l);
     }
 
+	@Override
     public Set<Handler> getHandlers() {
         return Collections.unmodifiableSet( handlers );
     }
@@ -101,6 +118,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
 
 
     //TODO: remove debug logging once it's working
+	@Override
     public Object getProperty( QName name, Resource r ) {
         log.trace( "getProperty: {}", name.getLocalPart() );
         Object o;
@@ -113,11 +131,13 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         return o;
     }
 
+	@Override
     public void setProperty( QName name, Object value, Resource r ) {
         log.trace( "setProperty: {}", name.getLocalPart() );
         throw new UnsupportedOperationException( "Not supported yet." );
     }
 
+	@Override
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
         log.trace( "getPropertyMetaData: {}", name.getLocalPart() );
         if( propertyMapCalDav.hasProperty( name )) {
@@ -127,10 +147,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         }
     }
 
+	@Override
     public void clearProperty( QName name, Resource r ) {
         throw new UnsupportedOperationException( "Not supported yet." );
     }
 
+	@Override
     public List<QName> getAllPropertyNames( Resource r ) {
         log.trace( "getAllPropertyNames" );
         List<QName> list = new ArrayList<QName>();
@@ -139,9 +161,11 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
         return list;
     }
 
+	@Override
     public List<CustomPostHandler> getCustomPostHandlers() {
         return customPostHandlers;
     }
+
 
     class CalendarDataProperty implements StandardProperty<CData> {
         public String fieldName() {
@@ -427,10 +451,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
 203	       >ABCD-GUID-IN-THIS-COLLECTION-20070228T122324010340</T:getctag>
      */
     class CTagProperty implements StandardProperty<String> {
+		@Override
         public String fieldName() {
             return "getctag";
         }
 
+		@Override
         public String getValue( PropFindableResource res ) {
             if( res instanceof CalendarCollection) {
                 CalendarCollection ccol = (CalendarCollection) res;
@@ -440,8 +466,137 @@ public class CalDavProtocol implements HttpExtension, PropertySource {
             }
         }
 
+		@Override
         public Class<String> getValueClass() {
             return String.class;
         }
     }
+
+	@Override
+	public String getWellKnownName() {
+		return "caldav";
+	}
+			
+	@Override
+	public Resource locateWellKnownResource(Resource host) {		
+		log.trace("found a caldav well-known resource");
+		return new CaldavWellKnownResource(host);
+	}	
+	
+	public class CaldavWellKnownResource implements DigestResource, GetableResource, PropFindableResource {
+
+		private final Resource host;
+
+		public CaldavWellKnownResource(Resource host) {
+			this.host = host;
+		}
+				
+		
+		@Override
+		public String getUniqueId() {
+			return null;
+		}
+
+		@Override
+		public String getName() {
+			return getWellKnownName();
+		}
+
+		@Override
+		public Object authenticate(String user, String password) {
+			return host.authenticate(user, password);
+		}
+
+		@Override
+		public boolean authorise(Request request, Method method, Auth auth) {
+			// we require a user, so we know where to redirect to
+			return ( auth != null );
+		}
+
+		@Override
+		public String getRealm() {
+			return host.getRealm();
+		}
+
+		@Override
+		public Date getModifiedDate() {
+			return null; // no caching
+		}
+
+		@Override
+		public String checkRedirect(Request request) {
+			log.trace("well-known: checkRedirect");
+			Auth auth = request.getAuthorization();
+			HrefList calendars;
+			String first;
+			if( auth != null && auth.getTag() != null ) {
+				if( auth.getTag() instanceof CalDavPrincipal) {
+					CalDavPrincipal p = (CalDavPrincipal) auth.getTag();
+					calendars = p.getCalendatHomeSet();
+					if( calendars == null || calendars.isEmpty()) {
+						log.warn("can't redirect, CalDavPrincipal.getCalendatHomeSet did not return an address. Check implementation class: " + p.getClass());
+						return null;
+					} else {
+						first = calendars.get(0); // just use first
+						LogUtils.trace(log, "well-known: checkRedirect. redirecting to:", first);
+						return first;
+					}
+				} else {
+					log.warn("can't redirect, auth.getTag is not a CalDavPrincipal, is a: " + auth.getTag().getClass() + " To use CALDAV, the user object returned from authenticate must be a " + CalDavPrincipal.class);
+					return null;
+				}
+			} else {
+				log.trace("can't redirect, no authorisation");
+				return null;				
+			}
+		}
+
+		@Override
+		public Object authenticate(DigestResponse digestRequest) {
+			if( host instanceof DigestResource) {
+				DigestResource dr = (DigestResource) host;
+				return dr.authenticate(digestRequest);
+			} else {
+				return null;
+			}
+		}
+
+		@Override
+		public boolean isDigestAllowed() {
+			if( host instanceof DigestResource) {
+				DigestResource dr = (DigestResource) host;
+				return dr.isDigestAllowed();
+			} else {
+				return false;
+			}
+		}
+
+		@Override
+		public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException, NotFoundException {
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
+
+		@Override
+		public Long getMaxAgeSeconds(Auth auth) {
+			return null; // no caching
+		}
+
+		@Override
+		public String getContentType(String accepts) {
+			return null;
+		}
+
+		@Override
+		public Long getContentLength() {
+			return null;
+		}
+
+		@Override
+		public Date getCreateDate() {
+			return null;
+		}
+		
+		
+		
+	}
 }
