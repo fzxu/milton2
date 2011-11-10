@@ -38,23 +38,17 @@ public abstract class TResource extends AbstractResource implements GetableResou
 
 	@Override
     public String getPrincipalURL() {
-        //return user;
-			if( user != null && user.length() > 0 ) {
-				return TResourceFactory.findUser(user).getHref();
-			} else {
-				return null;
-			}
+		TCalDavPrincipal user = getUser();
+		if( user == null ) {
+			return null;
+		} else {
+			return user.getHref();
+		}
     }
 
 	@Override
     public HrefList getPrincipalCollectionHrefs() {
         return TResourceFactory.getPrincipalCollectionHrefs();
-    }
-
-
-    public void setSecure( String user, String password ) {
-        this.user = user;
-        this.password = password;
     }
 
     public String getHref() {

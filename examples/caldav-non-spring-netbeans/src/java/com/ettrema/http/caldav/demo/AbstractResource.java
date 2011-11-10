@@ -18,8 +18,6 @@ public class AbstractResource implements Resource, ReportableResource {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
     protected String name;
-    protected String user;
-    protected String password;
     protected Date modDate;
     protected Date createdDate;
     protected TFolderResource parent;
@@ -35,72 +33,78 @@ public class AbstractResource implements Resource, ReportableResource {
         }
     }
 
+	TCalDavPrincipal getUser() {
+		TFolderResource p = parent;
+		while( p != null ) {
+			if( p instanceof TCalDavPrincipal ) {
+				return (TCalDavPrincipal) p;
+			} else {
+				p = p.parent;
+			}
+		}
+		return null;
+	}
+	
+	@Override
     public Object authenticate(String user, String requestedPassword) {
-        log.debug("authentication: " + user + " - " + requestedPassword + " = " + password);
-        if (this.user == null) {
-            log.debug("no user defined, so allow access");
-            return true;
-        }
-        if (!user.equals(this.user)) {
-            return null;
-        }
-        if (password == null) {
-            if (requestedPassword == null || requestedPassword.length() == 0) {
-                return "ok";
-            } else {
-                return null;
-            }
-        } else {
-            if (password.equals(requestedPassword)) {
-                return "ok";
-            } else {
-                return null;
-            }
-        }
+		TCalDavPrincipal p = TResourceFactory.findUser(user);
+		if( p != null ) {
+			if( p.getPassword().equals(requestedPassword)) {
+				return p;
+			} else {
+				log.warn("that password is incorrect. Try 'password'");
+			}
+		} else {
+			log.warn("user not found: " + user + " - try 'userA'");
+		}
+		return null;
+			
     }
 
     public Object authenticate(DigestResponse digestRequest) {
-        DigestGenerator dg = new DigestGenerator();
-        String serverResponse = dg.generateDigest(digestRequest, password);
-        String clientResponse = digestRequest.getResponseDigest();
-        log.debug("server resp: " + serverResponse);
-        log.debug("given response: " + clientResponse);
-        if (serverResponse.equals(clientResponse)) {
-            return "ok";
-        } else {
-            return null;
-        }
+		TCalDavPrincipal p = TResourceFactory.findUser(digestRequest.getUser());
+		if( p != null ) {
+			DigestGenerator gen = new DigestGenerator();
+			String actual = gen.generateDigest(digestRequest, p.getPassword());
+			if( actual.equals(digestRequest.getResponseDigest())) {
+				return p;
+			} else {
+				log.warn("that password is incorrect. Try 'password'");
+			}
+		} else {
+			log.warn("user not found: " + digestRequest.getUser() + " - try 'userA'");
+		}
+		return null;
+
     }
 
+	@Override
     public String getUniqueId() {
         return this.hashCode() + "";
     }
 
+	@Override
     public String checkRedirect(Request request) {
         return null;
     }
 
+	@Override
     public String getName() {
         return name;
     }
 
+	@Override
     public boolean authorise(Request request, Method method, Auth auth) {
         log.debug("authorise");
-        if (auth == null) {
-            if (this.user == null) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return this.user == null || auth.getUser().equals(this.user);
-        }
+        return auth != null;
     }
 
+	@Override
     public String getRealm() {
         return "testrealm@host.com";
     }
 
+	@Override
     public Date getModifiedDate() {
         return modDate;
     }

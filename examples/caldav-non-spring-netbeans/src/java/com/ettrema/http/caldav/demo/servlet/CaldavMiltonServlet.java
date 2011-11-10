@@ -9,6 +9,7 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Response;
 import com.bradmcevoy.http.ServletRequest;
 import com.bradmcevoy.http.ServletResponse;
+import com.bradmcevoy.http.WellKnownResourceFactory;
 import com.bradmcevoy.http.http11.Http11Protocol;
 import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
@@ -21,6 +22,7 @@ import com.ettrema.http.caldav.demo.TResourceFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -62,9 +64,12 @@ public class CaldavMiltonServlet implements Servlet {
 		Http11Protocol http11 = new com.bradmcevoy.http.http11.Http11Protocol(defaultResponseHandler, hh);
 		WebDavProtocol webdav = new com.bradmcevoy.http.webdav.WebDavProtocol(hh, crth, defaultResponseHandler, new ArrayList<PropertySource>());
 		CalDavProtocol caldav = new com.ettrema.http.caldav.CalDavProtocol(demoResourceFactory, defaultResponseHandler, hh, webdav);
+		List<WellKnownResourceFactory.WellKnownHandler> wellKnownHandlers = new ArrayList<WellKnownResourceFactory.WellKnownHandler>();
+		wellKnownHandlers.add(caldav);
+		WellKnownResourceFactory wellKnownResourceFactory = new WellKnownResourceFactory(demoResourceFactory, wellKnownHandlers);
 		ACLProtocol acl = new com.ettrema.http.acl.ACLProtocol(webdav);
 		ProtocolHandlers protocols = new com.bradmcevoy.http.ProtocolHandlers(Arrays.asList(http11, webdav, caldav, acl));
-		httpManager = new com.bradmcevoy.http.HttpManager(demoResourceFactory, defaultResponseHandler, protocols);
+		httpManager = new com.bradmcevoy.http.HttpManager(wellKnownResourceFactory, defaultResponseHandler, protocols);
 		
     }
 
@@ -83,7 +88,7 @@ public class CaldavMiltonServlet implements Servlet {
             httpManager.process( request, response );
         } finally {
 
-            servletResponse.getOutputStream().flush();
+            //servletResponse.getOutputStream().flush();
             servletResponse.flushBuffer();
         }
     }
