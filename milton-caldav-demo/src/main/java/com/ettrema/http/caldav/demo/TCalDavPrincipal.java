@@ -54,6 +54,11 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
             }
         }
     }
+	
+	@Override
+    public String getPrincipalURL() {
+		return getHref();
+    }	
 
 	public String getPassword() {
 		return password;
