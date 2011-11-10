@@ -25,6 +25,7 @@ import com.bradmcevoy.http.values.ValueWriters;
 import com.bradmcevoy.http.webdav.PropertyMap.StandardProperty;
 import com.ettrema.http.report.Report;
 import com.ettrema.http.report.ReportHandler;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -131,7 +132,10 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         // and here
         ValueWriters valueWriters = new ValueWriters();
 
-        log.debug( "provided property sources: " + propertySources.size() );
+		if(propertySources == null ) {
+			propertySources = new ArrayList<PropertySource>();
+		}
+		log.debug( "provided property sources: " + propertySources.size() );
         this.propertySources = propertySources;
 
         log.debug( "adding webdav as a property source" );
@@ -155,6 +159,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         handlers.add( new ReportHandler( responseHandler, resourceHandlerHelper, reports ) );
     }
 
+	@Override
     public List<CustomPostHandler> getCustomPostHandlers() {
         return customPostHandlers;
     }
@@ -172,6 +177,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         this.reports.put( report.getName(), report );
     }
 
+	@Override
     public Set<Handler> getHandlers() {
         return Collections.unmodifiableSet( handlers );
     }
@@ -195,24 +201,29 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 		}				
     }
 
+	@Override
     public Object getProperty( QName name, Resource r ) {
         Object o = propertyMap.getProperty( name, r );
         return o;
     }
 
+	@Override
     public void setProperty( QName name, Object value, Resource r ) {
         throw new UnsupportedOperationException( "Not supported. Standard webdav properties are not writable" );
     }
 
+	@Override
     public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
         PropertyMetaData propertyMetaData = propertyMap.getPropertyMetaData( name, r );
         return propertyMetaData;
     }
 
+	@Override
     public void clearProperty( QName name, Resource r ) {
         throw new UnsupportedOperationException( "Not supported. Standard webdav properties are not writable" );
     }
 
+	@Override
     public List<QName> getAllPropertyNames( Resource r ) {
         return propertyMap.getAllPropertyNames( r );
     }
@@ -311,10 +322,12 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
             }
         }
 
+		@Override
         public String fieldName() {
             return "getcontenttype";
         }
 
+		@Override
         public Class getValueClass() {
             return String.class;
         }
@@ -322,6 +335,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
     class ContentLengthPropertyWriter implements StandardProperty<Long> {
 
+		@Override
         public Long getValue( PropFindableResource res ) {
             if( res instanceof GetableResource ) {
                 GetableResource getable = (GetableResource) res;
@@ -332,10 +346,12 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
             }
         }
 
+		@Override
         public String fieldName() {
             return "getcontentlength";
         }
 
+		@Override
         public Class getValueClass() {
             return Long.class;
         }
@@ -343,6 +359,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
     class QuotaUsedBytesPropertyWriter implements StandardProperty<Long> {
 
+		@Override
         public Long getValue( PropFindableResource res ) {
 			if( quotaDataAccessor != null ) {
 				return quotaDataAccessor.getQuotaUsed( res );
@@ -351,10 +368,12 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 			}
         }
 
+		@Override
         public String fieldName() {
             return "quota-used-bytes";
         }
 
+		@Override
         public Class getValueClass() {
             return Long.class;
         }
