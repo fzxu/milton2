@@ -91,8 +91,9 @@ public class ServletResponse extends AbstractResponse {
 //        } catch (IOException ex) {
 //            throw new RuntimeException(ex);
 //        }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+			log.trace("exception closing and flushing", ex);
+            //throw new RuntimeException(ex);
         }
 //        try {
 //            byte[] arr = out.toByteArray();
