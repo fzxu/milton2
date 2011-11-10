@@ -1,13 +1,13 @@
 package com.ettrema.http.caldav;
 
 import com.bradmcevoy.http.values.HrefList;
-import com.ettrema.http.acl.Principal;
+import com.ettrema.http.acl.DiscretePrincipal;
 
 /**
  *
  * @author brad
  */
-public interface CalDavPrincipal extends Principal {
+public interface CalDavPrincipal extends DiscretePrincipal {
     /**
      * This is usually a single href which identifies the collection which
      * contains the users calendars. This might be the user's own href.

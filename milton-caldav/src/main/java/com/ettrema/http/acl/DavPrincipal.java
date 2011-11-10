@@ -3,6 +3,11 @@ package com.ettrema.http.acl;
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Resource;
 
+/**
+ * A common webdav group
+ * 
+ * @author brad
+ */
 public interface DavPrincipal extends Principal {
 
     /**
@@ -12,5 +17,6 @@ public interface DavPrincipal extends Principal {
      * @return
      */
     boolean matches( Auth auth, Resource current );
+
 
 }

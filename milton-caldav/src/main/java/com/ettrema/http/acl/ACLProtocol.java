@@ -29,142 +29,174 @@ import org.slf4j.LoggerFactory;
  */
 public class ACLProtocol implements HttpExtension, PropertySource {
 
-    private static final Logger log = LoggerFactory.getLogger( ACLProtocol.class );
-    private final PropertyMap propertyMap;
+	private static final Logger log = LoggerFactory.getLogger(ACLProtocol.class);
+	private final PropertyMap propertyMap;
 
-    public ACLProtocol(WebDavProtocol webDavProtocol) {
-        propertyMap = new PropertyMap( WebDavProtocol.NS_DAV.getName() );
-        propertyMap.add( new PrincipalUrl() );
-        propertyMap.add( new PrincipalCollectionSetProperty() );
-        log.debug( "registering the ACLProtocol as a property source");
-        webDavProtocol.addPropertySource( this );
-        //Adding supported reports
-        webDavProtocol.addReport(new PrincipalSearchPropertySetReport());
-    }
+	public ACLProtocol(WebDavProtocol webDavProtocol) {
+		propertyMap = new PropertyMap(WebDavProtocol.NS_DAV.getName());
+		propertyMap.add(new PrincipalUrl());
+		propertyMap.add(new PrincipalCollectionSetProperty());
+		propertyMap.add(new CurrentUserPrincipalProperty());
 
-    /**
-     * No methods currently defined
-     * 
-     * @return
-     */
+		log.debug("registering the ACLProtocol as a property source");
+		webDavProtocol.addPropertySource(this);
+		//Adding supported reports
+		webDavProtocol.addReport(new PrincipalSearchPropertySetReport());
+	}
+
+	/**
+	 * No methods currently defined
+	 * 
+	 * @return
+	 */
 	@Override
-    public Set<Handler> getHandlers() {
-        return Collections.EMPTY_SET;
-    }
-
-
-	@Override
-    public Object getProperty( QName name, Resource r ) {
-        log.debug( "getProperty: " + name.getLocalPart() );
-        return propertyMap.getProperty( name, r );
-    }
+	public Set<Handler> getHandlers() {
+		return Collections.EMPTY_SET;
+	}
 
 	@Override
-    public void setProperty( QName name, Object value, Resource r ) {
-        log.debug( "setProperty: " + name.getLocalPart() );
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
+	public Object getProperty(QName name, Resource r) {
+		log.debug("getProperty: " + name.getLocalPart());
+		return propertyMap.getProperty(name, r);
+	}
 
 	@Override
-    public PropertyMetaData getPropertyMetaData( QName name, Resource r ) {
-        log.debug( "getPropertyMetaData: " + name.getLocalPart() );
-        return propertyMap.getPropertyMetaData( name, r );
-    }
+	public void setProperty(QName name, Object value, Resource r) {
+		log.debug("setProperty: " + name.getLocalPart());
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
 	@Override
-    public void clearProperty( QName name, Resource r ) {
-        throw new UnsupportedOperationException( "Not supported yet." );
-    }
+	public PropertyMetaData getPropertyMetaData(QName name, Resource r) {
+		log.debug("getPropertyMetaData: " + name.getLocalPart());
+		return propertyMap.getPropertyMetaData(name, r);
+	}
 
 	@Override
-    public List<QName> getAllPropertyNames( Resource r ) {
-        log.debug( "getAllPropertyNames" );
-        List<QName> list = new ArrayList<QName>();
-        list.addAll( propertyMap.getAllPropertyNames( r ) );
-        return list;
-    }
+	public void clearProperty(QName name, Resource r) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
 	@Override
-    public List<CustomPostHandler> getCustomPostHandlers() {
-        return null;
-    }
+	public List<QName> getAllPropertyNames(Resource r) {
+		log.debug("getAllPropertyNames");
+		List<QName> list = new ArrayList<QName>();
+		list.addAll(propertyMap.getAllPropertyNames(r));
+		return list;
+	}
 
-    class PrincipalUrl implements StandardProperty<String> {
+	@Override
+	public List<CustomPostHandler> getCustomPostHandlers() {
+		return null;
+	}
 
-		@Override
-        public String fieldName() {
-            return "principal-URL";
-        }
-
-		@Override
-        public String getValue( PropFindableResource res ) {
-            if( res instanceof AccessControlledResource ) {
-                AccessControlledResource acr = (AccessControlledResource) res;
-                return acr.getPrincipalURL();
-            } else {
-                log.warn( "requested property 'principal-url', but resource doesnt implement AccessControlledResource: " + res.getClass().getCanonicalName() );
-                return null;
-            }
-        }
+	class PrincipalUrl implements StandardProperty<String> {
 
 		@Override
-        public Class<String> getValueClass() {
-            return String.class;
-        }
-    }
-
-    /*
-        <principal-collection-set>
-          <href>/principals/</href>
-        </principal-collection-set>
-     */
-    class PrincipalCollectionSetProperty implements StandardProperty<HrefList> {
+		public String fieldName() {
+			return "principal-URL";
+		}
 
 		@Override
-        public String fieldName() {
-            return "principal-collection-set";
-        }
+		public String getValue(PropFindableResource res) {
+			if (res instanceof AccessControlledResource) {
+				AccessControlledResource acr = (AccessControlledResource) res;
+				return acr.getPrincipalURL();
+			} else {
+				log.warn("requested property 'principal-url', but resource doesnt implement AccessControlledResource: " + res.getClass().getCanonicalName());
+				return null;
+			}
+		}
 
 		@Override
-        public HrefList getValue( PropFindableResource res ) {
-            if( res instanceof AccessControlledResource ) {
-                AccessControlledResource acr = (AccessControlledResource) res;
-                return acr.getPrincipalCollectionHrefs();
-            } else {
-                return null;
-            }
+		public Class<String> getValueClass() {
+			return String.class;
+		}
+	}
 
-        }
-
-		@Override
-        public Class<HrefList> getValueClass() {
-            return HrefList.class;
-        }
-    }
-
-    class CurrentUserPrivledges implements StandardProperty<PriviledgeList> {
+	/*
+	<principal-collection-set>
+	<href>/principals/</href>
+	</principal-collection-set>
+	 */
+	class PrincipalCollectionSetProperty implements StandardProperty<HrefList> {
 
 		@Override
-        public String fieldName() {
-            return "current-user-privilege-set";
-        }
+		public String fieldName() {
+			return "principal-collection-set";
+		}
 
 		@Override
-        public PriviledgeList getValue( PropFindableResource res ) {
-            if( res instanceof AccessControlledResource ) {
-                AccessControlledResource acr = (AccessControlledResource) res;
-                Auth auth = HttpManager.request().getAuthorization();
-                List<Priviledge> list = acr.getPriviledges( auth );
-                PriviledgeList privs = new PriviledgeList(list);
-                return privs;
-            } else {
-                return null;
-            }
-        }
+		public HrefList getValue(PropFindableResource res) {
+			if (res instanceof AccessControlledResource) {
+				AccessControlledResource acr = (AccessControlledResource) res;
+				return acr.getPrincipalCollectionHrefs();
+			} else {
+				return null;
+			}
+
+		}
 
 		@Override
-        public Class<PriviledgeList> getValueClass() {
-            return PriviledgeList.class;
-        }
-    }
+		public Class<HrefList> getValueClass() {
+			return HrefList.class;
+		}
+	}
+
+	class CurrentUserPrincipalProperty implements StandardProperty<HrefList> {
+
+		@Override
+		public String fieldName() {
+			return "current-user-principal";
+		}
+
+		@Override
+		public HrefList getValue(PropFindableResource res) {
+			Auth auth = HttpManager.request().getAuthorization();
+			if (auth == null || auth.getTag() == null) {
+				return null;
+			} else {
+				Object user = auth.getTag();
+				if (user instanceof DiscretePrincipal) {
+					DiscretePrincipal p = (DiscretePrincipal) user;
+					HrefList hrefs = new HrefList();
+					hrefs.add(p.getPrincipalURL());
+					return hrefs;
+				} else {
+					return null;
+				}
+			}
+		}
+
+		@Override
+		public Class<HrefList> getValueClass() {
+			return HrefList.class;
+		}
+	}
+
+	class CurrentUserPrivledges implements StandardProperty<PriviledgeList> {
+
+		@Override
+		public String fieldName() {
+			return "current-user-privilege-set";
+		}
+
+		@Override
+		public PriviledgeList getValue(PropFindableResource res) {
+			if (res instanceof AccessControlledResource) {
+				AccessControlledResource acr = (AccessControlledResource) res;
+				Auth auth = HttpManager.request().getAuthorization();
+				List<Priviledge> list = acr.getPriviledges(auth);
+				PriviledgeList privs = new PriviledgeList(list);
+				return privs;
+			} else {
+				return null;
+			}
+		}
+
+		@Override
+		public Class<PriviledgeList> getValueClass() {
+			return PriviledgeList.class;
+		}
+	}
 }
