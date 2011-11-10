@@ -40,20 +40,16 @@ import org.slf4j.LoggerFactory;
  */
 public class CaldavMiltonServlet implements Servlet {
 
-    private Logger log = LoggerFactory.getLogger( MiltonServlet.class );
-
-
-
-    private ServletConfig config;
-    protected HttpManager httpManager;
+	private Logger log = LoggerFactory.getLogger(MiltonServlet.class);
+	private ServletConfig config;
+	protected HttpManager httpManager;
 
 	@Override
-    public void init( ServletConfig config ) throws ServletException {
+	public void init(ServletConfig config) throws ServletException {
 		TResourceFactory demoResourceFactory = new com.ettrema.http.caldav.demo.TResourceFactory();
 		WebDavResourceTypeHelper rth = new com.bradmcevoy.http.webdav.WebDavResourceTypeHelper();
 		CalendarResourceTypeHelper crth = new com.ettrema.http.caldav.CalendarResourceTypeHelper(
-				new com.ettrema.http.acl.AccessControlledResourceTypeHelper(rth)
-		);
+				new com.ettrema.http.acl.AccessControlledResourceTypeHelper(rth));
 		AuthenticationService authService = new com.bradmcevoy.http.AuthenticationService();
 		HandlerHelper hh = new com.bradmcevoy.http.HandlerHelper(authService);
 		DefaultWebDavResponseHandler defaultResponseHandler = new com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler(authService, crth);
@@ -63,36 +59,38 @@ public class CaldavMiltonServlet implements Servlet {
 		ACLProtocol acl = new com.ettrema.http.acl.ACLProtocol(webdav);
 		ProtocolHandlers protocols = new com.bradmcevoy.http.ProtocolHandlers(Arrays.asList(http11, webdav, caldav, acl));
 		httpManager = new com.bradmcevoy.http.HttpManager(demoResourceFactory, defaultResponseHandler, protocols);
-		
-    }
+
+	}
 
 	@Override
-    public void destroy() {
-
-    }
-
-	@Override
-    public void service( javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse ) throws ServletException, IOException {
-        HttpServletRequest req = (HttpServletRequest) servletRequest;
-        HttpServletResponse resp = (HttpServletResponse) servletResponse;
-        try {
-            Request request = new ServletRequest( req );
-            Response response = new ServletResponse( resp );
-            httpManager.process( request, response );
-        } finally {
-
-            servletResponse.getOutputStream().flush();
-            servletResponse.flushBuffer();
-        }
-    }
+	public void destroy() {
+	}
 
 	@Override
-    public String getServletInfo() {
-        return "CaldavMiltonServlet";
-    }
+	public void service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse) throws ServletException, IOException {
+		HttpServletRequest req = (HttpServletRequest) servletRequest;
+		HttpServletResponse resp = (HttpServletResponse) servletResponse;
+		try {
+			Request request = new ServletRequest(req);
+			Response response = new ServletResponse(resp);
+			httpManager.process(request, response);
+		} finally {
+			try {
+				//servletResponse.getOutputStream().flush();
+				servletResponse.flushBuffer();
+			} catch (Exception e) {
+				log.warn("exception flushing, probably no real problem", e);
+			}
+		}
+	}
 
 	@Override
-    public ServletConfig getServletConfig() {
-        return config;
-    }	
+	public String getServletInfo() {
+		return "CaldavMiltonServlet";
+	}
+
+	@Override
+	public ServletConfig getServletConfig() {
+		return config;
+	}
 }

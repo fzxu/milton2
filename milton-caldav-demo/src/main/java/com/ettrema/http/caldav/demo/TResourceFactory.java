@@ -27,13 +27,13 @@ public class TResourceFactory implements ResourceFactory {
 
     static {
         users = new TFolderResource( ROOT, "users" );        
-        addUser(users, "userA");
-        addUser(users, "userB");
-        addUser(users, "userC");
+        addUser(users, "userA","password");
+        addUser(users, "userB","password");
+        addUser(users, "userC","password");
     }
 
-    private static void addUser(TFolderResource users, String name) {
-        TCalDavPrincipal userA = new TCalDavPrincipal(users, name, null, null, null, null);
+    private static void addUser(TFolderResource users, String name, String password) {
+        TCalDavPrincipal userA = new TCalDavPrincipal(users, name,password, null, null, null, null);
         TFolderResource calendars = new TFolderResource(userA, "calendars");
         TCalendarResource cal1 = new TCalendarResource(calendars, "cal1");
         TEvent e = new TEvent(cal1, "event1.ics");
@@ -64,6 +64,7 @@ public class TResourceFactory implements ResourceFactory {
         return list;
     }
 
+	@Override
     public Resource getResource( String host, String url ) {
         log.debug( "getResource: url: " + url );
         Path path = Path.path( url );
