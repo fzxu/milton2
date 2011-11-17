@@ -164,6 +164,12 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         return customPostHandlers;
     }
 
+	public void setCustomPostHandlers(List<CustomPostHandler> customPostHandlers) {
+		this.customPostHandlers = customPostHandlers;
+	}
+	
+	
+
     public List<PropertySource> getPropertySources() {
         return Collections.unmodifiableList( propertySources );
     }
