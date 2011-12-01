@@ -90,7 +90,7 @@ public class ACLProtocol implements HttpExtension, PropertySource {
 		return null;
 	}
 
-	class PrincipalUrl implements StandardProperty<String> {
+	class PrincipalUrl implements StandardProperty<HrefList> {
 
 		@Override
 		public String fieldName() {
@@ -98,10 +98,17 @@ public class ACLProtocol implements HttpExtension, PropertySource {
 		}
 
 		@Override
-		public String getValue(PropFindableResource res) {
+		public HrefList getValue(PropFindableResource res) {
 			if (res instanceof AccessControlledResource) {
 				AccessControlledResource acr = (AccessControlledResource) res;
-				return acr.getPrincipalURL();
+				String url = acr.getPrincipalURL();
+				if (url != null) {					
+					HrefList listOfOne = new HrefList();
+					listOfOne.add(url);
+					return listOfOne;
+				} else {
+					return null;
+				}
 			} else {
 				log.warn("requested property 'principal-url', but resource doesnt implement AccessControlledResource: " + res.getClass().getCanonicalName());
 				return null;
@@ -109,8 +116,8 @@ public class ACLProtocol implements HttpExtension, PropertySource {
 		}
 
 		@Override
-		public Class<String> getValueClass() {
-			return String.class;
+		public Class<HrefList> getValueClass() {
+			return HrefList.class;
 		}
 	}
 

@@ -27,6 +27,7 @@ public class CalendarResourceTypeHelper implements ResourceTypeHelper {
         this.wrapped = wrapped;
     }
 
+	@Override
     public List<QName> getResourceTypes(Resource r) {
         if (log.isTraceEnabled()) {
             log.trace("getResourceTypes:" + r.getClass().getCanonicalName());
@@ -39,19 +40,20 @@ public class CalendarResourceTypeHelper implements ResourceTypeHelper {
             log.error("EEK!! Resource is both an ical resource (eg an event) and a calendar. Don't implement CalendarResource on events!");
         }
 
+		QName qn;
         List<QName> list = wrapped.getResourceTypes(r);
-        if (r instanceof CalendarResource) {
+        if (r instanceof CalendarResource) { 
             // http://greenbytes.de/tech/webdav/draft-dusseault-caldav-04.html#new-resources
             log.trace("getResourceTypes: is a calendar");
-            QName qn = new QName(CalDavProtocol.CALDAV_NS, "calendar");
+            qn = new QName(CalDavProtocol.CALDAV_NS, "calendar");
             if (list == null) {
                 list = new ArrayList<QName>();
             }
             list.add(qn);
-        }
+        } 
         if (r instanceof SchedulingInboxResource) {
             log.trace("getResourceTypes: is a schedule-inbox");
-            QName qn = new QName(CalDavProtocol.CALDAV_NS, "schedule-inbox");
+            qn = new QName(CalDavProtocol.CALDAV_NS, "schedule-inbox");
             if (list == null) {
                 list = new ArrayList<QName>();
             }
@@ -59,7 +61,7 @@ public class CalendarResourceTypeHelper implements ResourceTypeHelper {
         }
         if (r instanceof SchedulingOutboxResource) {
             log.trace("getResourceTypes: is a schedule-outbox");
-            QName qn = new QName(CalDavProtocol.CALDAV_NS, "schedule-outbox");
+            qn = new QName(CalDavProtocol.CALDAV_NS, "schedule-outbox");
             if (list == null) {
                 list = new ArrayList<QName>();
             }
@@ -74,11 +76,15 @@ public class CalendarResourceTypeHelper implements ResourceTypeHelper {
      * @param r
      * @return
      */
+	@Override
     public List<String> getSupportedLevels(Resource r) {
         log.debug("getSupportedLevels");
         List<String> list = wrapped.getSupportedLevels(r);
         if (r instanceof CalendarResource) {
             list.add("calendar-access");
+			list.add("calendar-schedule");
+			list.add("extended-mkcol"); //adding a bunch of others here in an attempt to get ical5 to work
+			list.add("calendar-proxy");
         }
         if (r instanceof SchedulingInboxResource) {
             list.add("schedule-inbox");
