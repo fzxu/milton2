@@ -90,6 +90,10 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         response.setStatus( Response.Status.SC_MULTI_STATUS );
         response.setDateHeader( new Date() );
         response.setContentTypeHeader( Response.XML );
+        List<String> supportedLevels = resourceTypeHelper.getSupportedLevels( resource );
+        String s = Utils.toCsv( supportedLevels );
+        response.setDavHeader( s );
+		
 
         XmlWriter writer = new XmlWriter( response.getOutputStream() );
         writer.writeXMLHeader();
@@ -116,26 +120,32 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         wrapped.respondContent( resource, response, request, params );
     }
 
+	@Override
     public void respondPartialContent( GetableResource resource, Response response, Request request, Map<String, String> params, Range range ) throws NotAuthorizedException, BadRequestException, NotFoundException {
         wrapped.respondPartialContent( resource, response, request, params, range );
     }
 
+	@Override
     public void respondCreated( Resource resource, Response response, Request request ) {
         wrapped.respondCreated( resource, response, request );
     }
 
+	@Override
     public void respondUnauthorised( Resource resource, Response response, Request request ) {
         wrapped.respondUnauthorised( resource, response, request );
     }
 
+	@Override
     public void respondMethodNotImplemented( Resource resource, Response response, Request request ) {
         wrapped.respondMethodNotImplemented( resource, response, request );
     }
 
+	@Override
     public void respondMethodNotAllowed( Resource res, Response response, Request request ) {
         wrapped.respondMethodNotAllowed( res, response, request );
     }
 
+	@Override
     public void respondConflict( Resource resource, Response response, Request request, String message ) {
         wrapped.respondConflict( resource, response, request, message );
     }
@@ -182,11 +192,16 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
 
     }
 
+	@Override
     public void respondPropFind( List<PropFindResponse> propFindResponses, Response response, Request request, Resource r ) {
         log.trace("respondPropFind");
         response.setStatus( Status.SC_MULTI_STATUS );
         response.setDateHeader( new Date() );
         response.setContentTypeHeader( Response.XML );
+        List<String> supportedLevels = resourceTypeHelper.getSupportedLevels( r );
+        String s = Utils.toCsv( supportedLevels );
+        response.setDavHeader( s );
+		
         String xml = propFindXmlGenerator.generate( propFindResponses );
         byte[] arr;
         try {
@@ -202,14 +217,17 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         }
     }
 
+	@Override
     public void respondInsufficientStorage( Request request, Response response, StorageErrorReason storageErrorReason ) {
         response.setStatus( Status.SC_INSUFFICIENT_STORAGE );
     }
 
+	@Override
     public void respondLocked( Request request, Response response, Resource existingResource ) {
         response.setStatus( Status.SC_LOCKED );
     }
 
+	@Override
     public void respondPreconditionFailed( Request request, Response response, Resource resource ) {
         response.setStatus( Status.SC_PRECONDITION_FAILED );
     }
