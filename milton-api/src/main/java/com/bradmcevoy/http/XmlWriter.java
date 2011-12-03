@@ -181,7 +181,23 @@ public class XmlWriter {
             }
             append(name);
         }
+        Element(Element parent, String uri, String nsPrefix, String name) {
+            this.parent = parent;
+            this.name = name;
+            this.nsPrefix = nsPrefix;
+            append("<");
+            if (nsPrefix != null) {
+                append(nsPrefix);
+                append(":");
+            }
+            append(name);
+			append(" ");
+			append("xmlns:" + nsPrefix + "=\"");
+			append(uri);
+			append("\"");
+        }
 
+		
         /**
          * Write a name/value attribute pair
          *
@@ -301,6 +317,15 @@ public class XmlWriter {
             Element el = new Element(this, prefix, name);
             return el;
         }
+		
+        public Element begin(String uri, String prefix, String name) {
+            if (!openEnded) {
+                open();
+            }
+
+            Element el = new Element(this, uri, prefix, name);
+            return el;
+        }		
 
         /**
          * Write a property element like -
