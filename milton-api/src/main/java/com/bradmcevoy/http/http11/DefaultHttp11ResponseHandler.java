@@ -35,15 +35,10 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 		whenNeeded
 	}
 	private static final Logger log = LoggerFactory.getLogger(DefaultHttp11ResponseHandler.class);
-	public static final String METHOD_NOT_ALLOWED_HTML = "<html><body><h1>Method Not Allowed</h1></body></html>";
-	public static final String NOT_FOUND_HTML = "<html><body><h1>${url} Not Found (404)</h1></body></html>";
-	public static final String METHOD_NOT_IMPLEMENTED_HTML = "<html><body><h1>Method Not Implemented</h1></body></html>";
-	public static final String CONFLICT_HTML = "<html><body><h1>Conflict</h1></body></html>";
-	public static final String SERVER_ERROR_HTML = "<html><body><h1>Server Error</h1></body></html>";
-	public static final String NOT_AUTHORISED_HTML = "<html><body><h1>Not authorised</h1></body></html>";
 	private final AuthenticationService authenticationService;
 	private final ETagGenerator eTagGenerator;
 	private CacheControlHelper cacheControlHelper = new DefaultCacheControlHelper();
+	private ContentGenerator contentGenerator = new SimpleContentGenerator();
 	private int maxMemorySize = 100000;
 	private BUFFERING buffering;
 
@@ -85,12 +80,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 	public void respondNotFound(Response response, Request request) {
 		response.setStatus(Response.Status.SC_NOT_FOUND);
 		response.setContentTypeHeader("text/html");
-		PrintWriter pw = new PrintWriter(response.getOutputStream(), true);
-
-		String s = NOT_FOUND_HTML.replace("${url}", request.getAbsolutePath());
-		pw.print(s);
-		pw.flush();
-
+		contentGenerator.generate(null, request, response, Status.SC_NOT_FOUND);
 	}
 
 	@Override
@@ -107,26 +97,15 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
 	@Override
 	public void respondMethodNotImplemented(Resource resource, Response response, Request request) {
-//        log.debug( "method not implemented. resource: " + resource.getClass().getName() + " - method " + request.getMethod() );
-		try {
-			response.setStatus(Response.Status.SC_NOT_IMPLEMENTED);
-			OutputStream out = response.getOutputStream();
-			out.write(METHOD_NOT_IMPLEMENTED_HTML.getBytes());
-		} catch (IOException ex) {
-			log.warn("exception writing content");
-		}
+		response.setStatus(Response.Status.SC_NOT_IMPLEMENTED);
+		contentGenerator.generate(resource, request, response, Status.SC_NOT_IMPLEMENTED);
 	}
 
 	@Override
 	public void respondMethodNotAllowed(Resource res, Response response, Request request) {
 		log.debug("method not allowed. handler: " + this.getClass().getName() + " resource: " + res.getClass().getName());
-		try {
-			response.setStatus(Response.Status.SC_METHOD_NOT_ALLOWED);
-			OutputStream out = response.getOutputStream();
-			out.write(METHOD_NOT_ALLOWED_HTML.getBytes());
-		} catch (IOException ex) {
-			log.warn("exception writing content");
-		}
+		response.setStatus(Response.Status.SC_METHOD_NOT_ALLOWED);
+		contentGenerator.generate(res, request, response, Status.SC_METHOD_NOT_ALLOWED);
 	}
 
 	/**
@@ -138,13 +117,14 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 	@Override
 	public void respondConflict(Resource resource, Response response, Request request, String message) {
 		log.debug("respondConflict");
-		try {
-			response.setStatus(Response.Status.SC_CONFLICT);
-			OutputStream out = response.getOutputStream();
-			out.write(CONFLICT_HTML.getBytes());
-		} catch (IOException ex) {
-			log.warn("exception writing content");
-		}
+		response.setStatus(Response.Status.SC_CONFLICT);
+		contentGenerator.generate(resource, request, response, Status.SC_CONFLICT);
+	}
+
+	@Override
+	public void respondServerError(Request request, Response response, String reason) {
+		response.setStatus(Status.SC_INTERNAL_SERVER_ERROR);
+		contentGenerator.generate(null, request, response, Status.SC_INTERNAL_SERVER_ERROR);
 	}
 
 	@Override
@@ -229,7 +209,9 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 			}
 			if (!doBuffering) {
 				log.trace("sending content with known content length: " + contentLength);
-				response.setContentLengthHeader(contentLength);
+				if (contentLength != null) {
+					response.setContentLengthHeader(contentLength);
+				}
 				sendContent(request, response, (GetableResource) resource, params, null, ct);
 			} else {
 				log.trace("buffering content...");
@@ -381,17 +363,6 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 		return authenticationService;
 	}
 
-	@Override
-	public void respondServerError(Request request, Response response, String reason) {
-		try {
-			response.setStatus(Status.SC_INTERNAL_SERVER_ERROR);
-			OutputStream out = response.getOutputStream();
-			out.write(SERVER_ERROR_HTML.getBytes());
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
-	}
-
 	/**
 	 * Maximum size of data to hold in memory per request when buffering output
 	 * data.
@@ -435,8 +406,7 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 	public void initiateExternalAuth(Resource resource, Request request, Response response) {
 		ExternalIdentityProvider eip = getSelectedIP(request);
 		if (eip == null) {
-			// means that the user needs to select 1, so generate appropriate page
-			
+			// means that the user needs to select an identity provider, so generate appropriate page
 		} else {
 			eip.initiateExternalAuth(resource, request, response);
 		}
@@ -458,5 +428,13 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 			}
 			return null;
 		}
+	}
+
+	public ContentGenerator getContentGenerator() {
+		return contentGenerator;
+	}
+
+	public void setContentGenerator(ContentGenerator contentGenerator) {
+		this.contentGenerator = contentGenerator;
 	}
 }
