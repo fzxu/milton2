@@ -93,7 +93,9 @@ public class CompressingResponseHandler extends AbstractWrappingResponseHandler 
                 response.setContentEncodingHeader( Response.ContentEncoding.GZIP );
                 response.setVaryHeader( "Accept-Encoding" );
                 Long contentLength = tempOut.getSize();
-                response.setContentLengthHeader( contentLength );
+				if( contentLength != null ) {
+					response.setContentLengthHeader( contentLength );
+				}
                 response.setContentTypeHeader( contentType );
                 cacheControlHelper.setCacheControl( r, response, request.getAuthorization() );
                 InputStream in = tempOut.getInputStream();
