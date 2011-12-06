@@ -249,7 +249,8 @@ public class XmlWriter {
             openEnded = true;
             append(">");
             if (newline) {
-                append("\n");
+				// CALDAV HACK, temporary for caldav, just to see if it makes a difference
+//                append("\n");
             }
             return this;
         }
@@ -266,17 +267,23 @@ public class XmlWriter {
         public Element close(boolean newline) {
             if (openEnded) {
                 if (nsPrefix != null) {
-                    append("</" + nsPrefix + ":" + name + ">\n");
+					//CALDAV HACK
+                    append("</" + nsPrefix + ":" + name + ">");
+					//append("</" + nsPrefix + ":" + name + ">\n");
                 } else {
-                    append("</" + name + ">\n");
+					// CALDAV HACK
+                    append("</" + name + ">");
+					//append("</" + name + ">\n");
                 }
                 if (newline) {
-                    append("\n");
+					// caldav hack
+                    //append("\n");
                 }
                 return parent;
             } else {
                 if (newline) {
-                    append("\n");
+					// CALDAV HACK
+                    //append("\n");
                 }
                 return noContent();
             }
@@ -288,13 +295,16 @@ public class XmlWriter {
          * @return - the parent element
          */
         public Element noContent() {
-            append("/>\n");
+			append("/>");
+			// CALDAV HACK
+            //append("/>\n");
             return parent;
         }
         public Element noContent(boolean newLine) {
             append("/>");
             if(newLine) {
-                append("\n");
+				// CALDAV HACK
+             //   append("\n");
             }
             return parent;
         }
@@ -371,7 +381,9 @@ public class XmlWriter {
                     }
                     break;
                 case CLOSING:
-                    append("</" + nsPrefix + ":" + name + ">\n");
+					// CALDAV HACK
+					append("</" + nsPrefix + ":" + name + ">");
+                    //append("</" + nsPrefix + ":" + name + ">\n");
                     break;
                 case NO_CONTENT:
                 default:
@@ -388,7 +400,9 @@ public class XmlWriter {
                     append("<" + name + ">");
                     break;
                 case CLOSING:
+					// CALDAV HACK
                     append("</" + name + ">\n");
+					//append("</" + name + ">\n");
                     break;
                 case NO_CONTENT:
                 default:
@@ -446,6 +460,7 @@ public class XmlWriter {
     }
 
     public void newLine() {
-        append("\n");
+		// CALDAV HACK
+        //append("\n");
     }
 }

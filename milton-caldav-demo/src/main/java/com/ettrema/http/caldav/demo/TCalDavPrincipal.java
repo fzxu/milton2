@@ -1,17 +1,24 @@
 package com.ettrema.http.caldav.demo;
 
+import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.values.HrefList;
+import com.bradmcevoy.io.StreamUtils;
+import com.ettrema.http.CalendarResource;
 import com.ettrema.http.acl.HrefPrincipleId;
 import com.ettrema.http.caldav.CalDavPrincipal;
+import com.ettrema.http.caldav.ICalFormatter;
 import com.ettrema.mail.Mailbox;
 import com.ettrema.mail.MessageFolder;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import javax.mail.internet.MimeMessage;
 
 /**
  *
  * @author brad
  */
-public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal, Mailbox {
+public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal, Mailbox, CalendarResource {
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
     private HrefPrincipleId principleId;
     private TFolderResource calendarHome;
@@ -32,6 +39,28 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         mailInbox = new TMailFolder(this, "Inbox");
 		this.password = password;
     }
+
+	@Override
+	public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
+        log.debug("createNew");
+        if (contentType.startsWith("text/calendar")) {
+            TEvent e = new TEvent(this, newName);
+            log.debug("created tevent: " + e.name);
+            ICalFormatter formatter = new ICalFormatter();
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            StreamUtils.readTo(inputStream, bout);
+            bout.close();
+            String data = bout.toString();
+            e.setiCalData(data);
+            return e;
+        } else {
+            throw new RuntimeException("eek");
+            //log.debug( "creating a normal resource");
+            //return super.createNew( newName, inputStream, length, contentType );
+        }
+	}
+	
+	
 	
 	@Override
     public Object authenticate(String requestedUserName, String requestedPassword) {
@@ -98,7 +127,8 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 
 	@Override
     public HrefList getCalendarUserAddressSet() {
-        return HrefList.asList("mailto:" + name + "@localhost");
+		
+        return HrefList.asList("mailto:" + name + "@localhost", getHref());
     }
 
 	@Override
@@ -176,6 +206,11 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
     public void storeMail(MimeMessage mm) {
         mailInbox.storeMail(mm);
     }
+
+	@Override
+	public String getCalendarDescription() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
 
 }

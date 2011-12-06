@@ -52,7 +52,8 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
     private static final Logger log = LoggerFactory.getLogger( WebDavProtocol.class );
     public static final String DAV_URI = "DAV:";
-    public static final NameSpace NS_DAV = new NameSpace(DAV_URI, "D" );
+	public static final String DAV_PREFIX = "d";
+    public static final NameSpace NS_DAV = new NameSpace(DAV_URI, DAV_PREFIX );
     private final Set<Handler> handlers;
     private final Map<String, Report> reports;
     private final ResourceTypeHelper resourceTypeHelper;
@@ -501,10 +502,12 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
 
     class SupportedReportSetProperty implements StandardProperty<SupportedReportSetList> {
 
+		@Override
         public String fieldName() {
             return "supported-report-set";
         }
 
+		@Override
         public SupportedReportSetList getValue( PropFindableResource res ) {
             SupportedReportSetList reportSet = new SupportedReportSetList();
             for( String reportName : reports.keySet() ) {
@@ -513,6 +516,7 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
             return reportSet;
         }
 
+		@Override
         public Class getValueClass() {
             return SupportedReportSetList.class;
         }

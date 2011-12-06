@@ -19,7 +19,7 @@ public class TEvent extends TResource implements ICalResource {
     private static final Logger log = LoggerFactory.getLogger( TEvent.class );
     private String iCalData;
 
-    public TEvent( TCalendarResource parent, String name ) {
+    public TEvent( TFolderResource parent, String name ) {
         super( parent, name );
     }
 

@@ -24,9 +24,12 @@ public class TResourceFactory implements ResourceFactory {
     public static final TFolderResource ROOT = new TFolderResource( (TFolderResource) null, "http://localhost:8080" );
 
     static TFolderResource users;
+	static TFolderResource principals;
 
     static {
-        users = new TFolderResource( ROOT, "users" );        
+		principals = new TFolderResource(ROOT, "principals");
+		users = principals; // same as sabresav demo
+        //users = new TFolderResource( principals, "users" );        
         addUser(users, "userA","password");
         addUser(users, "userB","password");
         addUser(users, "userC","password");
@@ -60,7 +63,7 @@ public class TResourceFactory implements ResourceFactory {
 
     static HrefList getPrincipalCollectionHrefs() {
         HrefList list = new HrefList();
-        list.add("/users");
+        list.add("/users/");
         return list;
     }
 

@@ -109,9 +109,9 @@
 	<bean id="debug.filter" class="com.bradmcevoy.http.DebugFilter" >
         <!-- By default the debugfilter will log to the current user's home directory -->
         <!-- To change this behaviour uncomment the following line and set the path you want to log to-->
-        <!--
-        <constructor-arg value="/test"/>
-        -->
+
+        <constructor-arg value="g:\\temp"/>
+
 	</bean>
 
 

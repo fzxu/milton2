@@ -76,14 +76,14 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
         propertyMapCalDav.add(new CalendarDataProperty());
         propertyMapCalDav.add(new CalenderHomeSetProperty());
         propertyMapCalDav.add(new CalenderUserAddressSetProperty());
-        propertyMapCalDav.add(new ScheduleInboxProperty());
-        propertyMapCalDav.add(new ScheduleOutboxProperty());
+        //propertyMapCalDav.add(new ScheduleInboxProperty());
+        //propertyMapCalDav.add(new ScheduleOutboxProperty());
 
         propertyMapCalServer = new PropertyMap( CALSERVER_NS );
         propertyMapCalServer.add(new CTagProperty());
         propertyMapCalServer.add(new XMPPProperty());
-        propertyMapCalServer.add(new DropBoxProperty());
-        propertyMapCalServer.add(new NotificationProperty());
+        //propertyMapCalServer.add(new DropBoxProperty());
+        //propertyMapCalServer.add(new NotificationProperty());
         propertyMapCalServer.add(new NotificationsProperty());
 
         handlers = new HashSet<Handler>();
@@ -250,6 +250,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
      */
     class CalenderUserAddressSetProperty implements StandardProperty<HrefList> {
 
+		@Override
         public String fieldName() {
             return "calendar-user-address-set";
         }
@@ -264,6 +265,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
          * @return
          */
 
+		@Override
         public HrefList getValue( PropFindableResource res ) {
             if( res instanceof CalDavPrincipal) {
                 return ((CalDavPrincipal)res).getCalendarUserAddressSet();
@@ -272,6 +274,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
             }
         }
 
+		@Override
         public Class<HrefList> getValueClass() {
             return HrefList.class;
         }
@@ -396,14 +399,17 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
 
     class NotificationProperty implements StandardProperty<WrappedHref> {
 
+		@Override
         public String fieldName() {
             return "notification-URL";
         }
 
+		@Override
         public WrappedHref getValue( PropFindableResource res ) {
             return new WrappedHref("http://localhost:7080/notificationUrl");
         }
 
+		@Override
         public Class<WrappedHref> getValueClass() {
             return WrappedHref.class;
         }

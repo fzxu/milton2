@@ -70,6 +70,11 @@ public class PropFindXmlGenerator {
             
             // always add webdav namespace
             map.put( WebDavProtocol.NS_DAV.getName(), WebDavProtocol.NS_DAV.getPrefix() );
+			
+			// Hack for caldav!!! Temporary only!!!
+			//xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/"
+			map.put( "urn:ietf:params:xml:ns:caldav", "cal" );
+			map.put( "http://calendarserver.org/ns/", "cs" );
 
             for( PropFindResponse r : propFindResponses ) {
                 for( QName p : r.getKnownProperties().keySet() ) {

@@ -35,8 +35,8 @@ public class TCalendarResource extends TFolderResource implements CalendarResour
 
     @Override
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
-        log.debug("createNew");
-        if (contentType.startsWith("text/calendar")) {
+        log.debug("createNew: " + contentType);
+//        if (contentType.startsWith("text/calendar")) {
             TEvent e = new TEvent(this, newName);
             log.debug("created tevent: " + e.name);
             ICalFormatter formatter = new ICalFormatter();
@@ -46,11 +46,11 @@ public class TCalendarResource extends TFolderResource implements CalendarResour
             String data = bout.toString();
             e.setiCalData(data);
             return e;
-        } else {
-            throw new RuntimeException("eek");
-            //log.debug( "creating a normal resource");
-            //return super.createNew( newName, inputStream, length, contentType );
-        }
+//        } else {
+//            throw new RuntimeException("eek");
+//            //log.debug( "creating a normal resource");
+//            //return super.createNew( newName, inputStream, length, contentType );
+//        }
     }
 
     public String getCalendarDescription() {

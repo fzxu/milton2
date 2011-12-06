@@ -2,6 +2,7 @@ package com.bradmcevoy.http.values;
 
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.XmlWriter.Element;
+import com.bradmcevoy.http.webdav.WebDavProtocol;
 import java.util.Map;
 
 /**
@@ -24,7 +25,7 @@ public class HrefListValueWriter implements ValueWriter {
 		HrefList list = (HrefList) val;
 		if (list != null) {
 			for (String s : list) {
-				Element hrefEl = writer.begin("D:href").open(false);
+				Element hrefEl = writer.begin( WebDavProtocol.DAV_PREFIX + ":href").open(false);
 				hrefEl.writeText(s);
 				hrefEl.close();
 			}

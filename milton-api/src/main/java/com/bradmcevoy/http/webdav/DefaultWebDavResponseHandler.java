@@ -150,10 +150,12 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         wrapped.respondConflict( resource, response, request, message );
     }
 
+	@Override
     public void respondRedirect( Response response, Request request, String redirectUrl ) {
         wrapped.respondRedirect( response, request, redirectUrl );
     }
 
+	@Override
     public void respondNotModified( GetableResource resource, Response response, Request request ) {
         if( log.isTraceEnabled() ) {
             log.trace( "respondNotModified: " + wrapped.getClass().getCanonicalName() );
@@ -161,30 +163,37 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         wrapped.respondNotModified( resource, response, request );
     }
 
+	@Override
     public void respondNotFound( Response response, Request request ) {
         wrapped.respondNotFound( response, request );
     }
 
+	@Override
     public void respondHead( Resource resource, Response response, Request request ) {
         wrapped.respondHead( resource, response, request );
     }
 
+	@Override
     public void respondExpectationFailed( Response response, Request request ) {
         wrapped.respondExpectationFailed( response, request );
     }
 
+	@Override
     public void respondBadRequest( Resource resource, Response response, Request request ) {
         wrapped.respondBadRequest( resource, response, request );
     }
 
+	@Override
     public void respondForbidden( Resource resource, Response response, Request request ) {
         wrapped.respondForbidden( resource, response, request );
     }
 
+	@Override
     public void respondServerError( Request request, Response response, String reason ) {
         wrapped.respondServerError( request, response, reason );
     }
 
+	@Override
     public void respondDeleteFailed( Request request, Response response, Resource resource, Status status ) {
         List<HrefStatus> statii = new ArrayList<HrefStatus>();
         statii.add( new HrefStatus( request.getAbsoluteUrl(), status ) );
@@ -197,7 +206,8 @@ public class DefaultWebDavResponseHandler implements WebDavResponseHandler {
         log.trace("respondPropFind");
         response.setStatus( Status.SC_MULTI_STATUS );
         response.setDateHeader( new Date() );
-        response.setContentTypeHeader( Response.XML );
+		response.setContentTypeHeader( "application/xml; charset=utf-8" );
+        //response.setContentTypeHeader( Response.XML );
         List<String> supportedLevels = resourceTypeHelper.getSupportedLevels( r );
         String s = Utils.toCsv( supportedLevels );
         response.setDavHeader( s );

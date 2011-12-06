@@ -75,18 +75,18 @@ public interface Response {
 
     enum Status {
 
-        SC_OK( ResponseStatus.SC_OK ),
+        SC_OK( ResponseStatus.SC_OK, "OK" ),
         SC_CREATED( ResponseStatus.SC_CREATED ),
         SC_ACCEPTED( ResponseStatus.SC_ACCEPTED ),
         SC_NO_CONTENT( ResponseStatus.SC_NO_CONTENT ),
-        SC_MULTI_STATUS( 207 ),
+        SC_MULTI_STATUS( 207, "Multi-status" ),
         SC_MOVED_PERMANENTLY( ResponseStatus.SC_MOVED_PERMANENTLY ),
         SC_MOVED_TEMPORARILY( ResponseStatus.SC_MOVED_TEMPORARILY ),
         SC_NOT_MODIFIED( ResponseStatus.SC_NOT_MODIFIED ),
         SC_BAD_REQUEST( ResponseStatus.SC_BAD_REQUEST ),
         SC_UNAUTHORIZED( ResponseStatus.SC_UNAUTHORIZED ),
         SC_FORBIDDEN( ResponseStatus.SC_FORBIDDEN ),
-        SC_NOT_FOUND( ResponseStatus.SC_NOT_FOUND ),
+        SC_NOT_FOUND( ResponseStatus.SC_NOT_FOUND, "Not Found" ),
         SC_INTERNAL_SERVER_ERROR( ResponseStatus.SC_INTERNAL_SERVER_ERROR ),
         SC_NOT_IMPLEMENTED( ResponseStatus.SC_NOT_IMPLEMENTED ),
         SC_BAD_GATEWAY( ResponseStatus.SC_BAD_GATEWAY ),
@@ -104,14 +104,23 @@ public interface Response {
         SC_METHOD_FAILURE( 420 ),
         SC_LOCKED( 423 );
         public int code;
+		public String text;
 
-        Status( int code ) {
+        Status( int code, String text ) {
             this.code = code;
+			this.text = text;
         }
-
+        Status( int code) {
+            this.code = code;
+			this.text = null;
+        }
         @Override
         public String toString() {
-            return "HTTP/1.1 " + code;
+			if( text != null ) {
+				return "HTTP/1.1 " + code + " " + text;
+			} else {
+				return "HTTP/1.1 " + code;
+			}
         }
 
         public Status fromCode( int i ) {
