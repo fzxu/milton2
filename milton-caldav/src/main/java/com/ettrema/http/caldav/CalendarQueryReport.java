@@ -7,9 +7,10 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
-import com.bradmcevoy.http.webdav.PropFindRequestFieldParser;
 import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.PropFindXmlGenerator;
+import com.bradmcevoy.http.webdav.PropertiesRequest;
+import com.bradmcevoy.http.webdav.PropertiesRequest;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.ettrema.http.CalendarResource;
 import com.ettrema.http.ICalResource;
@@ -46,16 +47,18 @@ public class CalendarQueryReport implements Report {
         this.xmlGenerator = xmlGenerator;
     }
 
+	@Override
     public String getName() {
         return "calendar-query";
     }
 
+	@Override
     public String process(String host, Resource resource, Document doc) throws BadRequestException {
         log.debug("process");
         // The requested properties
         Set<QName> props = getProps(doc);
         
-        PropFindRequestFieldParser.ParseResult parseResult = new PropFindRequestFieldParser.ParseResult(false, props);
+        PropertiesRequest parseResult = PropertiesRequest.toProperties(props);
 
         // Generate the response
         List<PropFindResponse> respProps = new ArrayList<PropFindResponse>();

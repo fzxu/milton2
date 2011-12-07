@@ -26,25 +26,29 @@ public class MsPropFindRequestFieldParser implements PropFindRequestFieldParser{
     }
 
 
-    public ParseResult getRequestedFields( InputStream in ) {
-        ParseResult result = wrapped.getRequestedFields( in );
-        if( result.isAllProp() ) return result;
-        
-        if( result.getNames().size() == 0 ) {
-            add( result.getNames(), "creationdate" );
-            add( result.getNames(),"getlastmodified" );
-            add( result.getNames(),"displayname" );
-            add( result.getNames(),"resourcetype" );
-            add( result.getNames(),"getcontenttype" );
-            add( result.getNames(),"getcontentlength" );
-            add( result.getNames(),"getetag" );
+	@Override
+    public PropertiesRequest getRequestedFields( InputStream in ) {
+        PropertiesRequest result = wrapped.getRequestedFields( in );
+        if( result.isAllProp() ) {
+			System.out.println("XXXXXXXXXXXXXXXXXX");
+			return result;
+		}
+        System.out.println("size: " + result.getNames().size());
+        if( result.getNames().isEmpty() ) {
+            add( result, "creationdate" );
+            add( result,"getlastmodified" );
+            add( result,"displayname" );
+            add( result,"resourcetype" );
+            add( result,"getcontenttype" );
+            add( result,"getcontentlength" );
+            add( result,"getetag" );
         }
         return result;
     }
 
-    private void add( Set<QName> set, String name ) {
+    private void add( PropertiesRequest result, String name ) {
         QName qname = new QName( WebDavProtocol.NS_DAV.getName(), name);
-        set.add( qname );
+        result.add( qname );
     }
 
 }

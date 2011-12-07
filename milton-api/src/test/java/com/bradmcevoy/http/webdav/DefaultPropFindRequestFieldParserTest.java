@@ -1,6 +1,6 @@
 package com.bradmcevoy.http.webdav;
 
-import com.bradmcevoy.http.webdav.PropFindRequestFieldParser.ParseResult;
+import com.bradmcevoy.http.webdav.PropertiesRequest;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Set;
@@ -33,7 +33,7 @@ public class DefaultPropFindRequestFieldParserTest extends TestCase {
             "</D:propfind>";
 
         InputStream in = new ByteArrayInputStream( xml.getBytes());
-        ParseResult parseResult = fieldParser.getRequestedFields( in );
+        PropertiesRequest parseResult = fieldParser.getRequestedFields( in );
         Set<QName> set = parseResult.getNames();
         assertEquals( 1, set.size());
         QName qn = set.iterator().next();
@@ -45,9 +45,8 @@ public class DefaultPropFindRequestFieldParserTest extends TestCase {
         String xml = "";
 
         InputStream in = new ByteArrayInputStream( xml.getBytes());
-        ParseResult parseResult = fieldParser.getRequestedFields( in );
+        PropertiesRequest parseResult = fieldParser.getRequestedFields( in );
         Set<QName> set = parseResult.getNames();
         assertEquals( 0, set.size());
-    }
-
+    }	
 }

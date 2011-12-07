@@ -4,9 +4,9 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
-import com.bradmcevoy.http.webdav.PropFindRequestFieldParser;
 import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.PropFindXmlGenerator;
+import com.bradmcevoy.http.webdav.PropertiesRequest;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.ettrema.http.report.Report;
 import java.net.URISyntaxException;
@@ -53,11 +53,10 @@ public class MultiGetReport implements Report {
         // The requested resources
         List<String> hrefs = getHrefs( doc );
 
-        PropFindRequestFieldParser.ParseResult parseResult = new PropFindRequestFieldParser.ParseResult( false, props );
+        PropertiesRequest parseResult = PropertiesRequest.toProperties(props);
 
         // Generate the response
         Element elMulti = new Element( "multistatus", NS_DAV );
-        Document resp = new Document( elMulti );
         List<PropFindResponse> respProps = new ArrayList<PropFindResponse>();
 
         for( String href : hrefs ) {

@@ -7,8 +7,9 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
-import com.bradmcevoy.http.webdav.PropFindRequestFieldParser.ParseResult;
 import com.bradmcevoy.http.webdav.PropFindResponse;
+import com.bradmcevoy.http.webdav.PropertiesRequest;
+import com.bradmcevoy.http.webdav.PropertiesRequest.Property;
 import com.bradmcevoy.http.webdav.ResourceTypeHelper;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.http.webdav.WebDavResourceTypeHelper;
@@ -92,7 +93,7 @@ public class JsonPropFindHandler {
             }
 
             String href = encodedUrl.replace("/_DAV/PROPFIND", "");
-            ParseResult parseResult = new ParseResult(false, fields);
+            PropertiesRequest parseResult = new PropertiesRequest(toProperties(fields));
             LogUtils.debug(log, "prop builder: ", propertyBuilder.getClass(), "href", href);			
             List<PropFindResponse> props;
 			try {
@@ -110,6 +111,14 @@ public class JsonPropFindHandler {
         json.write(writer);
         writer.flush();
     }
+	
+	private Set<Property> toProperties(Set<QName> set) {
+		Set<Property> props = new HashSet<Property>();
+		for(QName n : set ) {
+			props.add(new Property(n, null));
+		}
+		return props;
+	}	
 
     /**
      * Parse the given field and populate the given maps

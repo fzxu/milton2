@@ -66,7 +66,7 @@ public class PropFindPropertyBuilder {
 	 * @param url - the URL of the given resource - MUST be correctly encoded
 	 * @return
 	 */
-	public List<PropFindResponse> buildProperties(PropFindableResource pfr, int depth, PropFindRequestFieldParser.ParseResult parseResult, String url) throws URISyntaxException {
+	public List<PropFindResponse> buildProperties(PropFindableResource pfr, int depth, PropertiesRequest parseResult, String url) throws URISyntaxException {
 		LogUtils.trace(log, "buildProperties: ", pfr.getClass());
 		List<PropFindResponse> propFindResponses = new ArrayList<PropFindResponse>();
 		appendResponses(propFindResponses, pfr, depth, parseResult, url);
@@ -85,7 +85,7 @@ public class PropFindPropertyBuilder {
 		return null;
 	}
 
-	private void appendResponses(List<PropFindResponse> responses, PropFindableResource resource, int requestedDepth, PropFindRequestFieldParser.ParseResult parseResult, String encodedCollectionUrl) throws URISyntaxException {
+	private void appendResponses(List<PropFindResponse> responses, PropFindableResource resource, int requestedDepth, PropertiesRequest parseResult, String encodedCollectionUrl) throws URISyntaxException {
 		String collectionHref = suffixSlash(resource, encodedCollectionUrl);
 		URI parentUri = new URI(collectionHref);
 
@@ -94,7 +94,7 @@ public class PropFindPropertyBuilder {
 
 	}
 
-	public void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropFindRequestFieldParser.ParseResult parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) {
+	public void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropertiesRequest parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) {
 		collectionHref = suffixSlash(resource, collectionHref);
 		final LinkedHashMap<QName, ValueAndType> knownProperties = new LinkedHashMap<QName, ValueAndType>();
 		final ArrayList<NameAndError> unknownProperties = new ArrayList<NameAndError>();

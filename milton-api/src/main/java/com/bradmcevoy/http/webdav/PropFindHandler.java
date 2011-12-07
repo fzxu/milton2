@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.webdav.PropFindRequestFieldParser.ParseResult;
+import com.bradmcevoy.http.webdav.PropertiesRequest;
 import com.bradmcevoy.property.DefaultPropertyAuthoriser;
 import com.bradmcevoy.property.PropertyHandler;
 import com.bradmcevoy.property.PropertyAuthoriser;
@@ -83,41 +83,6 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
         manager.onGet( request, response, r, request.getParams() );
         resourceHandlerHelper.processResource( manager, request, response, r, this, true, request.getParams(), null );
-//		
-//        long t = System.currentTimeMillis();
-//        try {
-//
-//            manager.onProcessResourceStart( request, response, resource );
-//
-//            if( resourceHandlerHelper.isNotCompatible( resource, request.getMethod() ) || !isCompatible( resource ) ) {
-//                if( log.isTraceEnabled() ) {
-//                    log.trace( "resource not compatible. Resource class: " + resource.getClass() + " handler: " + getClass() );
-//                }
-//                responseHandler.respondMethodNotImplemented( resource, response, request );
-//                return;
-//            }
-//
-//            AuthStatus authStatus = resourceHandlerHelper.checkAuthentication( manager, resource, request );
-//            if( authStatus != null && authStatus.loginFailed ) {
-//                if( log.isTraceEnabled() ) {
-//                    log.trace( "authentication failed. respond with: " + responseHandler.getClass().getCanonicalName() + " resource: " + resource.getClass().getCanonicalName() );
-//                }
-//                responseHandler.respondUnauthorised( resource, response, request );
-//                return;
-//            }
-//
-//            if( request.getMethod().isWrite ) {
-//                if( resourceHandlerHelper.isLockedOut( request, resource ) ) {
-//                    response.setStatus( Status.SC_LOCKED ); // replace with responsehandler method
-//                    return;
-//                }
-//            }
-//
-//            processExistingResource( manager, request, response, resource );
-//        } finally {
-//            t = System.currentTimeMillis() - t;
-//            manager.onProcessResourceFinish( request, response, resource, t );
-//        }
     }
 
 	@Override
@@ -127,7 +92,7 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
         int depth = request.getDepthHeader();
         response.setStatus( Response.Status.SC_MULTI_STATUS );
         response.setContentTypeHeader( Response.XML );
-        PropFindRequestFieldParser.ParseResult parseResult;
+        PropertiesRequest parseResult;
         try {
             parseResult = requestFieldParser.getRequestedFields( request.getInputStream() );
         } catch( IOException ex ) {
@@ -158,7 +123,7 @@ public class PropFindHandler implements ExistingEntityHandler, PropertyHandler {
         }
     }
 
-    private Set<QName> getAllFields( ParseResult parseResult, PropFindableResource resource ) {
+    private Set<QName> getAllFields( PropertiesRequest parseResult, PropFindableResource resource ) {
         Set<QName> set = new HashSet<QName>();
         if( parseResult.isAllProp() ) {
             set.addAll( propertyBuilder.findAllProps( resource ) );

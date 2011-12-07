@@ -22,7 +22,7 @@ public class LdapSecurityManagerTest extends TestCase {
 
 
 	public void testAuthoriseBasic() {
-		securityManager.authenticate("brad", "Password1");
+		//securityManager.authenticate("brad", "xxxxx");
 	}
 
 	public void testAuthoriseDigest() {
