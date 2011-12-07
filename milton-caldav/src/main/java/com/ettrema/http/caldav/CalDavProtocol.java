@@ -101,7 +101,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
         webDavProtocol.addReport(new ACLPrincipalPropSetReport());
         webDavProtocol.addReport(new PrincipalMatchReport());
         webDavProtocol.addReport(new PrincipalPropertySearchReport());
-        webDavProtocol.addReport(new ExpandPropertyReport());
+        //webDavProtocol.addReport(new ExpandPropertyReport());
         webDavProtocol.addReport(new CalendarQueryReport(propertyBuilder, gen));
 
         schedulingCustomPostHandler = new SchedulingCustomPostHandler();
