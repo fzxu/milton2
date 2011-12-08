@@ -34,163 +34,158 @@ import org.slf4j.LoggerFactory;
  */
 public class CalendarQueryReport implements Report {
 
-    private static final Logger log = LoggerFactory.getLogger(CalendarQueryReport.class);
-    private final PropFindPropertyBuilder propertyBuilder;
-    private final PropFindXmlGenerator xmlGenerator;
-    private final Namespace NS_DAV = Namespace.getNamespace(WebDavProtocol.NS_DAV.getPrefix(), WebDavProtocol.NS_DAV.getName());
-    private final Namespace NS_CAL = Namespace.getNamespace("C", CalDavProtocol.CALDAV_NS);
+	private static final Logger log = LoggerFactory.getLogger(CalendarQueryReport.class);
+	private final PropFindPropertyBuilder propertyBuilder;
+	private final PropFindXmlGenerator xmlGenerator;
+	private final Namespace NS_DAV = Namespace.getNamespace(WebDavProtocol.NS_DAV.getPrefix(), WebDavProtocol.NS_DAV.getName());
+	private final Namespace NS_CAL = Namespace.getNamespace("C", CalDavProtocol.CALDAV_NS);
+	private final ICalFormatter formatter = new ICalFormatter();
 
-    private final ICalFormatter formatter = new ICalFormatter();
-
-    public CalendarQueryReport( PropFindPropertyBuilder propertyBuilder, PropFindXmlGenerator xmlGenerator) {
-        this.propertyBuilder = propertyBuilder;
-        this.xmlGenerator = xmlGenerator;
-    }
-
-	@Override
-    public String getName() {
-        return "calendar-query";
-    }
+	public CalendarQueryReport(PropFindPropertyBuilder propertyBuilder, PropFindXmlGenerator xmlGenerator) {
+		this.propertyBuilder = propertyBuilder;
+		this.xmlGenerator = xmlGenerator;
+	}
 
 	@Override
-    public String process(String host, Resource resource, Document doc) throws BadRequestException {
-        log.debug("process");
-        // The requested properties
-        Set<QName> props = getProps(doc);
-        
-        PropertiesRequest parseResult = PropertiesRequest.toProperties(props);
+	public String getName() {
+		return "calendar-query";
+	}
 
-        // Generate the response
-        List<PropFindResponse> respProps = new ArrayList<PropFindResponse>();
+	@Override
+	public String process(String host, String path, Resource resource, Document doc) throws BadRequestException {
+		log.debug("process");
+		// The requested properties
+		Set<QName> props = getProps(doc);
 
-        if (resource instanceof CalendarResource) {
-            CalendarResource calendar = (CalendarResource) resource;
-            List<ICalResource> foundResources = findCalendarResources(calendar, doc);
-            log.trace("foundResources: " + foundResources.size());
-            String parentHref = HttpManager.request().getAbsolutePath();
-						parentHref = Utils.suffixSlash(parentHref);
-            for(ICalResource cr : foundResources) {
-                String href = parentHref + cr.getName();
-                //List<PropFindResponse> resps = propertyBuilder.buildProperties(calendar, 0, parseResult, href);
+		PropertiesRequest parseResult = PropertiesRequest.toProperties(props);
 
-                List<PropFindResponse> resps = new ArrayList<PropFindResponse>();
-                propertyBuilder.processResource(resps, cr, parseResult, href, 0, 0, href);
-                
-                respProps.addAll(resps);
-            }
-        } else {
-            throw new BadRequestException(resource, "Resource is not a " + CalendarResource.class.getCanonicalName() + " is a: " + resource.getClass() );
-        }
+		// Generate the response
+		List<PropFindResponse> respProps = new ArrayList<PropFindResponse>();
 
-        String xml = xmlGenerator.generate(respProps);
-        return xml;
-    }
+		if (resource instanceof CalendarResource) {
+			CalendarResource calendar = (CalendarResource) resource;
+			List<ICalResource> foundResources = findCalendarResources(calendar, doc);
+			log.trace("foundResources: " + foundResources.size());
+			String parentHref = HttpManager.request().getAbsolutePath();
+			parentHref = Utils.suffixSlash(parentHref);
+			for (ICalResource cr : foundResources) {
+				String href = parentHref + cr.getName();
+				//List<PropFindResponse> resps = propertyBuilder.buildProperties(calendar, 0, parseResult, href);
 
+				List<PropFindResponse> resps = new ArrayList<PropFindResponse>();
+				propertyBuilder.processResource(resps, cr, parseResult, href, 0, 0, href);
 
+				respProps.addAll(resps);
+			}
+		} else {
+			throw new BadRequestException(resource, "Resource is not a " + CalendarResource.class.getCanonicalName() + " is a: " + resource.getClass());
+		}
 
-    private Set<QName> getProps(Document doc) {
-        Element elProp = doc.getRootElement().getChild("prop", NS_DAV);
-        if (elProp == null) {
-            throw new RuntimeException("No prop element");
-        }
+		String xml = xmlGenerator.generate(respProps);
+		return xml;
+	}
 
-        Set<QName> set = new HashSet<QName>();
-        for (Object o : elProp.getChildren()) {
-            if (o instanceof Element) {
-                Element el = (Element) o;
-                String local = el.getName();
-                String ns = el.getNamespaceURI();
-                set.add(new QName(ns, local, el.getNamespacePrefix()));
-            }
-        }
-        return set;
-    }
+	private Set<QName> getProps(Document doc) {
+		Element elProp = doc.getRootElement().getChild("prop", NS_DAV);
+		if (elProp == null) {
+			throw new RuntimeException("No prop element");
+		}
 
-    private List<ICalResource> findCalendarResources(CalendarResource calendar, Document doc) {
-        // build a list of all calendar resources
-        List<ICalResource> list = new ArrayList<ICalResource>();
-        for(Resource r : calendar.getChildren()) {
-            if( r instanceof ICalResource) {
-                ICalResource cr = (ICalResource) r;
-                list.add(cr);
-            }
-        }
+		Set<QName> set = new HashSet<QName>();
+		for (Object o : elProp.getChildren()) {
+			if (o instanceof Element) {
+				Element el = (Element) o;
+				String local = el.getName();
+				String ns = el.getNamespaceURI();
+				set.add(new QName(ns, local, el.getNamespacePrefix()));
+			}
+		}
+		return set;
+	}
 
-        // filter out those that don't match
-        Element elFilterRoot = doc.getRootElement().getChild("filter", NS_CAL);
-        if (elFilterRoot == null) {
-            // no filter so return all
-            return list;
-        }
+	private List<ICalResource> findCalendarResources(CalendarResource calendar, Document doc) {
+		// build a list of all calendar resources
+		List<ICalResource> list = new ArrayList<ICalResource>();
+		for (Resource r : calendar.getChildren()) {
+			if (r instanceof ICalResource) {
+				ICalResource cr = (ICalResource) r;
+				list.add(cr);
+			}
+		}
 
-        Element elSecondFilter = elFilterRoot.getChild("comp-filter", NS_CAL);
-        if (elSecondFilter == null) {
-            // no second filter so return all
-            return list;
-        }
+		// filter out those that don't match
+		Element elFilterRoot = doc.getRootElement().getChild("filter", NS_CAL);
+		if (elFilterRoot == null) {
+			// no filter so return all
+			return list;
+		}
 
-        Element elTimeRange = elSecondFilter.getChild("time-range", NS_CAL);
-        if (elTimeRange == null) {
-            // no time range filter so return all
-            return list;
-        }
+		Element elSecondFilter = elFilterRoot.getChild("comp-filter", NS_CAL);
+		if (elSecondFilter == null) {
+			// no second filter so return all
+			return list;
+		}
 
-        String sStart = elTimeRange.getAttributeValue("start");
-        String sFinish = elTimeRange.getAttributeValue("end");
+		Element elTimeRange = elSecondFilter.getChild("time-range", NS_CAL);
+		if (elTimeRange == null) {
+			// no time range filter so return all
+			return list;
+		}
 
-        Date start = null;
-        Date end = null;
+		String sStart = elTimeRange.getAttributeValue("start");
+		String sFinish = elTimeRange.getAttributeValue("end");
 
-        if( sStart != null && sStart.length() > 0) {
-            try {
-                start = DateUtils.parseDate(sStart);
-            } catch (DateParseException ex) {
-                log.error("Couldnt parse start date in calendar-query: " + sStart);
-            }
-        }
+		Date start = null;
+		Date end = null;
 
-        if( sFinish != null && sFinish.length() > 0) {
-            try {
-                end = DateUtils.parseDate(sFinish);
-            } catch (DateParseException ex) {
-                log.error("Couldnt parse end date in calendar-query: " + sFinish);
-            }
-        }
+		if (sStart != null && sStart.length() > 0) {
+			try {
+				start = DateUtils.parseDate(sStart);
+			} catch (DateParseException ex) {
+				log.error("Couldnt parse start date in calendar-query: " + sStart);
+			}
+		}
 
-        // So now we have (or might have) start and end dates, so filter list
-        Iterator<ICalResource> it = list.iterator();
-        while(it.hasNext()) {
-            ICalResource r = it.next();
-            if( outsideDates(r, start, end)) {
-                it.remove();
-            }
-        }
-        return list;
-    }
+		if (sFinish != null && sFinish.length() > 0) {
+			try {
+				end = DateUtils.parseDate(sFinish);
+			} catch (DateParseException ex) {
+				log.error("Couldnt parse end date in calendar-query: " + sFinish);
+			}
+		}
 
-    private boolean outsideDates(ICalResource r, Date start, Date end) {
-        EventResource data;
-        if( r instanceof EventResource) {
-            data = (EventResource) r;
-        } else {
-            data = new EventResourceImpl();
-            formatter.parseEvent(data, r.getICalData());
-        }
+		// So now we have (or might have) start and end dates, so filter list
+		Iterator<ICalResource> it = list.iterator();
+		while (it.hasNext()) {
+			ICalResource r = it.next();
+			if (outsideDates(r, start, end)) {
+				it.remove();
+			}
+		}
+		return list;
+	}
 
-        if( start != null ) {
-            if( data.getStart().before(start) ) {
-                return true;
-            }
-        }
+	private boolean outsideDates(ICalResource r, Date start, Date end) {
+		EventResource data;
+		if (r instanceof EventResource) {
+			data = (EventResource) r;
+		} else {
+			data = new EventResourceImpl();
+			formatter.parseEvent(data, r.getICalData());
+		}
 
-        if( end != null ) {
-            if( data.getEnd().after(end)) {
-                return true;
-            }
-        }
+		if (start != null) {
+			if (data.getStart().before(start)) {
+				return true;
+			}
+		}
 
-        return false;
-    }
+		if (end != null) {
+			if (data.getEnd().after(end)) {
+				return true;
+			}
+		}
 
-
+		return false;
+	}
 }

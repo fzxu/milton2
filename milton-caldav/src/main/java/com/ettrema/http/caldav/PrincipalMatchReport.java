@@ -16,7 +16,7 @@ public class PrincipalMatchReport implements Report
     return "principal-match";
   }
 
-  public String process(String host, Resource r, Document doc)
+  public String process(String host, String path, Resource r, Document doc)
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }

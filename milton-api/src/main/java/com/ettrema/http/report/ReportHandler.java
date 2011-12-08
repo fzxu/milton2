@@ -39,17 +39,21 @@ public class ReportHandler implements ExistingEntityHandler {
     }
 
 
+	@Override
     public String[] getMethods() {
         return new String[]{Method.REPORT.code};
     }
+	@Override
     public void process( HttpManager httpManager, Request request, Response response ) throws ConflictException, NotAuthorizedException, BadRequestException {
         resourceHandlerHelper.process( httpManager, request, response, this );
     }
 
+	@Override
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
         resourceHandlerHelper.processResource( manager, request, response, r, this );
     }
 
+	@Override
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         try {
             org.jdom.input.SAXBuilder builder = new org.jdom.input.SAXBuilder();
@@ -60,7 +64,7 @@ public class ReportHandler implements ExistingEntityHandler {
                 log.error( "report not known: " + reportName );
                 throw new BadRequestException( resource );
             } else {
-                String xml = r.process( request.getHostHeader(), resource, doc );
+                String xml = r.process( request.getHostHeader(), request.getAbsolutePath(), resource, doc );
                 response.setStatus( Response.Status.SC_MULTI_STATUS );
                 response.getOutputStream().write( xml.getBytes());
                 response.getOutputStream().flush();
@@ -76,6 +80,7 @@ public class ReportHandler implements ExistingEntityHandler {
         }
     }
 
+	@Override
     public boolean isCompatible( Resource res ) {
         return ( res instanceof ReportableResource );
     }

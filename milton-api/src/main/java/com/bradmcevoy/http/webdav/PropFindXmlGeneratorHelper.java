@@ -20,8 +20,12 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
  * @author bradm
  */
 public class PropFindXmlGeneratorHelper {
-	private final ValueWriters valueWriters;
+	private ValueWriters valueWriters;
 
+	public PropFindXmlGeneratorHelper() {
+	}
+	
+	
 	public PropFindXmlGeneratorHelper(ValueWriters valueWriters) {
 		this.valueWriters = valueWriters;
 	}
@@ -127,5 +131,14 @@ public class PropFindXmlGeneratorHelper {
 			throw new RuntimeException(ex);
 		}
 	}
+
+	public ValueWriters getValueWriters() {
+		return valueWriters;
+	}
+
+	public void setValueWriters(ValueWriters valueWriters) {
+		this.valueWriters = valueWriters;
+	}
+	
 	
 }

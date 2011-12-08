@@ -55,6 +55,19 @@
     <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService">
         <property name="disableDigest" value="false"/>
         <property name="disableBasic" value="true"/>
+		<property name="externalIdentityProviders">
+			<list>
+				<bean class="com.ettrema.sso.SamlExternalIdentityProvider">
+					<constructor-arg value="keystore.jks" index="0" />
+					<constructor-arg value="dummy_gls" index="1" />
+					<constructor-arg index="2"><null/></constructor-arg>
+					<constructor-arg index="3" value="password" />					
+					<property name="name" value="SAML" />
+					<property name="loginUrl" value="https://localhost:8443/fmit-dummy-gls/services/logonRedirect" />
+					<property name="issuer" value="http://localhost:8090/" />
+				</bean>					
+			</list>
+		</property>
     </bean>
 <!--
     <bean id="milton.response.handler" class="com.bradmcevoy.http.MsOfficeResponseHandler"/>

@@ -27,88 +27,87 @@ import org.slf4j.LoggerFactory;
  */
 public class MultiGetReport implements Report {
 
-    private static final Logger log = LoggerFactory.getLogger( MultiGetReport.class );
-    private final ResourceFactory resourceFactory;
-    private final PropFindPropertyBuilder propertyBuilder;
-    private final PropFindXmlGenerator xmlGenerator;
+	private static final Logger log = LoggerFactory.getLogger(MultiGetReport.class);
+	private final ResourceFactory resourceFactory;
+	private final PropFindPropertyBuilder propertyBuilder;
+	private final PropFindXmlGenerator xmlGenerator;
+	private final Namespace NS_DAV = Namespace.getNamespace(WebDavProtocol.NS_DAV.getPrefix(), WebDavProtocol.NS_DAV.getName());
 
-    private final Namespace NS_DAV = Namespace.getNamespace( WebDavProtocol.NS_DAV.getPrefix(), WebDavProtocol.NS_DAV.getName() );
-
-    public MultiGetReport( ResourceFactory resourceFactory, PropFindPropertyBuilder propertyBuilder, PropFindXmlGenerator xmlGenerator ) {
-        this.resourceFactory = resourceFactory;
-        this.propertyBuilder = propertyBuilder;
-        this.xmlGenerator = xmlGenerator;
-    }
-
-	@Override
-    public String getName() {
-        return "calendar-multiget";
-    }
+	public MultiGetReport(ResourceFactory resourceFactory, PropFindPropertyBuilder propertyBuilder, PropFindXmlGenerator xmlGenerator) {
+		this.resourceFactory = resourceFactory;
+		this.propertyBuilder = propertyBuilder;
+		this.xmlGenerator = xmlGenerator;
+	}
 
 	@Override
-    public String process( String host, Resource calendar, Document doc ) {
-        log.debug( "process" );
-        // The requested properties
-        Set<QName> props = getProps( doc );
-        // The requested resources
-        List<String> hrefs = getHrefs( doc );
+	public String getName() {
+		return "calendar-multiget";
+	}
 
-        PropertiesRequest parseResult = PropertiesRequest.toProperties(props);
+	@Override
+	public String process(String host, String path, Resource calendar, Document doc) {
+		log.debug("process");
+		// The requested properties
+		Set<QName> props = getProps(doc);
+		// The requested resources
+		List<String> hrefs = getHrefs(doc);
 
-        // Generate the response
-        Element elMulti = new Element( "multistatus", NS_DAV );
-        List<PropFindResponse> respProps = new ArrayList<PropFindResponse>();
+		PropertiesRequest parseResult = PropertiesRequest.toProperties(props);
 
-        for( String href : hrefs ) {
-            Resource r = resourceFactory.getResource( host, href );
-            if( r != null ) {
-                if( r instanceof PropFindableResource ) {
-                    PropFindableResource pfr = (PropFindableResource) r;
+		// Generate the response
+		Element elMulti = new Element("multistatus", NS_DAV);
+		List<PropFindResponse> respProps = new ArrayList<PropFindResponse>();
+
+		for (String href : hrefs) {
+			Resource r = resourceFactory.getResource(host, href);
+			if (r != null) {
+				if (r instanceof PropFindableResource) {
+					PropFindableResource pfr = (PropFindableResource) r;
 					try {
-						respProps.addAll( propertyBuilder.buildProperties( pfr, 0, parseResult, href ) );
+						respProps.addAll(propertyBuilder.buildProperties(pfr, 0, parseResult, href));
 					} catch (URISyntaxException ex) {
 						throw new RuntimeException("There was an unencoded url requested: " + href, ex);
 					}
-                } else {
-                    // todo
-                }
-            } else {
-                // todo
-            }
-        }
+				} else {
+					// todo
+				}
+			} else {
+				// todo
+			}
+		}
 
-        String xml = xmlGenerator.generate( respProps );
-        return xml;
-    }
+		String xml = xmlGenerator.generate(respProps);
+		return xml;
+	}
 
-    private List<String> getHrefs( Document doc ) {
-        List<String> list = new ArrayList<String>();
-        for( Object o : doc.getRootElement().getChildren() ) {
-            if( o instanceof Element ) {
-                Element el = (Element) o;
-                if( el.getName().equals( "href")) {
-                    list.add( el.getText());
-                }
-            }
-        }
-        return list;
-    }
+	private List<String> getHrefs(Document doc) {
+		List<String> list = new ArrayList<String>();
+		for (Object o : doc.getRootElement().getChildren()) {
+			if (o instanceof Element) {
+				Element el = (Element) o;
+				if (el.getName().equals("href")) {
+					list.add(el.getText());
+				}
+			}
+		}
+		return list;
+	}
 
-    private Set<QName> getProps( Document doc ) {
-        Element elProp = doc.getRootElement().getChild( "prop", NS_DAV );
-        if( elProp == null ) {
-            throw new RuntimeException( "No prop element" );
-        }
+	private Set<QName> getProps(Document doc) {
+		Element elProp = doc.getRootElement().getChild("prop", NS_DAV);
+		if (elProp == null) {
+			throw new RuntimeException("No prop element");
+		}
 
-        Set<QName> set = new HashSet<QName>();
-        for( Object o : elProp.getChildren() ) {
-            if( o instanceof Element ) {
-                Element el = (Element) o;
-                String local = el.getName();
-                String ns = el.getNamespaceURI();
-                set.add( new QName( ns, local, el.getNamespacePrefix() ) );
-            }
-        }
-        return set;
-    }
+		Set<QName> set = new HashSet<QName>();
+		for (Object o : elProp.getChildren()) {
+			if (o instanceof Element) {
+				Element el = (Element) o;
+				String local = el.getName();
+				String ns = el.getNamespaceURI();
+				set.add(new QName(ns, local, el.getNamespacePrefix()));
+			}
+		}
+		return set;
+	}
 }

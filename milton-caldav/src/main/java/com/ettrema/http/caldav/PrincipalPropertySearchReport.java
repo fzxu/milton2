@@ -8,16 +8,15 @@ import org.jdom.Document;
  *
  * @author alex
  */
-public class PrincipalPropertySearchReport implements Report{
+public class PrincipalPropertySearchReport implements Report {
 
-  public String getName()
-  {
-    return "principal-property-search";
-  }
+	@Override
+	public String getName() {
+		return "principal-property-search";
+	}
 
-  public String process(String host, Resource r, Document doc)
-  {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
-
+	@Override
+	public String process(String host, String path, Resource r, Document doc) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

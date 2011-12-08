@@ -1,6 +1,5 @@
 package com.ettrema.http.caldav;
 
-import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
@@ -22,7 +21,6 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.Namespace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,7 +152,6 @@ public class ExpandPropertyReport implements Report {
 	private final ResourceFactory resourceFactory;
 	private final PropFindPropertyBuilder propertyBuilder;
 	private final PropFindXmlGenerator xmlGenerator;
-	private final Namespace NS_DAV = Namespace.getNamespace(WebDavProtocol.NS_DAV.getPrefix(), WebDavProtocol.NS_DAV.getName());
 
 	public ExpandPropertyReport(ResourceFactory resourceFactory, PropFindPropertyBuilder propertyBuilder, PropFindXmlGenerator xmlGenerator) {
 		this.resourceFactory = resourceFactory;
@@ -163,7 +160,7 @@ public class ExpandPropertyReport implements Report {
 	}
 
 	@Override
-	public String process(String host, Resource calendar, Document doc) {
+	public String process(String host, String path, Resource calendar, Document doc) {
 		log.debug("process");
 
 		PropertiesRequest parseResult = parse(doc.getRootElement());
@@ -171,7 +168,7 @@ public class ExpandPropertyReport implements Report {
 		List<PropFindResponse> propFindResponses;
 		try {
 			PropFindableResource pfr = (PropFindableResource) calendar;
-			propFindResponses = propertyBuilder.buildProperties(pfr, 1, parseResult, HttpManager.request().getAbsolutePath());
+			propFindResponses = propertyBuilder.buildProperties(pfr, 1, parseResult, path);
 	
 			for (PropFindResponse r : propFindResponses) {
 				Set<Entry<QName, ValueAndType>> set = r.getKnownProperties().entrySet();
@@ -202,9 +199,7 @@ public class ExpandPropertyReport implements Report {
 			if (o instanceof Element) {
 				Element el = (Element) o;
 				if (el.getName().equals("property")) {
-					String local = el.getName();
-					String ns = el.getNamespaceURI();
-					QName name = new QName(ns, local);
+					QName name = getQName(el);
 					Set<Property> nested = parseChildren(el);
 					Property p = new Property(name, nested);
 					set.add(p);
@@ -215,15 +210,23 @@ public class ExpandPropertyReport implements Report {
 		return pr;
 	}
 
+	private QName getQName(Element el) {
+		String local = el.getAttributeValue("name");
+		String ns = el.getAttributeValue("namespace");
+		if( ns == null ) {
+			ns = WebDavProtocol.DAV_URI;
+		}
+		QName name = new QName(ns, local);
+		return name;
+	}
+
 	private Set<Property> parseChildren(Element elProp) {
 		Set<Property> set = new HashSet<Property>();
 		for (Object o : elProp.getChildren()) {
 			if (o instanceof Element) {
 				Element el = (Element) o;
 				if (el.getName().equals("property")) {
-					String local = el.getName();
-					String ns = el.getNamespaceURI();
-					QName name = new QName(ns, local);
+					QName name = getQName(el);
 					Set<Property> nested = parseChildren(el);
 					Property p = new Property(name, nested);
 				}

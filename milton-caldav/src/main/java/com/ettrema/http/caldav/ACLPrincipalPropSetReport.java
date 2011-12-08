@@ -8,16 +8,15 @@ import org.jdom.Document;
  *
  * @author alex
  */
-public class ACLPrincipalPropSetReport implements Report  {
+public class ACLPrincipalPropSetReport implements Report {
 
-  public String getName()
-  {
-    return "acl-principal-prop-set";
-  }
+	@Override
+	public String getName() {
+		return "acl-principal-prop-set";
+	}
 
-  public String process(String host, Resource r, Document doc)
-  {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
-
+	@Override
+	public String process(String host, String path, Resource r, Document doc) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }
