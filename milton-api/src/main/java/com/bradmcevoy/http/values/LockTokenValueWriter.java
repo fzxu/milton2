@@ -5,6 +5,7 @@ import com.bradmcevoy.http.LockToken;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.XmlWriter.Element;
 import com.bradmcevoy.http.webdav.LockWriterHelper;
+import com.bradmcevoy.http.webdav.WebDavProtocol;
 import java.util.Map;
 
 public class LockTokenValueWriter implements ValueWriter {
@@ -19,15 +20,18 @@ public class LockTokenValueWriter implements ValueWriter {
         this.lockWriterHelper = lockWriterHelper;
     }
 
+	@Override
     public boolean supports( String nsUri, String localName, Class c ) {
         return LockToken.class.isAssignableFrom( c );
     }
 
+	@Override
     public void writeValue( XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes ) {
         LockToken token = (LockToken) val;
-        Element lockDiscovery = writer.begin( "D:lockdiscovery" ).open();		
+		String d = WebDavProtocol.DAV_PREFIX;
+        Element lockDiscovery = writer.begin( d + ":lockdiscovery" ).open();		
         if( token != null ) {
-			Element activeLock = writer.begin( "D:activelock" ).open();
+			Element activeLock = writer.begin( d + "activelock" ).open();
             LockInfo info = token.info;
             lockWriterHelper.appendType( writer, info.type );
             lockWriterHelper.appendScope( writer, info.scope );
@@ -41,6 +45,7 @@ public class LockTokenValueWriter implements ValueWriter {
         lockDiscovery.close();
     }
 
+	@Override
     public Object parse( String namespaceURI, String localPart, String value ) {
         throw new UnsupportedOperationException( "Not supported yet." );
     }

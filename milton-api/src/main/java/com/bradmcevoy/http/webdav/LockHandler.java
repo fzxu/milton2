@@ -247,11 +247,12 @@ public class LockHandler implements ResourceHandler {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlWriter writer = new XmlWriter( out );
         writer.writeXMLHeader();
-        writer.open( "D:prop  xmlns:D=\"DAV:\"" );
+		String d = WebDavProtocol.DAV_PREFIX;
+        writer.open( d + ":prop  xmlns:D=\"DAV:\"" );
         writer.newLine();
-        writer.open( "D:lockdiscovery" );
+        writer.open( d + ":lockdiscovery" );
         writer.newLine();
-        writer.open( "D:activelock" );
+        writer.open( d + ":activelock" );
         writer.newLine();
         lockWriterHelper.appendType( writer, tok.info.type );
         lockWriterHelper.appendScope( writer, tok.info.scope );
@@ -260,9 +261,9 @@ public class LockHandler implements ResourceHandler {
         lockWriterHelper.appendTimeout( writer, tok.timeout.getSeconds() );
         lockWriterHelper.appendTokenId( writer, tok.tokenId );
         lockWriterHelper.appendRoot( writer, request.getAbsoluteUrl() );
-        writer.close( "D:activelock" );
-        writer.close( "D:lockdiscovery" );
-        writer.close( "D:prop" );
+        writer.close( d + ":activelock" );
+        writer.close( d + ":lockdiscovery" );
+        writer.close( d + ":prop" );
         writer.flush();
 
         log.debug( "lock response: " + out.toString() );

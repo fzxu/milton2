@@ -18,6 +18,8 @@ public class LockWriterHelper {
 
     private static final Logger log = LoggerFactory.getLogger( LockWriterHelper.class );
 
+	private static String D = WebDavProtocol.DAV_PREFIX;
+	
     private boolean stripHrefOnOwner = true;
 
     public void appendDepth( XmlWriter writer, LockInfo.LockDepth depthType ) {
@@ -26,7 +28,7 @@ public class LockWriterHelper {
             if( depthType.equals( LockInfo.LockDepth.INFINITY ) )
                 s = depthType.name().toUpperCase();
         }
-        writer.writeProperty( null, "D:depth", s );
+        writer.writeProperty( null, D + "depth", s );
 
     }
 
@@ -40,10 +42,10 @@ public class LockWriterHelper {
         }
         log.debug( "appendOwner: " + validHref + " - " + stripHrefOnOwner);
         if( !validHref && stripHrefOnOwner ) { // BM: reversed login on validHref - presumably only write href tag for href values???
-            writer.writeProperty( null, "D:owner", owner );
+            writer.writeProperty( null, D + ":owner", owner );
         } else {
-            XmlWriter.Element el = writer.begin( "D:owner" ).open();
-            XmlWriter.Element el2 = writer.begin( "D:href" ).open();
+            XmlWriter.Element el = writer.begin( D + ":owner" ).open();
+            XmlWriter.Element el2 = writer.begin( D + ":href" ).open();
             if( owner != null ) {
                 el2.writeText( owner );
             }
@@ -53,7 +55,7 @@ public class LockWriterHelper {
     }
 
     public void appendScope( XmlWriter writer, LockScope scope ) {
-        writer.writeProperty( null, "D:lockscope", "<D:" + scope.toString().toLowerCase() + "/>" );
+        writer.writeProperty( null, D + ":lockscope", "<" + D + ":" + scope.toString().toLowerCase() + "/>" );
     }
 
     /**
@@ -69,23 +71,23 @@ public class LockWriterHelper {
      */
     public void appendTimeout( XmlWriter writer, Long seconds ) {
         if( seconds != null && seconds > 0 ) {
-            writer.writeProperty( null, "D:timeout", "Second-" + Utils.withMax(seconds, 4294967295l) );
+            writer.writeProperty( null, D + ":timeout", "Second-" + Utils.withMax(seconds, 4294967295l) );
         }
     }
 
     public void appendTokenId( XmlWriter writer, String tokenId ) {
-        XmlWriter.Element el = writer.begin( "D:locktoken" ).open();
-        writer.writeProperty( null, "D:href", "opaquelocktoken:" + tokenId );
+        XmlWriter.Element el = writer.begin( D + ":locktoken" ).open();
+        writer.writeProperty( null, D + ":href", "opaquelocktoken:" + tokenId );
         el.close();
     }
 
     public void appendType( XmlWriter writer, LockType type ) {
-        writer.writeProperty( null, "D:locktype", "<D:" + type.toString().toLowerCase() + "/>" );
+        writer.writeProperty( null, D + ":locktype", "<" + D + ":" + type.toString().toLowerCase() + "/>" );
     }
 
     public void appendRoot( XmlWriter writer, String lockRoot ) {
-        XmlWriter.Element el = writer.begin( "D:lockroot" ).open();
-        writer.writeProperty( null, "D:href", lockRoot );
+        XmlWriter.Element el = writer.begin( D + ":lockroot" ).open();
+        writer.writeProperty( null, D + ":href", lockRoot );
         el.close();
     }
 
