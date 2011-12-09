@@ -30,10 +30,8 @@ public class MsPropFindRequestFieldParser implements PropFindRequestFieldParser{
     public PropertiesRequest getRequestedFields( InputStream in ) {
         PropertiesRequest result = wrapped.getRequestedFields( in );
         if( result.isAllProp() ) {
-			System.out.println("XXXXXXXXXXXXXXXXXX");
 			return result;
 		}
-        System.out.println("size: " + result.getNames().size());
         if( result.getNames().isEmpty() ) {
             add( result, "creationdate" );
             add( result,"getlastmodified" );

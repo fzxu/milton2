@@ -155,8 +155,6 @@ public class ExpandPropertyReport implements Report {
 		log.debug("process");
 
 		PropertiesRequest parseResult = parse(doc.getRootElement());
-
-		System.out.println("XXXXXXXXXXX - finished parsing - XXXXXXXXXXXXXXXXX");
 		
 		List<PropFindResponse> propFindResponses;
 		try {
@@ -164,22 +162,18 @@ public class ExpandPropertyReport implements Report {
 			propFindResponses = propertyBuilder.buildProperties(pfr, 1, parseResult, path);
 
 			for (PropFindResponse r : propFindResponses) {
-				System.out.println("1. Process propfind response: " + r.getHref());
 				Set<Entry<QName, ValueAndType>> set = r.getKnownProperties().entrySet();
 				set = new HashSet<Entry<QName, ValueAndType>>(set);
 				for (Entry<QName, ValueAndType> p : set) {
 					Object val = p.getValue().getValue();
-					System.out.println("2. Got val: " + val + " --------------");
 					QName name = p.getKey();
 					if (val instanceof HrefList) {
 						HrefList hrefList = (HrefList) val;
 						Property prop = parseResult.get(name);
-						System.out.println("3. Found HrefList. nest props to load: " + prop.getNested().size());
 						PropFindResponseList propFindResponseList = toResponseList(host, hrefList, prop);
 						replaceHrefs(host, propFindResponseList, prop);
 						r.getKnownProperties().remove(name);
 						r.getKnownProperties().put(name, new ValueAndType(propFindResponseList, PropFindResponseList.class));
-						System.out.println("replaced with: " + propFindResponseList);
 					}
 				}
 			}
@@ -187,6 +181,8 @@ public class ExpandPropertyReport implements Report {
 			throw new RuntimeException("Exception parsing url, indicating the requested URL is not correctly encoded. Please check the client application.", ex);
 		}
 
+		//show("",propFindResponses);
+		
 		String xml = xmlGenerator.generate(propFindResponses);
 		return xml;
 	}
@@ -196,30 +192,19 @@ public class ExpandPropertyReport implements Report {
 		for (Object o : elProp.getChildren()) {
 			if (o instanceof Element) {
 				Element el = (Element) o;
-				System.out.println("parse: root prop: " + el.getName() + " = " + el.getAttributeValue("name"));
 				if (el.getName().equals("property")) {
 					QName name = getQName(el);
 					Set<Property> nested = parseChildren(el);
 					Property p = new Property(name, nested);
 					set.add(p);
-					System.out.println("nested props: " + p.getName() + " children size: " +  p.getNestedMap().size());
 				}
 			}
 		}
-		System.out.println("Results");
-		for( Property p : set) {
-			System.out.println(p.getName() + " - " + p.getNestedMap().size());
-			for( Property p2 : p.getNested()) { 
-				System.out.println("	" + p2.getName() + " - " + p2.getNestedMap().size());
-			}
-		}
-		System.out.println("------------------");
 		PropertiesRequest pr = new PropertiesRequest(set);
 		return pr;
 	}
 
 	private Set<Property> parseChildren(Element elProp) {
-		System.out.println("parseChildren 1: " + elProp.getAttributeValue("name"));
 		Set<Property> set = new HashSet<Property>();
 		for (Object o : elProp.getChildren()) {
 			if (o instanceof Element) {
@@ -228,12 +213,10 @@ public class ExpandPropertyReport implements Report {
 					QName name = getQName(el);					
 					Set<Property> nested = parseChildren(el);
 					Property p = new Property(name, nested);
-					System.out.println("parseChildren 2: nested prop: " + name + " with children: " + nested.size() + " = " + p.getNestedMap().size());
 					set.add(p);
 				}
 			}
 		}
-		System.out.println("parseChildren 3: " + elProp.getAttributeValue("name") + " children: " + set.size());
 		return set;
 	}
 
@@ -271,26 +254,34 @@ public class ExpandPropertyReport implements Report {
 
 	private void replaceHrefs(String host, PropFindResponseList propFindResponseList, Property prop) throws URISyntaxException {		
 		for (PropFindResponse r : propFindResponseList) {
-			System.out.println("ReplaceHrefs 1. " + r.getHref() + " parent prop: " + prop.getName());
 			Set<Entry<QName, ValueAndType>> set = r.getKnownProperties().entrySet();
 			set = new HashSet<Entry<QName, ValueAndType>>(set);
 			for (Entry<QName, ValueAndType> p : set) {
 				Object val = p.getValue().getValue();
-				System.out.println("	2. got val: " + val + " --------------");
 				QName name = p.getKey();
 				if (val instanceof HrefList) {
 					HrefList hrefList = (HrefList) val;
 					Property nestedProp = prop.getNestedMap().get(name);
-					System.out.println("	3. nest prop: " + name + " - " + nestedProp);
-					System.out.println("	4. nest props to load: " + nestedProp.getNested().size());
 					PropFindResponseList nestedList = toResponseList(host, hrefList, nestedProp);
 					replaceHrefs(host, nestedList, nestedProp);
 					r.getKnownProperties().remove(name);
 					r.getKnownProperties().put(name, new ValueAndType(nestedList, PropFindResponseList.class));
-					System.out.println("	replaced with: " + nestedList);
 				}
 			}
 		}
-		System.out.println("Finished replaceHrefs: " + prop.getName() + " -------------------------------------------------");
+	}
+
+	private void show(String prefix, List<PropFindResponse> propFindResponses) {
+		for( PropFindResponse p : propFindResponses ) {
+			for( Entry<QName, ValueAndType> e : p.getKnownProperties().entrySet()) {
+				Object o = e.getValue().getValue();
+				if( o instanceof PropFindResponseList) {
+					PropFindResponseList childList = (PropFindResponseList) o;
+					show(prefix + "   ", childList);
+				} else {
+					
+				}
+			}
+		}
 	}
 }

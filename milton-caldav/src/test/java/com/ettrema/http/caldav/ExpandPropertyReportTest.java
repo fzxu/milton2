@@ -6,6 +6,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.http.values.HrefListValueWriter;
 import com.bradmcevoy.http.values.PropFindResponseListWriter;
+import com.bradmcevoy.http.values.ToStringValueWriter;
 import com.bradmcevoy.http.values.ValueWriter;
 import com.bradmcevoy.http.values.ValueWriters;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
@@ -55,7 +56,7 @@ public class ExpandPropertyReportTest extends TestCase {
 	protected void setUp() throws Exception {
 		propertySource = createMock(PropertySource.class);
 		xmlGeneratorHelper = new PropFindXmlGeneratorHelper();
-		List<ValueWriter> writers = Arrays.asList(new HrefListValueWriter(), new PropFindResponseListWriter(xmlGeneratorHelper));
+		List<ValueWriter> writers = Arrays.asList(new HrefListValueWriter(), new PropFindResponseListWriter(xmlGeneratorHelper), new ToStringValueWriter());
 		valueWriters = new ValueWriters(writers);
 		xmlGeneratorHelper.setValueWriters(valueWriters);
 		xmlGenerator = new PropFindXmlGenerator(valueWriters);

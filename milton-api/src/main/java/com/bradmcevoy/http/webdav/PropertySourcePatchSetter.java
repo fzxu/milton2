@@ -142,11 +142,12 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 				}
 			}
 		}
-		System.out.println("is commitable: " + r.getClass());
 		if( r instanceof CommitableResource) {
-			System.out.println("yes");
+			log.trace("resource is commitable, call doCommit");
 			CommitableResource cr = (CommitableResource) r;
 			cr.doCommit(knownProps, errorProps);
+		} else {
+			log.trace("resource is not commitable");
 		}
 		PropFindResponse resp = new PropFindResponse(href, knownProps, errorProps);
 		return resp;

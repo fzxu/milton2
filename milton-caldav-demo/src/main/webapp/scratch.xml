@@ -13,7 +13,10 @@
 									<d:response>
 										<d:href>/versionSet</d:href>
 										<d:propstat>
-											<d:prop></d:prop>
+											<d:prop>
+												<d:creator-displayname>Joe</d:creator-displayname>
+												<d:activity-set>Activity1</d:activity-set>
+											</d:prop>
 											<d:status>HTTP/1.1 200 OK</d:status>
 										</d:propstat>
 									</d:response>
