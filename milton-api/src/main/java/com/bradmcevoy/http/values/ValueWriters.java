@@ -68,6 +68,11 @@ public class ValueWriters {
      */
     public void writeValue(XmlWriter writer, QName qname, String prefix, ValueAndType vat, String href, Map<String, String> nsPrefixes) {
         for (ValueWriter vw : writers) {
+			if( vat.getValue() != null ) {
+				if( vat.getValue().getClass() != vat.getType()) {
+					throw new RuntimeException("Inconsistent type information: " + vat.getValue().getClass() + " != " + vat.getType());
+				}
+			}
             if (vw.supports(qname.getNamespaceURI(), qname.getLocalPart(), vat.getType())) {
                 vw.writeValue(writer, qname.getNamespaceURI(), prefix, qname.getLocalPart(), vat.getValue(), href, nsPrefixes);
                 break;

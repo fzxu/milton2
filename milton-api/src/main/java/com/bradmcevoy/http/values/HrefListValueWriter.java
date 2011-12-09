@@ -16,12 +16,14 @@ public class HrefListValueWriter implements ValueWriter {
 
 	@Override
 	public boolean supports(String nsUri, String localName, Class c) {
-		return HrefList.class.isAssignableFrom(c);
+		boolean b = HrefList.class.isAssignableFrom(c);
+		return b;
 	}
 
 	@Override
 	public void writeValue(XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes) {
 		Element outerEl = writer.begin(prefix, localName).open();
+		if( val instanceof HrefList ) {
 		HrefList list = (HrefList) val;
 		if (list != null) {
 			for (String s : list) {
@@ -31,6 +33,9 @@ public class HrefListValueWriter implements ValueWriter {
 			}
 		}
 		outerEl.close();
+		} else {
+			throw new RuntimeException("Value is not correct type. Is a: " + val.getClass());
+		}
 	}
 
 	@Override

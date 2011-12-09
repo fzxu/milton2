@@ -11,6 +11,8 @@ import com.bradmcevoy.http.values.ValueWriters;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindXmlGenerator;
 import com.bradmcevoy.http.webdav.PropFindXmlGeneratorHelper;
+import com.bradmcevoy.http.webdav.PropertiesRequest;
+import com.bradmcevoy.http.webdav.PropertiesRequest.Property;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.property.PropertySource;
 import java.io.ByteArrayInputStream;
@@ -108,8 +110,35 @@ public class ExpandPropertyReportTest extends TestCase {
 		
 		System.out.println("expand property report:");
 		System.out.println(xml);
-		//verify(propertySource,  resourceFactory);
+		verify(propertySource,  resourceFactory);
 	}
+//	
+//	public void testParse() throws JDOMException, IOException, NotAuthorizedException {
+//		SAXBuilder builder = new org.jdom.input.SAXBuilder();
+//		String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" +
+//						"<D:expand-property xmlns:D=\"DAV:\">" +
+//						"<D:property name=\"version-history\">" +
+//						" <D:property name=\"version-set\">" +
+//						"   <D:property name=\"creator-displayname\"/>" +
+//						"   <D:property name=\"activity-set\"/>" +
+//						" </D:property>" +
+//					   "</D:property>" +
+//					 "</D:expand-property>";
+//		
+//		InputStream in = new ByteArrayInputStream(xml.getBytes());
+//		Document doc = builder.build(in);
+//		PropertiesRequest req = rep.parse(doc.getRootElement());
+//
+//		assertEquals(1, req.getNames().size());
+//		Property prop1 = req.getProperties().iterator().next();
+//		assertEquals("version-history", prop1.getName().getLocalPart());
+//		assertEquals(1, prop1.getNestedMap().size());
+//		Property prop2 = prop1.getNested().iterator().next();
+//		assertEquals("version-set", prop2.getName().getLocalPart());
+//		System.out.println("assert: version-set children: " + prop2.getNestedMap().size());
+//		assertEquals(2, prop2.getNestedMap().size());
+//	}
+	
 
 	public void testGetName() {
 	}

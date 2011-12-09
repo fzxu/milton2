@@ -125,7 +125,11 @@ public class PropFindPropertyBuilder {
 						try {
 							val = source.getProperty(field, resource);
 							LogUtils.trace(log, "processResource: got value", val, "from source", source.getClass());
-							knownProperties.put(field, new ValueAndType(val, meta.getValueType()));
+							if( val == null ) {
+								knownProperties.put(field, new ValueAndType(val, meta.getValueType())); // null, but we still need type information to write it so use meta
+							} else {
+								knownProperties.put(field, new ValueAndType(val, val.getClass())); // non-null, so use more robust class info
+							}
 						} catch (NotAuthorizedException ex) {
 							unknownProperties.add(new NameAndError(field, "Not authorised"));
 						}
