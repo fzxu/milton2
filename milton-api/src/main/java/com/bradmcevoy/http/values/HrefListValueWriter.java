@@ -21,20 +21,22 @@ public class HrefListValueWriter implements ValueWriter {
 	}
 
 	@Override
-	public void writeValue(XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes) {
-		Element outerEl = writer.begin(prefix, localName).open();
-		if( val instanceof HrefList ) {
-		HrefList list = (HrefList) val;
-		if (list != null) {
-			for (String s : list) {
-				Element hrefEl = writer.begin( WebDavProtocol.DAV_PREFIX + ":href").open(false);
-				hrefEl.writeText(s);
-				hrefEl.close();
+	public void writeValue(XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes) {		
+		if (val instanceof HrefList) {
+			Element outerEl = writer.begin(prefix, localName).open();
+			HrefList list = (HrefList) val;
+			if (list != null) {
+				for (String s : list) {
+					Element hrefEl = writer.begin(WebDavProtocol.DAV_PREFIX + ":href").open(false);
+					hrefEl.writeText(s);
+					hrefEl.close();
+				}
 			}
-		}
-		outerEl.close();
+			outerEl.close();
 		} else {
-			throw new RuntimeException("Value is not correct type. Is a: " + val.getClass());
+			if (val != null) {
+				throw new RuntimeException("Value is not correct type. Is a: " + val.getClass());
+			}
 		}
 	}
 

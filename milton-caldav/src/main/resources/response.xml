@@ -1,78 +1,23 @@
-<!--
 HTTP/1.1 207
 DAV: 1, 2, access-control, 3, addressbook, calendar-access, calendar-schedule, extended-mkcol, calendar-proxy
-Date: Tue, 06 Dec 2011 08:17:58 GMT
-Content-Length: 1545
+Date: Fri, 09 Dec 2011 08:39:26 GMT
+Content-Length: 443
 Content-Type: application/xml; charset=utf-8
--->
 <?xml version="1.0" encoding="utf-8" ?>
 <d:multistatus xmlns:cs="http://calendarserver.org/ns/" xmlns:d="DAV:" xmlns:cal="urn:ietf:params:xml:ns:caldav">
-	<d:response>
-		<d:href>/principals/userB/</d:href>
-		<d:propstat>
-			<d:prop>
-				<d:supported-report-set>
-					<d:supported-report>
-						<d:report>
-							<d:principal-search-property-set/>
-						</d:report>
-					</d:supported-report>
-					<d:supported-report>
-						<d:report>
-							<d:calendar-multiget/>
-						</d:report>
-					</d:supported-report>
-					<d:supported-report>
-						<d:report>
-							<d:calendar-query/>
-						</d:report>
-					</d:supported-report>
-					<d:supported-report>
-						<d:report>
-							<d:expand-property/>
-						</d:report>
-					</d:supported-report>
-					<d:supported-report>
-						<d:report>
-							<d:principal-property-search/>
-						</d:report>
-					</d:supported-report>
-					<d:supported-report>
-						<d:report>
-							<d:acl-principal-prop-set/>
-						</d:report>
-					</d:supported-report>
-					<d:supported-report>
-						<d:report>
-							<d:principal-match/>
-						</d:report>
-					</d:supported-report>
-				</d:supported-report-set>
-				<cal:calendar-user-address-set>
-					<d:href>mailto:userB@localhost</d:href>
-					<d:href>/principals/userB/</d:href>
-				</cal:calendar-user-address-set>
-				<cal:calendar-home-set>
-					<d:href>/principals/userB/calendars/</d:href>
-				</cal:calendar-home-set>
-				<d:displayname>userB</d:displayname>
-				<d:principal-collection-set>
-					<d:href>/users/</d:href>
-				</d:principal-collection-set>
-			</d:prop>
-			<d:status>HTTP/1.1 200 OK</d:status>
-		</d:propstat>
-		<d:propstat>
-			<d:prop>
-				<cal:schedule-outbox-URL/>
-				<cs:email-address-set/>
-				<d:resource-id/>
-				<cal:schedule-inbox-URL/>
-				<cs:notification-URL/>
-				<cs:dropbox-home-URL/>
-				<d:principal-URL/>
-			</d:prop>
-			<d:status>HTTP/1.1 404 Not Found</d:status>
-		</d:propstat>
-	</d:response>
-</d:multistatus>
+    <d:response>
+        <d:href>/</d:href>
+        <d:propstat>
+            <d:prop>
+                <d:current-user-principal>
+                    <d:href>/principals/userA/</d:href>
+                </d:current-user-principal>
+                <d:resourcetype>
+                    <d:collection/>
+                </d:resourcetype>
+                <d:principal-URL>
+                </d:prop>
+                <d:status>HTTP/1.1 200 OK</d:status>
+            </d:propstat>
+        </d:response>
+    </d:multistatus>
