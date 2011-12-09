@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bradmcevoy.http.Request.Method;
-import com.bradmcevoy.http.webdav.PropertiesRequest;
 import com.bradmcevoy.property.DefaultPropertyAuthoriser;
 import com.bradmcevoy.property.PropertyHandler;
 import com.bradmcevoy.property.PropertyAuthoriser;

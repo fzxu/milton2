@@ -29,4 +29,8 @@ public interface CalendarCollection extends CollectionResource {
      * @return
      */
     String getCTag();
+    
+    String getColor();
+    
+    void setColor(String s);
 }

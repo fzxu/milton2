@@ -24,6 +24,8 @@ public class TCalendarResource extends TFolderResource implements CalendarResour
 
     private static final Logger log = LoggerFactory.getLogger(TCalendarResource.class);
 
+    private String color = "#2952A3";
+    
     public TCalendarResource(TFolderResource parent, String name) {
         super(parent, name);
     }
@@ -55,6 +57,16 @@ public class TCalendarResource extends TFolderResource implements CalendarResour
 
     public String getCalendarDescription() {
         return "A test calendar";
+    }
+
+    @Override
+    public String getColor() {
+        return color;
+    }
+
+    @Override
+    public void setColor(String s) {
+        this.color = s;
     }
 
 }
