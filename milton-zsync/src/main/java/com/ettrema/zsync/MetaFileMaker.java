@@ -138,7 +138,7 @@ public class MetaFileMaker {
 		} finally {
 			StreamUtils.close(fos);
 			tm = System.currentTimeMillis() - tm;			
-			System.out.println("Made meta file in: " + tm + "ms");
+//			System.out.println("Made meta file in: " + tm + "ms");
 		}
 		
 	}

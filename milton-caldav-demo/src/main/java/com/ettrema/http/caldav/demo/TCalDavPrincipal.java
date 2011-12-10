@@ -19,15 +19,16 @@ import javax.mail.internet.MimeMessage;
  * @author brad
  */
 public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal, Mailbox, CalendarResource {
-	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
+
+    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
     private HrefPrincipleId principleId;
     private TFolderResource calendarHome;
     private TScheduleInboxResource scheduleInboxResource;
     private TScheduleOutboxResource scheduleOutboxResource;
     private TFolderResource dropBox;
-	private String password;
-
+    private String password;
     private final TMailFolder mailInbox;
+    private String color = "#2952A3";// not sure if this should be here
 
     public TCalDavPrincipal(TFolderResource parent, String name, String password, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, TScheduleOutboxResource scheduleOutboxResource, TFolderResource dropBox) {
         super(parent, name);
@@ -37,11 +38,11 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         this.scheduleOutboxResource = scheduleOutboxResource;
         this.dropBox = dropBox;
         mailInbox = new TMailFolder(this, "Inbox");
-		this.password = password;
+        this.password = password;
     }
 
-	@Override
-	public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
+    @Override
+    public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
         log.debug("createNew");
         if (contentType.startsWith("text/calendar")) {
             TEvent e = new TEvent(this, newName);
@@ -58,11 +59,9 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
             //log.debug( "creating a normal resource");
             //return super.createNew( newName, inputStream, length, contentType );
         }
-	}
-	
-	
-	
-	@Override
+    }
+
+    @Override
     public Object authenticate(String requestedUserName, String requestedPassword) {
         log.debug("authentication: " + requestedUserName + " - " + requestedPassword + " = " + password);
 
@@ -83,18 +82,16 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
             }
         }
     }
-	
-	@Override
+
+    @Override
     public String getPrincipalURL() {
-		return getHref();
-    }	
+        return getHref();
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	
-	
     public TFolderResource getCalendarHome() {
         return calendarHome;
     }
@@ -118,20 +115,19 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
     public void setScheduleOutboxResource(TScheduleOutboxResource scheduleOutboxResource) {
         this.scheduleOutboxResource = scheduleOutboxResource;
     }
-    
 
-	@Override
+    @Override
     public HrefList getCalendatHomeSet() {
         return HrefList.asList(calendarHome.getHref());
     }
 
-	@Override
+    @Override
     public HrefList getCalendarUserAddressSet() {
-		
+
         return HrefList.asList("mailto:" + name + "@localhost", getHref());
     }
 
-	@Override
+    @Override
     public String getScheduleInboxUrl() {
         if (scheduleInboxResource != null) {
             return scheduleInboxResource.getHref();
@@ -140,7 +136,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         }
     }
 
-	@Override
+    @Override
     public String getScheduleOutboxUrl() {
         if (scheduleOutboxResource != null) {
             return scheduleOutboxResource.getHref();
@@ -150,7 +146,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 
     }
 
-	@Override
+    @Override
     public String getDropBoxUrl() {
         if (dropBox != null) {
             return dropBox.getHref();
@@ -159,7 +155,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         }
     }
 
-	@Override
+    @Override
     public PrincipleId getIdenitifer() {
         return principleId;
     }
@@ -174,7 +170,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
      * @param password
      * @return
      */
-	@Override
+    @Override
     public boolean authenticate(String password) {
         Object o = authenticate(this.name, password);
         return o != null;
@@ -186,7 +182,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
      * @param passwordHash
      * @return
      */
-	@Override
+    @Override
     public boolean authenticateMD5(byte[] passwordHash) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -207,10 +203,18 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         mailInbox.storeMail(mm);
     }
 
-	@Override
-	public String getCalendarDescription() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
+    @Override
+    public String getCalendarDescription() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
+    @Override
+    public String getColor() {
+        return color;
+    }
 
+    @Override
+    public void setColor(String s) {
+        this.color = s;
+    }
 }

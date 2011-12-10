@@ -113,12 +113,13 @@ public class PropFindPropertyBuilder {
 		Iterator<QName> it = requestedFields.iterator();
 		while (it.hasNext()) {
 			QName field = it.next();
-			LogUtils.trace(log, "processResource:", field);
+			LogUtils.trace(log, "processResoource: find property:", field);
 			if (field.getLocalPart().equals("href")) {
 				knownProperties.put(field, new ValueAndType(href, String.class));
 			} else {
 				boolean found = false;
 				for (PropertySource source : propertySources) {
+					LogUtils.trace(log, "look for field", field, " in property source", source.getClass());
 					PropertyMetaData meta = source.getPropertyMetaData(field, resource);
 					if (meta != null && !meta.isUnknown()) {
 						Object val;
@@ -139,7 +140,7 @@ public class PropFindPropertyBuilder {
 				}
 				if (!found) {
 					if (log.isDebugEnabled()) {
-						log.debug("unknown: " + field.toString());
+						log.debug("property not found in any property source: " + field.toString());
 					}
 					unknownProperties.add(new NameAndError(field, null));
 				}

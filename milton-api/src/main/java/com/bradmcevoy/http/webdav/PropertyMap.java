@@ -114,6 +114,6 @@ public class PropertyMap {
 
 	public interface WritableStandardProperty<T> extends StandardProperty<T> {
 
-		T setValue(PropFindableResource res, T value);
+		void setValue(PropFindableResource res, T value);
 	}
 }

@@ -25,10 +25,13 @@ public class TScheduleOutboxResource extends TFolderResource implements Scheduli
 
     private static final Logger log = LoggerFactory.getLogger(TScheduleOutboxResource.class);
 
+    private String color = "#2952A3";
+    
     public TScheduleOutboxResource(TFolderResource parent, String name) {
         super(parent, name);
     }
 
+    @Override
     public List<SchedulingResponseItem> queryFreeBusy(String iCalText) {
         log.info("queryFreeBusy");
         List<SchedulingResponseItem> respItems = new ArrayList<SchedulingResponseItem>();
@@ -52,6 +55,7 @@ public class TScheduleOutboxResource extends TFolderResource implements Scheduli
         }
     }
 
+    @Override
     public String processForm(Map<String, String> parameters, Map<String, FileItem> files) throws BadRequestException, NotAuthorizedException, ConflictException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -102,4 +106,14 @@ public class TScheduleOutboxResource extends TFolderResource implements Scheduli
         }
         return s;
     }
+    
+    @Override
+    public String getColor() {
+        return color;
+    }
+
+    @Override
+    public void setColor(String s) {
+        this.color = s;
+    }    
 }

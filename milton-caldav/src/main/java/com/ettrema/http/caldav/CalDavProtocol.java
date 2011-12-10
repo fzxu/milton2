@@ -147,6 +147,8 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
         log.trace("getPropertyMetaData: {}", name.getLocalPart());
         if (propertyMapCalDav.hasProperty(name)) {
             return propertyMapCalDav.getPropertyMetaData(name, r);
+        } else if( propertyMapAppleCal.hasProperty(name)) {
+            return propertyMapAppleCal.getPropertyMetaData(name, r);
         } else {
             return propertyMapCalServer.getPropertyMetaData(name, r);
         }
@@ -200,10 +202,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
      */
     class CalenderDescriptionProperty implements StandardProperty<String> {
 
+        @Override
         public String fieldName() {
             return "calendar-description";
         }
 
+        @Override
         public String getValue(PropFindableResource res) {
             if (res instanceof CalendarResource) {
                 CalendarResource ical = (CalendarResource) res;
@@ -215,6 +219,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
 
         }
 
+        @Override
         public Class<String> getValueClass() {
             return String.class;
         }
@@ -485,7 +490,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
         }
     }
 
-    class ColorProperty implements StandardProperty<String> {
+    class ColorProperty implements PropertyMap.WritableStandardProperty<String> {
 
         @Override
         public String fieldName() {
@@ -496,7 +501,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
         public String getValue(PropFindableResource res) {
             if (res instanceof CalendarCollection) {
                 CalendarCollection ccol = (CalendarCollection) res;
-                return ccol.getCTag();
+                return ccol.getColor();
             } else {
                 return null;
             }
@@ -505,6 +510,14 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
         @Override
         public Class<String> getValueClass() {
             return String.class;
+        }
+
+        @Override
+        public void setValue(PropFindableResource res, String value) {
+            if (res instanceof CalendarCollection) {
+                CalendarCollection ccol = (CalendarCollection) res;
+                ccol.setColor(value);
+            }
         }
     }    
     

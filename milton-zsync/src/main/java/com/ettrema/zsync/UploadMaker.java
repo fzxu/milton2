@@ -86,15 +86,15 @@ public class UploadMaker{
 			matcher.mapMatcher( localCopy, metaFileReader, makeContext );
 			long t1 = System.currentTimeMillis();
 			
-			System.out.println( " " + ( t1 - t0 ) + " milliseconds" );
-			System.out.print( "Creating Upload..." );
+//			System.out.println( " " + ( t1 - t0 ) + " milliseconds" );
+//			System.out.print( "Creating Upload..." );
 			long t2 = System.currentTimeMillis();
 			
 			/* Computing upload and writing to BufferingOutputStreams */
 			this.initUpload();
 			long t3 = System.currentTimeMillis();
 			
-			System.out.println(" " + ( t3 - t2 ) + " milliseconds");
+//			System.out.println(" " + ( t3 - t2 ) + " milliseconds");
 			
 			return upload.getInputStream();
 		} catch ( IOException ex ) {
