@@ -28,7 +28,7 @@ public class LockWriterHelper {
             if( depthType.equals( LockInfo.LockDepth.INFINITY ) )
                 s = depthType.name().toUpperCase();
         }
-        writer.writeProperty( null, D + "depth", s );
+        writer.writeProperty( null, D + ":depth", s );
 
     }
 

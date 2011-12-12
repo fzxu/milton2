@@ -55,6 +55,7 @@
     <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService">
         <property name="disableDigest" value="false"/>
         <property name="disableBasic" value="true"/>
+<!--		
 		<property name="externalIdentityProviders">
 			<list>
 				<bean class="com.ettrema.sso.SamlExternalIdentityProvider">
@@ -68,6 +69,7 @@
 				</bean>					
 			</list>
 		</property>
+-->		
     </bean>
 <!--
     <bean id="milton.response.handler" class="com.bradmcevoy.http.MsOfficeResponseHandler"/>
