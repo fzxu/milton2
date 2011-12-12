@@ -92,6 +92,7 @@ public class JsonPropFindHandler {
                 depth = Integer.parseInt(sDepth);
             }
 
+			
             String href = encodedUrl.replace("/_DAV/PROPFIND", "");
             PropertiesRequest parseResult = new PropertiesRequest(toProperties(fields));
             LogUtils.debug(log, "prop builder: ", propertyBuilder.getClass(), "href", href);			
