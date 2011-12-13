@@ -77,10 +77,10 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
 
         propertyMapCalServer = new PropertyMap(CALSERVER_NS);
         propertyMapCalServer.add(new CTagProperty());
-        propertyMapCalServer.add(new XMPPProperty());
+//        propertyMapCalServer.add(new XMPPProperty());
         //propertyMapCalServer.add(new DropBoxProperty());
         //propertyMapCalServer.add(new NotificationProperty());
-        propertyMapCalServer.add(new NotificationsProperty());
+//        propertyMapCalServer.add(new NotificationsProperty());
         
         propertyMapAppleCal = new PropertyMap(APPLE_ICAL_NS);
         propertyMapAppleCal.add(new ColorProperty());
@@ -396,14 +396,17 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
      */
     class NotificationsProperty implements StandardProperty<WrappedHref> {
 
+        @Override
         public String fieldName() {
             return "notifications-URL";
         }
 
+        @Override
         public WrappedHref getValue(PropFindableResource res) {
             return new WrappedHref("http://localhost:7080/notificationsUrl");
         }
 
+        @Override
         public Class<WrappedHref> getValueClass() {
             return WrappedHref.class;
         }
