@@ -240,7 +240,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
 
         public HrefList getValue(PropFindableResource res) {
             if (res instanceof CalDavPrincipal) {
-                return ((CalDavPrincipal) res).getCalendatHomeSet();
+                return ((CalDavPrincipal) res).getCalendarHomeSet();
             } else {
                 return null;
             }
@@ -585,7 +585,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
             if (auth != null && auth.getTag() != null) {
                 if (auth.getTag() instanceof CalDavPrincipal) {
                     CalDavPrincipal p = (CalDavPrincipal) auth.getTag();
-                    calendars = p.getCalendatHomeSet();
+                    calendars = p.getCalendarHomeSet();
                     if (calendars == null || calendars.isEmpty()) {
                         log.warn("can't redirect, CalDavPrincipal.getCalendatHomeSet did not return an address. Check implementation class: " + p.getClass());
                         return null;

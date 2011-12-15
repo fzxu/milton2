@@ -45,7 +45,7 @@ public interface CalDavPrincipal extends DiscretePrincipal {
      *
      * @return
      */
-    HrefList getCalendatHomeSet();
+    HrefList getCalendarHomeSet();
 
 
     /**
