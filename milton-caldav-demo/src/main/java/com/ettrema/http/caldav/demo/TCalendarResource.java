@@ -41,7 +41,6 @@ public class TCalendarResource extends TFolderResource implements CalendarResour
 //        if (contentType.startsWith("text/calendar")) {
             TEvent e = new TEvent(this, newName);
             log.debug("created tevent: " + e.name);
-            ICalFormatter formatter = new ICalFormatter();
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             StreamUtils.readTo(inputStream, bout);
             bout.close();
@@ -55,6 +54,7 @@ public class TCalendarResource extends TFolderResource implements CalendarResour
 //        }
     }
 
+	@Override
     public String getCalendarDescription() {
         return "A test calendar";
     }

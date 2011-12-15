@@ -50,7 +50,7 @@ env.put(Context.SECURITY_PRINCIPAL, "testuser@mydomain.com");
 public class LdapSecurityManager implements com.bradmcevoy.http.SecurityManager {
 
 	private static final Logger log = LoggerFactory.getLogger( LdapSecurityManager.class );
-	private String ldapUrl = "LDAP://192.168.70.212/CN=App1,DC=FM,DC=COM";
+	private String ldapUrl = "LDAP://localhost/CN=App1,DC=FM,DC=COM";
 	private String realm = "aRealm";
 	private boolean enableDigest = true;
 	

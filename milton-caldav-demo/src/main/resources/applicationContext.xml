@@ -21,6 +21,7 @@
 		<constructor-arg>
 			<list>
 				<ref local="protocol.caldav"/>
+				<ref local="protocol.carddav"/>
 			</list>
 		</constructor-arg>
 	</bean>
@@ -34,6 +35,11 @@
 	<bean id="resource.type.helper.caldav" class="com.ettrema.http.caldav.CalendarResourceTypeHelper">
 		<constructor-arg ref="resource.type.helper.acl"/>
 	</bean>
+
+	<bean id="resource.type.helper.carddav" class="com.ettrema.http.carddav.AddressBookResourceTypeHelper">
+		<constructor-arg ref="resource.type.helper.caldav"/>
+	</bean>
+
 
 	<bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService"/>
 <!--
@@ -51,7 +57,7 @@
 
 	<bean id="response.handler" class="com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler">
 		<constructor-arg ref="auth.service"/>
-		<constructor-arg ref="resource.type.helper.caldav"/>
+		<constructor-arg ref="resource.type.helper.carddav"/>
 	</bean>
 
 	<bean id="protocol.http11" class="com.bradmcevoy.http.http11.Http11Protocol">
@@ -62,7 +68,7 @@
 	<bean id="protocol.webdav" class="com.bradmcevoy.http.webdav.WebDavProtocol">
 		<constructor-arg ref="response.handler"/>
 		<constructor-arg ref="handler.helper"/>
-		<constructor-arg ref="resource.type.helper.caldav"/>
+		<constructor-arg ref="resource.type.helper.carddav"/>
 		<constructor-arg>
 			<list>
 			</list>
@@ -70,6 +76,13 @@
 	</bean>
 
 	<bean id="protocol.caldav" class="com.ettrema.http.caldav.CalDavProtocol">
+		<constructor-arg ref="caldav.demo.resource.factory" />
+		<constructor-arg ref="response.handler"/>
+		<constructor-arg ref="handler.helper"/>
+		<constructor-arg ref="protocol.webdav"/>
+	</bean>
+
+	<bean id="protocol.carddav" class="com.ettrema.http.carddav.CardDavProtocol">
 		<constructor-arg ref="caldav.demo.resource.factory" />
 		<constructor-arg ref="response.handler"/>
 		<constructor-arg ref="handler.helper"/>
@@ -87,6 +100,7 @@
 				<ref bean="protocol.webdav"/>
 				<ref bean="protocol.caldav"/>
 				<ref bean="protocol.acl"/>
+				<ref bean="protocol.carddav"/>				
 			</list>
 		</constructor-arg>
 	</bean>
@@ -109,9 +123,9 @@
 	<bean id="debug.filter" class="com.bradmcevoy.http.DebugFilter" >
         <!-- By default the debugfilter will log to the current user's home directory -->
         <!-- To change this behaviour uncomment the following line and set the path you want to log to-->
-
+<!--
         <constructor-arg value="g:\\temp"/>
-
+-->
 	</bean>
 
 

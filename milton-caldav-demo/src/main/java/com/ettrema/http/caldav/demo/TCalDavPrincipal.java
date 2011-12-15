@@ -7,6 +7,7 @@ import com.ettrema.http.CalendarResource;
 import com.ettrema.http.acl.HrefPrincipleId;
 import com.ettrema.http.caldav.CalDavPrincipal;
 import com.ettrema.http.caldav.ICalFormatter;
+import com.ettrema.http.carddav.CardDavPrincipal;
 import com.ettrema.mail.Mailbox;
 import com.ettrema.mail.MessageFolder;
 import java.io.ByteArrayOutputStream;
@@ -18,11 +19,12 @@ import javax.mail.internet.MimeMessage;
  *
  * @author brad
  */
-public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal, Mailbox, CalendarResource {
+public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal, Mailbox, CalendarResource, CardDavPrincipal {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
     private HrefPrincipleId principleId;
     private TFolderResource calendarHome;
+	private TFolderResource addressBookHome;
     private TScheduleInboxResource scheduleInboxResource;
     private TScheduleOutboxResource scheduleOutboxResource;
     private TFolderResource dropBox;
@@ -30,10 +32,11 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
     private final TMailFolder mailInbox;
     private String color = "#2952A3";// not sure if this should be here
 
-    public TCalDavPrincipal(TFolderResource parent, String name, String password, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, TScheduleOutboxResource scheduleOutboxResource, TFolderResource dropBox) {
+    public TCalDavPrincipal(TFolderResource parent, String name, String password, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, TScheduleOutboxResource scheduleOutboxResource, TFolderResource dropBox, TFolderResource addressBookHome) {
         super(parent, name);
         this.principleId = new HrefPrincipleId(getHref());
         this.calendarHome = calendarHome;
+		this.addressBookHome = addressBookHome;
         this.scheduleInboxResource = scheduleInboxResource;
         this.scheduleOutboxResource = scheduleOutboxResource;
         this.dropBox = dropBox;
@@ -120,6 +123,11 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
     public HrefList getCalendatHomeSet() {
         return HrefList.asList(calendarHome.getHref());
     }
+	
+	@Override
+	public HrefList getAddressBookHomeSet() {
+		return HrefList.asList(addressBookHome.getHref());
+	}	
 
     @Override
     public HrefList getCalendarUserAddressSet() {
@@ -162,7 +170,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 
     @Override
     protected Object clone(TFolderResource newParent) {
-        return new TCalDavPrincipal(newParent, name, password, calendarHome, scheduleInboxResource, scheduleOutboxResource, dropBox);
+        return new TCalDavPrincipal(newParent, name, password, calendarHome, scheduleInboxResource, scheduleOutboxResource, dropBox, addressBookHome);
     }
 
     /**
@@ -187,18 +195,22 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+	@Override
     public MessageFolder getInbox() {
         return mailInbox;
     }
 
+	@Override
     public MessageFolder getMailFolder(String name) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+	@Override
     public boolean isEmailDisabled() {
         return false;
     }
 
+	@Override
     public void storeMail(MimeMessage mm) {
         mailInbox.storeMail(mm);
     }
@@ -217,4 +229,12 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
     public void setColor(String s) {
         this.color = s;
     }
+
+	public TFolderResource getAddressBookHome() {
+		return addressBookHome;
+	}
+
+	public void setAddressBookHome(TFolderResource addressBookHome) {
+		this.addressBookHome = addressBookHome;
+	}	
 }

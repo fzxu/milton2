@@ -54,6 +54,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
         return null;
     }
 
+	@Override
     public List<? extends Resource> getChildren() {
         return children;
     }
@@ -65,6 +66,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
         return bos;
     }
 
+	@Override
     public CollectionResource createCollection( String newName ) {
         log.debug( "createCollection: " + newName );
         TFolderResource r = new TFolderResource( this, newName );
@@ -79,6 +81,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
         return r;
     }
 
+	@Override
     public Resource child( String childName ) {
         for( Resource r : getChildren() ) {
             if( r.getName().equals( childName ) ) return r;
@@ -86,6 +89,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
         return null;
     }
 
+	@Override
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException {
         PrintWriter pw = new PrintWriter(out);
         pw.print("<html><body>");
@@ -109,6 +113,7 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
         pw.print("</ul>");
     }
 
+	@Override
     public String getContentType( String accepts ) {
         return "text/html";
     }
@@ -123,6 +128,8 @@ public class TFolderResource extends TResource implements PutableResource, MakeC
                 x = x ^ r.getUniqueId().hashCode();
             }
         }
-        return "c" + x;
+        String ctag = "c" + x;		
+		log.trace("ctag is: " + ctag + " for: " + this.getHref());
+		return ctag;
     }
 }

@@ -34,7 +34,7 @@ public class StandardFilter implements Filter {
             }
 
         } catch( BadRequestException ex ) {
-            log.warn( "BadRequestException: " + ex.getReason() );
+            log.warn( "BadRequestException: " + ex.getReason(), ex );
             manager.getResponseHandler().respondBadRequest( ex.getResource(), response, request );
         } catch( ConflictException ex ) {
             log.warn( "conflictException: " + ex.getMessage() );

@@ -107,13 +107,4 @@ public class TScheduleOutboxResource extends TFolderResource implements Scheduli
         return s;
     }
     
-    @Override
-    public String getColor() {
-        return color;
-    }
-
-    @Override
-    public void setColor(String s) {
-        this.color = s;
-    }    
 }

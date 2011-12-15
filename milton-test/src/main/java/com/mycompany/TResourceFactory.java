@@ -55,14 +55,10 @@ public class TResourceFactory implements ResourceFactory {
         if( r == null ) return null;
         if( r instanceof TFolderResource ) {
             TFolderResource folder = (TFolderResource)r;
-            for( Resource rChild : folder.getChildren() ) {
-                TResource r2 = (TResource) rChild;
-                if( r2.getName().equals(path.getName())) {
-                    return r2;
-                } else {
-//                    log.debug( "IS NOT: " + r2.getName() + " - " + path.getName());
-                }
-            }
+			TResource r2 = (TResource)folder.child(path.getName());
+			if( r2 != null ) {
+				return r2;
+			}
         }
         log.debug("not found: " + path);
         return null;

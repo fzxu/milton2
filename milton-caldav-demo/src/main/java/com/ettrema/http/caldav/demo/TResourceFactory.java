@@ -36,11 +36,19 @@ public class TResourceFactory implements ResourceFactory {
     }
 
     private static void addUser(TFolderResource users, String name, String password) {
-        TCalDavPrincipal userA = new TCalDavPrincipal(users, name,password, null, null, null, null);
-        TFolderResource calendars = new TFolderResource(userA, "calendars");
+        TCalDavPrincipal userA = new TCalDavPrincipal(users, name,password, null, null, null, null, null);
+        TFolderResource calendars = new TFolderResource(userA, "calendars");		
         TCalendarResource cal1 = new TCalendarResource(calendars, "cal1");
         TEvent e = new TEvent(cal1, "event1.ics");
         e.setiCalData(createICalData());
+		
+		TFolderResource addressBooks = new TFolderResource(userA, "addressBooks");
+		userA.setAddressBookHome(addressBooks);
+		TAddressBookResource addressBook1 = new TAddressBookResource(addressBooks, "addressbook");
+		System.out.println("created address book: " + addressBook1.getHref());
+		TContact c1 = new TContact(addressBook1, "contact1.vcf");
+		c1.setData(getCardDavData("111222333"));
+		
         TScheduleInboxResource scheduleInbox = new TScheduleInboxResource(calendars, "inbox");
         TScheduleOutboxResource scheduleOutbox = new TScheduleOutboxResource(calendars, "outbox");
         userA.setCalendarHome(calendars);
@@ -146,6 +154,23 @@ public class TResourceFactory implements ResourceFactory {
         s+= "END:VCALENDAR\n";
         return s;
     }
+	
+	private static String getCardDavData(String phone) {
+		String s = "";
+		s += "BEGIN:VCARD\n";
+		s += "VERSION:3.0\n";
+		s += "N:test;test;;;\n";
+		s += "FN:test test\n";
+		s += "TEL;type=WORK;type=pref:" + phone + "\n";
+		s += "item1.ADR;type=WORK;type=pref:;;\n\n;;;;\n";
+		s += "item1.X-ABADR:nz\n";
+		s += "CATEGORIES:My Contacts\n";
+		s += "X-ABUID:603CDA60-383D-4DD4-A478-432533516501\\:ABPerson\n";
+		s += "UID:95490BEA-5793-4E3B-8788-054C8B394F68-ABSPlugin\n";
+		s += "REV:2011-12-15T01:04:25Z\n";
+		s += "END:VCARD\n";
+		return s;
+	}
 
     private static String format(Calendar cal) {
         // "20090820T180000Z";

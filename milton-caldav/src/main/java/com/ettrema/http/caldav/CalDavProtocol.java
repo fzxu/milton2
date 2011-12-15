@@ -126,7 +126,9 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
         } else {
             o = propertyMapCalServer.getProperty(name, r);
         }
-        log.debug("result : " + o);
+		if(log.isTraceEnabled()) {
+			log.trace("getProperty result : " + o + " for property: " + name.getLocalPart());
+		}
         return o;
     }
 
@@ -177,7 +179,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
 
         @Override
         public String fieldName() {
-            return "calendar-data";
+            return "address-data";
         }
 
         @Override
@@ -502,8 +504,8 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
 
         @Override
         public String getValue(PropFindableResource res) {
-            if (res instanceof CalendarCollection) {
-                CalendarCollection ccol = (CalendarCollection) res;
+            if (res instanceof CalendarResource) {
+                CalendarResource ccol = (CalendarResource) res;
                 return ccol.getColor();
             } else {
                 return null;
@@ -517,8 +519,8 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
 
         @Override
         public void setValue(PropFindableResource res, String value) {
-            if (res instanceof CalendarCollection) {
-                CalendarCollection ccol = (CalendarCollection) res;
+            if (res instanceof CalendarResource) {
+                CalendarResource ccol = (CalendarResource) res;
                 ccol.setColor(value);
             }
         }

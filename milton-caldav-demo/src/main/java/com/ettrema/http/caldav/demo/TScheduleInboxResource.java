@@ -14,13 +14,4 @@ public class TScheduleInboxResource extends TFolderResource implements Schedulin
         super(parent, name);
     }
 
-    @Override
-    public String getColor() {
-        return color;
-    }
-
-    @Override
-    public void setColor(String s) {
-        this.color = s;
-    }
 }

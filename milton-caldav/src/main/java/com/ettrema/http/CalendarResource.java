@@ -10,5 +10,8 @@ public interface CalendarResource extends CalendarCollection, PropFindableResour
 
     String getCalendarDescription();
 
+    String getColor();
+    
+    void setColor(String s);	
 
 }
