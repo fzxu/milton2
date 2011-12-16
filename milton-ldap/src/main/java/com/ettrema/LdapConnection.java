@@ -39,6 +39,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Handle a caldav connection.
+ * 
+ * This is the server part of a LDAP client to server connection. This will
+ * locate information in some user repository (such as a milton carddav implementation)
+ * and format the results as LDAP messages.
+ * 
  */
 public class LdapConnection extends AbstractConnection {
 
@@ -1561,11 +1566,11 @@ public class LdapConnection extends AbstractConnection {
 		 * @param returningAttributes returning attributes
 		 * @throws IOException on error
 		 */
-		protected void sendPersons(int currentMessageId, String baseContext, Map<String, ExchangeSession.Contact> persons, Set<String> returningAttributes) throws IOException {
+		protected void sendPersons(int currentMessageId, String baseContext, Map<String, Contact> persons, Set<String> returningAttributes) throws IOException {
 			boolean needObjectClasses = returningAttributes.contains("objectclass") || returningAttributes.isEmpty();
 			boolean returnAllAttributes = returningAttributes.isEmpty();
 
-			for (ExchangeSession.Contact person : persons.values()) {
+			for (Contact person : persons.values()) {
 				if (abandon) {
 					break;
 				}
@@ -1591,7 +1596,7 @@ public class LdapConnection extends AbstractConnection {
 						String value = person.get(contactAttribute);
 						if (value != null) {
 							if (ldapAttribute.startsWith("birth")) {
-								SimpleDateFormat parser = ExchangeSession.getZuluDateFormat();
+								SimpleDateFormat parser = LdapUtils.getZuluDateFormat();
 								Calendar calendar = Calendar.getInstance();
 								try {
 									calendar.setTime(parser.parse(value));
@@ -1638,12 +1643,12 @@ public class LdapConnection extends AbstractConnection {
 				}
 
 				// iCal: replace current user alias with login name
-				if (session.getAlias().equals(ldapPerson.get("uid"))) {
+				if (user.getAlias().equals(ldapPerson.get("uid"))) {
 					if (returningAttributes.contains("uidnumber")) {
 						ldapPerson.put("uidnumber", userName);
 					}
 				}
-				log.debug("LOG_LDAP_REQ_SEARCH_SEND_PERSON", currentMessageId, ldapPerson.get("uid"), baseContext, ldapPerson);
+				LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_SEND_PERSON", currentMessageId, ldapPerson.get("uid"), baseContext, ldapPerson);
 				sendEntry(currentMessageId, "uid=" + ldapPerson.get("uid") + baseContext, ldapPerson);
 			}
 
