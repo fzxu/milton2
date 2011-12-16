@@ -965,9 +965,9 @@ public class LdapConnection extends AbstractConnection {
 
 	static interface LdapFilter {
 
-		ExchangeSession.Condition getContactSearchFilter();
+		Condition getContactSearchFilter();
 
-		Map<String, ExchangeSession.Contact> findInGAL(ExchangeSession session, Set<String> returningAttributes, int sizeLimit) throws IOException;
+		Map<String, Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException;
 
 		void add(LdapFilter filter);
 
@@ -1021,6 +1021,7 @@ public class LdapConnection extends AbstractConnection {
 		 *
 		 * @return true if full search filter
 		 */
+		@Override
 		public boolean isFullSearch() {
 			for (LdapFilter child : criteria) {
 				if (!child.isFullSearch()) {
@@ -1037,13 +1038,13 @@ public class LdapConnection extends AbstractConnection {
 		 *
 		 * @return contact search filter
 		 */
-		public ExchangeSession.Condition getContactSearchFilter() {
-			ExchangeSession.MultiCondition condition;
+		public Condition getContactSearchFilter() {
+			MultiCondition condition;
 
 			if (type == LDAP_FILTER_OR) {
-				condition = session.or();
+				condition = user.or();
 			} else {
-				condition = session.and();
+				condition = user.and();
 			}
 
 			for (LdapFilter child : criteria) {
@@ -1059,6 +1060,7 @@ public class LdapConnection extends AbstractConnection {
 		 * @param person person attributes map
 		 * @return true if filter match
 		 */
+		@Override
 		public boolean isMatch(Map<String, String> person) {
 			if (type == LDAP_FILTER_OR) {
 				for (LdapFilter child : criteria) {
@@ -1093,19 +1095,19 @@ public class LdapConnection extends AbstractConnection {
 		 * Find persons in Exchange GAL matching filter.
 		 * Iterate over child filters to build results.
 		 *
-		 * @param session Exchange session
+		 * @param user Exchange session
 		 * @return persons map
 		 * @throws IOException on error
 		 */
-		public Map<String, ExchangeSession.Contact> findInGAL(ExchangeSession session, Set<String> returningAttributes, int sizeLimit) throws IOException {
-			Map<String, ExchangeSession.Contact> persons = null;
+		public Map<String, Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
+			Map<String, Contact> persons = null;
 
 			for (LdapFilter child : criteria) {
 				int currentSizeLimit = sizeLimit;
 				if (persons != null) {
 					currentSizeLimit -= persons.size();
 				}
-				Map<String, ExchangeSession.Contact> childFind = child.findInGAL(session, returningAttributes, currentSizeLimit);
+				Map<String, Contact> childFind = child.findInGAL(user, returningAttributes, currentSizeLimit);
 
 				if (childFind != null) {
 					if (persons == null) {
@@ -1120,7 +1122,7 @@ public class LdapConnection extends AbstractConnection {
 						// Thus, instead of building the intersection, we check each result against
 						// all filters.
 
-						for (ExchangeSession.Contact result : childFind.values()) {
+						for (Contact result : childFind.values()) {
 							if (isMatch(result)) {
 								// This item from the child result set matches all sub-criteria, add it
 								persons.put(result.get("uid"), result);
@@ -1132,7 +1134,7 @@ public class LdapConnection extends AbstractConnection {
 
 			if ((persons == null) && !isFullSearch()) {
 				// return an empty map (indicating no results were found)
-				return new HashMap<String, ExchangeSession.Contact>();
+				return new HashMap<String, Contact>();
 			}
 
 			return persons;
@@ -1180,6 +1182,7 @@ public class LdapConnection extends AbstractConnection {
 			return false;
 		}
 
+		@Override
 		public boolean isFullSearch() {
 			// only (objectclass=*) is a full search
 			return "objectclass".equals(attributeName) && STAR.equals(value);
@@ -1209,26 +1212,26 @@ public class LdapConnection extends AbstractConnection {
 			return buffer.toString();
 		}
 
-		public ExchangeSession.Condition getContactSearchFilter() {
+		public Condition getContactSearchFilter() {
 			String contactAttributeName = getContactAttributeName(attributeName);
 
 			if (canIgnore || (contactAttributeName == null)) {
 				return null;
 			}
 
-			ExchangeSession.Condition condition = null;
+			Condition condition = null;
 
 			if (operator == LDAP_FILTER_EQUALITY) {
-				condition = session.isEqualTo(contactAttributeName, value);
+				condition = user.isEqualTo(contactAttributeName, value);
 			} else if ("*".equals(value)) {
-				condition = session.not(session.isNull(contactAttributeName));
+				condition = user.not(user.isNull(contactAttributeName));
 				// do not allow substring search on integer field imapUid
 			} else if (!"imapUid".equals(contactAttributeName)) {
 				// endsWith not supported by exchange, convert to contains
 				if (mode == LDAP_SUBSTRING_FINAL || mode == LDAP_SUBSTRING_ANY) {
-					condition = session.contains(contactAttributeName, value);
+					condition = user.contains(contactAttributeName, value);
 				} else {
-					condition = session.startsWith(contactAttributeName, value);
+					condition = user.startsWith(contactAttributeName, value);
 				}
 			}
 			return condition;
@@ -1259,7 +1262,7 @@ public class LdapConnection extends AbstractConnection {
 			return false;
 		}
 
-		public Map<String, ExchangeSession.Contact> findInGAL(ExchangeSession session, Set<String> returningAttributes, int sizeLimit) throws IOException {
+		public Map<String, Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
 			if (canIgnore) {
 				return null;
 			}
@@ -1268,15 +1271,15 @@ public class LdapConnection extends AbstractConnection {
 
 			if (contactAttributeName != null) {
 				// quick fix for cn=* filter
-				Map<String, ExchangeSession.Contact> galPersons = session.galFind(session.startsWith(contactAttributeName, "*".equals(value) ? "A" : value),
+				Map<String, Contact> galPersons = user.galFind(user.startsWith(contactAttributeName, "*".equals(value) ? "A" : value),
 						convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
 
 				if (operator == LDAP_FILTER_EQUALITY) {
 					// Make sure only exact matches are returned
 
-					Map<String, ExchangeSession.Contact> results = new HashMap<String, ExchangeSession.Contact>();
+					Map<String, Contact> results = new HashMap<String, Contact>();
 
-					for (ExchangeSession.Contact person : galPersons.values()) {
+					for (Contact person : galPersons.values()) {
 						if (isMatch(person)) {
 							// Found an exact match
 							results.put(person.get("uid"), person);
@@ -1294,11 +1297,7 @@ public class LdapConnection extends AbstractConnection {
 
 		public void add(LdapFilter filter) {
 			// Should never be called
-			DavGatewayTray.error("LOG_LDAP_UNSUPPORTED_FILTER", "nested simple filters")
-		
-	
-
-	);
+			log.error("LOG_LDAP_UNSUPPORTED_FILTER", "nested simple filters");
         }
     }
 
@@ -1311,7 +1310,7 @@ public class LdapConnection extends AbstractConnection {
     protected static String getContactAttributeName(String ldapAttributeName) {
 		String contactAttributeName = null;
 		// first look in contact attributes
-		if (ExchangeSession.CONTACT_ATTRIBUTES.contains(ldapAttributeName)) {
+		if (User.CONTACT_ATTRIBUTES.contains(ldapAttributeName)) {
 			contactAttributeName = ldapAttributeName;
 		} else if (LDAP_TO_CONTACT_ATTRIBUTE_MAP.containsKey(ldapAttributeName)) {
 			String mappedAttribute = LDAP_TO_CONTACT_ATTRIBUTE_MAP.get(ldapAttributeName);
@@ -1319,9 +1318,7 @@ public class LdapConnection extends AbstractConnection {
 				contactAttributeName = mappedAttribute;
 			}
 		} else {
-			log.debug("UNKNOWN_ATTRIBUTE", ldapAttributeName)
-		
-		);
+			log.debug("UNKNOWN_ATTRIBUTE", ldapAttributeName);
         }
         return contactAttributeName;
 	}
@@ -1354,12 +1351,12 @@ public class LdapConnection extends AbstractConnection {
 				}
 			}
 		} else {
-			contactReturningAttributes = ExchangeSession.CONTACT_ATTRIBUTES;
+			contactReturningAttributes = User.CONTACT_ATTRIBUTES;
 		}
 		return contactReturningAttributes;
 	}
 
-	protected class SearchRunnable implements Runnable {
+	public class SearchRunnable implements Runnable {
 
 		private final int currentMessageId;
 		private final String dn;
@@ -1387,6 +1384,7 @@ public class LdapConnection extends AbstractConnection {
 			abandon = true;
 		}
 
+		@Override
 		public void run() {
 			try {
 				int size = 0;
@@ -1401,29 +1399,29 @@ public class LdapConnection extends AbstractConnection {
 						// root
 						sendBaseContext(currentMessageId);
 					} else if (dn.startsWith("uid=") && dn.indexOf(',') > 0) {
-						if (session != null) {
+						if (user != null) {
 							// single user request
 							String uid = dn.substring("uid=".length(), dn.indexOf(','));
-							Map<String, ExchangeSession.Contact> persons = null;
+							Map<String, Contact> persons = null;
 
 							// first search in contact
 							try {
 								// check if this is a contact uid
 								Integer.parseInt(uid);
-								persons = contactFind(session.isEqualTo("imapUid", uid), returningAttributes, sizeLimit);
+								persons = contactFind(user.isEqualTo("imapUid", uid), returningAttributes, sizeLimit);
 							} catch (NumberFormatException e) {
 								// ignore, this is not a contact uid
 							}
 
 							// then in GAL
 							if (persons == null || persons.isEmpty()) {
-								persons = session.galFind(session.isEqualTo("imapUid", uid),
+								persons = user.galFind(user.isEqualTo("imapUid", uid),
 										convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
 
-								ExchangeSession.Contact person = persons.get(uid.toLowerCase());
+								Contact person = persons.get(uid.toLowerCase());
 								// filter out non exact results
 								if (persons.size() > 1 || person == null) {
-									persons = new HashMap<String, ExchangeSession.Contact>();
+									persons = new HashMap<String, Contact>();
 									if (person != null) {
 										persons.put(uid.toLowerCase(), person);
 									}
@@ -1442,11 +1440,11 @@ public class LdapConnection extends AbstractConnection {
 					// computer context for iCal
 					sendComputerContext(currentMessageId, returningAttributes);
 				} else if ((BASE_CONTEXT.equalsIgnoreCase(dn) || OD_USER_CONTEXT.equalsIgnoreCase(dn)) || OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
-					if (session != null) {
-						Map<String, ExchangeSession.Contact> persons = new HashMap<String, ExchangeSession.Contact>();
+					if (user != null) {
+						Map<String, Contact> persons = new HashMap<String, Contact>();
 						if (ldapFilter.isFullSearch()) {
 							// append personal contacts first
-							for (ExchangeSession.Contact person : contactFind(null, returningAttributes, sizeLimit).values()) {
+							for (Contact person : contactFind(null, returningAttributes, sizeLimit).values()) {
 								persons.put(person.get("imapUid"), person);
 								if (persons.size() == sizeLimit) {
 									break;
@@ -1455,7 +1453,7 @@ public class LdapConnection extends AbstractConnection {
 							// full search
 							for (char c = 'A'; c <= 'Z'; c++) {
 								if (!abandon && persons.size() < sizeLimit) {
-									for (ExchangeSession.Contact person : session.galFind(session.startsWith("cn", String.valueOf(c)),
+									for (Contact person : user.galFind(user.startsWith("cn", String.valueOf(c)),
 											convertLdapToContactReturningAttributes(returningAttributes), sizeLimit).values()) {
 										persons.put(person.get("uid"), person);
 										if (persons.size() == sizeLimit) {
@@ -1469,12 +1467,12 @@ public class LdapConnection extends AbstractConnection {
 							}
 						} else {
 							// append personal contacts first
-							ExchangeSession.Condition filter = ldapFilter.getContactSearchFilter();
+							Condition filter = ldapFilter.getContactSearchFilter();
 
 							// if ldapfilter is not a full search and filter is null,
 							// ignored all attribute filters => return empty results
 							if (ldapFilter.isFullSearch() || filter != null) {
-								for (ExchangeSession.Contact person : contactFind(filter, returningAttributes, sizeLimit).values()) {
+								for (Contact person : contactFind(filter, returningAttributes, sizeLimit).values()) {
 									persons.put(person.get("imapUid"), person);
 
 									if (persons.size() == sizeLimit) {
@@ -1482,7 +1480,7 @@ public class LdapConnection extends AbstractConnection {
 									}
 								}
 								if (!abandon && persons.size() < sizeLimit) {
-									for (ExchangeSession.Contact person : ldapFilter.findInGAL(session, returningAttributes, sizeLimit - persons.size()).values()) {
+									for (Contact person : ldapFilter.findInGAL(user, returningAttributes, sizeLimit - persons.size()).values()) {
 										if (persons.size() == sizeLimit) {
 											break;
 										}
@@ -1539,14 +1537,14 @@ public class LdapConnection extends AbstractConnection {
 		 * @return List of users
 		 * @throws IOException on error
 		 */
-		public Map<String, ExchangeSession.Contact> contactFind(ExchangeSession.Condition condition, Set<String> returningAttributes, int maxCount) throws IOException {
-			Map<String, ExchangeSession.Contact> results = new HashMap<String, ExchangeSession.Contact>();
+		public Map<String, Contact> contactFind(Condition condition, Set<String> returningAttributes, int maxCount) throws IOException {
+			Map<String, Contact> results = new HashMap<String, Contact>();
 
 			Set<String> contactReturningAttributes = convertLdapToContactReturningAttributes(returningAttributes);
 			contactReturningAttributes.remove("apple-serviceslocator");
-			List<ExchangeSession.Contact> contacts = session.searchContacts(ExchangeSession.CONTACTS, contactReturningAttributes, condition, maxCount);
+			List<Contact> contacts = user.searchContacts(contactReturningAttributes, condition, maxCount);
 
-			for (ExchangeSession.Contact contact : contacts) {
+			for (Contact contact : contacts) {
 				// use imapUid as uid
 				String imapUid = contact.get("imapUid");
 				if (imapUid != null) {
