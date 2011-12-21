@@ -5,6 +5,7 @@ package com.ettrema.ldap;
  * @author brad
  */
 public interface UserSessionFactory {
+	
 	User getUser(String userName);
 
 	/**

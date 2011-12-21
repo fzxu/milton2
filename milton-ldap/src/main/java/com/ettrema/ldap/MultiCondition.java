@@ -7,7 +7,7 @@ import java.util.List;
  *
  * @author brad
  */
-public abstract class MultiCondition implements Condition {
+public class MultiCondition implements Condition {
 
 	protected final Operator operator;
 	protected final List<Condition> conditions;
@@ -21,6 +21,27 @@ public abstract class MultiCondition implements Condition {
 			}
 		}
 	}
+
+//	@Override
+//	public void appendTo(StringBuilder buffer) {
+//		boolean first = true;
+//
+//		for (Condition condition : conditions) {
+//			if (condition != null && !condition.isEmpty()) {
+//				if (first) {
+//					buffer.append('(');
+//					first = false;
+//				} else {
+//					buffer.append(' ').append(operator).append(' ');
+//				}
+//				condition.appendTo(buffer);
+//			}
+//		}
+//		// at least one non empty condition
+//		if (!first) {
+//			buffer.append(')');
+//		}
+//	}
 
 	/**
 	 * Conditions list.

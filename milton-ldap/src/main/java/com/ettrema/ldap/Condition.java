@@ -16,7 +16,7 @@ public interface Condition {
 	 *
 	 * @param buffer search filter buffer
 	 */
-	void appendTo(StringBuilder buffer);
+	//void appendTo(StringBuilder buffer);
 
 	/**
 	 * True if condition is empty.

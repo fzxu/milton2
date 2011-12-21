@@ -4,7 +4,7 @@ package com.ettrema.ldap;
  *
  * @author brad
  */
-public abstract class NotCondition implements Condition {
+public class NotCondition implements Condition {
 
 	protected final Condition condition;
 
@@ -19,4 +19,10 @@ public abstract class NotCondition implements Condition {
 	public boolean isMatch(Contact contact) {
 		return !condition.isMatch(contact);
 	}
+
+//	public void appendTo(StringBuilder buffer) {
+//		buffer.append("(Not ");
+//		condition.appendTo(buffer);
+//		buffer.append(')');
+//	}
 }

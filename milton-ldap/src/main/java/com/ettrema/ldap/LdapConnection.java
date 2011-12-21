@@ -666,7 +666,7 @@ public class LdapConnection extends AbstractConnection {
 		LdapFilter ldapFilter;
 		if (reqBer.peekByte() == LDAP_FILTER_PRESENT) {
 			String attributeName = reqBer.parseStringWithTag(LDAP_FILTER_PRESENT, isLdapV3(), null).toLowerCase();
-			ldapFilter = new SimpleFilter(attributeName);
+			ldapFilter = new SimpleLdapFilter(attributeName);
 		} else {
 			int[] seqSize = new int[1];
 			int ldapFilterType = reqBer.parseSeq(seqSize);
@@ -683,12 +683,12 @@ public class LdapConnection extends AbstractConnection {
 
 		if ((ldapFilterType == LDAP_FILTER_OR) || (ldapFilterType == LDAP_FILTER_AND)
 				|| ldapFilterType == LDAP_FILTER_NOT) {
-			nestedFilter = new CompoundFilter(ldapFilterType);
+			nestedFilter = new CompoundLdapFilter(ldapFilterType);
 
 			while (reqBer.getParsePosition() < end && reqBer.bytesLeft() > 0) {
 				if (reqBer.peekByte() == LDAP_FILTER_PRESENT) {
 					String attributeName = reqBer.parseStringWithTag(LDAP_FILTER_PRESENT, isLdapV3(), null).toLowerCase();
-					nestedFilter.add(new SimpleFilter(attributeName));
+					nestedFilter.add(new SimpleLdapFilter(attributeName));
 				} else {
 					int[] seqSize = new int[1];
 					int ldapFilterOperator = reqBer.parseSeq(seqSize);
@@ -738,7 +738,7 @@ public class LdapConnection extends AbstractConnection {
 			}
 		}
 
-		return new SimpleFilter(attributeName, sValue, ldapFilterOperator, ldapFilterMode);
+		return new SimpleLdapFilter(attributeName, sValue, ldapFilterOperator, ldapFilterMode);
 	}
 
 	protected Set<String> parseReturningAttributes(BerDecoder reqBer) throws IOException {
@@ -963,7 +963,7 @@ public class LdapConnection extends AbstractConnection {
 		os.flush();
 	}
 
-	static interface LdapFilter {
+	public static interface LdapFilter {
 
 		Condition getContactSearchFilter();
 
@@ -976,385 +976,6 @@ public class LdapConnection extends AbstractConnection {
 		boolean isMatch(Map<String, String> person);
 	}
 
-	class CompoundFilter implements LdapFilter {
-
-		final Set<LdapFilter> criteria = new HashSet<LdapFilter>();
-		final int type;
-
-		CompoundFilter(int filterType) {
-			type = filterType;
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder buffer = new StringBuilder();
-
-			if (type == LDAP_FILTER_OR) {
-				buffer.append("(|");
-			} else if (type == LDAP_FILTER_AND) {
-				buffer.append("(&");
-			} else {
-				buffer.append("(!");
-			}
-
-			for (LdapFilter child : criteria) {
-				buffer.append(child.toString());
-			}
-
-			buffer.append(')');
-
-			return buffer.toString();
-		}
-
-		/**
-		 * Add child filter
-		 *
-		 * @param filter inner filter
-		 */
-		public void add(LdapFilter filter) {
-			criteria.add(filter);
-		}
-
-		/**
-		 * This is only a full search if every child
-		 * is also a full search
-		 *
-		 * @return true if full search filter
-		 */
-		@Override
-		public boolean isFullSearch() {
-			for (LdapFilter child : criteria) {
-				if (!child.isFullSearch()) {
-					return false;
-				}
-			}
-
-			return true;
-		}
-
-		/**
-		 * Build search filter for Contacts folder search.
-		 * Use Exchange SEARCH syntax
-		 *
-		 * @return contact search filter
-		 */
-		public Condition getContactSearchFilter() {
-			MultiCondition condition;
-
-			if (type == LDAP_FILTER_OR) {
-				condition = user.or();
-			} else {
-				condition = user.and();
-			}
-
-			for (LdapFilter child : criteria) {
-				condition.add(child.getContactSearchFilter());
-			}
-
-			return condition;
-		}
-
-		/**
-		 * Test if person matches the current filter.
-		 *
-		 * @param person person attributes map
-		 * @return true if filter match
-		 */
-		@Override
-		public boolean isMatch(Map<String, String> person) {
-			if (type == LDAP_FILTER_OR) {
-				for (LdapFilter child : criteria) {
-					if (!child.isFullSearch()) {
-						if (child.isMatch(person)) {
-							// We've found a match
-							return true;
-						}
-					}
-				}
-
-				// No subconditions are met
-				return false;
-			} else if (type == LDAP_FILTER_AND) {
-				for (LdapFilter child : criteria) {
-					if (!child.isFullSearch()) {
-						if (!child.isMatch(person)) {
-							// We've found a miss
-							return false;
-						}
-					}
-				}
-
-				// All subconditions are met
-				return true;
-			}
-
-			return false;
-		}
-
-		/**
-		 * Find persons in Exchange GAL matching filter.
-		 * Iterate over child filters to build results.
-		 *
-		 * @param user Exchange session
-		 * @return persons map
-		 * @throws IOException on error
-		 */
-		public Map<String, Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
-			Map<String, Contact> persons = null;
-
-			for (LdapFilter child : criteria) {
-				int currentSizeLimit = sizeLimit;
-				if (persons != null) {
-					currentSizeLimit -= persons.size();
-				}
-				Map<String, Contact> childFind = child.findInGAL(user, returningAttributes, currentSizeLimit);
-
-				if (childFind != null) {
-					if (persons == null) {
-						persons = childFind;
-					} else if (type == LDAP_FILTER_OR) {
-						// Create the union of the existing results and the child found results
-						persons.putAll(childFind);
-					} else if (type == LDAP_FILTER_AND) {
-						// Append current child filter results that match all child filters to persons.
-						// The hard part is that, due to the 100-item-returned galFind limit
-						// we may catch new items that match all child filters in each child search.
-						// Thus, instead of building the intersection, we check each result against
-						// all filters.
-
-						for (Contact result : childFind.values()) {
-							if (isMatch(result)) {
-								// This item from the child result set matches all sub-criteria, add it
-								persons.put(result.get("uid"), result);
-							}
-						}
-					}
-				}
-			}
-
-			if ((persons == null) && !isFullSearch()) {
-				// return an empty map (indicating no results were found)
-				return new HashMap<String, Contact>();
-			}
-
-			return persons;
-		}
-	}
-
-	class SimpleFilter implements LdapFilter {
-
-		static final String STAR = "*";
-		final String attributeName;
-		final String value;
-		final int mode;
-		final int operator;
-		final boolean canIgnore;
-
-		SimpleFilter(String attributeName) {
-			this.attributeName = attributeName;
-			this.value = SimpleFilter.STAR;
-			this.operator = LDAP_FILTER_SUBSTRINGS;
-			this.mode = 0;
-			this.canIgnore = checkIgnore();
-		}
-
-		SimpleFilter(String attributeName, String value, int ldapFilterOperator, int ldapFilterMode) {
-			this.attributeName = attributeName;
-			this.value = value;
-			this.operator = ldapFilterOperator;
-			this.mode = ldapFilterMode;
-			this.canIgnore = checkIgnore();
-		}
-
-		private boolean checkIgnore() {
-			if ("objectclass".equals(attributeName) && STAR.equals(value)) {
-				// ignore cases where any object class can match
-				return true;
-			} else if (IGNORE_MAP.contains(attributeName)) {
-				// Ignore this specific attribute
-				return true;
-			} else if (CRITERIA_MAP.get(attributeName) == null && getContactAttributeName(attributeName) == null) {
-				log.debug("LOG_LDAP_UNSUPPORTED_FILTER_ATTRIBUTE", attributeName, value);
-
-				return true;
-			}
-
-			return false;
-		}
-
-		@Override
-		public boolean isFullSearch() {
-			// only (objectclass=*) is a full search
-			return "objectclass".equals(attributeName) && STAR.equals(value);
-		}
-
-		@Override
-		public String toString() {
-			StringBuilder buffer = new StringBuilder();
-			buffer.append('(');
-			buffer.append(attributeName);
-			buffer.append('=');
-			if (SimpleFilter.STAR.equals(value)) {
-				buffer.append(SimpleFilter.STAR);
-			} else if (operator == LDAP_FILTER_SUBSTRINGS) {
-				if (mode == LDAP_SUBSTRING_FINAL || mode == LDAP_SUBSTRING_ANY) {
-					buffer.append(SimpleFilter.STAR);
-				}
-				buffer.append(value);
-				if (mode == LDAP_SUBSTRING_INITIAL || mode == LDAP_SUBSTRING_ANY) {
-					buffer.append(SimpleFilter.STAR);
-				}
-			} else {
-				buffer.append(value);
-			}
-
-			buffer.append(')');
-			return buffer.toString();
-		}
-
-		public Condition getContactSearchFilter() {
-			String contactAttributeName = getContactAttributeName(attributeName);
-
-			if (canIgnore || (contactAttributeName == null)) {
-				return null;
-			}
-
-			Condition condition = null;
-
-			if (operator == LDAP_FILTER_EQUALITY) {
-				condition = user.isEqualTo(contactAttributeName, value);
-			} else if ("*".equals(value)) {
-				condition = user.not(user.isNull(contactAttributeName));
-				// do not allow substring search on integer field imapUid
-			} else if (!"imapUid".equals(contactAttributeName)) {
-				// endsWith not supported by exchange, convert to contains
-				if (mode == LDAP_SUBSTRING_FINAL || mode == LDAP_SUBSTRING_ANY) {
-					condition = user.contains(contactAttributeName, value);
-				} else {
-					condition = user.startsWith(contactAttributeName, value);
-				}
-			}
-			return condition;
-		}
-
-		public boolean isMatch(Map<String, String> person) {
-			if (canIgnore) {
-				// Ignore this filter
-				return true;
-			}
-
-			String personAttributeValue = person.get(attributeName);
-
-			if (personAttributeValue == null) {
-				// No value to allow for filter match
-				return false;
-			} else if (value == null) {
-				// This is a presence filter: found
-				return true;
-			} else if ((operator == LDAP_FILTER_EQUALITY) && personAttributeValue.equalsIgnoreCase(value)) {
-				// Found an exact match
-				return true;
-			} else if ((operator == LDAP_FILTER_SUBSTRINGS) && (personAttributeValue.toLowerCase().indexOf(value.toLowerCase()) >= 0)) {
-				// Found a substring match
-				return true;
-			}
-
-			return false;
-		}
-
-		public Map<String, Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
-			if (canIgnore) {
-				return null;
-			}
-
-			String contactAttributeName = getContactAttributeName(attributeName);
-
-			if (contactAttributeName != null) {
-				// quick fix for cn=* filter
-				Map<String, Contact> galPersons = user.galFind(user.startsWith(contactAttributeName, "*".equals(value) ? "A" : value),
-						convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
-
-				if (operator == LDAP_FILTER_EQUALITY) {
-					// Make sure only exact matches are returned
-
-					Map<String, Contact> results = new HashMap<String, Contact>();
-
-					for (Contact person : galPersons.values()) {
-						if (isMatch(person)) {
-							// Found an exact match
-							results.put(person.get("uid"), person);
-						}
-					}
-
-					return results;
-				} else {
-					return galPersons;
-				}
-			}
-
-			return null;
-		}
-
-		public void add(LdapFilter filter) {
-			// Should never be called
-			log.error("LOG_LDAP_UNSUPPORTED_FILTER", "nested simple filters");
-        }
-    }
-
-    /**
-     * Convert contact attribute name to LDAP attribute name.
-     *
-     * @param ldapAttributeName ldap attribute name
-     * @return contact attribute name
-     */
-    protected static String getContactAttributeName(String ldapAttributeName) {
-		String contactAttributeName = null;
-		// first look in contact attributes
-		if (User.CONTACT_ATTRIBUTES.contains(ldapAttributeName)) {
-			contactAttributeName = ldapAttributeName;
-		} else if (LDAP_TO_CONTACT_ATTRIBUTE_MAP.containsKey(ldapAttributeName)) {
-			String mappedAttribute = LDAP_TO_CONTACT_ATTRIBUTE_MAP.get(ldapAttributeName);
-			if (mappedAttribute != null) {
-				contactAttributeName = mappedAttribute;
-			}
-		} else {
-			log.debug("UNKNOWN_ATTRIBUTE", ldapAttributeName);
-        }
-        return contactAttributeName;
-	}
-
-	/**
-	 * Convert LDAP attribute name to contact attribute name.
-	 *
-	 * @param contactAttributeName ldap attribute name
-	 * @return contact attribute name
-	 */
-	protected static String getLdapAttributeName(String contactAttributeName) {
-		String mappedAttributeName = CONTACT_TO_LDAP_ATTRIBUTE_MAP.get(contactAttributeName);
-		if (mappedAttributeName != null) {
-			return mappedAttributeName;
-		} else {
-			return contactAttributeName;
-		}
-	}
-
-	protected Set<String> convertLdapToContactReturningAttributes(Set<String> returningAttributes) {
-		Set<String> contactReturningAttributes;
-		if (returningAttributes != null && !returningAttributes.isEmpty()) {
-			contactReturningAttributes = new HashSet<String>();
-			// always return uid
-			contactReturningAttributes.add("imapUid");
-			for (String attribute : returningAttributes) {
-				String contactAttributeName = getContactAttributeName(attribute);
-				if (contactAttributeName != null) {
-					contactReturningAttributes.add(contactAttributeName);
-				}
-			}
-		} else {
-			contactReturningAttributes = User.CONTACT_ATTRIBUTES;
-		}
-		return contactReturningAttributes;
-	}
 
 	public class SearchRunnable implements Runnable {
 
@@ -1408,15 +1029,15 @@ public class LdapConnection extends AbstractConnection {
 							try {
 								// check if this is a contact uid
 								Integer.parseInt(uid);
-								persons = contactFind(user.isEqualTo("imapUid", uid), returningAttributes, sizeLimit);
+								persons = contactFind(Conditions.isEqualTo("imapUid", uid), returningAttributes, sizeLimit);
 							} catch (NumberFormatException e) {
 								// ignore, this is not a contact uid
 							}
 
 							// then in GAL
 							if (persons == null || persons.isEmpty()) {
-								persons = user.galFind(user.isEqualTo("imapUid", uid),
-										convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
+								persons = user.galFind(Conditions.isEqualTo("imapUid", uid),
+										LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
 
 								Contact person = persons.get(uid.toLowerCase());
 								// filter out non exact results
@@ -1453,8 +1074,8 @@ public class LdapConnection extends AbstractConnection {
 							// full search
 							for (char c = 'A'; c <= 'Z'; c++) {
 								if (!abandon && persons.size() < sizeLimit) {
-									for (Contact person : user.galFind(user.startsWith("cn", String.valueOf(c)),
-											convertLdapToContactReturningAttributes(returningAttributes), sizeLimit).values()) {
+									for (Contact person : user.galFind(Conditions.startsWith("cn", String.valueOf(c)),
+											LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit).values()) {
 										persons.put(person.get("uid"), person);
 										if (persons.size() == sizeLimit) {
 											break;
@@ -1540,7 +1161,7 @@ public class LdapConnection extends AbstractConnection {
 		public Map<String, Contact> contactFind(Condition condition, Set<String> returningAttributes, int maxCount) throws IOException {
 			Map<String, Contact> results = new HashMap<String, Contact>();
 
-			Set<String> contactReturningAttributes = convertLdapToContactReturningAttributes(returningAttributes);
+			Set<String> contactReturningAttributes = LdapUtils.convertLdapToContactReturningAttributes(returningAttributes);
 			contactReturningAttributes.remove("apple-serviceslocator");
 			List<Contact> contacts = user.searchContacts(contactReturningAttributes, condition, maxCount);
 
@@ -1579,7 +1200,7 @@ public class LdapConnection extends AbstractConnection {
 				if (returnAllAttributes) {
 					// just convert contact attributes to default ldap names
 					for (Map.Entry<String, String> entry : person.entrySet()) {
-						String ldapAttribute = getLdapAttributeName(entry.getKey());
+						String ldapAttribute = LdapUtils.getLdapAttributeName(entry.getKey());
 						String value = entry.getValue();
 						if (value != null) {
 							ldapPerson.put(ldapAttribute, value);
@@ -1590,7 +1211,7 @@ public class LdapConnection extends AbstractConnection {
 					ldapPerson.put("uid", person.get("imapUid"));
 					// iterate over requested attributes
 					for (String ldapAttribute : returningAttributes) {
-						String contactAttribute = getContactAttributeName(ldapAttribute);
+						String contactAttribute = LdapUtils.getContactAttributeName(ldapAttribute);
 						String value = person.get(contactAttribute);
 						if (value != null) {
 							if (ldapAttribute.startsWith("birth")) {
