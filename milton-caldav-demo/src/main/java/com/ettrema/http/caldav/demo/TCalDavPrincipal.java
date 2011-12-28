@@ -119,10 +119,6 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         this.scheduleOutboxResource = scheduleOutboxResource;
     }
 
-    @Override
-    public HrefList getCalendatHomeSet() {
-        return HrefList.asList(calendarHome.getHref());
-    }
 	
 	@Override
 	public HrefList getAddressBookHomeSet() {
@@ -236,5 +232,11 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 
 	public void setAddressBookHome(TFolderResource addressBookHome) {
 		this.addressBookHome = addressBookHome;
-	}	
+	}
+
+	@Override
+	public HrefList getCalendarHomeSet() {
+		return HrefList.asList(calendarHome.getHref());
+	}
+
 }

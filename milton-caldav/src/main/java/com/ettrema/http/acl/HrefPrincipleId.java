@@ -27,4 +27,11 @@ public class HrefPrincipleId implements Principal.PrincipleId {
         return url;
     }
 
+	@Override
+	public String toString() {
+		return url;
+	}
+	
+	
+
 }

@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * 
+ * See http://webdav.org/specs/rfc3744.html
  *
  * @author brad
  */

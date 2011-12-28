@@ -185,11 +185,10 @@ public abstract class TResource extends AbstractResource implements GetableResou
     public List<Priviledge> getPriviledges(Auth auth) {
       throw new UnsupportedOperationException("Not supported yet.");
     }
+	
 
 	@Override
-    public void setPriviledges(Principal principal, boolean isGrantOrDeny, List<Priviledge> privs) {
-      throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-
+	public void setAccessControlList(Map<Principal, List<Priviledge>> privs) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

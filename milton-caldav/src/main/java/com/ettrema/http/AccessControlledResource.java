@@ -87,21 +87,24 @@ public interface AccessControlledResource extends Resource{
 
     /**
      * Get all allowed priviledges for all principals on this resource. Note
-     * that a principal might be
+     * that a principal might be a user, a group, or a built-in webdav group
+	 * such as AUTHENTICATED
      *
      * @return
      */
     Map<Principal,List<Priviledge>> getAccessControlList();
 
-    /**
-     * Grant or deny access to certain priviledges for the current resource for
-     * the user identified by the given principalUrl
-     *
-     * @param principalUrl - identifies the user to grant or deny access for
-     * @param isGrantOrDeny - true indicates grant, false indicates deny
-     * @param privs - the list of privledges which will be granted or denied
-     */
-    void setPriviledges(Principal principal, boolean isGrantOrDeny, List<Priviledge> privs);
+	
+	/**
+	 * Set the allowed Priviledges for all principals to the given list. Existing
+	 * priviledges must be removed or updated as required so that the given
+	 * list is the complete list for this resource
+	 * 
+	 * 
+	 * @param privs 
+	 */
+	void setAccessControlList(Map<Principal,List<Priviledge>> privs);
+
 
 
     /**

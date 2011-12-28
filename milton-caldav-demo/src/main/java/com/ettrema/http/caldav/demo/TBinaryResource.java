@@ -3,9 +3,11 @@ package com.ettrema.http.caldav.demo;
 import com.bradmcevoy.http.CustomProperty;
 import com.bradmcevoy.http.CustomPropertyResource;
 import com.bradmcevoy.http.Range;
+import com.ettrema.http.acl.Principal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,6 +73,7 @@ public class TBinaryResource extends TResource implements CustomPropertyResource
     public Set<String> getAllPropertyNames() {
         return this.props.keySet();
     }
+
 
 
 
