@@ -130,10 +130,8 @@ public class PropFindMethod extends EntityEnclosingMethod {
 			Element elLockDisc = el.getChild("lockdiscovery", RespUtils.NS_DAV);
 			if (elLockDisc != null) {
 				Element elActiveLock = elLockDisc.getChild("activelock", RespUtils.NS_DAV);
-				System.out.println("active lock" + elActiveLock);				
 				if (elActiveLock != null) {					
 					lockOwner = RespUtils.asString(elActiveLock, "owner");
-					System.out.println("owner: " + lockOwner);
 					Element elToken = elActiveLock.getChild("locktoken", RespUtils.NS_DAV);
 					if (elToken != null) {
 						String t = RespUtils.asString(elToken, "href");

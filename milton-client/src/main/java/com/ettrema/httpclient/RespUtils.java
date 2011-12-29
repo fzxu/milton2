@@ -89,9 +89,9 @@ public class RespUtils {
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}		
-		System.out.println("");
-		System.out.println(bout.toString());
-		System.out.println("");
+//		System.out.println("");
+//		System.out.println(bout.toString());
+//		System.out.println("");
 		ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
         try {
             SAXBuilder builder = new SAXBuilder();
