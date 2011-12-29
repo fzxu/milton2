@@ -66,10 +66,10 @@ public class TransferService {
 		}
 	}
 
-	public int put(String newUri, InputStream content, Long contentLength, String contentType, ProgressListener listener) {
-		LogUtils.trace(log, "put: ", newUri);
+	public int put(String encodedUrl, InputStream content, Long contentLength, String contentType, ProgressListener listener) {
+		LogUtils.trace(log, "put: ", encodedUrl);
 		notifyStartRequest();
-		String s = Host.urlEncode(newUri);
+		String s = encodedUrl;
 		PutMethod p = new PutMethod(s);
 
 		HttpMethodParams params = new HttpMethodParams();

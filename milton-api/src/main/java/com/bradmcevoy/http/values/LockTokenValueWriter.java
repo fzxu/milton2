@@ -31,7 +31,7 @@ public class LockTokenValueWriter implements ValueWriter {
 		String d = WebDavProtocol.DAV_PREFIX;
         Element lockDiscovery = writer.begin( d + ":lockdiscovery" ).open();		
         if( token != null ) {
-			Element activeLock = writer.begin( d + "activelock" ).open();
+			Element activeLock = writer.begin( d + ":activelock" ).open();
             LockInfo info = token.info;
             lockWriterHelper.appendType( writer, info.type );
             lockWriterHelper.appendScope( writer, info.scope );

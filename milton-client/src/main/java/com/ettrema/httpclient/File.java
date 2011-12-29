@@ -89,7 +89,7 @@ public class File extends Resource {
 		}
 		final long[] bytesArr = new long[1];
 		try {			
-			host().doGet(href(), new StreamReceiver() {
+			host().doGet(encodedUrl(), new StreamReceiver() {
 
 				@Override
 				public void receive(InputStream in) throws IOException {
@@ -117,5 +117,10 @@ public class File extends Resource {
 			listener.onProgress(l, l, this.name);
 			listener.onComplete(this.name);
 		}
+	}
+
+	@Override
+	public String encodedUrl() {
+		return parent.encodedUrl() + encodedName(); // assume parent is correctly suffixed with a slash
 	}
 }

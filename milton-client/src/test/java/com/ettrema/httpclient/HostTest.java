@@ -46,7 +46,7 @@ public class HostTest extends TestCase {
         s = Host.urlEncode( "http://bb.shmego.com/r%/a b");
         System.out.println( "s: " + s );
         assertEquals( "http://bb.shmego.com/r%25/a%20b", s);
-
+		
     }
 
     public void testGetPropFindXml() {

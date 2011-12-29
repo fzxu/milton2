@@ -1,10 +1,13 @@
 package com.ettrema.httpclient;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.apache.commons.io.IOUtils;
 import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.Namespace;
@@ -80,10 +83,20 @@ public class RespUtils {
     }    
     
     public static  org.jdom.Document getJDomDocument(InputStream in) throws JDOMException {
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		try {
+			IOUtils.copy(in, bout);
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}		
+		System.out.println("");
+		System.out.println(bout.toString());
+		System.out.println("");
+		ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
         try {
             SAXBuilder builder = new SAXBuilder();
             builder.setExpandEntities(false);
-            return builder.build(in);
+            return builder.build(bin);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

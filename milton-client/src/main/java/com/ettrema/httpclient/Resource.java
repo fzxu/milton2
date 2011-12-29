@@ -72,7 +72,8 @@ public abstract class Resource {
     private final Long crc;
     final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
 	
-	private String lockToken; // set on lock, used on unlock
+	private String lockOwner;
+	private String lockToken;
 
     public abstract java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException, Utils.CancelledException;
 
@@ -82,6 +83,8 @@ public abstract class Resource {
         return count;
     }
 
+	public abstract String encodedUrl();
+	
     /**
      *  Special constructor for Host
      */
@@ -128,6 +131,9 @@ public abstract class Resource {
             } else {
                 modifiedDate = DateUtils.parseDate(resp.modifiedDate);
             }
+			lockToken = resp.lockToken;
+			lockOwner = resp.lockOwner;
+									
             //log.debug( "parsed mod date: " + modifiedDate);
         } catch (DateParseException ex) {
             throw new RuntimeException(ex);
@@ -177,35 +183,37 @@ public abstract class Resource {
     }
 
     public String post(Map<String, String> params) throws HttpException {
-        return host().doPost(href(), params);
+        return host().doPost(encodedUrl(), params);
     }
+	
+
 	
     public void lock() throws HttpException {
 		if(lockToken != null ) {
 			log.warn("already locked: " + href() + " token: " + lockToken);
 		}
-        lockToken = host().doLock(href());
+        lockToken = host().doLock(encodedUrl());
     }	
 	
     public int unlock() throws HttpException {
 		if(lockToken == null ) {
 			throw new IllegalStateException("Can't unlock, is not currently locked (no lock token) - " + href());
 		}
-        return host().doUnLock(href(), lockToken);
+        return host().doUnLock(encodedUrl(), lockToken);
     }		
 
     public void copyTo(Folder folder) throws IOException, HttpException {
-        host().doCopy(href(), folder.href() + this.name);
+        host().doCopy(encodedUrl(), folder.encodedUrl() + this.name);
         folder.flush();
     }
 
     public void rename(String newName) throws IOException, HttpException {
         String dest = "";
         if (parent != null) {
-            dest = parent.href();
+            dest = parent.encodedUrl();
         }
-        dest = dest + newName;
-        int res = host().doMove(href(), dest);
+        dest = dest + com.bradmcevoy.http.Utils.percentEncode(newName);
+        int res = host().doMove(encodedUrl(), dest);
         if (res == 201) {
             this.name = newName;
         }
@@ -231,7 +239,7 @@ public abstract class Resource {
     }
 
     public void delete() throws IOException, HttpException {
-        host().doDelete(href());
+        host().doDelete(encodedUrl());
         notifyOnDelete();
     }
 
@@ -252,12 +260,13 @@ public abstract class Resource {
         }
         return h;
     }
-
-//    private String encodedName() {
-//        return com.bradmcevoy.http.Utils.percentEncode( name );
-//    }
+	
+    public String encodedName() {
+        return com.bradmcevoy.http.Utils.percentEncode( name );
+    }
+	
     /**
-     * Returns the UN encoded url
+     * Returns the UN-encoded url
      * 
      * @return
      */
@@ -305,6 +314,8 @@ public abstract class Resource {
 	public String getLockToken() {
 		return lockToken;
 	}
-	
-	
+
+	public String getLockOwner() {
+		return lockOwner;
+	}			
 }

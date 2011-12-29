@@ -16,6 +16,7 @@ import org.xml.sax.SAXException;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
+import com.ettrema.common.LogUtils;
 
 /**
  * Note that this is both a new entity handler and an existing entity handler
@@ -45,10 +46,12 @@ public class LockHandler implements ResourceHandler {
     }
 
 
+	@Override
     public void processResource( HttpManager manager, Request request, Response response, Resource r ) throws NotAuthorizedException, ConflictException, BadRequestException {
         throw new UnsupportedOperationException( "Not supported yet." );
     }
 
+	@Override
     public String[] getMethods() {
         return new String[]{Method.LOCK.code};
     }
@@ -248,7 +251,7 @@ public class LockHandler implements ResourceHandler {
         XmlWriter writer = new XmlWriter( out );
         writer.writeXMLHeader();
 		String d = WebDavProtocol.DAV_PREFIX;
-        writer.open( d + ":prop  xmlns:D=\"DAV:\"" );
+        writer.open( d + ":prop  xmlns:" + d + "=\"DAV:\"" );
         writer.newLine();
         writer.open( d + ":lockdiscovery" );
         writer.newLine();
@@ -266,7 +269,7 @@ public class LockHandler implements ResourceHandler {
         writer.close( d + ":prop" );
         writer.flush();
 
-        log.debug( "lock response: " + out.toString() );
+        LogUtils.debug(log, "lock response: " , out );
         try {
             response.getOutputStream().write( out.toByteArray() );
         } catch( IOException ex ) {

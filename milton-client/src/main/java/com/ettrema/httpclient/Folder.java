@@ -59,8 +59,15 @@ public class Folder extends Resource {
         folderListeners.add(l);
     }
 
+	/**
+	 * 
+	 * @param relativePath - encoded but relative path. Must not start with a slash
+	 * @param params
+	 * @return
+	 * @throws HttpException 
+	 */
     public String post(String relativePath, Map<String, String> params) throws HttpException {
-        return host().doPost(href() + relativePath, params);
+        return host().doPost(encodedUrl() + relativePath, params);
     }
 
 	@Override
@@ -98,7 +105,7 @@ public class Folder extends Resource {
             if (log.isTraceEnabled()) {
                 log.trace("load children for: " + thisHref);
             }
-            List<Response> responses = host().doPropFind(href(), 1);
+            List<Response> responses = host().doPropFind(encodedUrl(), 1);
             if (responses != null) {
                 for (Response resp : responses) {
                     if (!resp.href.equals(this.href())) {
@@ -225,7 +232,7 @@ public class Folder extends Resource {
 
     public Folder createFolder(String name) throws IOException, HttpException {
         children(); // ensure children are loaded
-        String newUri = href() + name;
+        String newUri = encodedUrl() + com.bradmcevoy.http.Utils.percentEncode( name );
         try {
             host().doMkCol(newUri);
             flush();
@@ -285,4 +292,11 @@ public class Folder extends Resource {
     public String href() {
         return super.href() + "/";
     }
+
+	@Override
+	public String encodedUrl() {
+		return parent.encodedUrl() + encodedName() + "/";
+	}
+	
+	
 }

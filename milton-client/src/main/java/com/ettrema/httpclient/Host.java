@@ -52,7 +52,7 @@ public class Host extends Folder {
 
 	private static String PROPFIND_XML = "<?xml version=\"1.0\"?>"
 			+ "<d:propfind xmlns:d='DAV:' xmlns:c='clyde'><d:prop>"
-			+ "<d:resourcetype/><d:displayname/><d:getcontentlength/><d:creationdate/><d:getlastmodified/><d:iscollection/>"
+			+ "<d:resourcetype/><d:displayname/><d:getcontentlength/><d:creationdate/><d:getlastmodified/><d:iscollection/><d:lockdiscovery/>"
 			+ "<d:quota-available-bytes/><d:quota-used-bytes/><c:crc/>"
 			+ "</d:prop></d:propfind>";
 	private static String LOCK_XML = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>"
@@ -192,16 +192,16 @@ public class Host extends Folder {
 		}
 	}
 
-	synchronized PropFindMethod createPropFind(int depth, String href) {
-		PropFindMethod m = new PropFindMethod(urlEncode(href));
-		m.addRequestHeader(new Header("Depth", depth + ""));
-		m.setDoAuthentication(true);
-		return m;
-	}
 
+	/**
+	 * 
+	 * @param newUri - must be fully qualified and correctly encoded
+	 * @return
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
 	public synchronized int doMkCol(String newUri) throws com.ettrema.httpclient.HttpException {
 		notifyStartRequest();
-		MkColMethod p = new MkColMethod(urlEncode(newUri));
+		MkColMethod p = new MkColMethod(newUri);
 		try {
 			int result = host().client.executeMethod(p);
 			if (result == 409) {
@@ -221,14 +221,14 @@ public class Host extends Folder {
 	/**
 	 * Returns the lock token, which must be retained to unlock the resource
 	 * 
-	 * @param uri
+	 * @param uri - must be encoded
 	 * @param owner
 	 * @return
 	 * @throws com.ettrema.httpclient.HttpException 
 	 */
 	public synchronized String doLock(String uri) throws com.ettrema.httpclient.HttpException {
 		notifyStartRequest();
-		LockMethod p = new LockMethod(urlEncode(uri));
+		LockMethod p = new LockMethod(uri);
 		try {
 			String lockXml = LOCK_XML.replace("${owner}", user);
 			RequestEntity requestEntity = new StringRequestEntity(lockXml, null, "UTF-8");
@@ -244,9 +244,16 @@ public class Host extends Folder {
 		}
 	}
 
+	/**
+	 * 
+	 * @param uri - must be encoded
+	 * @param lockToken
+	 * @return
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
 	public synchronized int doUnLock(String uri, String lockToken) throws com.ettrema.httpclient.HttpException {
 		notifyStartRequest();
-		UnLockMethod p = new UnLockMethod(urlEncode(uri), lockToken);
+		UnLockMethod p = new UnLockMethod(uri, lockToken);
 		try {
 			int result = host().client.executeMethod(p);
 			Utils.processResultCode(result, uri);
@@ -259,8 +266,16 @@ public class Host extends Folder {
 		}
 	}
 
+	/**
+	 * 
+	 * @param path - an Un-encoded path. Eg /a/b c/ = /a/b%20c/
+	 * @param content
+	 * @param contentLength
+	 * @param contentType
+	 * @return 
+	 */
 	public int doPut(Path path, InputStream content, Long contentLength, String contentType) {
-		String dest = getHref(path);
+		String dest = buildEncodedUrl(path);
 		return doPut(dest, content, contentLength, contentType, null);
 	}
 
@@ -289,8 +304,8 @@ public class Host extends Folder {
 		InputStream in = null;
 		try {
 			in = new FileInputStream(file);
-			String newUri = this.getHref(remotePath);
-			return doPut(newUri, in, file.length(), null, listener);
+			String dest = buildEncodedUrl(remotePath);
+			return doPut(dest, in, file.length(), null, listener);
 		} finally {
 			IOUtils.closeQuietly(in);
 		}
@@ -311,9 +326,16 @@ public class Host extends Folder {
 		return transferService.put(newUri, content, contentLength, contentType, listener);
 	}
 
+	/**
+	 * 
+	 * @param from - encoded source url
+	 * @param newUri - encoded destination
+	 * @return
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
 	public synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException {
 		notifyStartRequest();
-		CopyMethod m = new CopyMethod(urlEncode(from), urlEncode(newUri));
+		CopyMethod m = new CopyMethod(from, newUri);
 		try {
 			int res = host().client.executeMethod(m);
 			Utils.processResultCode(res, from);
@@ -329,12 +351,19 @@ public class Host extends Folder {
 
 	}
 
-	public synchronized int doDelete(String href) throws IOException, com.ettrema.httpclient.HttpException {
+	/**
+	 * 
+	 * @param url - encoded url
+	 * @return
+	 * @throws IOException
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
+	public synchronized int doDelete(String url) throws IOException, com.ettrema.httpclient.HttpException {
 		notifyStartRequest();
-		DeleteMethod m = new DeleteMethod(urlEncode(href));
+		DeleteMethod m = new DeleteMethod(url);
 		try {
 			int res = host().client.executeMethod(m);
-			Utils.processResultCode(res, href);
+			Utils.processResultCode(res, url);
 			return res;
 		} catch (HttpException ex) {
 			throw new RuntimeException(ex);
@@ -344,12 +373,20 @@ public class Host extends Folder {
 		}
 	}
 
-	public synchronized int doMove(String href, String newUri) throws IOException, com.ettrema.httpclient.HttpException {
+	/**
+	 * 
+	 * @param sourceUrl - encoded source url
+	 * @param newUri - encoded destination url
+	 * @return
+	 * @throws IOException
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
+	public synchronized int doMove(String sourceUrl, String newUri) throws IOException, com.ettrema.httpclient.HttpException {
 		notifyStartRequest();
-		MoveMethod m = new MoveMethod(urlEncode(href), urlEncode(newUri));
+		MoveMethod m = new MoveMethod(sourceUrl, newUri);
 		try {
 			int res = host().client.executeMethod(m);
-			Utils.processResultCode(res, href);
+			Utils.processResultCode(res, sourceUrl);
 			return res;
 		} finally {
 			m.releaseConnection();
@@ -358,10 +395,20 @@ public class Host extends Folder {
 
 	}
 
+	/**
+	 * 
+	 * @param url - the encuded URL to query
+	 * @param depth - depth to generate responses for. Zero means only the specified url, 1 means it and its direct children, etc
+	 * @return
+	 * @throws IOException
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
 	public synchronized List<PropFindMethod.Response> doPropFind(String url, int depth) throws IOException, com.ettrema.httpclient.HttpException {
 		log.trace("doPropFind: " + url);
 		notifyStartRequest();
-		PropFindMethod m = createPropFind(depth, url);
+		PropFindMethod m = new PropFindMethod(url);
+		m.addRequestHeader(new Header("Depth", depth + ""));
+		m.setDoAuthentication(true);
 
 		try {
 			if (propFindXml != null) {
@@ -387,9 +434,10 @@ public class Host extends Folder {
 		}
 	}
 
+	
 	/**
 	 * 
-	 * @param url - fully qualified URL
+	 * @param url - fully qualified and encoded URL
 	 * @param receiver
 	 * @param rangeList - if null does a normal GET request
 	 * @throws com.ettrema.httpclient.HttpException
@@ -404,7 +452,7 @@ public class Host extends Folder {
 		if (zSyncClient != null) {
 			zSyncClient.download(this, path, file, listener);
 		} else {
-			String url = this.getHref(path);
+			String url = this.buildEncodedUrl(path);
 			transferService.get(url, new StreamReceiver() {
 
 				@Override
@@ -426,13 +474,50 @@ public class Host extends Folder {
 		}
 	}
 
+	/**
+	 * 
+	 * @param path - encoded path, but not fully qualified. Must not be prefixed with a slash, as it will be appended to the host's URL
+	 * @throws java.net.ConnectException
+	 * @throws Unauthorized
+	 * @throws UnknownHostException
+	 * @throws SocketTimeoutException
+	 * @throws IOException
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
 	public synchronized void options(String path) throws java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
-		String url = this.href() + path;
+		String url = this.encodedUrl() + path;
 		doOptions(url);
 	}
+	
+	private synchronized void doOptions(String url) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
+		notifyStartRequest();
+		String uri = url;
+		log.trace("doOptions: {}", url);
+		OptionsMethod m = new OptionsMethod(uri);
+		InputStream in = null;
+		try {
+			int res = client.executeMethod(m);
+			log.trace("result code: " + res);
+			if (res == 301 || res == 302) {
+				return;
+			}
+			Utils.processResultCode(res, url);
+		} finally {
+			Utils.close(in);
+			m.releaseConnection();
+			notifyFinishRequest();
+		}
+	}	
 
+	/**
+	 * Retrieve the bytes at the specified path.
+	 * 
+	 * @param path - encoded but not fully qualified. Must NOT be slash prefixed as it will be appended to the host's url
+	 * @return
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
 	public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException {
-		String url = this.href() + path;
+		String url = this.encodedUrl() + path;
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			transferService.get(url, new StreamReceiver() {
@@ -452,36 +537,18 @@ public class Host extends Folder {
 		return out.toByteArray();
 	}
 
-	private synchronized void doOptions(String url) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
-		notifyStartRequest();
-		String uri = urlEncode(url);
-		log.trace("doOptions: {}", url);
-		OptionsMethod m = new OptionsMethod(uri);
-		InputStream in = null;
-		try {
-			int res = client.executeMethod(m);
-			log.trace("result code: " + res);
-			if (res == 301 || res == 302) {
-				return;
-			}
-			Utils.processResultCode(res, url);
-		} finally {
-			Utils.close(in);
-			m.releaseConnection();
-			notifyFinishRequest();
-		}
-	}
+
 
 	/**
 	 * POSTs the variables and returns the body
 	 *
-	 * @param url
+	 * @param url - fully qualified and encoded URL to post to
 	 * @param params
 	 * @return
 	 */
 	public String doPost(String url, Map<String, String> params) throws com.ettrema.httpclient.HttpException {
 		notifyStartRequest();
-		PostMethod m = new PostMethod(urlEncode(url));
+		PostMethod m = new PostMethod(url);
 		for (Entry<String, String> entry : params.entrySet()) {
 			m.addParameter(entry.getKey(), entry.getValue());
 		}
@@ -504,9 +571,17 @@ public class Host extends Folder {
 		}
 	}
 
+	/**
+	 * 
+	 * @param url - fully qualified and encoded
+	 * @param params
+	 * @param parts
+	 * @return
+	 * @throws com.ettrema.httpclient.HttpException 
+	 */
 	public String doPost(String url, Map<String, String> params, Part[] parts) throws com.ettrema.httpclient.HttpException {
 		notifyStartRequest();
-		PostMethod filePost = new PostMethod(urlEncode(url));
+		PostMethod filePost = new PostMethod(url);
 		if (params != null) {
 			for (Entry<String, String> entry : params.entrySet()) {
 				filePost.addParameter(entry.getKey(), entry.getValue());
@@ -553,11 +628,12 @@ public class Host extends Folder {
 		} else {
 			s += "/";
 		}
-
-		//log.trace("host href: " + s);
+		if( !s.endsWith("/")) {
+			s += "/";
+		}	
 		return s;
 	}
-
+	
 	/**
 	 * Returns the fully qualified URL for the given path
 	 * 
@@ -565,28 +641,21 @@ public class Host extends Folder {
 	 * @return 
 	 */
 	public String getHref(Path path) {
-		String s = "http://" + server;
-		if (this.port != 80) {
-			s += ":" + this.port;
-		}
-		s += "/";
-		if (rootPath != null && rootPath.length() > 0) {
-			if (!rootPath.equals("/")) {
-				s = s + rootPath;
-			}
-		}
-		if (s.endsWith("/")) {
-			if (!path.isRelative()) {
-				s = s.substring(0, s.length() - 1);
-			}
-		} else {
-			if (path.isRelative()) {
-				s = s + "/";
-			}
+		String s = href();
+		
+		if (!path.isRelative()) {
+			s = s.substring(0, s.length() - 1);
 		}
 		//log.trace("host href: " + s);
 		return s + path; // path will be absolute
+	}	
+	
+	@Override
+	public String encodedUrl() {
+		return href(); // for a Host, there are no un-encoded components (eg rootPath, if present, must be encoded)
 	}
+	
+
 
 	public static String urlEncode(String s) {
 //        if( rootPath != null ) {
@@ -679,4 +748,20 @@ public class Host extends Folder {
 	public void addConnectionListener(ConnectionListener e) {
 		connectionListeners.add(e);
 	}
+
+	public String buildEncodedUrl(Path path) {
+		String url = this.encodedUrl();
+		String[] arr = path.getParts();
+		for(int i=0; i<arr.length; i++) {
+			String s = arr[i];
+			if( i > 0) {
+				url += "/";
+			}
+			url += com.bradmcevoy.http.Utils.percentEncode(s);
+		}
+		return url;
+	}
+
+	
+	
 }

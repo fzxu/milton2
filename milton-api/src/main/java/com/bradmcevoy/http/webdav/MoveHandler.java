@@ -59,6 +59,9 @@ public class MoveHandler implements ExistingEntityHandler {
 	@Override
     public void processExistingResource( HttpManager manager, Request request, Response response, Resource resource ) throws NotAuthorizedException, BadRequestException, ConflictException {
         MoveableResource r = (MoveableResource) resource;
+		String xpUserAgent = "Microsoft Data Access Internet Publishing Provider DAV 1.1";
+		// TODO: investigating some weird character encoding issues for non english character sets on XP
+		
         Dest dest = Utils.getDecodedDestination(request.getDestinationHeader());
         Resource rDest = manager.getResourceFactory().getResource( dest.host, dest.url );
         log.debug( "process: moving from: " + r.getName() + " -> " + dest.url + " with name: " + dest.name );
