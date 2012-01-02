@@ -24,7 +24,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
     private HrefPrincipleId principleId;
     private TFolderResource calendarHome;
-	private TFolderResource addressBookHome;
+    private TFolderResource addressBookHome;
     private TScheduleInboxResource scheduleInboxResource;
     private TScheduleOutboxResource scheduleOutboxResource;
     private TFolderResource dropBox;
@@ -36,7 +36,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         super(parent, name);
         this.principleId = new HrefPrincipleId(getHref());
         this.calendarHome = calendarHome;
-		this.addressBookHome = addressBookHome;
+        this.addressBookHome = addressBookHome;
         this.scheduleInboxResource = scheduleInboxResource;
         this.scheduleOutboxResource = scheduleOutboxResource;
         this.dropBox = dropBox;
@@ -119,11 +119,15 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         this.scheduleOutboxResource = scheduleOutboxResource;
     }
 
-	
-	@Override
-	public HrefList getAddressBookHomeSet() {
-		return HrefList.asList(addressBookHome.getHref());
-	}	
+    @Override
+    public HrefList getCalendarHomeSet() {
+        return HrefList.asList(calendarHome.getHref());
+    }
+
+    @Override
+    public HrefList getAddressBookHomeSet() {
+        return HrefList.asList(addressBookHome.getHref());
+    }
 
     @Override
     public HrefList getCalendarUserAddressSet() {
@@ -191,22 +195,22 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-	@Override
+    @Override
     public MessageFolder getInbox() {
         return mailInbox;
     }
 
-	@Override
+    @Override
     public MessageFolder getMailFolder(String name) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-	@Override
+    @Override
     public boolean isEmailDisabled() {
         return false;
     }
 
-	@Override
+    @Override
     public void storeMail(MimeMessage mm) {
         mailInbox.storeMail(mm);
     }
@@ -226,17 +230,11 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         this.color = s;
     }
 
-	public TFolderResource getAddressBookHome() {
-		return addressBookHome;
-	}
+    public TFolderResource getAddressBookHome() {
+        return addressBookHome;
+    }
 
-	public void setAddressBookHome(TFolderResource addressBookHome) {
-		this.addressBookHome = addressBookHome;
-	}
-
-	@Override
-	public HrefList getCalendarHomeSet() {
-		return HrefList.asList(calendarHome.getHref());
-	}
-
+    public void setAddressBookHome(TFolderResource addressBookHome) {
+        this.addressBookHome = addressBookHome;
+    }
 }
