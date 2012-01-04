@@ -165,10 +165,14 @@ public class PutHandler implements Handler {
 			String ct = putHelper.findContentTypes(request, newName);
 			LogUtils.debug(log, "PutHandler: creating resource of type: ", ct);
 			Resource newlyCreated = folder.createNew(newName, request.getInputStream(), l, ct);
-			if( newName != null && !newName.equals(newlyCreated.getName())) {
-				log.warn("getName on the created resource does not match the name requested by the client! requested: " + newName + " - created: " + newlyCreated.getName());
-			}
-			manager.getEventManager().fireEvent(new PutEvent(newlyCreated));
+			if (newlyCreated != null) {
+				if (newName != null && !newName.equals(newlyCreated.getName())) {
+					log.warn("getName on the created resource does not match the name requested by the client! requested: " + newName + " - created: " + newlyCreated.getName());
+				}
+				manager.getEventManager().fireEvent(new PutEvent(newlyCreated));
+			} else {
+				log.warn("createNew returned a null resource");
+			}			
 		} catch (IOException ex) {
 			log.warn("IOException reading input stream. Probably interrupted upload: " + ex.getMessage());
 			return;
