@@ -17,7 +17,14 @@ public interface User {
 	 */
 	String getAlias();
 	
-	Map<String, Contact> galFind(Condition equalTo, Set<String> convertLdapToContactReturningAttributes, int sizeLimit);
 
+	/**
+	 * I don't know what the difference is between this and galFind
+	 * 
+	 * @param contactReturningAttributes
+	 * @param condition
+	 * @param maxCount
+	 * @return 
+	 */
 	List<Contact> searchContacts(Set<String> contactReturningAttributes, Condition condition, int maxCount);
 }

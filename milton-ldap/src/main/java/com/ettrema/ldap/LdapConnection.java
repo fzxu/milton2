@@ -18,22 +18,19 @@
  */
 package com.ettrema.ldap;
 
+import com.ettrema.common.LogUtils;
 import com.sun.jndi.ldap.Ber;
 import com.sun.jndi.ldap.BerDecoder;
 import com.sun.jndi.ldap.BerEncoder;
-
-import com.ettrema.common.LogUtils;
-import javax.security.auth.callback.*;
-import javax.security.sasl.AuthorizeCallback;
-import javax.security.sasl.Sasl;
-import javax.security.sasl.SaslServer;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
+import javax.security.auth.callback.*;
+import javax.security.sasl.AuthorizeCallback;
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -357,8 +354,8 @@ public class LdapConnection extends AbstractConnection {
 	/**
 	 * Search threads map
 	 */
-	private final HashMap<Integer, SearchRunnable> searchThreadMap = new HashMap<Integer, SearchRunnable>();
-	private final UserSessionFactory userSessionFactory;
+	final HashMap<Integer, SearchRunnable> searchThreadMap = new HashMap<Integer, SearchRunnable>();
+	private final UserFactory userFactory;
 	private User user;
 	private String currentHostName;	
 
@@ -367,9 +364,9 @@ public class LdapConnection extends AbstractConnection {
 	 *
 	 * @param clientSocket LDAP client socket
 	 */
-	public LdapConnection(Socket clientSocket, UserSessionFactory userSessionFactory) {
+	public LdapConnection(Socket clientSocket, UserFactory userSessionFactory) {
 		super(LdapConnection.class.getSimpleName(), clientSocket);
-		this.userSessionFactory = userSessionFactory;
+		this.userFactory = userSessionFactory;
 		try {
 			is = new BufferedInputStream(client.getInputStream());
 			os = new BufferedOutputStream(client.getOutputStream());
@@ -377,6 +374,7 @@ public class LdapConnection extends AbstractConnection {
 			close();
 			log.error("error", e);
 		}
+		System.out.println("Created LDAP Connection handler");
 	}
 
 	protected boolean isLdapV3() {
@@ -401,6 +399,7 @@ public class LdapConnection extends AbstractConnection {
 				if (bytesread < 0) {
 					break; // EOF
 				}
+				System.out.println("read bytes: " + bytesread);
 
 				if (inbuf[offset++] != (Ber.ASN_SEQUENCE | Ber.ASN_CONSTRUCTOR)) {
 					continue;
@@ -511,13 +510,14 @@ public class LdapConnection extends AbstractConnection {
 					byte[] serverResponse;
 					CallbackHandler callbackHandler = new CallbackHandler() {
 
+						@Override
 						public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
 							// look for username in callbacks
 							for (Callback callback : callbacks) {
 								if (callback instanceof NameCallback) {
 									userName = ((NameCallback) callback).getDefaultName();
 									// get password from session pool
-									password = userSessionFactory.getUserPassword(userName);
+									password = userFactory.getUserPassword(userName);
 								}
 							}
 							// handle other callbacks
@@ -538,9 +538,9 @@ public class LdapConnection extends AbstractConnection {
 						serverResponse = saslServer.evaluateResponse(clientResponse);
 						status = LDAP_SUCCESS;
 
-						log.debug("LOG_LDAP_REQ_BIND_USER", currentMessageId, userName);
-						user = userSessionFactory.getUser(userName, password);
-						log.debug("LOG_LDAP_REQ_BIND_SUCCESS");
+						LogUtils.debug(log, "LOG_LDAP_REQ_BIND_USER", currentMessageId, userName);
+						user = userFactory.getUser(userName, password);
+						LogUtils.debug(log, "LOG_LDAP_REQ_BIND_SUCCESS");
 
 					} else {
 						Map<String, String> properties = new HashMap<String, String>();
@@ -571,15 +571,15 @@ public class LdapConnection extends AbstractConnection {
 					if (userName.length() > 0 && password.length() > 0) {
 						log.debug("LOG_LDAP_REQ_BIND_USER", currentMessageId, userName);
 						try {
-							user = userSessionFactory.getUser(userName, password);
-							log.debug("LOG_LDAP_REQ_BIND_SUCCESS");
+							user = userFactory.getUser(userName, password);
+							LogUtils.debug(log, "LOG_LDAP_REQ_BIND_SUCCESS");
 							sendClient(currentMessageId, LDAP_REP_BIND, LDAP_SUCCESS, "");
 						} catch (IOException e) {
-							log.debug("LOG_LDAP_REQ_BIND_INVALID_CREDENTIALS");
+							LogUtils.debug(log, "LOG_LDAP_REQ_BIND_INVALID_CREDENTIALS");
 							sendClient(currentMessageId, LDAP_REP_BIND, LDAP_INVALID_CREDENTIALS, "");
 						}
 					} else {
-						log.debug("LOG_LDAP_REQ_BIND_ANONYMOUS", currentMessageId);
+						LogUtils.debug(log, "LOG_LDAP_REQ_BIND_ANONYMOUS", currentMessageId);
 						// anonymous bind
 						sendClient(currentMessageId, LDAP_REP_BIND, LDAP_SUCCESS, "");
 					}
@@ -605,7 +605,7 @@ public class LdapConnection extends AbstractConnection {
 				reqBer.parseBoolean();
 				LdapFilter ldapFilter = parseFilter(reqBer);
 				Set<String> returningAttributes = parseReturningAttributes(reqBer);
-				SearchRunnable searchRunnable = new SearchRunnable(currentMessageId, dn, scope, sizeLimit, timelimit, ldapFilter, returningAttributes);
+				SearchRunnable searchRunnable = new SearchRunnable(userFactory, currentMessageId, dn, scope, sizeLimit, timelimit, ldapFilter, returningAttributes, this); 
 				if (BASE_CONTEXT.equalsIgnoreCase(dn) || OD_USER_CONTEXT.equalsIgnoreCase(dn) || OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
 					// launch search in a separate thread
 					synchronized (searchThreadMap) {
@@ -635,9 +635,9 @@ public class LdapConnection extends AbstractConnection {
 				} catch (InvocationTargetException e) {
 					log.error("", e);
 				}
-				log.debug("LOG_LDAP_REQ_ABANDON_SEARCH", currentMessageId, abandonMessageId);
+				LogUtils.debug(log, "LOG_LDAP_REQ_ABANDON_SEARCH", currentMessageId, abandonMessageId);
 			} else {
-				log.debug("LOG_LDAP_UNSUPPORTED_OPERATION", requestOperation);
+				LogUtils.debug(log, "LOG_LDAP_UNSUPPORTED_OPERATION", requestOperation);
 				sendClient(currentMessageId, LDAP_REP_RESULT, LDAP_OTHER, "Unsupported operation");
 			}
 		} catch (IOException e) {
@@ -666,7 +666,7 @@ public class LdapConnection extends AbstractConnection {
 		LdapFilter ldapFilter;
 		if (reqBer.peekByte() == LDAP_FILTER_PRESENT) {
 			String attributeName = reqBer.parseStringWithTag(LDAP_FILTER_PRESENT, isLdapV3(), null).toLowerCase();
-			ldapFilter = new SimpleLdapFilter(attributeName);
+			ldapFilter = new SimpleLdapFilter(userFactory, attributeName);
 		} else {
 			int[] seqSize = new int[1];
 			int ldapFilterType = reqBer.parseSeq(seqSize);
@@ -688,7 +688,7 @@ public class LdapConnection extends AbstractConnection {
 			while (reqBer.getParsePosition() < end && reqBer.bytesLeft() > 0) {
 				if (reqBer.peekByte() == LDAP_FILTER_PRESENT) {
 					String attributeName = reqBer.parseStringWithTag(LDAP_FILTER_PRESENT, isLdapV3(), null).toLowerCase();
-					nestedFilter.add(new SimpleLdapFilter(attributeName));
+					nestedFilter.add(new SimpleLdapFilter(userFactory, attributeName));
 				} else {
 					int[] seqSize = new int[1];
 					int ldapFilterOperator = reqBer.parseSeq(seqSize);
@@ -738,7 +738,7 @@ public class LdapConnection extends AbstractConnection {
 			}
 		}
 
-		return new SimpleLdapFilter(attributeName, sValue, ldapFilterOperator, ldapFilterMode);
+		return new SimpleLdapFilter(userFactory, attributeName, sValue, ldapFilterOperator, ldapFilterMode);
 	}
 
 	protected Set<String> parseReturningAttributes(BerDecoder reqBer) throws IOException {
@@ -792,7 +792,7 @@ public class LdapConnection extends AbstractConnection {
 	 */
 	protected String serviceInfo;
 
-	protected String getServiceInfo() throws UnknownHostException {
+	protected String getServiceInfo() {
 		if (serviceInfo == null) {
 			StringBuilder buffer = new StringBuilder();
 			buffer.append("<?xml version='1.0' encoding='UTF-8'?>"
@@ -824,7 +824,11 @@ public class LdapConnection extends AbstractConnection {
 					+ "</dict>"
 					+ "<key>hostname</key>"
 					+ "<string>");
-			buffer.append(getCurrentHostName());
+			try {
+				buffer.append(getCurrentHostName());
+			} catch (UnknownHostException ex) {
+				buffer.append("Unknown host");
+			}
 			buffer.append("</string>"
 					+ "<key>serviceInfo</key>"
 					+ "<dict>"
@@ -901,6 +905,7 @@ public class LdapConnection extends AbstractConnection {
 	}
 
 	protected void sendEntry(int currentMessageId, String dn, Map<String, Object> attributes) throws IOException {
+		LogUtils.trace(log, "sendEntry", currentMessageId, dn, attributes.size());
 		// synchronize on responseBer
 		synchronized (responseBer) {
 			responseBer.reset();
@@ -963,6 +968,20 @@ public class LdapConnection extends AbstractConnection {
 		os.flush();
 	}
 
+	public User getUser() {
+		return user;
+	}
+
+	public String getUserName() {
+		return userName;
+	}
+
+	public UserFactory getUserSessionFactory() {
+		return userFactory;
+	}
+	
+	
+
 	public static interface LdapFilter {
 
 		Condition getContactSearchFilter();
@@ -974,303 +993,5 @@ public class LdapConnection extends AbstractConnection {
 		boolean isFullSearch();
 
 		boolean isMatch(Map<String, String> person);
-	}
-
-
-	public class SearchRunnable implements Runnable {
-
-		private final int currentMessageId;
-		private final String dn;
-		private final int scope;
-		private final int sizeLimit;
-		private final int timelimit;
-		private final LdapFilter ldapFilter;
-		private final Set<String> returningAttributes;
-		private boolean abandon;
-
-		protected SearchRunnable(int currentMessageId, String dn, int scope, int sizeLimit, int timelimit, LdapFilter ldapFilter, Set<String> returningAttributes) {
-			this.currentMessageId = currentMessageId;
-			this.dn = dn;
-			this.scope = scope;
-			this.sizeLimit = sizeLimit;
-			this.timelimit = timelimit;
-			this.ldapFilter = ldapFilter;
-			this.returningAttributes = returningAttributes;
-		}
-
-		/**
-		 * Abandon search.
-		 */
-		protected void abandon() {
-			abandon = true;
-		}
-
-		@Override
-		public void run() {
-			try {
-				int size = 0;
-				LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH", currentMessageId, dn, scope, sizeLimit, timelimit, ldapFilter.toString(), returningAttributes);
-
-				if (scope == SCOPE_BASE_OBJECT) {
-					if ("".equals(dn)) {
-						size = 1;
-						sendRootDSE(currentMessageId);
-					} else if (BASE_CONTEXT.equals(dn)) {
-						size = 1;
-						// root
-						sendBaseContext(currentMessageId);
-					} else if (dn.startsWith("uid=") && dn.indexOf(',') > 0) {
-						if (user != null) {
-							// single user request
-							String uid = dn.substring("uid=".length(), dn.indexOf(','));
-							Map<String, Contact> persons = null;
-
-							// first search in contact
-							try {
-								// check if this is a contact uid
-								Integer.parseInt(uid);
-								persons = contactFind(Conditions.isEqualTo("imapUid", uid), returningAttributes, sizeLimit);
-							} catch (NumberFormatException e) {
-								// ignore, this is not a contact uid
-							}
-
-							// then in GAL
-							if (persons == null || persons.isEmpty()) {
-								persons = user.galFind(Conditions.isEqualTo("imapUid", uid),
-										LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
-
-								Contact person = persons.get(uid.toLowerCase());
-								// filter out non exact results
-								if (persons.size() > 1 || person == null) {
-									persons = new HashMap<String, Contact>();
-									if (person != null) {
-										persons.put(uid.toLowerCase(), person);
-									}
-								}
-							}
-							size = persons.size();
-							sendPersons(currentMessageId, dn.substring(dn.indexOf(',')), persons, returningAttributes);
-						} else {
-							log.debug("LOG_LDAP_REQ_SEARCH_ANONYMOUS_ACCESS_FORBIDDEN", currentMessageId, dn);
-						}
-					} else {
-						log.debug("LOG_LDAP_REQ_SEARCH_INVALID_DN", currentMessageId, dn);
-					}
-				} else if (COMPUTER_CONTEXT.equals(dn) || COMPUTER_CONTEXT_LION.equals(dn)) {
-					size = 1;
-					// computer context for iCal
-					sendComputerContext(currentMessageId, returningAttributes);
-				} else if ((BASE_CONTEXT.equalsIgnoreCase(dn) || OD_USER_CONTEXT.equalsIgnoreCase(dn)) || OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
-					if (user != null) {
-						Map<String, Contact> persons = new HashMap<String, Contact>();
-						if (ldapFilter.isFullSearch()) {
-							// append personal contacts first
-							for (Contact person : contactFind(null, returningAttributes, sizeLimit).values()) {
-								persons.put(person.get("imapUid"), person);
-								if (persons.size() == sizeLimit) {
-									break;
-								}
-							}
-							// full search
-							for (char c = 'A'; c <= 'Z'; c++) {
-								if (!abandon && persons.size() < sizeLimit) {
-									for (Contact person : user.galFind(Conditions.startsWith("cn", String.valueOf(c)),
-											LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit).values()) {
-										persons.put(person.get("uid"), person);
-										if (persons.size() == sizeLimit) {
-											break;
-										}
-									}
-								}
-								if (persons.size() == sizeLimit) {
-									break;
-								}
-							}
-						} else {
-							// append personal contacts first
-							Condition filter = ldapFilter.getContactSearchFilter();
-
-							// if ldapfilter is not a full search and filter is null,
-							// ignored all attribute filters => return empty results
-							if (ldapFilter.isFullSearch() || filter != null) {
-								for (Contact person : contactFind(filter, returningAttributes, sizeLimit).values()) {
-									persons.put(person.get("imapUid"), person);
-
-									if (persons.size() == sizeLimit) {
-										break;
-									}
-								}
-								if (!abandon && persons.size() < sizeLimit) {
-									for (Contact person : ldapFilter.findInGAL(user, returningAttributes, sizeLimit - persons.size()).values()) {
-										if (persons.size() == sizeLimit) {
-											break;
-										}
-
-										persons.put(person.get("uid"), person);
-									}
-								}
-							}
-						}
-
-						size = persons.size();
-						log.debug("LOG_LDAP_REQ_SEARCH_FOUND_RESULTS", currentMessageId, size);
-						sendPersons(currentMessageId, ", " + dn, persons, returningAttributes);
-						log.debug("LOG_LDAP_REQ_SEARCH_END", currentMessageId);
-					} else {
-						log.debug("LOG_LDAP_REQ_SEARCH_ANONYMOUS_ACCESS_FORBIDDEN", currentMessageId, dn);
-					}
-				} else if (dn != null && dn.length() > 0 && !OD_CONFIG_CONTEXT.equals(dn) && !OD_GROUP_CONTEXT.equals(dn)) {
-					log.debug("LOG_LDAP_REQ_SEARCH_INVALID_DN", currentMessageId, dn);
-				}
-
-				// iCal: do not send LDAP_SIZE_LIMIT_EXCEEDED on apple-computer search by cn with sizelimit 1
-				if (size > 1 && size == sizeLimit) {
-					log.debug("LOG_LDAP_REQ_SEARCH_SIZE_LIMIT_EXCEEDED", currentMessageId);
-					sendClient(currentMessageId, LDAP_REP_RESULT, LDAP_SIZE_LIMIT_EXCEEDED, "");
-				} else {
-					log.debug("LOG_LDAP_REQ_SEARCH_SUCCESS", currentMessageId);
-					sendClient(currentMessageId, LDAP_REP_RESULT, LDAP_SUCCESS, "");
-				}
-			} catch (SocketException e) {
-				// client closed connection
-				log.warn("closed connection", e);
-			} catch (IOException e) {
-				log.error("", e);
-				try {
-					sendErr(currentMessageId, LDAP_REP_RESULT, e);
-				} catch (IOException e2) {
-					log.debug("LOG_EXCEPTION_SENDING_ERROR_TO_CLIENT", e2);
-				}
-			} finally {
-				synchronized (searchThreadMap) {
-					searchThreadMap.remove(currentMessageId);
-				}
-			}
-
-		}
-
-		/**
-		 * Search users in contacts folder
-		 *
-		 * @param condition           search filter
-		 * @param returningAttributes requested attributes
-		 * @param maxCount            maximum item count
-		 * @return List of users
-		 * @throws IOException on error
-		 */
-		public Map<String, Contact> contactFind(Condition condition, Set<String> returningAttributes, int maxCount) throws IOException {
-			Map<String, Contact> results = new HashMap<String, Contact>();
-
-			Set<String> contactReturningAttributes = LdapUtils.convertLdapToContactReturningAttributes(returningAttributes);
-			contactReturningAttributes.remove("apple-serviceslocator");
-			List<Contact> contacts = user.searchContacts(contactReturningAttributes, condition, maxCount);
-
-			for (Contact contact : contacts) {
-				// use imapUid as uid
-				String imapUid = contact.get("imapUid");
-				if (imapUid != null) {
-					results.put(imapUid, contact);
-				}
-			}
-
-			return results;
-		}
-
-		/**
-		 * Convert to LDAP attributes and send entry
-		 *
-		 * @param currentMessageId    current Message Id
-		 * @param baseContext         request base context (BASE_CONTEXT or OD_BASE_CONTEXT)
-		 * @param persons             persons Map
-		 * @param returningAttributes returning attributes
-		 * @throws IOException on error
-		 */
-		protected void sendPersons(int currentMessageId, String baseContext, Map<String, Contact> persons, Set<String> returningAttributes) throws IOException {
-			boolean needObjectClasses = returningAttributes.contains("objectclass") || returningAttributes.isEmpty();
-			boolean returnAllAttributes = returningAttributes.isEmpty();
-
-			for (Contact person : persons.values()) {
-				if (abandon) {
-					break;
-				}
-
-				Map<String, Object> ldapPerson = new HashMap<String, Object>();
-
-				// convert Contact entries
-				if (returnAllAttributes) {
-					// just convert contact attributes to default ldap names
-					for (Map.Entry<String, String> entry : person.entrySet()) {
-						String ldapAttribute = LdapUtils.getLdapAttributeName(entry.getKey());
-						String value = entry.getValue();
-						if (value != null) {
-							ldapPerson.put(ldapAttribute, value);
-						}
-					}
-				} else {
-					// always map uid
-					ldapPerson.put("uid", person.get("imapUid"));
-					// iterate over requested attributes
-					for (String ldapAttribute : returningAttributes) {
-						String contactAttribute = LdapUtils.getContactAttributeName(ldapAttribute);
-						String value = person.get(contactAttribute);
-						if (value != null) {
-							if (ldapAttribute.startsWith("birth")) {
-								SimpleDateFormat parser = LdapUtils.getZuluDateFormat();
-								Calendar calendar = Calendar.getInstance();
-								try {
-									calendar.setTime(parser.parse(value));
-								} catch (ParseException e) {
-									throw new IOException(e);
-								}
-								if ("birthday".equals(ldapAttribute)) {
-									value = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
-								} else if ("birthmonth".equals(ldapAttribute)) {
-									value = String.valueOf(calendar.get(Calendar.MONTH) + 1);
-								} else if ("birthyear".equals(ldapAttribute)) {
-									value = String.valueOf(calendar.get(Calendar.YEAR));
-								}
-							}
-							ldapPerson.put(ldapAttribute, value);
-						}
-					}
-				}
-
-				// Process all attributes which have static mappings
-				for (Map.Entry<String, String> entry : STATIC_ATTRIBUTE_MAP.entrySet()) {
-					String ldapAttribute = entry.getKey();
-					String value = entry.getValue();
-
-					if (value != null
-							&& (returnAllAttributes || returningAttributes.contains(ldapAttribute))) {
-						ldapPerson.put(ldapAttribute, value);
-					}
-				}
-
-				if (needObjectClasses) {
-					ldapPerson.put("objectClass", PERSON_OBJECT_CLASSES);
-				}
-
-				// iCal: copy email to apple-generateduid, encode @
-				if (returnAllAttributes || returningAttributes.contains("apple-generateduid")) {
-					String mail = (String) ldapPerson.get("mail");
-					if (mail != null) {
-						ldapPerson.put("apple-generateduid", mail.replaceAll("@", "__AT__"));
-					} else {
-						// failover, should not happen
-						ldapPerson.put("apple-generateduid", ldapPerson.get("uid"));
-					}
-				}
-
-				// iCal: replace current user alias with login name
-				if (user.getAlias().equals(ldapPerson.get("uid"))) {
-					if (returningAttributes.contains("uidnumber")) {
-						ldapPerson.put("uidnumber", userName);
-					}
-				}
-				LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_SEND_PERSON", currentMessageId, ldapPerson.get("uid"), baseContext, ldapPerson);
-				sendEntry(currentMessageId, "uid=" + ldapPerson.get("uid") + baseContext, ldapPerson);
-			}
-
-		}
 	}
 }

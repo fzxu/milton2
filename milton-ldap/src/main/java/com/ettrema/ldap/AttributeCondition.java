@@ -1,6 +1,9 @@
 package com.ettrema.ldap;
 
+import com.ettrema.common.LogUtils;
 import com.ettrema.ldap.Condition.Operator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -8,6 +11,8 @@ import com.ettrema.ldap.Condition.Operator;
  */
 public class AttributeCondition implements Condition {
 
+	private static final Logger log = LoggerFactory.getLogger(AttributeCondition.class);
+	
 	protected final String attributeName;
 	protected final Operator operator;
 	protected final String value;
@@ -84,6 +89,7 @@ public class AttributeCondition implements Condition {
 //		}
 //	}
 
+	@Override
 	public boolean isMatch(Contact contact) {
 		String lowerCaseValue = value.toLowerCase();
 		String actualValue = contact.get(attributeName);
@@ -97,8 +103,10 @@ public class AttributeCondition implements Condition {
 			return false;
 		}
 		actualValue = actualValue.toLowerCase();
-		return (actualOperator == Operator.IsEqualTo && actualValue.equals(lowerCaseValue))
+		boolean b = (actualOperator == Operator.IsEqualTo && actualValue.equals(lowerCaseValue))
 				|| (actualOperator == Operator.Like && actualValue.contains(lowerCaseValue))
 				|| (actualOperator == Operator.StartsWith && actualValue.startsWith(lowerCaseValue));
+		LogUtils.trace(log, "isMatch: result:", b, "operator:", actualOperator, "test value", actualValue, "query value", lowerCaseValue);
+		return b;
 	}
 }

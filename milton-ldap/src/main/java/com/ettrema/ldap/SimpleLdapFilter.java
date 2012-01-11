@@ -1,5 +1,6 @@
 package com.ettrema.ldap;
 
+import com.ettrema.common.LogUtils;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,8 @@ import org.slf4j.LoggerFactory;
 class SimpleLdapFilter implements LdapConnection.LdapFilter {
 	private static final Logger log = LoggerFactory.getLogger(SimpleLdapFilter.class);
 	
+	private final UserFactory userFactory;
+	
 	static final String STAR = "*";
 	final String attributeName;
 	final String value;
@@ -21,7 +24,8 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 	final int operator;
 	final boolean canIgnore;
 
-	SimpleLdapFilter(String attributeName) {
+	SimpleLdapFilter(UserFactory userFactory, String attributeName) {
+		this.userFactory = userFactory;
 		this.attributeName = attributeName;
 		this.value = SimpleLdapFilter.STAR;
 		this.operator = LdapConnection.LDAP_FILTER_SUBSTRINGS;
@@ -29,7 +33,8 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		this.canIgnore = checkIgnore();
 	}
 
-	SimpleLdapFilter(String attributeName, String value, int ldapFilterOperator, int ldapFilterMode) {
+	SimpleLdapFilter(UserFactory userFactory, String attributeName, String value, int ldapFilterOperator, int ldapFilterMode) {
+		this.userFactory = userFactory;
 		this.attributeName = attributeName;
 		this.value = value;
 		this.operator = ldapFilterOperator;
@@ -88,15 +93,19 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		}
 		Condition condition = null;
 		if (operator == LdapConnection.LDAP_FILTER_EQUALITY) {
+			LogUtils.debug(log, "getContactSearchFilter: equality", value);
 			condition = Conditions.isEqualTo(contactAttributeName, value);
 		} else if ("*".equals(value)) {
+			LogUtils.debug(log, "getContactSearchFilter: *");
 			condition = Conditions.not(Conditions.isNull(contactAttributeName));
 			// do not allow substring search on integer field imapUid
 		} else if (!"imapUid".equals(contactAttributeName)) {
 			// endsWith not supported by exchange, convert to contains
 			if (mode == LdapConnection.LDAP_SUBSTRING_FINAL || mode == LdapConnection.LDAP_SUBSTRING_ANY) {
+				LogUtils.debug(log, "getContactSearchFilter: contains", value);
 				condition = Conditions.contains(contactAttributeName, value);
 			} else {
+				LogUtils.debug(log, "getContactSearchFilter: startswith", value);
 				condition = Conditions.startsWith(contactAttributeName, value);
 			}
 		}
@@ -134,7 +143,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		String contactAttributeName = LdapUtils.getContactAttributeName(attributeName);
 		if (contactAttributeName != null) {
 			// quick fix for cn=* filter
-			Map<String, Contact> galPersons = user.galFind(Conditions.startsWith(contactAttributeName, "*".equals(value) ? "A" : value), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
+			Map<String, Contact> galPersons = userFactory.galFind(Conditions.startsWith(contactAttributeName, "*".equals(value) ? "A" : value), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
 			if (operator == LdapConnection.LDAP_FILTER_EQUALITY) {
 				// Make sure only exact matches are returned
 				Map<String, Contact> results = new HashMap<String, Contact>();
