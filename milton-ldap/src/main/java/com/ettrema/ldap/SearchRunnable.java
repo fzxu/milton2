@@ -103,7 +103,6 @@ public class SearchRunnable implements Runnable {
 			} else if (LdapConnection.COMPUTER_CONTEXT.equals(dn) || LdapConnection.COMPUTER_CONTEXT_LION.equals(dn)) {
 				size = 1;
 				// computer context for iCal
-				// computer context for iCal
 				ldapConnection.sendComputerContext(currentMessageId, returningAttributes);
 			} else if ((LdapConnection.BASE_CONTEXT.equalsIgnoreCase(dn) || LdapConnection.OD_USER_CONTEXT.equalsIgnoreCase(dn)) || LdapConnection.OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
 				if (ldapConnection.getUser() != null) {
@@ -119,50 +118,52 @@ public class SearchRunnable implements Runnable {
 							}
 						}
 						
-						// DISABLED: appears to be just be away of loading results
-						// from a user local list and a global address list, but we
-						// probably don't need that distinction
-						
 						// full search
-//						for (char c = 'A'; c <= 'Z'; c++) {
-//							if (!abandon && persons.size() < sizeLimit) {
-//								Collection<Contact> contacts = ldapConnection.getUser().galFind(Conditions.startsWith("cn", String.valueOf(c)), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit).values();
-//								LogUtils.debug(log, "doSearch: results:", contacts.size());
-//								for (Contact person : contacts) {
-//									persons.put(person.get("uid"), person);
-//									if (persons.size() == sizeLimit) {
-//										break;
-//									}
-//								}
-//							}
-//							if (persons.size() == sizeLimit) {
-//								break;
-//							}
-//						}
-					} else {										
+						for (char c = 'A'; c <= 'Z'; c++) {
+							if (!abandon && persons.size() < sizeLimit) {
+								Collection<Contact> galContacts = userFactory.galFind(Conditions.startsWith("cn", String.valueOf(c)), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit).values();
+								LogUtils.debug(log, "doSearch: results:", contacts.size());
+								for (Contact person : galContacts) {
+									persons.put(person.getUniqueId(), person);
+									if (persons.size() == sizeLimit) {
+										break;
+									}
+								}
+							}
+							if (persons.size() == sizeLimit) {
+								break;
+							}
+						}
+					} else {
 						// append only personal contacts
 						Condition filter = ldapFilter.getContactSearchFilter();
+						LogUtils.debug(log, "not full search:", filter);						
 						 //if ldapfilter is not a full search and filter is null,
 						 //ignored all attribute filters => return empty results
 						if (ldapFilter.isFullSearch() || filter != null) {
 							for (Contact person : contactFind(filter, returningAttributes, sizeLimit).values()) {
 								persons.put(person.get("imapUid"), person);
 								if (persons.size() == sizeLimit) {
+									log.debug("EXceeded size limit1");
 									break;
 								}
 							}
+							LogUtils.trace(log, "local contacts result size: ", persons.size());
 							if (!abandon && persons.size() < sizeLimit) {
-								for (Contact person : ldapFilter.findInGAL(ldapConnection.getUser(), returningAttributes, sizeLimit - persons.size()).values()) {
-									if (persons.size() == sizeLimit) {
+								Map<String, Contact> galContacts = ldapFilter.findInGAL(ldapConnection.getUser(), returningAttributes, sizeLimit - persons.size());
+								LogUtils.trace(log, "gal contacts result size: ", galContacts.size());
+								for (Contact person : galContacts.values()) {
+									if (persons.size() >= sizeLimit) {
+										log.debug("EXceeded size limit2");
 										break;
 									}
-									persons.put(person.get("uid"), person);
+									LogUtils.trace(log, "add contact to results: ", person.getUniqueId());
+									persons.put(person.getUniqueId(), person);
 								}
 							}
 						}
 					}
-					size = persons.size();
-					LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_FOUND_RESULTS", currentMessageId, size);
+					LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_FOUND_RESULTS", currentMessageId, persons.size());
 					sendPersons(currentMessageId, ", " + dn, persons, returningAttributes);
 					LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_END", currentMessageId);
 				} else {
@@ -212,12 +213,13 @@ public class SearchRunnable implements Runnable {
 		Set<String> contactReturningAttributes = LdapUtils.convertLdapToContactReturningAttributes(returningAttributes);
 		contactReturningAttributes.remove("apple-serviceslocator");
 		List<Contact> contacts = ldapConnection.getUser().searchContacts(contactReturningAttributes, condition, maxCount);
+		LogUtils.trace(log, "contactFind: contacts size:", contacts.size());
 		for (Contact contact : contacts) {
-			// use imapUid as uid
-			// use imapUid as uid
 			String imapUid = contact.get("imapUid");
 			if (imapUid != null) {
 				results.put(imapUid, contact);
+			} else {
+				log.warn("Not including contact because imapUid field is null: " + contact);
 			}
 		}
 		return results;
@@ -242,7 +244,7 @@ public class SearchRunnable implements Runnable {
 	 * @throws IOException on error
 	 */
 	protected void sendPersons(int currentMessageId, String baseContext, Map<String, Contact> persons, Set<String> returningAttributes) throws IOException {
-		LogUtils.debug(log, "sendPersons", baseContext, persons.size());
+		LogUtils.debug(log, "sendPersons", baseContext, "size:", persons.size());
 		boolean needObjectClasses = returningAttributes.contains("objectclass") || returningAttributes.isEmpty();
 		boolean returnAllAttributes = returningAttributes.isEmpty();
 		if( persons.isEmpty()) {
@@ -260,7 +262,7 @@ public class SearchRunnable implements Runnable {
 				// just convert contact attributes to default ldap names
 				// just convert contact attributes to default ldap names
 				for (Map.Entry<String, String> entry : person.entrySet()) {
-					String ldapAttribute = LdapUtils.getLdapAttributeName(entry.getKey());
+					String ldapAttribute = entry.getKey();
 					String value = entry.getValue();
 					if (value != null) {
 						ldapPerson.put(ldapAttribute, value);
@@ -268,35 +270,32 @@ public class SearchRunnable implements Runnable {
 				}
 			} else {
 				// always map uid
-				// always map uid
-				ldapPerson.put("uid", person.get("imapUid"));
-				// iterate over requested attributes
+				ldapPerson.put("uid", person.getUniqueId());
 				// iterate over requested attributes
 				for (String ldapAttribute : returningAttributes) {
-					String contactAttribute = LdapUtils.getContactAttributeName(ldapAttribute);
+					String contactAttribute = ldapAttribute;
 					String value = person.get(contactAttribute);
 					if (value != null) {
-						if (ldapAttribute.startsWith("birth")) {
-							SimpleDateFormat parser = LdapUtils.getZuluDateFormat();
-							Calendar calendar = Calendar.getInstance();
-							try {
-								calendar.setTime(parser.parse(value));
-							} catch (ParseException e) {
-								throw new IOException(e);
-							}
-							if ("birthday".equals(ldapAttribute)) {
-								value = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
-							} else if ("birthmonth".equals(ldapAttribute)) {
-								value = String.valueOf(calendar.get(Calendar.MONTH) + 1);
-							} else if ("birthyear".equals(ldapAttribute)) {
-								value = String.valueOf(calendar.get(Calendar.YEAR));
-							}
-						}
+//						if (ldapAttribute.startsWith("birth")) {
+//							SimpleDateFormat parser = LdapUtils.getZuluDateFormat();
+//							Calendar calendar = Calendar.getInstance();
+//							try {
+//								calendar.setTime(parser.parse(value));
+//							} catch (ParseException e) {
+//								throw new IOException(e);
+//							}
+//							if ("birthday".equals(ldapAttribute)) {
+//								value = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
+//							} else if ("birthmonth".equals(ldapAttribute)) {
+//								value = String.valueOf(calendar.get(Calendar.MONTH) + 1);
+//							} else if ("birthyear".equals(ldapAttribute)) {
+//								value = String.valueOf(calendar.get(Calendar.YEAR));
+//							}
+//						}
 						ldapPerson.put(ldapAttribute, value);
 					}
 				}
 			}
-			// Process all attributes which have static mappings
 			// Process all attributes which have static mappings
 			for (Map.Entry<String, String> entry : LdapConnection.STATIC_ATTRIBUTE_MAP.entrySet()) {
 				String ldapAttribute = entry.getKey();
@@ -309,7 +308,6 @@ public class SearchRunnable implements Runnable {
 				ldapPerson.put("objectClass", LdapConnection.PERSON_OBJECT_CLASSES);
 			}
 			// iCal: copy email to apple-generateduid, encode @
-			// iCal: copy email to apple-generateduid, encode @
 			if (returnAllAttributes || returningAttributes.contains("apple-generateduid")) {
 				String mail = (String) ldapPerson.get("mail");
 				if (mail != null) {
@@ -320,7 +318,6 @@ public class SearchRunnable implements Runnable {
 					ldapPerson.put("apple-generateduid", ldapPerson.get("uid"));
 				}
 			}
-			// iCal: replace current user alias with login name
 			// iCal: replace current user alias with login name
 			if (ldapConnection.getUser().getAlias().equals(ldapPerson.get("uid"))) {
 				if (returningAttributes.contains("uidnumber")) {

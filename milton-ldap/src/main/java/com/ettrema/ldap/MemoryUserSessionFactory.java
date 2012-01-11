@@ -23,9 +23,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 	}
 
 	public void addUser(String name, String password, String givenName, String surname, String email) {
-		MemoryUser u = new MemoryUser(name, password);
-		u.setGivenName(givenName);
-		u.setSurname(surname);
+		MemoryUser u = new MemoryUser(name, password, givenName, surname);
 		u.setEmail(email);
 		users.put(name, u);
 	}
@@ -83,7 +81,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 	}
 
 	private Contact toContact(MemoryUser user, Set<String> attributes) {
-		MapContact contact = new MapContact();
+		MapContact contact = new MapContact(user.getUniqueId());
 		for (String a : attributes) {
 			String value = user.get(a);
 			if (value != null) {
@@ -101,7 +99,8 @@ public class MemoryUserSessionFactory implements UserFactory {
 		private final String alias;
 		private String password;
 
-		public MemoryUser(String alias, String password) {
+		public MemoryUser(String alias, String password, String givenName,String surname) {
+			super(alias);
 			this.alias = alias;
 			this.password = password;
 			put("imapUid", alias);
@@ -111,8 +110,10 @@ public class MemoryUserSessionFactory implements UserFactory {
 			String sBirth = LdapUtils.getZuluDateFormat().format(dtBirth);
 			put("birth", sBirth);
 			put("bday", sBirth);
-			put("cn", alias);
 			put("im", alias);
+			setGivenName(givenName);
+			setSurname(surname);
+			put("cn", givenName + " " + surname);
 		}
 
 		@Override
@@ -139,7 +140,6 @@ public class MemoryUserSessionFactory implements UserFactory {
 
 		@Override
 		public String get(Object key) {
-
 			return super.get(key);
 		}
 
@@ -147,7 +147,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 			return get("givenName");
 		}
 
-		public void setGivenName(String givenName) {
+		public final void setGivenName(String givenName) {
 			put("givenName", givenName);
 		}
 
@@ -155,16 +155,16 @@ public class MemoryUserSessionFactory implements UserFactory {
 			return get("sn");
 		}
 
-		public void setSurname(String surname) {
+		public final void setSurname(String surname) {
 			put("sn", surname);
 		}
 
 		public String getEmail() {
-			return get("smtpemail1");
+			return get("mail");
 		}
 
 		public void setEmail(String s) {
-			put("smtpemail1", s);
+			put("mail", s);
 		}
 	}
 }

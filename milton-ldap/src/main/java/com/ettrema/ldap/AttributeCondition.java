@@ -106,7 +106,7 @@ public class AttributeCondition implements Condition {
 		boolean b = (actualOperator == Operator.IsEqualTo && actualValue.equals(lowerCaseValue))
 				|| (actualOperator == Operator.Like && actualValue.contains(lowerCaseValue))
 				|| (actualOperator == Operator.StartsWith && actualValue.startsWith(lowerCaseValue));
-		LogUtils.trace(log, "isMatch: result:", b, "operator:", actualOperator, "test value", actualValue, "query value", lowerCaseValue);
+		LogUtils.trace(log, "isMatch: result:", b, "attributeName:",attributeName, "operator:", actualOperator, "test value", actualValue, "query value", lowerCaseValue);
 		return b;
 	}
 }

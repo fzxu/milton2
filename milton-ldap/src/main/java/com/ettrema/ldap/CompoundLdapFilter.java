@@ -144,7 +144,7 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 					for (Contact result : childFind.values()) {
 						if (isMatch(result)) {
 							// This item from the child result set matches all sub-criteria, add it
-							persons.put(result.get("uid"), result);
+							persons.put(result.getUniqueId(), result);
 						}
 					}
 				}

@@ -9,5 +9,11 @@ import java.util.Map;
  */
 public interface Contact extends  Map<String, String>{
 
+	/**
+	 * Get the unique id of this contact
+	 * 
+	 * @return 
+	 */
+	String getUniqueId();
 	
 }

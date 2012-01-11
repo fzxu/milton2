@@ -46,12 +46,9 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		if ("objectclass".equals(attributeName) && STAR.equals(value)) {
 			// ignore cases where any object class can match
 			return true;
-		} else if (LdapConnection.IGNORE_MAP.contains(attributeName)) {
-			// Ignore this specific attribute
-			return true;
-		} else if (LdapConnection.CRITERIA_MAP.get(attributeName) == null && LdapUtils.getContactAttributeName(attributeName) == null) {
-			log.debug("LOG_LDAP_UNSUPPORTED_FILTER_ATTRIBUTE", attributeName, value);
-			return true;
+//		} else if (LdapConnection.CRITERIA_MAP.get(attributeName) == null && LdapUtils.getContactAttributeName(attributeName) == null) {
+//			log.debug("LOG_LDAP_UNSUPPORTED_FILTER_ATTRIBUTE", attributeName, value);
+//			return true;
 		}
 		return false;
 	}
@@ -87,7 +84,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 
 	@Override
 	public Condition getContactSearchFilter() {
-		String contactAttributeName = LdapUtils.getContactAttributeName(attributeName);
+		String contactAttributeName = attributeName;
 		if (canIgnore || (contactAttributeName == null)) {
 			return null;
 		}
@@ -140,7 +137,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		if (canIgnore) {
 			return null;
 		}
-		String contactAttributeName = LdapUtils.getContactAttributeName(attributeName);
+		String contactAttributeName = attributeName;
 		if (contactAttributeName != null) {
 			// quick fix for cn=* filter
 			Map<String, Contact> galPersons = userFactory.galFind(Conditions.startsWith(contactAttributeName, "*".equals(value) ? "A" : value), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
@@ -150,7 +147,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 				for (Contact person : galPersons.values()) {
 					if (isMatch(person)) {
 						// Found an exact match
-						results.put(person.get("uid"), person);
+						results.put(person.getUniqueId(), person);
 					}
 				}
 				return results;
