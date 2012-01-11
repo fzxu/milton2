@@ -1,10 +1,7 @@
 package com.ettrema.ldap;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -121,30 +118,31 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 	 * @return persons map
 	 * @throws IOException on error
 	 */
-	public Map<String, Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
-		Map<String, Contact> persons = null;
+	@Override
+	public List<Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
+		List<Contact> persons = null;
 		for (LdapConnection.LdapFilter child : criteria) {
 			int currentSizeLimit = sizeLimit;
 			if (persons != null) {
 				currentSizeLimit -= persons.size();
 			}
-			Map<String, Contact> childFind = child.findInGAL(user, returningAttributes, currentSizeLimit);
+			List<Contact> childFind = child.findInGAL(user, returningAttributes, currentSizeLimit);
 			if (childFind != null) {
 				if (persons == null) {
 					persons = childFind;
 				} else if (type == LdapConnection.LDAP_FILTER_OR) {
 					// Create the union of the existing results and the child found results
-					persons.putAll(childFind);
+					persons.addAll(childFind);
 				} else if (type == LdapConnection.LDAP_FILTER_AND) {
 					// Append current child filter results that match all child filters to persons.
 					// The hard part is that, due to the 100-item-returned galFind limit
 					// we may catch new items that match all child filters in each child search.
 					// Thus, instead of building the intersection, we check each result against
 					// all filters.
-					for (Contact result : childFind.values()) {
+					for (Contact result : childFind) {
 						if (isMatch(result)) {
 							// This item from the child result set matches all sub-criteria, add it
-							persons.put(result.getUniqueId(), result);
+							persons.add(result);
 						}
 					}
 				}
@@ -152,7 +150,7 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 		}
 		if ((persons == null) && !isFullSearch()) {
 			// return an empty map (indicating no results were found)
-			return new HashMap<String, Contact>();
+			return new ArrayList<Contact>();
 		}
 		return persons;
 	}

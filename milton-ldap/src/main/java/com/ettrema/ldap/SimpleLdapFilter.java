@@ -2,9 +2,7 @@ package com.ettrema.ldap;
 
 import com.ettrema.common.LogUtils;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,24 +131,25 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 	}
 
 	@Override
-	public Map<String, Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
+	public List<Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
 		if (canIgnore) {
 			return null;
 		}
 		String contactAttributeName = attributeName;
 		if (contactAttributeName != null) {
 			// quick fix for cn=* filter
-			Map<String, Contact> galPersons = userFactory.galFind(Conditions.startsWith(contactAttributeName, "*".equals(value) ? "A" : value), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
+			List<Contact> galPersons = userFactory.galFind(Conditions.startsWith(contactAttributeName, "*".equals(value) ? "A" : value), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
 			if (operator == LdapConnection.LDAP_FILTER_EQUALITY) {
 				// Make sure only exact matches are returned
 				Map<String, Contact> results = new HashMap<String, Contact>();
-				for (Contact person : galPersons.values()) {
+				List<Contact> list = new ArrayList<Contact>();
+				for (Contact person : galPersons) {
 					if (isMatch(person)) {
 						// Found an exact match
-						results.put(person.getUniqueId(), person);
+						list.add(person);
 					}
 				}
-				return results;
+				return list;
 			} else {
 				return galPersons;
 			}

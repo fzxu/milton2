@@ -63,14 +63,14 @@ public class MemoryUserSessionFactory implements UserFactory {
 	}
 
 	@Override
-	public Map<String, Contact> galFind(Condition condition, Set<String> attributes, int sizeLimit) {
+	public List<Contact> galFind(Condition condition, Set<String> attributes, int sizeLimit) {
 		log.trace("galFind");
-		Map<String, Contact> results = new HashMap<String, Contact>();
+		List<Contact> results = new ArrayList<Contact>();
 		for (MemoryUser user : users.values()) {
 			if (condition == null || condition.isMatch(user)) {
 				LogUtils.debug(log, "searchContacts: add to results", user.alias);
 				Contact c = toContact(user, attributes);
-				results.put(user.getAlias(), c);
+				results.add(c);
 				if (results.size() >= sizeLimit) {
 					break;
 				}

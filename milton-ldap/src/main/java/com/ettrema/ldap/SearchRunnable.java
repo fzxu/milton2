@@ -1,11 +1,14 @@
 package com.ettrema.ldap;
 
+import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.values.ValueAndType;
+import com.bradmcevoy.property.PropertySource;
 import com.ettrema.common.LogUtils;
 import java.io.IOException;
 import java.net.SocketException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
+import javax.xml.namespace.QName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,9 +30,12 @@ public class SearchRunnable implements Runnable {
 	private final Set<String> returningAttributes;
 	private boolean abandon;
 	private final LdapConnection ldapConnection;
+	
+	private final List<PropertySource> propertySources;
 
-	protected SearchRunnable(UserFactory userFactory, int currentMessageId, String dn, int scope, int sizeLimit, int timelimit, LdapConnection.LdapFilter ldapFilter, Set<String> returningAttributes, final LdapConnection ldapConnection) {
+	protected SearchRunnable(UserFactory userFactory,List<PropertySource> propertySources, int currentMessageId, String dn, int scope, int sizeLimit, int timelimit, LdapConnection.LdapFilter ldapFilter, Set<String> returningAttributes, final LdapConnection ldapConnection) {
 		this.userFactory = userFactory;
+		this.propertySources = propertySources;
 		this.ldapConnection = ldapConnection;
 		this.currentMessageId = currentMessageId;
 		this.dn = dn;
@@ -40,13 +46,11 @@ public class SearchRunnable implements Runnable {
 		this.returningAttributes = returningAttributes;
 	}
 
+
 	/**
 	 * Abandon search.
 	 */
-	/**
-	 * Abandon search.
-	 */
-	protected void abandon() {
+	public  void abandon() {
 		abandon = true;
 	}
 
@@ -81,15 +85,13 @@ public class SearchRunnable implements Runnable {
 						}
 						// then in GAL
 						if (persons == null || persons.isEmpty()) {
-							persons = userFactory.galFind(Conditions.isEqualTo("imapUid", uid), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
-							Contact person = persons.get(uid.toLowerCase());
-							// filter out non exact results
-							// filter out non exact results
-							if (persons.size() > 1 || person == null) {
-								persons = new HashMap<String, Contact>();
-								if (person != null) {
-									persons.put(uid.toLowerCase(), person);
+							List<Contact> galContacts = userFactory.galFind(Conditions.isEqualTo("imapUid", uid), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
+							if( galContacts != null && galContacts.size() > 0) {
+								Contact person = galContacts.get(0);
+								if( persons ==null) {
+									persons = new HashMap<String, Contact>();
 								}
+								persons.put(uid.toLowerCase(), person);
 							}
 						}
 						size = persons.size();
@@ -121,7 +123,9 @@ public class SearchRunnable implements Runnable {
 						// full search
 						for (char c = 'A'; c <= 'Z'; c++) {
 							if (!abandon && persons.size() < sizeLimit) {
-								Collection<Contact> galContacts = userFactory.galFind(Conditions.startsWith("cn", String.valueOf(c)), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit).values();
+								Set<String> atts = LdapUtils.convertLdapToContactReturningAttributes(returningAttributes);
+								Condition startsWith = Conditions.startsWith("cn", String.valueOf(c));
+								Collection<Contact> galContacts = userFactory.galFind(startsWith, atts, sizeLimit);
 								LogUtils.debug(log, "doSearch: results:", contacts.size());
 								for (Contact person : galContacts) {
 									persons.put(person.getUniqueId(), person);
@@ -150,9 +154,9 @@ public class SearchRunnable implements Runnable {
 							}
 							LogUtils.trace(log, "local contacts result size: ", persons.size());
 							if (!abandon && persons.size() < sizeLimit) {
-								Map<String, Contact> galContacts = ldapFilter.findInGAL(ldapConnection.getUser(), returningAttributes, sizeLimit - persons.size());
+								List<Contact> galContacts = ldapFilter.findInGAL(ldapConnection.getUser(), returningAttributes, sizeLimit - persons.size());
 								LogUtils.trace(log, "gal contacts result size: ", galContacts.size());
-								for (Contact person : galContacts.values()) {
+								for (Contact person : galContacts) {
 									if (persons.size() >= sizeLimit) {
 										log.debug("EXceeded size limit2");
 										break;
@@ -173,7 +177,6 @@ public class SearchRunnable implements Runnable {
 				LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_INVALID_DN", currentMessageId, dn);
 			}
 			// iCal: do not send LDAP_SIZE_LIMIT_EXCEEDED on apple-computer search by cn with sizelimit 1
-			// iCal: do not send LDAP_SIZE_LIMIT_EXCEEDED on apple-computer search by cn with sizelimit 1
 			if (size > 1 && size == sizeLimit) {
 				LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_SIZE_LIMIT_EXCEEDED", currentMessageId);
 				ldapConnection.sendClient(currentMessageId, LdapConnection.LDAP_REP_RESULT, LdapConnection.LDAP_SIZE_LIMIT_EXCEEDED, "");
@@ -182,8 +185,6 @@ public class SearchRunnable implements Runnable {
 				ldapConnection.sendClient(currentMessageId, LdapConnection.LDAP_REP_RESULT, LdapConnection.LDAP_SUCCESS, "");
 			}
 		} catch (SocketException e) {
-			// client closed connection
-			// client closed connection
 			log.warn("closed connection", e);
 		} catch (IOException e) {
 			log.error("", e);
@@ -225,25 +226,8 @@ public class SearchRunnable implements Runnable {
 		return results;
 	}
 
-	/**
-	 * Convert to LDAP attributes and send entry
-	 *
-	 * @param currentMessageId    current Message Id
-	 * @param baseContext         request base context (BASE_CONTEXT or OD_BASE_CONTEXT)
-	 * @param persons             persons Map
-	 * @param returningAttributes returning attributes
-	 * @throws IOException on error
-	 */
-	/**
-	 * Convert to LDAP attributes and send entry
-	 *
-	 * @param currentMessageId    current Message Id
-	 * @param baseContext         request base context (BASE_CONTEXT or OD_BASE_CONTEXT)
-	 * @param persons             persons Map
-	 * @param returningAttributes returning attributes
-	 * @throws IOException on error
-	 */
-	protected void sendPersons(int currentMessageId, String baseContext, Map<String, Contact> persons, Set<String> returningAttributes) throws IOException {
+
+	private void sendPersons(int currentMessageId, String baseContext, Map<String, Contact> persons, Set<String> returningAttributes) throws IOException {
 		LogUtils.debug(log, "sendPersons", baseContext, "size:", persons.size());
 		boolean needObjectClasses = returningAttributes.contains("objectclass") || returningAttributes.isEmpty();
 		boolean returnAllAttributes = returningAttributes.isEmpty();
@@ -259,8 +243,6 @@ public class SearchRunnable implements Runnable {
 			// convert Contact entries
 			// convert Contact entries
 			if (returnAllAttributes) {
-				// just convert contact attributes to default ldap names
-				// just convert contact attributes to default ldap names
 				for (Map.Entry<String, String> entry : person.entrySet()) {
 					String ldapAttribute = entry.getKey();
 					String value = entry.getValue();
@@ -329,4 +311,20 @@ public class SearchRunnable implements Runnable {
 		}
 	}
 
+	private ValueAndType getProperty(QName field, Resource resource) throws NotAuthorizedException {
+		log.debug("num property sources: " + propertySources.size());
+		for (PropertySource source : propertySources) {
+			PropertySource.PropertyMetaData meta = source.getPropertyMetaData(field, resource);
+			if (meta != null && !meta.isUnknown()) {
+				Object val = source.getProperty(field, resource);
+				return new ValueAndType(val, meta.getValueType());
+			}
+		}
+		return null;
+	}	
+	
+	private String getPropertyValue(String ldapName, Resource resource) {
+		return null; 
+		// TODO: use this instead of map on User/Contact
+	}
 }

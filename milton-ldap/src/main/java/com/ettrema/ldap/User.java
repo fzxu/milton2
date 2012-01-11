@@ -1,7 +1,7 @@
 package com.ettrema.ldap;
 
+import com.bradmcevoy.http.Resource;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -10,11 +10,7 @@ import java.util.Set;
  */
 public interface User {
 
-	/**
-	 * Not really sure what this is for, but i think you can just return the username
-	 * 
-	 * @return 
-	 */
+
 	String getAlias();
 	
 

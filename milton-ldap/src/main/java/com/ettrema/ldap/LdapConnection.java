@@ -18,6 +18,7 @@
  */
 package com.ettrema.ldap;
 
+import com.bradmcevoy.property.PropertySource;
 import com.ettrema.common.LogUtils;
 import com.sun.jndi.ldap.Ber;
 import com.sun.jndi.ldap.BerDecoder;
@@ -173,6 +174,7 @@ public class LdapConnection extends AbstractConnection {
 	 */
 	final HashMap<Integer, SearchRunnable> searchThreadMap = new HashMap<Integer, SearchRunnable>();
 	private final UserFactory userFactory;
+	private final List<PropertySource> propertySources;
 	private User user;
 	private String currentHostName;	
 
@@ -181,9 +183,10 @@ public class LdapConnection extends AbstractConnection {
 	 *
 	 * @param clientSocket LDAP client socket
 	 */
-	public LdapConnection(Socket clientSocket, UserFactory userSessionFactory) {
+	public LdapConnection(Socket clientSocket, UserFactory userSessionFactory, List<PropertySource> propertySources) {
 		super(LdapConnection.class.getSimpleName(), clientSocket);
 		this.userFactory = userSessionFactory;
+		this.propertySources = propertySources;
 		try {
 			is = new BufferedInputStream(client.getInputStream());
 			os = new BufferedOutputStream(client.getOutputStream());
@@ -422,7 +425,7 @@ public class LdapConnection extends AbstractConnection {
 				reqBer.parseBoolean();
 				LdapFilter ldapFilter = parseFilter(reqBer);
 				Set<String> returningAttributes = parseReturningAttributes(reqBer);
-				SearchRunnable searchRunnable = new SearchRunnable(userFactory, currentMessageId, dn, scope, sizeLimit, timelimit, ldapFilter, returningAttributes, this); 
+				SearchRunnable searchRunnable = new SearchRunnable(userFactory, propertySources , currentMessageId, dn, scope, sizeLimit, timelimit, ldapFilter, returningAttributes, this); 
 				if (BASE_CONTEXT.equalsIgnoreCase(dn) || OD_USER_CONTEXT.equalsIgnoreCase(dn) || OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
 					// launch search in a separate thread
 					synchronized (searchThreadMap) {
@@ -803,7 +806,7 @@ public class LdapConnection extends AbstractConnection {
 
 		Condition getContactSearchFilter();
 
-		Map<String, Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException;
+		List<Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException;
 
 		void add(LdapFilter filter);
 

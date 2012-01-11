@@ -19,7 +19,9 @@
 package com.ettrema.ldap;
 
 
+import com.bradmcevoy.property.PropertySource;
 import java.net.Socket;
+import java.util.List;
 
 /**
  * LDAP server, handle LDAP directory requests.
@@ -31,6 +33,8 @@ public class LdapServer extends AbstractServer {
     public static final int DEFAULT_PORT = 389;
 	
 	private final UserFactory userSessionFactory;
+	
+	private final List<PropertySource> propertySources;
 
 	
     /**
@@ -39,9 +43,10 @@ public class LdapServer extends AbstractServer {
      *
      * @param port pop listen port, 389 if not defined (0)
      */
-    public LdapServer(UserFactory userSessionFactory, int port, boolean nosslFlag, String bindAddress) {
+    public LdapServer(UserFactory userSessionFactory, List<PropertySource> propertySources, int port, boolean nosslFlag, String bindAddress) {
         super(LdapServer.class.getName(), port, LdapServer.DEFAULT_PORT, bindAddress);
 		this.userSessionFactory = userSessionFactory;
+		this.propertySources = propertySources;
         this.nosslFlag = nosslFlag;
     }
 
@@ -52,6 +57,6 @@ public class LdapServer extends AbstractServer {
 
     @Override
     public AbstractConnection createConnectionHandler(Socket clientSocket) {
-        return new LdapConnection(clientSocket, userSessionFactory);
+        return new LdapConnection(clientSocket, userSessionFactory, propertySources);
     }
 }

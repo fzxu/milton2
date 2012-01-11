@@ -1,6 +1,6 @@
 package com.ettrema.ldap;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -28,5 +28,5 @@ public interface UserFactory {
 	 * @param sizeLimit
 	 * @return 
 	 */
-	Map<String, Contact> galFind(Condition equalTo, Set<String> convertLdapToContactReturningAttributes, int sizeLimit);	
+	List<Contact> galFind(Condition equalTo, Set<String> convertLdapToContactReturningAttributes, int sizeLimit);	
 }
