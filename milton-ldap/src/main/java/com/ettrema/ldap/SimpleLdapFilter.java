@@ -10,10 +10,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author brad
  */
-class SimpleLdapFilter implements LdapConnection.LdapFilter {
+class SimpleLdapFilter implements LdapFilter {
 	private static final Logger log = LoggerFactory.getLogger(SimpleLdapFilter.class);
 	
-	private final UserFactory userFactory;
+	final UserFactory userFactory;
 	
 	static final String STAR = "*";
 	final String attributeName;
@@ -26,7 +26,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		this.userFactory = userFactory;
 		this.attributeName = attributeName;
 		this.value = SimpleLdapFilter.STAR;
-		this.operator = LdapConnection.LDAP_FILTER_SUBSTRINGS;
+		this.operator = Ldap.LDAP_FILTER_SUBSTRINGS;
 		this.mode = 0;
 		this.canIgnore = checkIgnore();
 	}
@@ -65,12 +65,12 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		buffer.append('=');
 		if (SimpleLdapFilter.STAR.equals(value)) {
 			buffer.append(SimpleLdapFilter.STAR);
-		} else if (operator == LdapConnection.LDAP_FILTER_SUBSTRINGS) {
-			if (mode == LdapConnection.LDAP_SUBSTRING_FINAL || mode == LdapConnection.LDAP_SUBSTRING_ANY) {
+		} else if (operator == Ldap.LDAP_FILTER_SUBSTRINGS) {
+			if (mode == Ldap.LDAP_SUBSTRING_FINAL || mode == Ldap.LDAP_SUBSTRING_ANY) {
 				buffer.append(SimpleLdapFilter.STAR);
 			}
 			buffer.append(value);
-			if (mode == LdapConnection.LDAP_SUBSTRING_INITIAL || mode == LdapConnection.LDAP_SUBSTRING_ANY) {
+			if (mode == Ldap.LDAP_SUBSTRING_INITIAL || mode == Ldap.LDAP_SUBSTRING_ANY) {
 				buffer.append(SimpleLdapFilter.STAR);
 			}
 		} else {
@@ -87,7 +87,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 			return null;
 		}
 		Condition condition = null;
-		if (operator == LdapConnection.LDAP_FILTER_EQUALITY) {
+		if (operator == Ldap.LDAP_FILTER_EQUALITY) {
 			LogUtils.debug(log, "getContactSearchFilter: equality", value);
 			condition = Conditions.isEqualTo(contactAttributeName, value);
 		} else if ("*".equals(value)) {
@@ -96,7 +96,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 			// do not allow substring search on integer field imapUid
 		} else if (!"imapUid".equals(contactAttributeName)) {
 			// endsWith not supported by exchange, convert to contains
-			if (mode == LdapConnection.LDAP_SUBSTRING_FINAL || mode == LdapConnection.LDAP_SUBSTRING_ANY) {
+			if (mode == Ldap.LDAP_SUBSTRING_FINAL || mode == Ldap.LDAP_SUBSTRING_ANY) {
 				LogUtils.debug(log, "getContactSearchFilter: contains", value);
 				condition = Conditions.contains(contactAttributeName, value);
 			} else {
@@ -120,10 +120,10 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		} else if (value == null) {
 			// This is a presence filter: found
 			return true;
-		} else if ((operator == LdapConnection.LDAP_FILTER_EQUALITY) && personAttributeValue.equalsIgnoreCase(value)) {
+		} else if ((operator == Ldap.LDAP_FILTER_EQUALITY) && personAttributeValue.equalsIgnoreCase(value)) {
 			// Found an exact match
 			return true;
-		} else if ((operator == LdapConnection.LDAP_FILTER_SUBSTRINGS) && (personAttributeValue.toLowerCase().indexOf(value.toLowerCase()) >= 0)) {
+		} else if ((operator == Ldap.LDAP_FILTER_SUBSTRINGS) && (personAttributeValue.toLowerCase().indexOf(value.toLowerCase()) >= 0)) {
 			// Found a substring match
 			return true;
 		}
@@ -139,7 +139,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 		if (contactAttributeName != null) {
 			// quick fix for cn=* filter
 			List<Contact> galPersons = userFactory.galFind(Conditions.startsWith(contactAttributeName, "*".equals(value) ? "A" : value), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
-			if (operator == LdapConnection.LDAP_FILTER_EQUALITY) {
+			if (operator == Ldap.LDAP_FILTER_EQUALITY) {
 				// Make sure only exact matches are returned
 				Map<String, Contact> results = new HashMap<String, Contact>();
 				List<Contact> list = new ArrayList<Contact>();
@@ -158,7 +158,7 @@ class SimpleLdapFilter implements LdapConnection.LdapFilter {
 	}
 
 	@Override
-	public void add(LdapConnection.LdapFilter filter) {
+	public void add(LdapFilter filter) {
 		// Should never be called
 		log.error("LOG_LDAP_UNSUPPORTED_FILTER", "nested simple filters");
 	}

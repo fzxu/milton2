@@ -7,8 +7,8 @@ import java.util.*;
  *
  * @author brad
  */
-public class CompoundLdapFilter implements LdapConnection.LdapFilter {
-	final Set<LdapConnection.LdapFilter> criteria = new HashSet<LdapConnection.LdapFilter>();
+public class CompoundLdapFilter implements LdapFilter {
+	final Set<LdapFilter> criteria = new HashSet<LdapFilter>();
 	final int type;
 
 	CompoundLdapFilter(int filterType) {
@@ -18,14 +18,14 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 	@Override
 	public String toString() {
 		StringBuilder buffer = new StringBuilder();
-		if (type == LdapConnection.LDAP_FILTER_OR) {
+		if (type == Ldap.LDAP_FILTER_OR) {
 			buffer.append("(|");
-		} else if (type == LdapConnection.LDAP_FILTER_AND) {
+		} else if (type == Ldap.LDAP_FILTER_AND) {
 			buffer.append("(&");
 		} else {
 			buffer.append("(!");
 		}
-		for (LdapConnection.LdapFilter child : criteria) {
+		for (LdapFilter child : criteria) {
 			buffer.append(child.toString());
 		}
 		buffer.append(')');
@@ -37,7 +37,8 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 	 *
 	 * @param filter inner filter
 	 */
-	public void add(LdapConnection.LdapFilter filter) {
+	@Override
+	public void add(LdapFilter filter) {
 		criteria.add(filter);
 	}
 
@@ -49,7 +50,7 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 	 */
 	@Override
 	public boolean isFullSearch() {
-		for (LdapConnection.LdapFilter child : criteria) {
+		for (LdapFilter child : criteria) {
 			if (!child.isFullSearch()) {
 				return false;
 			}
@@ -63,14 +64,15 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 	 *
 	 * @return contact search filter
 	 */
+	@Override
 	public Condition getContactSearchFilter() {
 		MultiCondition condition;
-		if (type == LdapConnection.LDAP_FILTER_OR) {
+		if (type == Ldap.LDAP_FILTER_OR) {
 			condition = Conditions.or();
 		} else {
 			condition = Conditions.and();
 		}
-		for (LdapConnection.LdapFilter child : criteria) {
+		for (LdapFilter child : criteria) {
 			condition.add(child.getContactSearchFilter());
 		}
 		return condition;
@@ -84,8 +86,8 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 	 */
 	@Override
 	public boolean isMatch(Map<String, String> person) {
-		if (type == LdapConnection.LDAP_FILTER_OR) {
-			for (LdapConnection.LdapFilter child : criteria) {
+		if (type == Ldap.LDAP_FILTER_OR) {
+			for (LdapFilter child : criteria) {
 				if (!child.isFullSearch()) {
 					if (child.isMatch(person)) {
 						// We've found a match
@@ -95,8 +97,8 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 			}
 			// No subconditions are met
 			return false;
-		} else if (type == LdapConnection.LDAP_FILTER_AND) {
-			for (LdapConnection.LdapFilter child : criteria) {
+		} else if (type == Ldap.LDAP_FILTER_AND) {
+			for (LdapFilter child : criteria) {
 				if (!child.isFullSearch()) {
 					if (!child.isMatch(person)) {
 						// We've found a miss
@@ -121,7 +123,7 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 	@Override
 	public List<Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
 		List<Contact> persons = null;
-		for (LdapConnection.LdapFilter child : criteria) {
+		for (LdapFilter child : criteria) {
 			int currentSizeLimit = sizeLimit;
 			if (persons != null) {
 				currentSizeLimit -= persons.size();
@@ -130,10 +132,10 @@ public class CompoundLdapFilter implements LdapConnection.LdapFilter {
 			if (childFind != null) {
 				if (persons == null) {
 					persons = childFind;
-				} else if (type == LdapConnection.LDAP_FILTER_OR) {
+				} else if (type == Ldap.LDAP_FILTER_OR) {
 					// Create the union of the existing results and the child found results
 					persons.addAll(childFind);
-				} else if (type == LdapConnection.LDAP_FILTER_AND) {
+				} else if (type == Ldap.LDAP_FILTER_AND) {
 					// Append current child filter results that match all child filters to persons.
 					// The hard part is that, due to the 100-item-returned galFind limit
 					// we may catch new items that match all child filters in each child search.
