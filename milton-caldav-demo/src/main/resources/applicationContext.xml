@@ -34,7 +34,7 @@
 
 	<bean id="resource.type.helper.caldav" class="com.ettrema.http.caldav.CalendarResourceTypeHelper">
 		<constructor-arg ref="resource.type.helper.acl"/>
-	</bean>
+	</bean>        
 
 	<bean id="resource.type.helper.carddav" class="com.ettrema.http.carddav.AddressBookResourceTypeHelper">
 		<constructor-arg ref="resource.type.helper.caldav"/>

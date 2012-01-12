@@ -77,16 +77,16 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 							knownProps.put(name, new ValueAndType(null, meta.getValueType()));
 							break;
 						} catch (NotAuthorizedException e) {
-							log.trace("setProperties: NotAuthorised to write property: {}", name, e);
+							log.warn("setProperties: NotAuthorised to write property: {}", name, e);
 							addErrorProp(errorProps, Response.Status.SC_UNAUTHORIZED, name, "Not authorised");
 							break;
 						} catch (PropertySetException ex) {
-							log.trace("setProperties: PropertySetException when writing property {}", name, ex);
+							log.warn("setProperties: PropertySetException when writing property {}", name, ex);
 							addErrorProp(errorProps, ex.getStatus(), name, ex.getErrorNotes());
 							break;
 						}
 					} else {
-						log.debug("property is not writable in source: " + source.getClass());
+						log.warn("property is not writable in source: " + source.getClass());
 						addErrorProp(errorProps, Response.Status.SC_FORBIDDEN, name, "Property is read only");
 						break;
 					}
@@ -95,7 +95,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 				}
 			}
 			if (!found) {
-				log.debug("property not found: " + entry.getKey());
+				log.warn("property not found: " + entry.getKey());
 				addErrorProp(errorProps, Status.SC_NOT_FOUND, entry.getKey(), "Unknown property");
 			}
 		}
@@ -120,7 +120,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 								break;
 							}
 						} else {
-							log.debug("property is not writable in source: " + source.getClass());
+							log.warn("property is not writable in source: " + source.getClass());
 							addErrorProp(errorProps, Response.Status.SC_FORBIDDEN, name, "Property is read only");
 							break;
 						}
@@ -129,7 +129,7 @@ public class PropertySourcePatchSetter implements PropPatchSetter {
 					}
 				}
 				if (!found) {
-					log.debug("property not found to remove: " + name);
+					log.warn("property not found to remove: " + name);
 					addErrorProp(errorProps, Status.SC_NOT_FOUND, name, "Unknown property");
 				}
 			}
