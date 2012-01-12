@@ -12,8 +12,6 @@ import com.bradmcevoy.http.values.ValueWriters;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindXmlGenerator;
 import com.bradmcevoy.http.webdav.PropFindXmlGeneratorHelper;
-import com.bradmcevoy.http.webdav.PropertiesRequest;
-import com.bradmcevoy.http.webdav.PropertiesRequest.Property;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.property.PropertySource;
 import java.io.ByteArrayInputStream;
@@ -39,7 +37,7 @@ public class ExpandPropertyReportTest extends TestCase {
 	PropFindableResource otherResource;
         PropFindableResource otherResource2;
 	PropFindPropertyBuilder propertyBuilder;
-	ExpandPropertyReport rep;
+	ExpandPropertyReport rep; 
 	PropertySource propertySource;
 	PropertySource.PropertyMetaData meta1;
         PropertySource.PropertyMetaData meta2;
