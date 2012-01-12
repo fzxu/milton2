@@ -37,16 +37,20 @@ public class TFolderResource extends TTextResource implements PutableResource, M
     public Long getContentLength() {
         return null;
     }
+
+	@Override
+	public String getContentType(String accept) {
+		return null;
+	}
     
-    public String getContentType() {
-        return null;
-    }
-    
+	
+	
     @Override
     public String checkRedirect(Request request) {
         return null;
     }
     
+	@Override
     public List<? extends Resource> getChildren() {
         return children;
     }
@@ -87,6 +91,7 @@ public class TFolderResource extends TTextResource implements PutableResource, M
         return bos;
     }
     
+	@Override
     public CollectionResource createCollection(String newName) {
         log.debug( "createCollection: " + newName);
         TFolderResource r = new TFolderResource(this,newName);
@@ -111,6 +116,7 @@ public class TFolderResource extends TTextResource implements PutableResource, M
         return null;
     }
 
+	@Override
     public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
         ByteArrayOutputStream bos = readStream(inputStream);
         log.debug("createNew: " + bos.size() + " - name: " + newName + " current child count: " + this.children.size());
@@ -120,6 +126,7 @@ public class TFolderResource extends TTextResource implements PutableResource, M
         return r;
     }
 
+	@Override
     public Resource child(String childName) {
         for( Resource r : getChildren() ) {
             if( r.getName().equals(childName)) return r;
@@ -127,6 +134,7 @@ public class TFolderResource extends TTextResource implements PutableResource, M
         return null;
     }
 
+	@Override
     public LockToken createAndLock(String name, LockTimeout timeout, LockInfo lockInfo) {
         TTempResource temp = new TTempResource(this, name);
         LockResult r = temp.lock(timeout, lockInfo);

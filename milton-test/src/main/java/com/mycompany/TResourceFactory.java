@@ -9,7 +9,7 @@ public class TResourceFactory implements ResourceFactory {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TResourceFactory.class);
     
-    public static final TFolderResource ROOT = new TFolderResource((TFolderResource)null,"localhost:80/webdav");
+    public static final TFolderResource ROOT = new TFolderResource((TFolderResource)null,"");
     
     static {        
         String user = "Mufasa";
@@ -41,23 +41,36 @@ public class TResourceFactory implements ResourceFactory {
     }
     
     
+	@Override
     public Resource getResource(String host, String url) {
         log.debug("getResource: url: " + url );
         Path path = Path.path(url);
         Resource r = find(path);
-        log.debug("_found: " + r);
+		if( r == null ) {
+			log.warn("getResource: not found: " + url);
+		} else {
+			log.debug("getResource: found: " + r.getName() + " for url: " + url);
+		}
         return r;
     }
 
     private TResource find(Path path) {
-        if( isRoot(path) ) return ROOT;
-        TResource r = find(path.getParent());
-        if( r == null ) return null;
-        if( r instanceof TFolderResource ) {
-            TFolderResource folder = (TFolderResource)r;
-			TResource r2 = (TResource)folder.child(path.getName());
-			if( r2 != null ) {
-				return r2;
+		System.out.println("find: " + path);
+        if( isRoot(path) ) {
+			System.out.println("found root at: " + path);
+			return ROOT;
+		}
+        TResource parent = find(path.getParent());
+        if( parent == null ) {
+			System.out.println("found null at");
+			return null;
+		}
+        if( parent instanceof TFolderResource ) {
+            TFolderResource folder = (TFolderResource)parent;
+			TResource child = (TResource)folder.child(path.getName());
+			if( child != null ) {
+				System.out.println("found res: " + child.getName());
+				return child;
 			}
         }
         log.debug("not found: " + path);
@@ -70,8 +83,7 @@ public class TResourceFactory implements ResourceFactory {
     }
 
     private boolean isRoot( Path path ) {
-        if( path == null ) return true;
-        return ( path.getParent() == null || path.getParent().isRoot());
+        return ( path == null || path.isRoot() );
     }
 
 }

@@ -323,7 +323,9 @@ public class WebDavProtocol implements HttpExtension, PropertySource {
         public String getValue( PropFindableResource res ) {
             if( res instanceof GetableResource ) {
                 GetableResource getable = (GetableResource) res;
-                return getable.getContentType( null );
+                String s = getable.getContentType( null );
+				System.out.println("getcontenttype: " + res.getName() + " = " + s + " (" + res.getClass() + ")");
+				return s;
             } else {
                 return "";
             }

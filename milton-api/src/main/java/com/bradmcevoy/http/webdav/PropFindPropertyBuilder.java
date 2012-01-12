@@ -67,7 +67,8 @@ public class PropFindPropertyBuilder {
 	 * @return
 	 */
 	public List<PropFindResponse> buildProperties(PropFindableResource pfr, int depth, PropertiesRequest parseResult, String url) throws URISyntaxException {
-		LogUtils.trace(log, "buildProperties: ", pfr.getClass());
+		LogUtils.trace(log, "buildProperties: ", pfr.getClass(), "url:", url);
+		url = fixUrl(url);
 		List<PropFindResponse> propFindResponses = new ArrayList<PropFindResponse>();
 		appendResponses(propFindResponses, pfr, depth, parseResult, url);
 		return propFindResponses;
@@ -198,5 +199,18 @@ public class PropFindPropertyBuilder {
 			}
 		}
 		return names;
+	}
+
+	/**
+	 * Requested URL *should* never contain an ampersand because its a reserved
+	 * character. However windows 7 does send unencoded ampersands in requests,
+	 * but expects them to be encoded in responses.
+	 * 
+	 * @param url
+	 * @return 
+	 */
+	private String fixUrl(String url) {
+		//return url;
+		return url.replace("&", "%26");
 	}
 }

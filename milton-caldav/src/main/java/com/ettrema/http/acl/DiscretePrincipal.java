@@ -1,12 +1,14 @@
 package com.ettrema.http.acl;
 
+import com.bradmcevoy.http.Resource;
+
 /**
  * Indicates a principle which is identifiable by a URL, like a user or
  * an application defined group
  *
  * @author brad
  */
-public interface DiscretePrincipal extends Principal{
+public interface DiscretePrincipal extends Principal, Resource{
 
         
     /**

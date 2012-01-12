@@ -186,7 +186,6 @@ public abstract class TResource extends AbstractResource implements GetableResou
       throw new UnsupportedOperationException("Not supported yet.");
     }
 	
-
 	@Override
 	public void setAccessControlList(Map<Principal, List<Priviledge>> privs) {
 		throw new UnsupportedOperationException("Not supported yet.");

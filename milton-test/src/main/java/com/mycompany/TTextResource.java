@@ -55,7 +55,7 @@ public class TTextResource extends TResource implements PostableResource, Replac
     }
 
     public String getContentType( String accept ) {
-        return Response.ContentType.HTTP.toString();
+        return "text";
     }
 
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException {

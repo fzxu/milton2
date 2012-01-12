@@ -38,9 +38,9 @@ public class TransferService {
 		notifyStartRequest();
 		HttpMethodBase m;
 		if (rangeList != null) {
-			m = new RangedGetMethod(Host.urlEncode(url), rangeList);
+			m = new RangedGetMethod(url, rangeList);
 		} else {
-			m = new GetMethod(Host.urlEncode(url)); 
+			m = new GetMethod(url);
 		}
 		InputStream in = null;
 		NotifyingFileInputStream nin = null;

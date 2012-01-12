@@ -248,7 +248,7 @@ public class SearchRunnable implements Runnable {
                 log.warn("Abandon flag is set, so exiting send!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                 break;
             }
-            Map<String, Object> ldapPerson = new HashMap<String, Object>();
+            Map<String, Object> mapOfPersons = new HashMap<String, Object>();
             // convert Contact entries
             // convert Contact entries
             if (returnAllAttributes) {
@@ -256,12 +256,12 @@ public class SearchRunnable implements Runnable {
                     String ldapAttribute = entry.getKey();
                     String value = entry.getValue();
                     if (value != null) {
-                        ldapPerson.put(ldapAttribute, value);
+                        mapOfPersons.put(ldapAttribute, value);
                     }
                 }
             } else {
                 // always map uid
-                ldapPerson.put("uid", person.getUniqueId());
+                mapOfPersons.put("uid", person.getUniqueId());
                 // iterate over requested attributes
                 for (String ldapAttribute : returningAttributes) {
                     String contactAttribute = ldapAttribute;
@@ -283,7 +283,7 @@ public class SearchRunnable implements Runnable {
 //								value = String.valueOf(calendar.get(Calendar.YEAR));
 //							}
 //						}
-						ldapPerson.put(ldapAttribute, value);
+						mapOfPersons.put(ldapAttribute, value);
 					}
 				}
 			}
@@ -292,31 +292,31 @@ public class SearchRunnable implements Runnable {
 				String ldapAttribute = entry.getKey();
 				String value = entry.getValue();
 				if (value != null && (returnAllAttributes || returningAttributes.contains(ldapAttribute))) {
-					ldapPerson.put(ldapAttribute, value);
+					mapOfPersons.put(ldapAttribute, value);
 				}
 			}
 			if (needObjectClasses) {
-				ldapPerson.put("objectClass", Ldap.PERSON_OBJECT_CLASSES);
+				mapOfPersons.put("objectClass", Ldap.PERSON_OBJECT_CLASSES);
 			}
 			// iCal: copy email to apple-generateduid, encode @
 			if (returnAllAttributes || returningAttributes.contains("apple-generateduid")) {
-				String mail = (String) ldapPerson.get("mail");
+				String mail = (String) mapOfPersons.get("mail");
 				if (mail != null) {
-					ldapPerson.put("apple-generateduid", mail.replaceAll("@", "__AT__"));
+					mapOfPersons.put("apple-generateduid", mail.replaceAll("@", "__AT__"));
 				} else {
 					// failover, should not happen
 					// failover, should not happen
-					ldapPerson.put("apple-generateduid", ldapPerson.get("uid"));
+					mapOfPersons.put("apple-generateduid", mapOfPersons.get("uid"));
 				}
 			}
 			// iCal: replace current user alias with login name
-			if (user.getAlias().equals(ldapPerson.get("uid"))) {
+			if (user.getAlias().equals(mapOfPersons.get("uid"))) {
 				if (returningAttributes.contains("uidnumber")) {
-					ldapPerson.put("uidnumber", user.getAlias());
+					mapOfPersons.put("uidnumber", user.getAlias());
 				}
 			}
-			LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_SEND_PERSON", currentMessageId, ldapPerson.get("uid"), baseContext, ldapPerson);
-			responseHandler.sendEntry(currentMessageId, "uid=" + ldapPerson.get("uid") + baseContext, ldapPerson);
+			LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_SEND_PERSON", currentMessageId, mapOfPersons.get("uid"), baseContext, mapOfPersons);
+			responseHandler.sendEntry(currentMessageId, "uid=" + mapOfPersons.get("uid") + baseContext, mapOfPersons);
 		}
 	}
 
