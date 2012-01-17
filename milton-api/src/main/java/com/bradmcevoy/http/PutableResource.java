@@ -38,7 +38,8 @@ public interface PutableResource extends CollectionResource {
      * @param newName - the name to create within the collection. E.g. myFile.txt
      * @param inputStream - the data to populate the resource with
      * @param length - the length of the data
-     * @param contentType - the content type to create
+     * @param contentType - the content type of the data being uploaded. This can be a list, such as "image/pjpeg,image/jpeg". It
+	 * is the responsibility of the application to create a resource which also represents those content types, or a subset
      * @return - a reference to the new resource
      * @throws IOException
      * @throws ConflictException
