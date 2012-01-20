@@ -27,7 +27,7 @@ public class TResourceFactory implements ResourceFactory {
 	static TFolderResource principals;
 
     static {
-		principals = new TFolderResource(ROOT, "principals");
+		principals = new TFolderResource(ROOT, "p");
 		users = principals; // same as sabresav demo
         //users = new TFolderResource( principals, "users" );        
         addUser(users, "userA","password");
@@ -42,9 +42,9 @@ public class TResourceFactory implements ResourceFactory {
         TEvent e = new TEvent(cal1, "event1.ics");
         e.setiCalData(createICalData());
 		
-		TFolderResource addressBooks = new TFolderResource(userA, "addressBooks");
+		TFolderResource addressBooks = new TFolderResource(userA, "abs");
 		userA.setAddressBookHome(addressBooks);
-		TAddressBookResource addressBook1 = new TAddressBookResource(addressBooks, "addressbook");
+		TAddressBookResource addressBook1 = new TAddressBookResource(addressBooks, "ab");
 		System.out.println("created address book: " + addressBook1.getHref());
 		TContact c1 = new TContact(addressBook1, "contact1.vcf");
 		c1.setData(getCardDavData("111222333"));

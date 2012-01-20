@@ -52,7 +52,10 @@ public class ValueWriters {
         writers.add(new HrefListValueWriter());
         writers.add(new WrappedHrefWriter());
         writers.add(new SupportedReportSetWriter()); 
-        writers.add(new ToStringValueWriter());
+		writers.add(new AddressDataTypeListValueWriter());
+		// ToStringValueWriter is the default value writer and applied when no 
+		// other writer is available.
+		writers.add(new ToStringValueWriter()); 
     }
 
     /**

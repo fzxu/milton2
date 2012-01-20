@@ -1,6 +1,5 @@
 package com.ettrema.http.carddav;
 
-
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.DigestResource;
 import com.bradmcevoy.http.GetableResource;
@@ -40,6 +39,12 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ettrema.http.AddressResource;
+import com.ettrema.http.AddressBookResource;
+import com.bradmcevoy.http.values.Pair;
+import com.bradmcevoy.http.values.AddressDataTypeList;
+import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
+import com.ettrema.http.caldav.ExpandPropertyReport;
 
 /**
  *
@@ -51,17 +56,27 @@ public class CardDavProtocol implements HttpExtension, PropertySource, WellKnown
     // Standard caldav properties
     public static final String CARDDAV_NS = "urn:ietf:params:xml:ns:carddav";
     private final Set<Handler> handlers;
-    private final PropertyMap propertyMapCalDav;
+    private final PropertyMap propertyMapCardDav;
 
     public CardDavProtocol(ResourceFactory resourceFactory, WebDavResponseHandler responseHandler, HandlerHelper handlerHelper, WebDavProtocol webDavProtocol) {
-        propertyMapCalDav = new PropertyMap(CARDDAV_NS);
-		propertyMapCalDav.add(new AddressBookHomeSetProperty());
+        propertyMapCardDav = new PropertyMap(CARDDAV_NS);
+        propertyMapCardDav.add(new AddressBookHomeSetProperty());
+        propertyMapCardDav.add(new AddressBookDescriptionProperty());
+        propertyMapCardDav.add(new SupportedAddressData());
+        propertyMapCardDav.add(new PrincipalAddress());
+        propertyMapCardDav.add(new AddressDataProperty());
 
         handlers = new HashSet<Handler>();
 
         ValueWriters valueWriters = new ValueWriters();
         PropFindXmlGenerator gen = new PropFindXmlGenerator(valueWriters);
         webDavProtocol.addPropertySource(this);
+        PropFindPropertyBuilder propertyBuilder = new PropFindPropertyBuilder(webDavProtocol.getPropertySources());
+        
+        webDavProtocol.addReport(new AddressBookMultiGetReport(resourceFactory, propertyBuilder, gen));
+        webDavProtocol.addReport(new AddressBookQueryReport());
+        webDavProtocol.addReport(new ExpandPropertyReport(resourceFactory, propertyBuilder, gen));
+        webDavProtocol.addReport(new PrincipalPropertySearchReport());
     }
 
     @Override
@@ -74,11 +89,11 @@ public class CardDavProtocol implements HttpExtension, PropertySource, WellKnown
     public Object getProperty(QName name, Resource r) {
         log.trace("getProperty: {}", name.getLocalPart());
         Object o;
-        if (propertyMapCalDav.hasProperty(name)) {
-            o = propertyMapCalDav.getProperty(name, r);
+        if (propertyMapCardDav.hasProperty(name)) {
+            o = propertyMapCardDav.getProperty(name, r);
         } else {
-			o = null;
-		}
+            o = null;
+        }
         log.debug("result : " + o);
         return o;
     }
@@ -86,21 +101,21 @@ public class CardDavProtocol implements HttpExtension, PropertySource, WellKnown
     @Override
     public void setProperty(QName name, Object value, Resource r) {
         log.trace("setProperty: {}", name.getLocalPart());
-        if (propertyMapCalDav.hasProperty(name)) {
-            propertyMapCalDav.setProperty(name, r, value);
+        if (propertyMapCardDav.hasProperty(name)) {
+            propertyMapCardDav.setProperty(name, r, value);
         }
     }
 
     @Override
-    public PropertyMetaData getPropertyMetaData(QName name, Resource r) {        
-		PropertyMetaData md;
-        if (propertyMapCalDav.hasProperty(name)) {
-            md = propertyMapCalDav.getPropertyMetaData(name, r);
+    public PropertyMetaData getPropertyMetaData(QName name, Resource r) {
+        PropertyMetaData md;
+        if (propertyMapCardDav.hasProperty(name)) {
+            md = propertyMapCardDav.getPropertyMetaData(name, r);
         } else {
-			md = null;
-		}
-		log.trace("getPropertyMetaData: {} - returned: {}", name.getLocalPart(), md);
-		return md;
+            md = null;
+        }
+        log.trace("getPropertyMetaData: {} - returned: {}", name.getLocalPart(), md);
+        return md;
     }
 
     @Override
@@ -112,7 +127,7 @@ public class CardDavProtocol implements HttpExtension, PropertySource, WellKnown
     public List<QName> getAllPropertyNames(Resource r) {
         log.trace("getAllPropertyNames");
         List<QName> list = new ArrayList<QName>();
-        list.addAll(propertyMapCalDav.getAllPropertyNames(r));
+        list.addAll(propertyMapCardDav.getAllPropertyNames(r));
         return list;
     }
 
@@ -120,16 +135,103 @@ public class CardDavProtocol implements HttpExtension, PropertySource, WellKnown
     public List<CustomPostHandler> getCustomPostHandlers() {
         return null;
     }
+    
+    // (CARDDAV:supported-address-data-conversion -- requires implemenation
+    /**
+     * When used in an address book REPORT request, the CARDDAV:address-data XML 
+     * element specifies which parts of address object resources need to be 
+     * returned in the response. If the CARDDAV:address-data XML element doesn’t 
+     * contain any CARDDAV:prop elements, address object resources will be 
+     * returned in their entirety. Additionally, a media type and version can be 
+     * specified to request that the server return the data in that format if possible.
+     * Finally, when used in an address book REPORT response, the CARDDAV:address-data 
+     * XML element specifies the content of an address object resource. Given that 
+     * XML parsers normalize the two-character sequence CRLF (US-ASCII decimal 13 and US-ASCII
+     * decimal 10) to a single LF character (US-ASCII decimal 10), the CR
+     * character (US-ASCII decimal 13) MAY be omitted in address object
+     * resources specified in the CARDDAV:address-data XML element.
+     * Furthermore, address object resources specified in the
+     * CARDDAV:address-data XML element MAY be invalid per their media
+     * type specification if the CARDDAV:address-data XML element part of
+     * the address book REPORT request did not specify required vCard
+     * properties (e.g., UID, etc.) or specified a CARDDAV:prop XML
+     * element with the "novalue" attribute set to "yes".
+     * 
+     * Note: The CARDDAV:address-data XML element is specified in requests
+     * and responses inside the DAV:prop XML element as if it were a
+     * WebDAV property. However, the CARDDAV:address-data XML element is
+     * not a WebDAV property and as such it is not returned in PROPFIND
+     * responses nor used in PROPPATCH requests.
+     * 
+     * Note: The address data embedded within the CARDDAV:address-data XML
+     * element MUST follow the standard XML character data encoding
+     * rules, including use of &lt;, &gt;, &amp; etc., entity encoding or
+     * the use of a <![CDATA[ ... ]]> construct. In the latter case, the
+     * vCard data cannot contain the character sequence "]]>", which is
+     * the end delimiter for the CDATA section.
+     * 
+     * Definition:
+     * <!ELEMENT address-data (allprop | prop*)>
+     * when nested in the DAV:prop XML element in an address book
+     * REPORT request to specify which parts of address object
+     * resources should be returned in the response;
+     * <!ELEMENT address-data (#PCDATA)>
+     * <!-- PCDATA value: address data -->
+     * when nested in the DAV:prop XML element in an address book
+     * REPORT response to specify the content of a returned
+     * address object resource.
+     * <!ATTLIST address-data content-type CDATA "text/vcard"
+     * version CDATA "3.0">
+     * <!-- content-type value: a MIME media type -->
+     * <!-- version value: a version string -->
+     * attributes can be used on each variant of the
+     * CALDAV:address-data XML element.
+     */
+    class AddressDataProperty implements StandardProperty<String> {
+        @Override
+        public String fieldName() {
+            return "address-data";
+        }
+        @Override
+        public String getValue(PropFindableResource res) {
+            if (res instanceof AddressResource) {
+                AddressResource resource = (AddressResource) res;
+                return resource.getAddressData(); 
+            } else {
+                return null;
+            }
+        }
 
+        @Override
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+    }
 
+    /**
+     * This property is meant to allow users to easily find the address book 
+     * collections owned by the principal. Typically, users will group all the 
+     * address book collections that they own under a common collection. This
+     * property specifies the URL of collections that are either address
+     * book collections or ordinary collections that have child or
+     * descendant address book collections owned by the principal.
+     * 
+     * Definition:
+     * <!ELEMENT addressbook-home-set (DAV:href*)>
+     * 
+     * Example:
+     * <C:addressbook-home-set xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:carddav">
+     *      <D:href>/bernard/addresses/</D:href>
+     * </C:addressbook-home-set>
+     */
     class AddressBookHomeSetProperty implements StandardProperty<HrefList> {
 
-		@Override
+        @Override
         public String fieldName() {
             return "addressbook-home-set";
         }
 
-		@Override
+        @Override
         public HrefList getValue(PropFindableResource res) {
             if (res instanceof CardDavPrincipal) {
                 return ((CardDavPrincipal) res).getAddressBookHomeSet();
@@ -138,13 +240,177 @@ public class CardDavProtocol implements HttpExtension, PropertySource, WellKnown
             }
         }
 
-		@Override
+        @Override
         public Class<HrefList> getValueClass() {
             return HrefList.class;
         }
     }
 
+    /*
+     * This property contains a description of the address book collection that 
+     * is suitable for presentation to a user. The xml:lang attribute can be 
+     * used to add a language tag for the value of this property.
+     * 
+     * Definition: 
+     * <!ELEMENT addressbook-description (#PCDATA)>
+     * <!-- PCDATA value: string -->
+     * 
+     * Example:
+     * <C:addressbook-description xml:lang="fr-CA"
+     * xmlns:C="urn:ietf:params:xml:ns:carddav">Adresses de Oliver Daboo</C:addressbook-description>
+     */
+    class AddressBookDescriptionProperty implements StandardProperty<String> {
+        // todo - add support of internationalization so the protocol can allow
+        // multiple language description, this can be accomplished by either 
+        // add a method(getAttributes) to StandardProperty interface or we can 
+        // have an InternationalizedStandardProperty interface that would extend
+        // from StandardProperty and have an additional method (getLanguage)
+        @Override
+        public String fieldName() {
+            return "addressbook-description";
+        }
+
+        @Override
+        public String getValue(PropFindableResource res) {
+            if (res instanceof AddressBookResource) {
+                AddressBookResource addressBookResource = (AddressBookResource) res;
+                return addressBookResource.getDescription().getValue();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+    }
+
+    /**
+     * This property is used to specify the media type supported for the address 
+     * object resources contained in a given address book collection (e.g., 
+     * vCard version 3.0). Any attempt by the client to store address object 
+     * resources with a media type not listed in this property MUST result in 
+     * an error, with the CARDDAV:supported-address-data precondition 
+     * (Section 6.3.2.1) being violated. In the absence of this property, 
+     * the server MUST only accept data with the media type "text/vcard" and 
+     * vCard version 3.0, and clients can assume that is all the server will accept.
+     * 
+     * Definition:
+     * <!ELEMENT supported-address-data (address-data-type+)>
+     *      <!ELEMENT address-data-type EMPTY>
+     * <!ATTLIST address-data-type content-type CDATA "text/vcard" version CDATA "3.0">
+     * <!-- content-type value: a MIME media type -->
+     * <!-- version value: a version string -->
+     * 
+     * Example:
+     * <C:supported-address-data xmlns:C="urn:ietf:params:xml:ns:carddav">
+     *      <C:address-data-type content-type="text/vcard" version="3.0"/>
+     * </C:supported-address-data>
+     */
+    class SupportedAddressData implements StandardProperty<List<Pair<String, String>>> {
+
+        @Override
+        public String fieldName() {
+            return "supported-address-data";
+        }
+
+        @Override
+        public List<Pair<String, String>> getValue(PropFindableResource res) {
+            if (res instanceof AddressBookResource) {
+                return ((AddressBookResource) res).getSupportedAddressData();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public Class<AddressDataTypeList> getValueClass() {
+            return AddressDataTypeList.class;
+        }
+    }
+
+    /**
+     * This property is used to specify a numeric value that represents the 
+     * maximum size in octets that the server is willing to accept when an 
+     * address object resource is stored in an address book collection. 
+     * Any attempt to store an address book object resource exceeding this 
+     * size MUST result in an error, with the CARDDAV:max-resource-size precondition
+     * (Section 6.3.2.1) being violated. In the absence of this
+     * property, the client can assume that the server will allow storing
+     * a resource of any reasonable size.
+     * 
+     * Definition:
+     * <!ELEMENT max-resource-size (#PCDATA)>
+     * <!-- PCDATA value: a numeric value (positive decimal integer) -->
+     * 
+     * Example:
+     * <C:max-resource-size xmlns:C="urn:ietf:params:xml:ns:carddav">102400</C:max-resource-size>
+     * 
+     */
+    class MaxResourceSize implements StandardProperty<Long> {
+
+        @Override
+        public String fieldName() {
+            return "max-resource-size";
+        }
+
+        @Override
+        public Long getValue(PropFindableResource res) {
+            if (res instanceof AddressBookResource) {
+                return ((AddressBookResource) res).getMaxResourceSize();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public Class<Long> getValueClass() {
+            return Long.class;
+        }
+    }
     
+    /**
+     * This property is meant to allow users to easily find contact information 
+     * for users represented by principals on the system. This property specifies
+     * the URL of the resource containing the corresponding contact
+     * information. The resource could be an address object resource in
+     * an address book collection, or it could be a resource in a
+     * "regular" collection.
+     * 
+     * Definition:
+     * <!ELEMENT principal-address (DAV:href)>
+     * 
+     * Example:
+     * <C:principal-address xmlns:D="DAV:"xmlns:C="urn:ietf:params:xml:ns:carddav">
+     *      <D:href>/system/cyrus.vcf</D:href>
+     * </C:principal-address>
+     * 
+     */
+    class PrincipalAddress implements StandardProperty<String> {
+
+        @Override
+        public String fieldName() {
+            return "principal-address";
+        }
+
+        @Override
+        public String getValue(PropFindableResource res) {
+            if (res instanceof CardDavPrincipal) {
+                return ((CardDavPrincipal) res).getAddress();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public Class<Long> getValueClass() {
+            return Long.class;
+        }
+    }
+    
+    
+
     @Override
     public String getWellKnownName() {
         return "carddav";

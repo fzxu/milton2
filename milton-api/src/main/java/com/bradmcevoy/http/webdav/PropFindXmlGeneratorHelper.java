@@ -44,6 +44,7 @@ public class PropFindXmlGeneratorHelper {
 		//xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:cs="http://calendarserver.org/ns/"
 		map.put("urn:ietf:params:xml:ns:caldav", "cal");
 		map.put("http://calendarserver.org/ns/", "cs");
+		map.put("urn:ietf:params:xml:ns:carddav", "card");
 		for (PropFindResponse r : propFindResponses) {
 			for (QName p : r.getKnownProperties().keySet()) {
 				String uri = p.getNamespaceURI();

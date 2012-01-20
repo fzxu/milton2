@@ -14,5 +14,12 @@ public interface CardDavPrincipal extends DiscretePrincipal {
      *
      */
     HrefList getAddressBookHomeSet();
+    
+    /**
+     * Returns the URL of an address object resource that corresponds to the 
+     * user represented by the principal.
+     * 
+     */
+    String getAddress();
 
 }

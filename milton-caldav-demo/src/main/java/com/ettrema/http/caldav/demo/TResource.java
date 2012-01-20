@@ -21,6 +21,7 @@ import com.ettrema.http.acl.Principal;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
@@ -183,7 +184,15 @@ public abstract class TResource extends AbstractResource implements GetableResou
 
 	@Override
     public List<Priviledge> getPriviledges(Auth auth) {
-      throw new UnsupportedOperationException("Not supported yet.");
+      List<Priviledge> priviledgesList = new ArrayList<Priviledge>();
+      priviledgesList.add(Priviledge.READ);
+      priviledgesList.add(Priviledge.READ_ACL);
+      priviledgesList.add(Priviledge.READ_CURRENT_USER_PRIVILEDGE);
+      priviledgesList.add(Priviledge.UNLOCK);
+      priviledgesList.add(Priviledge.WRITE);
+      priviledgesList.add(Priviledge.WRITE_ACL);
+      
+      return priviledgesList;
     }
 	
 	@Override

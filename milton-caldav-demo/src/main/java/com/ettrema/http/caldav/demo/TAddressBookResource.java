@@ -1,15 +1,20 @@
 package com.ettrema.http.caldav.demo;
 
+import com.bradmcevoy.common.InternationalizedString;
 import com.bradmcevoy.http.ReportableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.values.AddressDataTypeList;
 import com.ettrema.http.AddressBookResource;
 import java.io.IOException;
 import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.bradmcevoy.http.values.Pair;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  *
@@ -52,5 +57,26 @@ public class TAddressBookResource extends TFolderResource implements AddressBook
 		}
     }
 
+    @Override
+    public InternationalizedString getDescription(){
+        return new InternationalizedString("fr-CA", "Adresses de Oliver Daboo");
+    }
+    
+    @Override 
+    public void setDescription(InternationalizedString description){
+        
+    }
+    
+    @Override
+    public Long getMaxResourceSize(){
+        return 102400L; 
+    }
+    
+    @Override
+    public AddressDataTypeList getSupportedAddressData(){
+        AddressDataTypeList supportedAddresses = new AddressDataTypeList();
+        supportedAddresses.add(new Pair<String, String>("text/vcard", "3.0"));
+        return supportedAddresses;
+    }
 
 }

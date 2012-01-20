@@ -36,11 +36,11 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
         super(parent, name);
         this.principleId = new HrefPrincipleId(getHref());
         this.calendarHome = calendarHome;
-        this.addressBookHome = addressBookHome;
+	this.addressBookHome = addressBookHome;
         this.scheduleInboxResource = scheduleInboxResource;
         this.scheduleOutboxResource = scheduleOutboxResource;
         this.dropBox = dropBox;
-        mailInbox = new TMailFolder(this, "Inbox");
+        this.mailInbox = new TMailFolder(this, "Inbox");
         this.password = password;
     }
 
@@ -123,10 +123,15 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
     public HrefList getCalendarHomeSet() {
         return HrefList.asList(calendarHome.getHref());
     }
-
+	
     @Override
     public HrefList getAddressBookHomeSet() {
-        return HrefList.asList(addressBookHome.getHref());
+            return HrefList.asList(addressBookHome.getHref());
+    }
+    
+    @Override
+    public String getAddress(){
+        return addressBookHome.getHref();
     }
 
     @Override
@@ -231,10 +236,12 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
     }
 
     public TFolderResource getAddressBookHome() {
-        return addressBookHome;
+            return addressBookHome;
     }
 
     public void setAddressBookHome(TFolderResource addressBookHome) {
-        this.addressBookHome = addressBookHome;
+            this.addressBookHome = addressBookHome;
     }
+    
+    
 }

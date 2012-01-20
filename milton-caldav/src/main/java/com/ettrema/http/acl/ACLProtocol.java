@@ -39,7 +39,8 @@ public class ACLProtocol implements HttpExtension, PropertySource {
 		propertyMap.add(new PrincipalUrl());
 		propertyMap.add(new PrincipalCollectionSetProperty());
 		propertyMap.add(new CurrentUserPrincipalProperty());
-
+                propertyMap.add(new CurrentUserPrivledges());    
+                
 		log.debug("registering the ACLProtocol as a property source");
 		webDavProtocol.addPropertySource(this);
 		//Adding supported reports
