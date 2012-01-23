@@ -256,7 +256,12 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 	}
 
 	@Override
-	public List<LdapContact> searchContacts(Set<String> contactReturningAttributes, Condition condition, int maxCount) {
+	public List<LdapContact> searchContacts(Condition condition, int maxCount) {
 		return Collections.EMPTY_LIST; // not implemented yet
+	}
+
+	@Override
+	public String getImapUid() {
+		return getAlias();
 	}
 }

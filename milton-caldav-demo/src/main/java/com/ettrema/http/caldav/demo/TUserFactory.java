@@ -1,11 +1,9 @@
 package com.ettrema.http.caldav.demo;
 
 import com.bradmcevoy.http.Resource;
-import com.ettrema.common.LogUtils;
 import com.ettrema.ldap.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  *
@@ -36,7 +34,7 @@ public class TUserFactory implements UserFactory {
 	}
 
 	@Override
-	public List<LdapContact> galFind(Condition condition, Set<String> attributes, int sizeLimit) {
+	public List<LdapContact> galFind(Condition condition, int sizeLimit) {
 		log.trace("galFind");
 		List<LdapContact> results = new ArrayList<LdapContact>();
 
@@ -45,8 +43,7 @@ public class TUserFactory implements UserFactory {
 				TCalDavPrincipal user = (TCalDavPrincipal) r;
 				if (condition == null || condition.isMatch(user)) {
 					log.debug("searchContacts: add to results:" + user.getAlias());
-					LdapContact c = toContact(user, attributes);
-					results.add(c);
+					results.add(user);
 					if (results.size() >= sizeLimit) {
 						break;
 					}
@@ -56,18 +53,4 @@ public class TUserFactory implements UserFactory {
 		log.debug("galFind: results: " + results.size());
 		return results;
 	}
-	
-	private LdapContact toContact(TCalDavPrincipal user, Set<String> attributes) {
-		MapContact contact = new MapContact(user.getUniqueId());
-		for (String a : attributes) {
-			String value = user.get(a);
-			if (value != null) {
-				contact.put(a, value);
-			} else {
-				log.trace("toContact: property not found: " + a);
-				//contact.put(a, "Unknown property: " + a);
-			}
-		}
-		return contact;
-	}	
 }

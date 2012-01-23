@@ -21,7 +21,7 @@ public class MapContact extends HashMap<String, String> implements LdapContact {
 		
 	@Override
 	public String getUniqueId() {
-		return id;
+		return id + hashCode();
 	}
 
 	@Override

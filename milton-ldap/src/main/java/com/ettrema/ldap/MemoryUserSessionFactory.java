@@ -83,19 +83,6 @@ public class MemoryUserSessionFactory implements UserFactory {
 		return results;
 	}
 
-	private LdapContact toContact(MemoryUser user, Set<String> attributes) {
-		MapContact contact = new MapContact(user.getUniqueId());
-		for (String a : attributes) {
-			String value = user.get(a);
-			if (value != null) {
-				contact.put(a, value);
-			} else {
-				LogUtils.trace(log, "toContact: property not found: ", a);
-				//contact.put(a, "Unknown property: " + a);
-			}
-		}
-		return contact;
-	}
 
 	/**
 	 * The BeanPropertyResource annotation makes the bean properties on this class

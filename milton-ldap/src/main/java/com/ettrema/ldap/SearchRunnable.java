@@ -75,7 +75,7 @@ public class SearchRunnable implements Runnable {
 						// single user request
 						// single user request
 						String uid = dn.substring("uid=".length(), dn.indexOf(','));
-						Map<String, LdapContact> persons = null;
+						Set<LdapContact> persons = null;
 						// first search in contact
 						// first search in contact
 						try {
@@ -91,9 +91,9 @@ public class SearchRunnable implements Runnable {
 							if (galContacts != null && galContacts.size() > 0) {
 								LdapContact person = galContacts.get(0);
 								if (persons == null) {
-									persons = new HashMap<String, LdapContact>();
+									persons = new HashSet<LdapContact>();
 								}
-								persons.put(uid.toLowerCase(), person);
+								persons.add(person);
 							}
 						}
 						size = persons.size();
@@ -113,13 +113,13 @@ public class SearchRunnable implements Runnable {
 					|| Ldap.MSLIVE_BASE_CONTEXT.equals(dn)
 					|| Ldap.OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
 				if (user != null) {
-					Map<String, LdapContact> persons = new HashMap<String, LdapContact>();
+					Set<LdapContact> persons = new HashSet<LdapContact>();
 					if (ldapFilter.isFullSearch()) {
 						// append personal contacts first
-						Map<String, LdapContact> contacts = contactFind(null, returningAttributes, sizeLimit);
+						Set<LdapContact> contacts = contactFind(null, returningAttributes, sizeLimit);
 						LogUtils.debug(log, "fullSearch: results:", contacts.size());
-						for (LdapContact person : contacts.values()) {
-							persons.put(person.getImapUid(), person);
+						for (LdapContact person : contacts) {
+							persons.add(person);
 							if (persons.size() == sizeLimit) {
 								break;
 							}
@@ -132,7 +132,7 @@ public class SearchRunnable implements Runnable {
 								Collection<LdapContact> galContacts = userFactory.galFind(startsWith, sizeLimit);
 								LogUtils.debug(log, "doSearch: results:", contacts.size());
 								for (LdapContact person : galContacts) {
-									persons.put(person.getUniqueId(), person);
+									persons.add(person);
 									if (persons.size() == sizeLimit) {
 										break;
 									}
@@ -149,8 +149,9 @@ public class SearchRunnable implements Runnable {
 						//if ldapfilter is not a full search and filter is null,
 						//ignored all attribute filters => return empty results
 						if (ldapFilter.isFullSearch() || filter != null) {
-							for (LdapContact person : contactFind(filter, returningAttributes, sizeLimit).values()) {
-								persons.put(person.getImapUid(), person);
+							Set<LdapContact> contacts = contactFind(filter, returningAttributes, sizeLimit);
+							for (LdapContact person : contacts) {
+								persons.add(person);
 								if (persons.size() == sizeLimit) {
 									log.debug("EXceeded size limit1");
 									break;
@@ -165,8 +166,8 @@ public class SearchRunnable implements Runnable {
 										log.debug("EXceeded size limit2");
 										break;
 									}
-									LogUtils.trace(log, "add contact to results: ", person.getUniqueId());
-									persons.put(person.getUniqueId(), person);
+									LogUtils.trace(log, "add contact to results: ", person.getName());
+									persons.add(person);
 								}
 							}
 						}
@@ -211,31 +212,24 @@ public class SearchRunnable implements Runnable {
 	 * @return List of users
 	 * @throws IOException on error
 	 */
-	public Map<String, LdapContact> contactFind(Condition condition, Set<String> returningAttributes, int maxCount) throws IOException {
-		Map<String, LdapContact> results = new HashMap<String, LdapContact>();
-		Set<String> contactReturningAttributes = LdapUtils.convertLdapToContactReturningAttributes(returningAttributes);
-		contactReturningAttributes.remove("apple-serviceslocator");
+	public Set<LdapContact> contactFind(Condition condition, Set<String> returningAttributes, int maxCount) throws IOException {
+		Set<LdapContact> results = new HashSet<LdapContact>();
 		List<LdapContact> contacts = user.searchContacts(condition, maxCount);
 		LogUtils.trace(log, "contactFind: contacts size:", contacts.size());
 		for (LdapContact contact : contacts) {
-			String imapUid = contact.getImapUid();
-			if (imapUid != null) {
-				results.put(imapUid, contact);
-			} else {
-				log.warn("Not including contact because imapUid field is null: " + contact);
-			}
+			results.add(contact);
 		}
 		return results;
 	}
 
-	private void sendPersons(int currentMessageId, String baseContext, Map<String, LdapContact> persons, Set<String> returningAttributes) throws IOException {
+	private void sendPersons(int currentMessageId, String baseContext, Set<LdapContact> persons, Set<String> returningAttributes) throws IOException {
 		LogUtils.debug(log, "sendPersons", baseContext, "size:", persons.size());
 		boolean needObjectClasses = returningAttributes.contains("objectclass") || returningAttributes.isEmpty();
 		boolean returnAllAttributes = returningAttributes.isEmpty();
 		if (persons.isEmpty()) {
 			log.warn("No contacts to send! -------------------");
 		}
-		for (LdapContact person : persons.values()) {
+		for (LdapContact person : persons) {
 			if (abandon) {
 				log.warn("Abandon flag is set, so exiting send!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 				break;
@@ -243,7 +237,7 @@ public class SearchRunnable implements Runnable {
 			Map<String, Object> response = new HashMap<String, Object>();
 			Set<LdapMappedProp> props = propertyMapper.mapProperties(returnAllAttributes, returningAttributes, person);
 
-			response.put("uid", person.getUniqueId());
+			response.put("uid", person.getImapUid());
 			for (LdapMappedProp prop : props) {
 				ValueAndType vt;
 				try {
