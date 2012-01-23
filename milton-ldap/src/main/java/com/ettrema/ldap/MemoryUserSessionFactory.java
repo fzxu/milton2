@@ -72,7 +72,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 		List<LdapContact> results = new ArrayList<LdapContact>();
 		for (MemoryUser user : users.values()) {
 			if (condition == null || condition.isMatch(user)) {
-				LogUtils.debug(log, "searchContacts: add to results", user.alias);
+				LogUtils.debug(log, "searchContacts: add to results", user.userName);
 				results.add(user);
 				if (results.size() >= sizeLimit) {
 					break;
@@ -96,12 +96,12 @@ public class MemoryUserSessionFactory implements UserFactory {
 	@BeanPropertyResource(value="ldap")
 	public class MemoryUser extends MapContact implements LdapPrincipal, LdapContact {
 
-		private final String alias;
+		private final String userName;
 		private String password;
 
 		public MemoryUser(String alias, String password, String givenName,String surname) {
 			super(alias);
-			this.alias = alias;
+			this.userName = alias;
 			this.password = password;
 			put("imapUid", alias);
 			put("uid", alias);
@@ -114,11 +114,6 @@ public class MemoryUserSessionFactory implements UserFactory {
 			setGivenName(givenName);
 			setSurName(surname);
 			put("cn", givenName + " " + surname);
-		}
-
-		@Override
-		public String getAlias() {
-			return alias;
 		}
 
 		@Override
@@ -167,18 +162,13 @@ public class MemoryUserSessionFactory implements UserFactory {
 		}
 
 		@Override
-		public String getImapUid() {
-			return alias;
-		}
-
-		@Override
 		public Date getCreateDate() {
 			return null;
 		}
 
 		@Override
 		public String getName() {
-			return getAlias();
+			return userName;
 		}
 
 		@Override

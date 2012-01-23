@@ -27,10 +27,7 @@ public class Main {
 		factory.addUser("userA", "password", "joe", "bloggs", "joeblogss@blogs.com");
 		factory.addUser("userB", "password", "joe2", "bloggs2", "joeblogss2@blogs.com");
 		factory.addUser("userC", "password", "joe3", "bloggs3", "joeblogss3@blogs.com");
-		LdapServer ldapServer = new LdapServer(factory, propertySources, 8389, true, "localhost");
-		System.out.println("Created server, binding to address...");
-		ldapServer.bind();
-		System.out.println("Starting server...");
+		LdapServer ldapServer = new LdapServer(factory, propertySources, 8389, true, "localhost");				
 		ldapServer.start();
 		System.out.println("Started");
 		while(true) {

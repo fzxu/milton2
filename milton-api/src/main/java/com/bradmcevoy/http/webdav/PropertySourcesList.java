@@ -40,4 +40,15 @@ public class PropertySourcesList extends ArrayList<PropertySource> {
         this.clear();
         this.addAll( sources );
     }
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for( PropertySource l : this ) {
+			sb.append(l.getClass()).append(",");
+		}
+		return sb.toString();
+	}
+	
+	
 }

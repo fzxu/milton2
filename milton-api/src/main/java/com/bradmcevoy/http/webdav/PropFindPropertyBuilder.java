@@ -13,14 +13,7 @@ import com.bradmcevoy.property.PropertySource.PropertyMetaData;
 import com.ettrema.common.LogUtils;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,8 +67,7 @@ public class PropFindPropertyBuilder {
 		return propFindResponses;
 	}
 
-	public ValueAndType getProperty(QName field, Resource resource) throws NotAuthorizedException {
-		log.debug("num property sources: " + propertySources.size());
+	public ValueAndType getProperty(QName field, Resource resource) throws NotAuthorizedException {		
 		for (PropertySource source : propertySources) {
 			PropertyMetaData meta = source.getPropertyMetaData(field, resource);
 			if (meta != null && !meta.isUnknown()) {
@@ -83,6 +75,7 @@ public class PropFindPropertyBuilder {
 				return new ValueAndType(val, meta.getValueType());
 			}
 		}
+		LogUtils.trace(log, "getProperty: property not found", field, "resource", resource.getClass(), "property sources", propertySources);
 		return null;
 	}
 
@@ -96,7 +89,6 @@ public class PropFindPropertyBuilder {
 	}
 
 	public void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropertiesRequest parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) {
-		collectionHref = suffixSlash(resource, collectionHref);
 		final LinkedHashMap<QName, ValueAndType> knownProperties = new LinkedHashMap<QName, ValueAndType>();
 		final ArrayList<NameAndError> unknownProperties = new ArrayList<NameAndError>();
 

@@ -12,21 +12,16 @@ import java.util.HashMap;
  */
 public class MapContact extends HashMap<String, String> implements LdapContact {
 
-	private final String id;
+	private final String userName;
 
 	public MapContact(String id) {
-		this.id = id;
+		this.userName = id;
 	}
 	
 		
 	@Override
 	public String getUniqueId() {
-		return id + hashCode();
-	}
-
-	@Override
-	public String getImapUid() {
-		return id;
+		return userName + hashCode();
 	}
 
 	@Override
@@ -36,7 +31,7 @@ public class MapContact extends HashMap<String, String> implements LdapContact {
 
 	@Override
 	public String getName() {
-		return id;
+		return userName;
 	}
 
 	@Override

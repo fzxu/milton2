@@ -69,10 +69,6 @@
 		<constructor-arg ref="response.handler"/>
 		<constructor-arg ref="handler.helper"/>
 		<constructor-arg ref="resource.type.helper.carddav"/>
-		<constructor-arg>
-			<list>
-			</list>
-		</constructor-arg>
 	</bean>
 
 	<bean id="protocol.caldav" class="com.ettrema.http.caldav.CalDavProtocol">
@@ -183,4 +179,19 @@
 		<constructor-arg ref="popServer" />
 		<constructor-arg ref="msaSmtpServer" />
 	</bean>
+	
+	<!-- And now for LDAP... -->
+	
+	<bean id="ldap.user.factory" class="com.ettrema.http.caldav.demo.TLdapUserFactory">
+		<constructor-arg ref="caldav.demo.resource.factory" />
+	</bean>
+	
+	<bean id="ldap.server" class="com.ettrema.ldap.LdapServer" init-method="start" destroy-method="close">
+		<constructor-arg ref="ldap.user.factory" />
+		<constructor-arg ref="protocol.webdav" />
+		<property name="port" value="8389" />
+		<property name="bindAddress" value="localhost" />
+		<property name="nosslFlag" value="true"/>
+	</bean>
+	
 </beans>

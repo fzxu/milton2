@@ -1,17 +1,20 @@
 package com.ettrema.ldap;
 
 import java.util.List;
-import java.util.Set;
 
 /**
+ * An LDAP principal (ie a user) is simply a contact which can contain other contacts, since
+ * we often allow users to maintain their own private address books as well as
+ * accessing the global contact list
+ * 
+ * Note that we imply certain meaning to properties defined elsewhere. The name
+ * of the Resource is assumed to be the username of the principal, so is mapped
+ * onto the "uid" ldap attribute.
  *
  * @author brad
  */
-public interface LdapPrincipal {
+public interface LdapPrincipal extends LdapContact {
 
-
-	String getAlias();
-	
 
 	/**
 	 * Search for contacts in this user's private contact list. Generally these contacts

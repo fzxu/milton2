@@ -31,20 +31,26 @@ public class TResourceFactory implements ResourceFactory {
 		principals = new TFolderResource(ROOT, "p");
 		users = principals; // same as sabresav demo
         //users = new TFolderResource( principals, "users" );        
-        addUser(users, "userA","password");
-        addUser(users, "userB","password");
-        addUser(users, "userC","password");
+        addUser(users, "userA","password", "userA@somewhere.com", "ACME", "555 1111");
+        addUser(users, "userB","password", "userB@somewhere.com", "ACME", "555 1121");
+        addUser(users, "userC","password", "userC@somewhere.com", "ACME", "555 1131");
     }
 
-    private static void addUser(TFolderResource users, String name, String password) {
-        TCalDavPrincipal userA = new TCalDavPrincipal(users, name,password, null, null, null, null, null);
-        TFolderResource calendars = new TFolderResource(userA, "calendars");		
+    private static void addUser(TFolderResource users, String name, String password, String email, String org, String phone) {
+        TCalDavPrincipal user = new TCalDavPrincipal(users, name,password, null, null, null, null, null);
+		user.setGivenName("joe");
+		user.setSurName("blogs" + users.children.size());
+		user.setMail(email);
+		user.setOrganizationName(org);
+		user.setTelephonenumber(phone);
+		
+        TFolderResource calendars = new TFolderResource(user, "calendars");		
         TCalendarResource cal1 = new TCalendarResource(calendars, "cal1");
         TEvent e = new TEvent(cal1, "event1.ics");
         e.setiCalData(createICalData());
 		
-		TFolderResource addressBooks = new TFolderResource(userA, "abs");
-		userA.setAddressBookHome(addressBooks);
+		TFolderResource addressBooks = new TFolderResource(user, "abs");
+		user.setAddressBookHome(addressBooks);
 		TAddressBookResource addressBook1 = new TAddressBookResource(addressBooks, "ab");
 		System.out.println("created address book: " + addressBook1.getHref());
 		TContact c1 = new TContact(addressBook1, "contact1.vcf");
@@ -52,9 +58,9 @@ public class TResourceFactory implements ResourceFactory {
 		
         TScheduleInboxResource scheduleInbox = new TScheduleInboxResource(calendars, "inbox");
         TScheduleOutboxResource scheduleOutbox = new TScheduleOutboxResource(calendars, "outbox");
-        userA.setCalendarHome(calendars);
-        userA.setScheduleInboxResource(scheduleInbox);
-        userA.setScheduleOutboxResource(scheduleOutbox);
+        user.setCalendarHome(calendars);
+        user.setScheduleInboxResource(scheduleInbox);
+        user.setScheduleOutboxResource(scheduleOutbox);
     }
 
     public static TCalDavPrincipal findUser(String name) {

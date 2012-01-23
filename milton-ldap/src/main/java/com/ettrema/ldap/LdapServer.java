@@ -19,6 +19,7 @@
 package com.ettrema.ldap;
 
 
+import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.property.PropertySource;
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,9 +52,9 @@ public class LdapServer extends Thread {
 	private final List<PropertySource> propertySources;
 	private final SearchManager searchManager = new SearchManager();
 	
-    protected boolean nosslFlag; // will cause same behavior as before with unchanged config files
-    private final int port;
-	private final String bindAddress;
+    protected boolean nosslFlag;
+    private int port;
+	private String bindAddress;
 	
 	private boolean allowRemote;
 	private File keystoreFile;
@@ -81,7 +82,49 @@ public class LdapServer extends Thread {
 		this.propertySources = propertySources;
         this.nosslFlag = nosslFlag;
     }
+	
+    public LdapServer(UserFactory userSessionFactory, List<PropertySource> propertySources) {
+        super(LdapServer.class.getName());
+        setDaemon(true);
+		this.userSessionFactory = userSessionFactory;
+		this.propertySources = propertySources;
+    }
+	
+	/**
+	 * This constructor is for convenience. It uses the list of property sources
+	 * from the WebDavProtocol object, freeing the developer from the need
+	 * to publicly declare property sources when only the built in ones are used.
+	 * 
+	 * @param userSessionFactory
+	 * @param webDavProtocol 
+	 */
+    public LdapServer(UserFactory userSessionFactory, WebDavProtocol webDavProtocol) {
+        super(LdapServer.class.getName());
+        setDaemon(true);
+		this.userSessionFactory = userSessionFactory;
+		this.propertySources = webDavProtocol.getPropertySources();
+    }
 
+	public boolean isNosslFlag() {
+		return nosslFlag;
+	}
+
+	public void setNosslFlag(boolean nosslFlag) {
+		this.nosslFlag = nosslFlag;
+	}
+		
+	public String getBindAddress() {
+		return bindAddress;
+	}
+
+	public void setBindAddress(String bindAddress) {
+		this.bindAddress = bindAddress;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+	
 
     public String getProtocolName() {
         return "LDAP";
@@ -90,6 +133,19 @@ public class LdapServer extends Thread {
     public LdapConnection createConnectionHandler(Socket clientSocket) {
         return new LdapConnection(clientSocket, userSessionFactory, propertySources, searchManager);
     }
+
+	@Override
+	public synchronized void start() {
+		try {
+			log.info("Created server, binding to address. bind address: " + bindAddress + " port: " + port);
+			bind();
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+		log.info("Starting the LDAP server thread");
+		super.start();
+	}
+
 	
 
     /**
@@ -165,6 +221,7 @@ public class LdapServer extends Thread {
         try {
             //noinspection InfiniteLoopStatement
             while (true) {
+				System.out.println("Waiting for connection...");
                 clientSocket = serverSocket.accept();
 				System.out.println("Accepted socket from: " + clientSocket.getRemoteSocketAddress());
                 // set default timeout to 5 minutes
@@ -197,6 +254,7 @@ public class LdapServer extends Thread {
                 connection.close();
             }
         }
+		System.out.println("LDAP Server has exited");
     }
 
 

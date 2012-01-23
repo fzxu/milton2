@@ -40,6 +40,7 @@ public class LdapPropertyMapper {
 		addLocalNameMapping("givenName", "gn");
 		addLocalNameMapping("givenName", "givenname");
 		addLocalNameMapping("organizationName", "o");
+		addLocalNameMapping("commonName", "nsaimid");		
 		
 	}
 

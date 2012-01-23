@@ -3,6 +3,7 @@ package com.ettrema.http.caldav.demo;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.io.StreamUtils;
+import com.bradmcevoy.property.BeanPropertyResource;
 import com.ettrema.http.CalendarResource;
 import com.ettrema.http.acl.HrefPrincipleId;
 import com.ettrema.http.caldav.CalDavPrincipal;
@@ -24,6 +25,7 @@ import javax.mail.internet.MimeMessage;
  *
  * @author brad
  */
+@BeanPropertyResource(value="ldap")
 public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal, Mailbox, CalendarResource, CardDavPrincipal, LdapPrincipal, LdapContact {
 
 	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
@@ -36,6 +38,13 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 	private String password;
 	private final TMailFolder mailInbox;
 	private String color = "#2952A3";// sets the default color for the user's calendar
+	
+	// LDAP properties
+	private String givenName;
+	private String surName;
+	private String mail;
+	private String organizationName;
+	private String telephonenumber;
 
 	public TCalDavPrincipal(TFolderResource parent, String name, String password, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, TScheduleOutboxResource scheduleOutboxResource, TFolderResource dropBox, TFolderResource addressBookHome) {
 		super(parent, name);
@@ -253,6 +262,48 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 	public List<LdapContact> searchContacts(Condition condition, int maxCount) {
 		return Collections.EMPTY_LIST; // not implemented yet
 	}
-	
-	
+
+	public String getGivenName() {
+		return givenName;
+	}
+
+	public void setGivenName(String givenName) {
+		this.givenName = givenName;
+	}
+
+	public String getSurName() {
+		return surName;
+	}
+
+	public void setSurName(String surName) {
+		this.surName = surName;
+	}
+
+	public String getMail() {
+		return mail;
+	}
+
+	public void setMail(String mail) {
+		this.mail = mail;
+	}
+
+	public String getOrganizationName() {
+		return organizationName;
+	}
+
+	public void setOrganizationName(String organizationName) {
+		this.organizationName = organizationName;
+	}
+
+	public String getTelephonenumber() {
+		return telephonenumber;
+	}
+
+	public void setTelephonenumber(String telephonenumber) {
+		this.telephonenumber = telephonenumber;
+	}
+		
+	public String getCommonName() {
+		return givenName + " " + surName;
+	}
 }

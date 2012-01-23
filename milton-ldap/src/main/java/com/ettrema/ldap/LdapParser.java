@@ -101,7 +101,7 @@ public class LdapParser {
 		if ("uid".equalsIgnoreCase(attributeName) && sValue.equals(userName)) {
 			// replace with actual alias instead of login name search, only in Dav mode
 			if (sValue.equals(userName)) {
-				sValue = user.getAlias();
+				sValue = user.getName();
 				LogUtils.debug(log, "LOG_LDAP_REPLACED_UID_FILTER", userName, sValue);
 			}
 		}

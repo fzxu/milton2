@@ -237,7 +237,7 @@ public class SearchRunnable implements Runnable {
 			Map<String, Object> response = new HashMap<String, Object>();
 			Set<LdapMappedProp> props = propertyMapper.mapProperties(returnAllAttributes, returningAttributes, person);
 
-			response.put("uid", person.getImapUid());
+			response.put("uid", person.getName());
 			for (LdapMappedProp prop : props) {
 				ValueAndType vt;
 				try {
@@ -277,9 +277,9 @@ public class SearchRunnable implements Runnable {
 				}
 			}
 			// iCal: replace current user alias with login name
-			if (user.getAlias().equals(response.get("uid"))) {
+			if (user.getName().equals(response.get("uid"))) {
 				if (returningAttributes.contains("uidnumber")) {
-					response.put("uidnumber", user.getAlias());
+					response.put("uidnumber", user.getName());
 				}
 			}
 			LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_SEND_PERSON", currentMessageId, response.get("uid"), baseContext, response);
