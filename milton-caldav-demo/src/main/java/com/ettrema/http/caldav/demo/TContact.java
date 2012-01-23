@@ -10,6 +10,10 @@ import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
 import com.bradmcevoy.property.BeanPropertyResource;
+import com.ettrema.http.AddressResource;
+import com.ettrema.ldap.LdapContact;
+import info.ineighborhood.cardme.engine.VCardEngine;
+import info.ineighborhood.cardme.vcard.VCard;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,8 +21,6 @@ import java.io.OutputStream;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ettrema.http.AddressResource;
-import com.ettrema.ldap.LdapContact;
 
 /**
  *
@@ -77,6 +79,19 @@ public class TContact extends TResource implements GetableResource, ReplaceableR
 
 	public void setData(String data) {
 		this.data = data;
+		VCardEngine engine = new VCardEngine();
+		try {
+			VCard vcard = engine.parse(data);
+			System.out.println("VARD: " + vcard);
+			setGivenName(vcard.getName().getGivenName());
+			setSurName(vcard.getName().getFamilyName());
+			setTelephonenumber(vcard.getTelephoneNumbers().next().getTelephone());
+			setMail(vcard.getEmails().next().getEmail());
+						
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
 	}
 
 	@Override

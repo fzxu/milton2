@@ -53,12 +53,12 @@ public class TResourceFactory implements ResourceFactory {
 		user.setAddressBookHome(addressBooks);
 		TAddressBookResource addressBook1 = new TAddressBookResource(addressBooks, "addressbook");
 		System.out.println("created address book: " + addressBook1.getHref());
-		TContact c1 = new TContact(addressBook1, "contact1.vcf");
-		c1.setData(getCardDavData("111222333"));
-		c1.setGivenName("test");
-		c1.setSurName("test");
-		c1.setMail("test@other.com");
-		c1.setOrganizationName("other company");
+		addContact(addressBook1, "ed@blah.com" ,"ed", "ward", "111 222 333", "contact1.vcf");
+		addContact(addressBook1, "sam@blah.com" , "sam", "smith", "111 222 444", "contact2.vcf");
+		addContact(addressBook1, "john@blah.com", "john", "long", "111 222 555", "contact3.vcf");
+		
+		
+
 		
         TScheduleInboxResource scheduleInbox = new TScheduleInboxResource(calendars, "inbox");
         TScheduleOutboxResource scheduleOutbox = new TScheduleOutboxResource(calendars, "outbox");
@@ -66,6 +66,11 @@ public class TResourceFactory implements ResourceFactory {
         user.setScheduleInboxResource(scheduleInbox);
         user.setScheduleOutboxResource(scheduleOutbox);
     }
+
+	private static void addContact(TAddressBookResource ab,String email, String givenName, String surName, String phone, String filename) {
+		TContact c1 = new TContact(ab, filename);
+		c1.setData(getCardDavData(givenName, surName, phone, email));
+	}
 
     public static TCalDavPrincipal findUser(String name) {
         if( name.contains("@")) {
@@ -172,17 +177,15 @@ public class TResourceFactory implements ResourceFactory {
         return s;
     }
 	
-	private static String getCardDavData(String phone) {
+	private static String getCardDavData(String givenName, String surName, String phone, String email) {
 		String s = "";
 		s += "BEGIN:VCARD\n";
 		s += "VERSION:3.0\n";
-		s += "N:test;test;;;\n";
-		s += "FN:test test\n";
+		s += "N:" + givenName + ";" + surName + ";;;\n";
+		s += "FN:" + givenName + " " + surName + "\n";
 		s += "TEL;type=WORK;type=pref:" + phone + "\n";
-		s += "item1.ADR;type=WORK;type=pref:;;\n\n;;;;\n";
-		s += "item1.X-ABADR:nz\n";
-		s += "CATEGORIES:My Contacts\n";
-		s += "X-ABUID:603CDA60-383D-4DD4-A478-432533516501\\:ABPerson\n";
+		s += "ADR;type=WORK;type=pref;LABEL=\"42 Plantation St.\nBaytown, LA 30314\nUnited States of America\"\n";
+		s += "EMAIL:" + email + "\n";
 		s += "UID:95490BEA-5793-4E3B-8788-054C8B394F68-ABSPlugin\n";
 		s += "REV:2011-12-15T01:04:25Z\n";
 		s += "END:VCARD\n";
