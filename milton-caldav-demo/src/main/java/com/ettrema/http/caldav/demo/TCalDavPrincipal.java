@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import javax.mail.internet.MimeMessage;
 
 /**
@@ -36,7 +35,7 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 	private TFolderResource dropBox;
 	private String password;
 	private final TMailFolder mailInbox;
-	private String color = "#2952A3";// not sure if this should be here
+	private String color = "#2952A3";// sets the default color for the user's calendar
 
 	public TCalDavPrincipal(TFolderResource parent, String name, String password, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, TScheduleOutboxResource scheduleOutboxResource, TFolderResource dropBox, TFolderResource addressBookHome) {
 		super(parent, name);
@@ -251,17 +250,9 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 	}
 
 	@Override
-	public String getAlias() {
-		return name;
-	}
-
-	@Override
 	public List<LdapContact> searchContacts(Condition condition, int maxCount) {
 		return Collections.EMPTY_LIST; // not implemented yet
 	}
-
-	@Override
-	public String getImapUid() {
-		return getAlias();
-	}
+	
+	
 }

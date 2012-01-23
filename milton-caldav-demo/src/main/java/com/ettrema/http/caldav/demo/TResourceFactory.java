@@ -5,6 +5,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.values.HrefList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * For iCal, start off by opening a calendar at
@@ -83,6 +84,12 @@ public class TResourceFactory implements ResourceFactory {
         log.debug( "_found: " + r + " for url: " + url + " and path: " + path );
         return r;
     }
+
+	public List<Resource> getUsers() {
+		return users.children;
+	}
+	
+	
 
     private Resource find( Path path ) {
         if( path.isRoot() ) {

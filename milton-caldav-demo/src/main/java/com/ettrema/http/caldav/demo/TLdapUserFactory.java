@@ -1,7 +1,10 @@
 package com.ettrema.http.caldav.demo;
 
 import com.bradmcevoy.http.Resource;
-import com.ettrema.ldap.*;
+import com.ettrema.ldap.Condition;
+import com.ettrema.ldap.LdapContact;
+import com.ettrema.ldap.LdapPrincipal;
+import com.ettrema.ldap.UserFactory;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,18 +12,23 @@ import java.util.List;
  *
  * @author brad
  */
-public class TUserFactory implements UserFactory {
+public class TLdapUserFactory implements UserFactory {
 
-	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TUserFactory.class);
+	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TLdapUserFactory.class);
 	private final TResourceFactory resourceFactory;
 
-	public TUserFactory(TResourceFactory resourceFactory) {
+	public TLdapUserFactory(TResourceFactory resourceFactory) {
 		this.resourceFactory = resourceFactory;
 	}
 
 	@Override
 	public String getUserPassword(String userName) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		TCalDavPrincipal user = TResourceFactory.findUser(userName);
+		if( user == null ) {
+			return null;
+		} else {
+			return user.getPassword();
+		}
 	}
 
 	@Override
@@ -38,11 +46,11 @@ public class TUserFactory implements UserFactory {
 		log.trace("galFind");
 		List<LdapContact> results = new ArrayList<LdapContact>();
 
-		for (Resource r : TResourceFactory.users.children) {
+		for (Resource r : resourceFactory.getUsers()) {
 			if (r instanceof TCalDavPrincipal) {
 				TCalDavPrincipal user = (TCalDavPrincipal) r;
 				if (condition == null || condition.isMatch(user)) {
-					log.debug("searchContacts: add to results:" + user.getAlias());
+					log.debug("searchContacts: add to results:" + user.getName());
 					results.add(user);
 					if (results.size() >= sizeLimit) {
 						break;
