@@ -13,19 +13,21 @@ public class AttributeCondition implements Condition {
 
 	private static final Logger log = LoggerFactory.getLogger(AttributeCondition.class);
 	
-	protected final String attributeName;
-	protected final Operator operator;
-	protected final String value;
-	protected boolean isIntValue;
+	private final LdapPropertyMapper propertyMapper;
+	private final String attributeName;
+	private final Operator operator;
+	private final String value;
+	private boolean isIntValue;
 
-	public AttributeCondition(String attributeName, Operator operator, String value) {
+	public AttributeCondition(LdapPropertyMapper propertyMapper, String attributeName, Operator operator, String value) {
+		this.propertyMapper = propertyMapper;
 		this.attributeName = attributeName;
 		this.operator = operator;
 		this.value = value;
 	}
 
-	public AttributeCondition(String attributeName, Operator operator, int value) {
-		this(attributeName, operator, String.valueOf(value));
+	public AttributeCondition(LdapPropertyMapper propertyMapper, String attributeName, Operator operator, int value) {
+		this(propertyMapper, attributeName, operator, String.valueOf(value));
 		isIntValue = true;
 	}
 
@@ -90,13 +92,13 @@ public class AttributeCondition implements Condition {
 //	}
 
 	@Override
-	public boolean isMatch(Contact contact) {
+	public boolean isMatch(LdapContact contact) {
 		String lowerCaseValue = value.toLowerCase();
-		String actualValue = contact.get(attributeName);
+		String actualValue = propertyMapper.getLdapPropertyValue(attributeName, contact);
 		Operator actualOperator = operator;
 		// patch for iCal or Lightning search without galLookup
 		if (actualValue == null && ("givenName".equals(attributeName) || "sn".equals(attributeName))) {
-			actualValue = contact.get("cn");
+			actualValue = propertyMapper.getLdapPropertyValue("cn", contact);
 			actualOperator = Operator.Like;
 		}
 		if (actualValue == null) {

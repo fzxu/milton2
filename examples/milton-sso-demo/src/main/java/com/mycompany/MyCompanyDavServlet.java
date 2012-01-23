@@ -40,6 +40,7 @@ public class MyCompanyDavServlet implements Servlet {
 	private ServletConfig config;
 	private HttpManager httpManager;
 
+	@Override
 	public void init(ServletConfig config) throws ServletException {
 		this.config = config;
 		
@@ -78,10 +79,12 @@ public class MyCompanyDavServlet implements Servlet {
 
 	}
 
+	@Override
 	public ServletConfig getServletConfig() {
 		return config;
 	}
 
+	@Override
 	public void service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse) throws ServletException, IOException {
 		HttpServletRequest req = (HttpServletRequest) servletRequest;
 		HttpServletResponse resp = (HttpServletResponse) servletResponse;
@@ -97,10 +100,12 @@ public class MyCompanyDavServlet implements Servlet {
 		}
 	}
 
+	@Override
 	public String getServletInfo() {
 		return "MyCompanyDavServlet";
 	}
 
+	@Override
 	public void destroy() {
 	}
 }

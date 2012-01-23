@@ -83,6 +83,11 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>milton-ldap</artifactId>
+            <version>${project.version}</version>
+        </dependency>		
+        <dependency>
             <groupId>com.ettrema</groupId>
             <artifactId>milton-servlet</artifactId>
             <version>${project.version}</version>

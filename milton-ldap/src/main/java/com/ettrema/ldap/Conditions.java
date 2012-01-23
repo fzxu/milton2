@@ -1,7 +1,7 @@
 package com.ettrema.ldap;
 
 import com.ettrema.ldap.Condition.Operator;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -11,12 +11,17 @@ import java.util.Map;
 public class Conditions {
 
 	protected static enum FolderQueryTraversal {
-
 		Shallow, Deep
 	}
-	public static final Map<Operator, String> OPERATOR_MAP = new HashMap<Operator, String>();
+	
+	public final Map<Operator, String> OPERATOR_MAP = new EnumMap<Operator, String>(Operator.class);
 
-	static {
+	private final LdapPropertyMapper propertyMapper;
+	
+	
+
+	public Conditions(final LdapPropertyMapper propertyMapper) {
+		this.propertyMapper = propertyMapper;				
 		OPERATOR_MAP.put(Operator.IsEqualTo, " = ");
 		OPERATOR_MAP.put(Operator.IsGreaterThanOrEqualTo, " >= ");
 		OPERATOR_MAP.put(Operator.IsGreaterThan, " > ");
@@ -29,16 +34,18 @@ public class Conditions {
 		OPERATOR_MAP.put(Operator.StartsWith, " = ");
 		OPERATOR_MAP.put(Operator.Contains, " = ");
 	}
+	
+	
 
-	public static MultiCondition and(Condition... condition) {
+	public MultiCondition and(Condition... condition) {
 		return new MultiCondition(Operator.And, condition);
 	}
 
-	public static MultiCondition or(Condition... condition) {
+	public MultiCondition or(Condition... condition) {
 		return new MultiCondition(Operator.Or, condition);
 	}
 
-	public static Condition not(Condition condition) {
+	public Condition not(Condition condition) {
 		if (condition == null) {
 			return null;
 		} else {
@@ -46,51 +53,50 @@ public class Conditions {
 		}
 	}
 
-	public static Condition isEqualTo(String attributeName, String value) {
-		return new AttributeCondition(attributeName, Operator.IsEqualTo, value);
+	public Condition isEqualTo(String attributeName, String value) {
+		return new AttributeCondition(propertyMapper, attributeName, Operator.IsEqualTo, value);
 	}
-
-	public static Condition isEqualTo(String attributeName, int value) {
-		return new AttributeCondition(attributeName, Operator.IsEqualTo, value);
+	public Condition isEqualTo(String attributeName, int value) {
+		return new AttributeCondition(propertyMapper, attributeName, Operator.IsEqualTo, value);
 	}
 
 //	public static Condition headerIsEqualTo(String headerName, String value) {
 //		return new HeaderCondition(headerName, Operator.IsEqualTo, value);
 //	}
 
-	public static Condition gte(String attributeName, String value) {
-		return new AttributeCondition(attributeName, Operator.IsGreaterThanOrEqualTo, value);
+	public Condition gte(String attributeName, String value) {
+		return new AttributeCondition(propertyMapper, attributeName, Operator.IsGreaterThanOrEqualTo, value);
 	}
 
-	public static Condition lte(String attributeName, String value) {
-		return new AttributeCondition(attributeName, Operator.IsLessThanOrEqualTo, value);
+	public Condition lte(String attributeName, String value) {
+		return new AttributeCondition(propertyMapper, attributeName, Operator.IsLessThanOrEqualTo, value);
 	}
 
-	public static Condition lt(String attributeName, String value) {
-		return new AttributeCondition(attributeName, Operator.IsLessThan, value);
+	public Condition lt(String attributeName, String value) {
+		return new AttributeCondition(propertyMapper, attributeName, Operator.IsLessThan, value);
 	}
 
-	public static Condition gt(String attributeName, String value) {
-		return new AttributeCondition(attributeName, Operator.IsGreaterThan, value);
+	public Condition gt(String attributeName, String value) {
+		return new AttributeCondition(propertyMapper, attributeName, Operator.IsGreaterThan, value);
 	}
 
-	public static Condition contains(String attributeName, String value) {
-		return new AttributeCondition(attributeName, Operator.Like, value);
+	public Condition contains(String attributeName, String value) {
+		return new AttributeCondition(propertyMapper, attributeName, Operator.Like, value);
 	}
 
-	public static Condition startsWith(String attributeName, String value) {
-		return new AttributeCondition(attributeName, Operator.StartsWith, value);
+	public Condition startsWith(String attributeName, String value) {
+		return new AttributeCondition(propertyMapper, attributeName, Operator.StartsWith, value);
 	}
 
-	public static Condition isNull(String attributeName) {
-		return new MonoCondition(attributeName, Operator.IsNull);
+	public Condition isNull(String attributeName) {
+		return new MonoCondition(propertyMapper, attributeName, Operator.IsNull);
 	}
 
-	public static Condition isTrue(String attributeName) {
-		return new MonoCondition(attributeName, Operator.IsTrue);
+	public Condition isTrue(String attributeName) {
+		return new MonoCondition(propertyMapper, attributeName, Operator.IsTrue);
 	}
 
-	public static Condition isFalse(String attributeName) {
-		return new MonoCondition(attributeName, Operator.IsFalse);
+	public Condition isFalse(String attributeName) {
+		return new MonoCondition(propertyMapper, attributeName, Operator.IsFalse);
 	}
 }

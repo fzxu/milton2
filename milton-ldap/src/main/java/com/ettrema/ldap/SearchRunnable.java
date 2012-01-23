@@ -1,14 +1,12 @@
 package com.ettrema.ldap;
 
-import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.ValueAndType;
-import com.bradmcevoy.property.PropertySource;
 import com.ettrema.common.LogUtils;
+import com.ettrema.ldap.LdapPropertyMapper.LdapMappedProp;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.*;
-import javax.xml.namespace.QName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +15,8 @@ import org.slf4j.LoggerFactory;
  * @author brad
  */
 public class SearchRunnable implements Runnable {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(SearchRunnable.class);
-		
 	private final UserFactory userFactory;
 	private final int currentMessageId;
 	private final SearchManager searchManager;
@@ -29,20 +26,20 @@ public class SearchRunnable implements Runnable {
 	private final int timelimit;
 	private final LdapFilter ldapFilter;
 	private final Set<String> returningAttributes;
-	private final List<PropertySource> propertySources;	
-	
+	private final LdapPropertyMapper propertyMapper;
+	private final Conditions conditions;
 	private UUID uuid; // assigned by search manager
 	private boolean abandon;
 	private final LdapResponseHandler responseHandler;
-	private final User user;
-	
+	private final LdapPrincipal user;
 
-	protected SearchRunnable(UserFactory userFactory,List<PropertySource> propertySources, int currentMessageId, String dn, int scope, int sizeLimit, int timelimit, LdapFilter ldapFilter, Set<String> returningAttributes, LdapResponseHandler ldapResponseHandler, User user, SearchManager searchManager) {
+	protected SearchRunnable(UserFactory userFactory, LdapPropertyMapper propertyMapper, int currentMessageId, String dn, int scope, int sizeLimit, int timelimit, LdapFilter ldapFilter, Set<String> returningAttributes, LdapResponseHandler ldapResponseHandler, LdapPrincipal user, SearchManager searchManager) {
 		this.userFactory = userFactory;
 		this.searchManager = searchManager;
 		this.user = user;
 		this.responseHandler = ldapResponseHandler;
-		this.propertySources = propertySources;
+		this.propertyMapper = propertyMapper;
+		this.conditions = new Conditions(propertyMapper);
 		this.currentMessageId = currentMessageId;
 		this.dn = dn;
 		this.scope = scope;
@@ -52,14 +49,12 @@ public class SearchRunnable implements Runnable {
 		this.returningAttributes = returningAttributes;
 	}
 
-
-
-    /**
-     * Abandon search.
-     */
-    public void abandon() {
-        abandon = true;
-    }
+	/**
+	 * Abandon search.
+	 */
+	public void abandon() {
+		abandon = true;
+	}
 
 	@Override
 	public void run() {
@@ -80,23 +75,23 @@ public class SearchRunnable implements Runnable {
 						// single user request
 						// single user request
 						String uid = dn.substring("uid=".length(), dn.indexOf(','));
-						Map<String, Contact> persons = null;
+						Map<String, LdapContact> persons = null;
 						// first search in contact
 						// first search in contact
 						try {
 							// check if this is a contact uid
 							Integer.parseInt(uid);
-							persons = contactFind(Conditions.isEqualTo("imapUid", uid), returningAttributes, sizeLimit);
-						} catch (NumberFormatException e) {							
+							persons = contactFind(conditions.isEqualTo("imapUid", uid), returningAttributes, sizeLimit);
+						} catch (NumberFormatException e) {
 							// ignore, this is not a contact uid
 						}
 						// then in GAL
 						if (persons == null || persons.isEmpty()) {
-							List<Contact> galContacts = userFactory.galFind(Conditions.isEqualTo("imapUid", uid), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
-							if( galContacts != null && galContacts.size() > 0) {
-								Contact person = galContacts.get(0);
-								if( persons ==null) {
-									persons = new HashMap<String, Contact>();
+							List<LdapContact> galContacts = userFactory.galFind(conditions.isEqualTo("imapUid", uid), sizeLimit);
+							if (galContacts != null && galContacts.size() > 0) {
+								LdapContact person = galContacts.get(0);
+								if (persons == null) {
+									persons = new HashMap<String, LdapContact>();
 								}
 								persons.put(uid.toLowerCase(), person);
 							}
@@ -113,31 +108,30 @@ public class SearchRunnable implements Runnable {
 				size = 1;
 				// computer context for iCal
 				responseHandler.sendComputerContext(currentMessageId, returningAttributes);
-			} else if ((Ldap.BASE_CONTEXT.equalsIgnoreCase(dn) 
-                    || Ldap.OD_USER_CONTEXT.equalsIgnoreCase(dn)) 
-                    || Ldap.MSLIVE_BASE_CONTEXT.equals(dn)
-                    || Ldap.OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
+			} else if ((Ldap.BASE_CONTEXT.equalsIgnoreCase(dn)
+					|| Ldap.OD_USER_CONTEXT.equalsIgnoreCase(dn))
+					|| Ldap.MSLIVE_BASE_CONTEXT.equals(dn)
+					|| Ldap.OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
 				if (user != null) {
-					Map<String, Contact> persons = new HashMap<String, Contact>();
+					Map<String, LdapContact> persons = new HashMap<String, LdapContact>();
 					if (ldapFilter.isFullSearch()) {
 						// append personal contacts first
-						Map<String, Contact> contacts = contactFind(null, returningAttributes, sizeLimit);
-						LogUtils.debug(log, "fullSearch: results:", contacts.size());						
-						for (Contact person : contacts.values()) {
-							persons.put(person.get("imapUid"), person);
+						Map<String, LdapContact> contacts = contactFind(null, returningAttributes, sizeLimit);
+						LogUtils.debug(log, "fullSearch: results:", contacts.size());
+						for (LdapContact person : contacts.values()) {
+							persons.put(person.getImapUid(), person);
 							if (persons.size() == sizeLimit) {
 								break;
 							}
 						}
-						
+
 						// full search
 						for (char c = 'A'; c <= 'Z'; c++) {
 							if (!abandon && persons.size() < sizeLimit) {
-								Set<String> atts = LdapUtils.convertLdapToContactReturningAttributes(returningAttributes);
-								Condition startsWith = Conditions.startsWith("cn", String.valueOf(c));
-								Collection<Contact> galContacts = userFactory.galFind(startsWith, atts, sizeLimit);
+								Condition startsWith = conditions.startsWith("cn", String.valueOf(c));
+								Collection<LdapContact> galContacts = userFactory.galFind(startsWith, sizeLimit);
 								LogUtils.debug(log, "doSearch: results:", contacts.size());
-								for (Contact person : galContacts) {
+								for (LdapContact person : galContacts) {
 									persons.put(person.getUniqueId(), person);
 									if (persons.size() == sizeLimit) {
 										break;
@@ -151,12 +145,12 @@ public class SearchRunnable implements Runnable {
 					} else {
 						// append only personal contacts
 						Condition filter = ldapFilter.getContactSearchFilter();
-						LogUtils.debug(log, "not full search:", filter);						
-						 //if ldapfilter is not a full search and filter is null,
-						 //ignored all attribute filters => return empty results
+						LogUtils.debug(log, "not full search:", filter);
+						//if ldapfilter is not a full search and filter is null,
+						//ignored all attribute filters => return empty results
 						if (ldapFilter.isFullSearch() || filter != null) {
-							for (Contact person : contactFind(filter, returningAttributes, sizeLimit).values()) {
-								persons.put(person.get("imapUid"), person);
+							for (LdapContact person : contactFind(filter, returningAttributes, sizeLimit).values()) {
+								persons.put(person.getImapUid(), person);
 								if (persons.size() == sizeLimit) {
 									log.debug("EXceeded size limit1");
 									break;
@@ -164,9 +158,9 @@ public class SearchRunnable implements Runnable {
 							}
 							LogUtils.trace(log, "local contacts result size: ", persons.size());
 							if (!abandon && persons.size() < sizeLimit) {
-								List<Contact> galContacts = ldapFilter.findInGAL(user, returningAttributes, sizeLimit - persons.size());
+								List<LdapContact> galContacts = ldapFilter.findInGAL(user, returningAttributes, sizeLimit - persons.size());
 								LogUtils.trace(log, "gal contacts result size: ", galContacts.size());
-								for (Contact person : galContacts) {
+								for (LdapContact person : galContacts) {
 									if (persons.size() >= sizeLimit) {
 										log.debug("EXceeded size limit2");
 										break;
@@ -211,20 +205,20 @@ public class SearchRunnable implements Runnable {
 	/**
 	 * Search users in contacts folder
 	 *
-	 * @param condition           search filter
+	 * @param condition search filter
 	 * @param returningAttributes requested attributes
-	 * @param maxCount            maximum item count
+	 * @param maxCount maximum item count
 	 * @return List of users
 	 * @throws IOException on error
 	 */
-	public Map<String, Contact> contactFind(Condition condition, Set<String> returningAttributes, int maxCount) throws IOException {
-		Map<String, Contact> results = new HashMap<String, Contact>();
+	public Map<String, LdapContact> contactFind(Condition condition, Set<String> returningAttributes, int maxCount) throws IOException {
+		Map<String, LdapContact> results = new HashMap<String, LdapContact>();
 		Set<String> contactReturningAttributes = LdapUtils.convertLdapToContactReturningAttributes(returningAttributes);
 		contactReturningAttributes.remove("apple-serviceslocator");
-		List<Contact> contacts = user.searchContacts(contactReturningAttributes, condition, maxCount);
+		List<LdapContact> contacts = user.searchContacts(condition, maxCount);
 		LogUtils.trace(log, "contactFind: contacts size:", contacts.size());
-		for (Contact contact : contacts) {
-			String imapUid = contact.get("imapUid");
+		for (LdapContact contact : contacts) {
+			String imapUid = contact.getImapUid();
 			if (imapUid != null) {
 				results.put(imapUid, contact);
 			} else {
@@ -234,108 +228,70 @@ public class SearchRunnable implements Runnable {
 		return results;
 	}
 
+	private void sendPersons(int currentMessageId, String baseContext, Map<String, LdapContact> persons, Set<String> returningAttributes) throws IOException {
+		LogUtils.debug(log, "sendPersons", baseContext, "size:", persons.size());
+		boolean needObjectClasses = returningAttributes.contains("objectclass") || returningAttributes.isEmpty();
+		boolean returnAllAttributes = returningAttributes.isEmpty();
+		if (persons.isEmpty()) {
+			log.warn("No contacts to send! -------------------");
+		}
+		for (LdapContact person : persons.values()) {
+			if (abandon) {
+				log.warn("Abandon flag is set, so exiting send!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+				break;
+			}
+			Map<String, Object> response = new HashMap<String, Object>();
+			Set<LdapMappedProp> props = propertyMapper.mapProperties(returnAllAttributes, returningAttributes, person);
 
-
-    private void sendPersons(int currentMessageId, String baseContext, Map<String, Contact> persons, Set<String> returningAttributes) throws IOException {
-        LogUtils.debug(log, "sendPersons", baseContext, "size:", persons.size());
-        boolean needObjectClasses = returningAttributes.contains("objectclass") || returningAttributes.isEmpty();
-        boolean returnAllAttributes = returningAttributes.isEmpty();
-        if (persons.isEmpty()) {
-            log.warn("No contacts to send! -------------------");
-        }
-        for (Contact person : persons.values()) {
-            if (abandon) {
-                log.warn("Abandon flag is set, so exiting send!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-                break;
-            }
-            Map<String, Object> mapOfPersons = new HashMap<String, Object>();
-            // convert Contact entries
-            // convert Contact entries
-            if (returnAllAttributes) {
-                for (Map.Entry<String, String> entry : person.entrySet()) {
-                    String ldapAttribute = entry.getKey();
-                    String value = entry.getValue();
-                    if (value != null) {
-                        mapOfPersons.put(ldapAttribute, value);
-                    }
-                }
-            } else {
-                // always map uid
-                mapOfPersons.put("uid", person.getUniqueId());
-                // iterate over requested attributes
-                for (String ldapAttribute : returningAttributes) {
-                    String contactAttribute = ldapAttribute;
-                    String value = person.get(contactAttribute);
-                    if (value != null) {
-//						if (ldapAttribute.startsWith("birth")) {
-//							SimpleDateFormat parser = LdapUtils.getZuluDateFormat();
-//							Calendar calendar = Calendar.getInstance();
-//							try {
-//								calendar.setTime(parser.parse(value));
-//							} catch (ParseException e) {
-//								throw new IOException(e);
-//							}
-//							if ("birthday".equals(ldapAttribute)) {
-//								value = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
-//							} else if ("birthmonth".equals(ldapAttribute)) {
-//								value = String.valueOf(calendar.get(Calendar.MONTH) + 1);
-//							} else if ("birthyear".equals(ldapAttribute)) {
-//								value = String.valueOf(calendar.get(Calendar.YEAR));
-//							}
-//						}
-						mapOfPersons.put(ldapAttribute, value);
+			response.put("uid", person.getUniqueId());
+			for (LdapMappedProp prop : props) {
+				ValueAndType vt;
+				try {
+					vt = propertyMapper.getProperty(prop.mappedName, person);
+				} catch (NotAuthorizedException ex) {
+					vt = null;
+				}
+				if (vt == null) {
+					LogUtils.trace(log, "sendPersons: property not found: ldap property: ", prop.ldapName, " - dav prop: ", prop.mappedName, "resource: ", person.getClass());
+				} else {
+					if (vt.getValue() != null) {
+						response.put(prop.ldapName, vt.getValue());
 					}
 				}
 			}
+
 			// Process all attributes which have static mappings
 			for (Map.Entry<String, String> entry : Ldap.STATIC_ATTRIBUTE_MAP.entrySet()) {
 				String ldapAttribute = entry.getKey();
 				String value = entry.getValue();
 				if (value != null && (returnAllAttributes || returningAttributes.contains(ldapAttribute))) {
-					mapOfPersons.put(ldapAttribute, value);
+					response.put(ldapAttribute, value);
 				}
 			}
 			if (needObjectClasses) {
-				mapOfPersons.put("objectClass", Ldap.PERSON_OBJECT_CLASSES);
+				response.put("objectClass", Ldap.PERSON_OBJECT_CLASSES);
 			}
 			// iCal: copy email to apple-generateduid, encode @
 			if (returnAllAttributes || returningAttributes.contains("apple-generateduid")) {
-				String mail = (String) mapOfPersons.get("mail");
+				String mail = (String) response.get("mail");
 				if (mail != null) {
-					mapOfPersons.put("apple-generateduid", mail.replaceAll("@", "__AT__"));
+					response.put("apple-generateduid", mail.replaceAll("@", "__AT__"));
 				} else {
 					// failover, should not happen
 					// failover, should not happen
-					mapOfPersons.put("apple-generateduid", mapOfPersons.get("uid"));
+					response.put("apple-generateduid", response.get("uid"));
 				}
 			}
 			// iCal: replace current user alias with login name
-			if (user.getAlias().equals(mapOfPersons.get("uid"))) {
+			if (user.getAlias().equals(response.get("uid"))) {
 				if (returningAttributes.contains("uidnumber")) {
-					mapOfPersons.put("uidnumber", user.getAlias());
+					response.put("uidnumber", user.getAlias());
 				}
 			}
-			LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_SEND_PERSON", currentMessageId, mapOfPersons.get("uid"), baseContext, mapOfPersons);
-			responseHandler.sendEntry(currentMessageId, "uid=" + mapOfPersons.get("uid") + baseContext, mapOfPersons);
+			LogUtils.debug(log, "LOG_LDAP_REQ_SEARCH_SEND_PERSON", currentMessageId, response.get("uid"), baseContext, response);
+			responseHandler.sendEntry(currentMessageId, "uid=" + response.get("uid") + baseContext, response);
 		}
 	}
-
-    private ValueAndType getProperty(QName field, Resource resource) throws NotAuthorizedException {
-        log.debug("num property sources: " + propertySources.size());
-        for (PropertySource source : propertySources) {
-            PropertySource.PropertyMetaData meta = source.getPropertyMetaData(field, resource);
-            if (meta != null && !meta.isUnknown()) {
-                Object val = source.getProperty(field, resource);
-                return new ValueAndType(val, meta.getValueType());
-            }
-        }
-        return null;
-    }
-
-    private String getPropertyValue(String ldapName, Resource resource) {
-        return null;
-        // TODO: use this instead of map on User/Contact
-    }
 
 	public UUID getUuid() {
 		return uuid;
@@ -344,5 +300,4 @@ public class SearchRunnable implements Runnable {
 	public void setUuid(UUID uuid) {
 		this.uuid = uuid;
 	}
-		
 }

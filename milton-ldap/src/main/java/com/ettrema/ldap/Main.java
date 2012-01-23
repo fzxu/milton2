@@ -1,5 +1,9 @@
 package com.ettrema.ldap;
 
+import com.bradmcevoy.http.HandlerHelper;
+import com.bradmcevoy.http.webdav.DefaultWebDavResponseHandler;
+import com.bradmcevoy.http.webdav.WebDavProtocol;
+import com.bradmcevoy.property.BeanPropertySource;
 import com.bradmcevoy.property.PropertySource;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +17,10 @@ public class Main {
 		System.out.println("Starting milton ldap...");
 		MemoryUserSessionFactory factory = new MemoryUserSessionFactory();
 		List<PropertySource> propertySources = new ArrayList<PropertySource>();
+		BeanPropertySource ps = new BeanPropertySource();
+		System.out.println("Using bean property source: " + ps);
+		propertySources.add( ps);
+		propertySources.add( new WebDavProtocol(new DefaultWebDavResponseHandler(null), new HandlerHelper(null)));
 		
 		// TODO: add property sources
 		

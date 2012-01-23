@@ -2,7 +2,9 @@ package com.ettrema.ldap;
 
 import com.ettrema.common.LogUtils;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +15,9 @@ import org.slf4j.LoggerFactory;
 class SimpleLdapFilter implements LdapFilter {
 	private static final Logger log = LoggerFactory.getLogger(SimpleLdapFilter.class);
 	
-	final UserFactory userFactory;
+	private final UserFactory userFactory;
+	private final LdapPropertyMapper propertyMapper;
+	private final Conditions conditions;
 	
 	static final String STAR = "*";
 	final String attributeName;
@@ -22,8 +26,10 @@ class SimpleLdapFilter implements LdapFilter {
 	final int operator;
 	final boolean canIgnore;
 
-	SimpleLdapFilter(UserFactory userFactory, String attributeName) {
+	SimpleLdapFilter(LdapPropertyMapper propertyMapper, UserFactory userFactory, String attributeName) {
 		this.userFactory = userFactory;
+		this.propertyMapper = propertyMapper;
+		this.conditions = new Conditions(propertyMapper);
 		this.attributeName = attributeName;
 		this.value = SimpleLdapFilter.STAR;
 		this.operator = Ldap.LDAP_FILTER_SUBSTRINGS;
@@ -31,8 +37,10 @@ class SimpleLdapFilter implements LdapFilter {
 		this.canIgnore = checkIgnore();
 	}
 
-	SimpleLdapFilter(UserFactory userFactory, String attributeName, String value, int ldapFilterOperator, int ldapFilterMode) {
+	SimpleLdapFilter(LdapPropertyMapper propertyMapper, UserFactory userFactory, String attributeName, String value, int ldapFilterOperator, int ldapFilterMode) {
 		this.userFactory = userFactory;
+		this.propertyMapper = propertyMapper;
+		this.conditions = new Conditions(propertyMapper);
 		this.attributeName = attributeName;
 		this.value = value;
 		this.operator = ldapFilterOperator;
@@ -89,41 +97,42 @@ class SimpleLdapFilter implements LdapFilter {
 		Condition condition = null;
 		if (operator == Ldap.LDAP_FILTER_EQUALITY) {
 			LogUtils.debug(log, "getContactSearchFilter: equality", value);
-			condition = Conditions.isEqualTo(contactAttributeName, value);
+			condition = conditions.isEqualTo(contactAttributeName, value);
 		} else if ("*".equals(value)) {
 			LogUtils.debug(log, "getContactSearchFilter: *");
-			condition = Conditions.not(Conditions.isNull(contactAttributeName));
+			condition = conditions.not(conditions.isNull(contactAttributeName));
 			// do not allow substring search on integer field imapUid
 		} else if (!"imapUid".equals(contactAttributeName)) {
 			// endsWith not supported by exchange, convert to contains
 			if (mode == Ldap.LDAP_SUBSTRING_FINAL || mode == Ldap.LDAP_SUBSTRING_ANY) {
 				LogUtils.debug(log, "getContactSearchFilter: contains", value);
-				condition = Conditions.contains(contactAttributeName, value);
+				condition = conditions.contains(contactAttributeName, value);
 			} else {
 				LogUtils.debug(log, "getContactSearchFilter: startswith", value);
-				condition = Conditions.startsWith(contactAttributeName, value);
+				condition = conditions.startsWith(contactAttributeName, value);
 			}
 		}
 		return condition;
 	}
 
 	@Override
-	public boolean isMatch(Map<String, String> person) {
+	public boolean isMatch(LdapContact person) {
 		if (canIgnore) {
 			// Ignore this filter
 			return true;
 		}
-		String personAttributeValue = person.get(attributeName);
-		if (personAttributeValue == null) {
+		
+		String propValue = propertyMapper.getLdapPropertyValue(attributeName, person);
+		if (propValue == null) {
 			// No value to allow for filter match
 			return false;
-		} else if (value == null) {
+		} else if (propValue == null) {
 			// This is a presence filter: found
 			return true;
-		} else if ((operator == Ldap.LDAP_FILTER_EQUALITY) && personAttributeValue.equalsIgnoreCase(value)) {
+		} else if ((operator == Ldap.LDAP_FILTER_EQUALITY) && propValue.equalsIgnoreCase(value)) {
 			// Found an exact match
 			return true;
-		} else if ((operator == Ldap.LDAP_FILTER_SUBSTRINGS) && (personAttributeValue.toLowerCase().indexOf(value.toLowerCase()) >= 0)) {
+		} else if ((operator == Ldap.LDAP_FILTER_SUBSTRINGS) && (propValue.toLowerCase().indexOf(value.toLowerCase()) >= 0)) {
 			// Found a substring match
 			return true;
 		}
@@ -131,19 +140,18 @@ class SimpleLdapFilter implements LdapFilter {
 	}
 
 	@Override
-	public List<Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
+	public List<LdapContact> findInGAL(LdapPrincipal user, Set<String> returningAttributes, int sizeLimit) throws IOException {
 		if (canIgnore) {
 			return null;
 		}
 		String contactAttributeName = attributeName;
 		if (contactAttributeName != null) {
 			// quick fix for cn=* filter
-			List<Contact> galPersons = userFactory.galFind(Conditions.startsWith(contactAttributeName, "*".equals(value) ? "A" : value), LdapUtils.convertLdapToContactReturningAttributes(returningAttributes), sizeLimit);
+			List<LdapContact> galPersons = userFactory.galFind(conditions.startsWith(contactAttributeName, "*".equals(value) ? "A" : value), sizeLimit);
 			if (operator == Ldap.LDAP_FILTER_EQUALITY) {
 				// Make sure only exact matches are returned
-				Map<String, Contact> results = new HashMap<String, Contact>();
-				List<Contact> list = new ArrayList<Contact>();
-				for (Contact person : galPersons) {
+				List<LdapContact> list = new ArrayList<LdapContact>();
+				for (LdapContact person : galPersons) {
 					if (isMatch(person)) {
 						// Found an exact match
 						list.add(person);

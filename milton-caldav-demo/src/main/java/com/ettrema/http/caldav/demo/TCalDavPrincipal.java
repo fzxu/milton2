@@ -8,240 +8,255 @@ import com.ettrema.http.acl.HrefPrincipleId;
 import com.ettrema.http.caldav.CalDavPrincipal;
 import com.ettrema.http.caldav.ICalFormatter;
 import com.ettrema.http.carddav.CardDavPrincipal;
+import com.ettrema.ldap.Condition;
+import com.ettrema.ldap.LdapContact;
+import com.ettrema.ldap.LdapPrincipal;
 import com.ettrema.mail.Mailbox;
 import com.ettrema.mail.MessageFolder;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import javax.mail.internet.MimeMessage;
 
 /**
  *
  * @author brad
  */
-public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal, Mailbox, CalendarResource, CardDavPrincipal {
+public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal, Mailbox, CalendarResource, CardDavPrincipal, LdapPrincipal, LdapContact {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
-    private HrefPrincipleId principleId;
-    private TFolderResource calendarHome;
-    private TFolderResource addressBookHome;
-    private TScheduleInboxResource scheduleInboxResource;
-    private TScheduleOutboxResource scheduleOutboxResource;
-    private TFolderResource dropBox;
-    private String password;
-    private final TMailFolder mailInbox;
-    private String color = "#2952A3";// not sure if this should be here
+	private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractResource.class);
+	private HrefPrincipleId principleId;
+	private TFolderResource calendarHome;
+	private TFolderResource addressBookHome;
+	private TScheduleInboxResource scheduleInboxResource;
+	private TScheduleOutboxResource scheduleOutboxResource;
+	private TFolderResource dropBox;
+	private String password;
+	private final TMailFolder mailInbox;
+	private String color = "#2952A3";// not sure if this should be here
 
-    public TCalDavPrincipal(TFolderResource parent, String name, String password, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, TScheduleOutboxResource scheduleOutboxResource, TFolderResource dropBox, TFolderResource addressBookHome) {
-        super(parent, name);
-        this.principleId = new HrefPrincipleId(getHref());
-        this.calendarHome = calendarHome;
-	this.addressBookHome = addressBookHome;
-        this.scheduleInboxResource = scheduleInboxResource;
-        this.scheduleOutboxResource = scheduleOutboxResource;
-        this.dropBox = dropBox;
-        this.mailInbox = new TMailFolder(this, "Inbox");
-        this.password = password;
-    }
+	public TCalDavPrincipal(TFolderResource parent, String name, String password, TFolderResource calendarHome, TScheduleInboxResource scheduleInboxResource, TScheduleOutboxResource scheduleOutboxResource, TFolderResource dropBox, TFolderResource addressBookHome) {
+		super(parent, name);
+		this.principleId = new HrefPrincipleId(getHref());
+		this.calendarHome = calendarHome;
+		this.addressBookHome = addressBookHome;
+		this.scheduleInboxResource = scheduleInboxResource;
+		this.scheduleOutboxResource = scheduleOutboxResource;
+		this.dropBox = dropBox;
+		this.mailInbox = new TMailFolder(this, "Inbox");
+		this.password = password;
+	}
 
-    @Override
-    public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
-        log.debug("createNew");
-        if (contentType.startsWith("text/calendar")) {
-            TEvent e = new TEvent(this, newName);
-            log.debug("created tevent: " + e.name);
-            ICalFormatter formatter = new ICalFormatter();
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            StreamUtils.readTo(inputStream, bout);
-            bout.close();
-            String data = bout.toString();
-            e.setiCalData(data);
-            return e;
-        } else {
-            throw new RuntimeException("eek");
-            //log.debug( "creating a normal resource");
-            //return super.createNew( newName, inputStream, length, contentType );
-        }
-    }
+	@Override
+	public Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException {
+		log.debug("createNew");
+		if (contentType.startsWith("text/calendar")) {
+			TEvent e = new TEvent(this, newName);
+			log.debug("created tevent: " + e.name);
+			ICalFormatter formatter = new ICalFormatter();
+			ByteArrayOutputStream bout = new ByteArrayOutputStream();
+			StreamUtils.readTo(inputStream, bout);
+			bout.close();
+			String data = bout.toString();
+			e.setiCalData(data);
+			return e;
+		} else {
+			throw new RuntimeException("eek");
+			//log.debug( "creating a normal resource");
+			//return super.createNew( newName, inputStream, length, contentType );
+		}
+	}
 
-    @Override
-    public Object authenticate(String requestedUserName, String requestedPassword) {
-        log.debug("authentication: " + requestedUserName + " - " + requestedPassword + " = " + password);
+	@Override
+	public Object authenticate(String requestedUserName, String requestedPassword) {
+		log.debug("authentication: " + requestedUserName + " - " + requestedPassword + " = " + password);
 
-        if (!this.getName().equals(requestedUserName)) {
-            return null;
-        }
-        if (password == null) {
-            if (requestedPassword == null || requestedPassword.length() == 0) {
-                return this;
-            } else {
-                return null;
-            }
-        } else {
-            if (password.equals(requestedPassword)) {
-                return "ok";
-            } else {
-                return null;
-            }
-        }
-    }
+		if (!this.getName().equals(requestedUserName)) {
+			return null;
+		}
+		if (password == null) {
+			if (requestedPassword == null || requestedPassword.length() == 0) {
+				return this;
+			} else {
+				return null;
+			}
+		} else {
+			if (password.equals(requestedPassword)) {
+				return "ok";
+			} else {
+				return null;
+			}
+		}
+	}
 
-    @Override
-    public String getPrincipalURL() {
-        return getHref();
-    }
+	@Override
+	public String getPrincipalURL() {
+		return getHref();
+	}
 
-    public String getPassword() {
-        return password;
-    }
+	public String getPassword() {
+		return password;
+	}
 
-    public TFolderResource getCalendarHome() {
-        return calendarHome;
-    }
+	public TFolderResource getCalendarHome() {
+		return calendarHome;
+	}
 
-    public void setCalendarHome(TFolderResource calendarHome) {
-        this.calendarHome = calendarHome;
-    }
+	public void setCalendarHome(TFolderResource calendarHome) {
+		this.calendarHome = calendarHome;
+	}
 
-    public TScheduleInboxResource getScheduleInboxResource() {
-        return scheduleInboxResource;
-    }
+	public TScheduleInboxResource getScheduleInboxResource() {
+		return scheduleInboxResource;
+	}
 
-    public void setScheduleInboxResource(TScheduleInboxResource scheduleInboxResource) {
-        this.scheduleInboxResource = scheduleInboxResource;
-    }
+	public void setScheduleInboxResource(TScheduleInboxResource scheduleInboxResource) {
+		this.scheduleInboxResource = scheduleInboxResource;
+	}
 
-    public TScheduleOutboxResource getScheduleOutboxResource() {
-        return scheduleOutboxResource;
-    }
+	public TScheduleOutboxResource getScheduleOutboxResource() {
+		return scheduleOutboxResource;
+	}
 
-    public void setScheduleOutboxResource(TScheduleOutboxResource scheduleOutboxResource) {
-        this.scheduleOutboxResource = scheduleOutboxResource;
-    }
+	public void setScheduleOutboxResource(TScheduleOutboxResource scheduleOutboxResource) {
+		this.scheduleOutboxResource = scheduleOutboxResource;
+	}
 
-    @Override
-    public HrefList getCalendarHomeSet() {
-        return HrefList.asList(calendarHome.getHref());
-    }
-	
-    @Override
-    public HrefList getAddressBookHomeSet() {
-            return HrefList.asList(addressBookHome.getHref());
-    }
-    
-    @Override
-    public String getAddress(){
-        return addressBookHome.getHref();
-    }
+	@Override
+	public HrefList getCalendarHomeSet() {
+		return HrefList.asList(calendarHome.getHref());
+	}
 
-    @Override
-    public HrefList getCalendarUserAddressSet() {
+	@Override
+	public HrefList getAddressBookHomeSet() {
+		return HrefList.asList(addressBookHome.getHref());
+	}
 
-        return HrefList.asList("mailto:" + name + "@localhost", getHref());
-    }
+	@Override
+	public String getAddress() {
+		return addressBookHome.getHref();
+	}
 
-    @Override
-    public String getScheduleInboxUrl() {
-        if (scheduleInboxResource != null) {
-            return scheduleInboxResource.getHref();
-        } else {
-            return null;
-        }
-    }
+	@Override
+	public HrefList getCalendarUserAddressSet() {
 
-    @Override
-    public String getScheduleOutboxUrl() {
-        if (scheduleOutboxResource != null) {
-            return scheduleOutboxResource.getHref();
-        } else {
-            return null;
-        }
+		return HrefList.asList("mailto:" + name + "@localhost", getHref());
+	}
 
-    }
+	@Override
+	public String getScheduleInboxUrl() {
+		if (scheduleInboxResource != null) {
+			return scheduleInboxResource.getHref();
+		} else {
+			return null;
+		}
+	}
 
-    @Override
-    public String getDropBoxUrl() {
-        if (dropBox != null) {
-            return dropBox.getHref();
-        } else {
-            return null;
-        }
-    }
+	@Override
+	public String getScheduleOutboxUrl() {
+		if (scheduleOutboxResource != null) {
+			return scheduleOutboxResource.getHref();
+		} else {
+			return null;
+		}
 
-    @Override
-    public PrincipleId getIdenitifer() {
-        return principleId;
-    }
+	}
 
-    @Override
-    protected Object clone(TFolderResource newParent) {
-        return new TCalDavPrincipal(newParent, name, password, calendarHome, scheduleInboxResource, scheduleOutboxResource, dropBox, addressBookHome);
-    }
+	@Override
+	public String getDropBoxUrl() {
+		if (dropBox != null) {
+			return dropBox.getHref();
+		} else {
+			return null;
+		}
+	}
 
-    /**
-     * Valiate the password for this user, required for mail support
-     * @param password
-     * @return
-     */
-    @Override
-    public boolean authenticate(String password) {
-        Object o = authenticate(this.name, password);
-        return o != null;
-    }
+	@Override
+	public PrincipleId getIdenitifer() {
+		return principleId;
+	}
 
-    /**
-     * Validate the password hash for this user, required for mail support
-     *
-     * @param passwordHash
-     * @return
-     */
-    @Override
-    public boolean authenticateMD5(byte[] passwordHash) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	protected Object clone(TFolderResource newParent) {
+		return new TCalDavPrincipal(newParent, name, password, calendarHome, scheduleInboxResource, scheduleOutboxResource, dropBox, addressBookHome);
+	}
 
-    @Override
-    public MessageFolder getInbox() {
-        return mailInbox;
-    }
+	/**
+	 * Valiate the password for this user, required for mail support
+	 *
+	 * @param password
+	 * @return
+	 */
+	@Override
+	public boolean authenticate(String password) {
+		Object o = authenticate(this.name, password);
+		return o != null;
+	}
 
-    @Override
-    public MessageFolder getMailFolder(String name) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	/**
+	 * Validate the password hash for this user, required for mail support
+	 *
+	 * @param passwordHash
+	 * @return
+	 */
+	@Override
+	public boolean authenticateMD5(byte[] passwordHash) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-    @Override
-    public boolean isEmailDisabled() {
-        return false;
-    }
+	@Override
+	public MessageFolder getInbox() {
+		return mailInbox;
+	}
 
-    @Override
-    public void storeMail(MimeMessage mm) {
-        mailInbox.storeMail(mm);
-    }
+	@Override
+	public MessageFolder getMailFolder(String name) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-    @Override
-    public String getCalendarDescription() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public boolean isEmailDisabled() {
+		return false;
+	}
 
-    @Override
-    public String getColor() {
-        return color;
-    }
+	@Override
+	public void storeMail(MimeMessage mm) {
+		mailInbox.storeMail(mm);
+	}
 
-    @Override
-    public void setColor(String s) {
-        this.color = s;
-    }
+	@Override
+	public String getCalendarDescription() {
+		return name;
+	}
 
-    public TFolderResource getAddressBookHome() {
-            return addressBookHome;
-    }
+	@Override
+	public String getColor() {
+		return color;
+	}
 
-    public void setAddressBookHome(TFolderResource addressBookHome) {
-            this.addressBookHome = addressBookHome;
-    }
-    
-    
+	@Override
+	public void setColor(String s) {
+		this.color = s;
+	}
+
+	public TFolderResource getAddressBookHome() {
+		return addressBookHome;
+	}
+
+	public void setAddressBookHome(TFolderResource addressBookHome) {
+		this.addressBookHome = addressBookHome;
+	}
+
+	@Override
+	public String getAlias() {
+		return name;
+	}
+
+	@Override
+	public List<LdapContact> searchContacts(Set<String> contactReturningAttributes, Condition condition, int maxCount) {
+		return Collections.EMPTY_LIST; // not implemented yet
+	}
 }

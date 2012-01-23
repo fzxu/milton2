@@ -2,6 +2,7 @@ package com.bradmcevoy.property;
 
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.ettrema.common.LogUtils;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -25,6 +26,9 @@ public class BeanPropertySource implements PropertySource {
     private static final Logger log = LoggerFactory.getLogger( BeanPropertySource.class );
     private static final Object[] NOARGS = new Object[0];
 
+
+	
+	
 	@Override
     public Object getProperty( QName name, Resource r ) throws NotAuthorizedException {
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
@@ -84,22 +88,22 @@ public class BeanPropertySource implements PropertySource {
 
         PropertyDescriptor pd = getPropertyDescriptor( r, name.getLocalPart() );
         if( pd == null || pd.getReadMethod() == null ) {
-            log.debug( "no read method" );
+			LogUtils.debug(log, "getPropertyMetaData: no read method:", name.getLocalPart(), r.getClass());
             return PropertyMetaData.UNKNOWN;
         } else {
             BeanPropertyAccess propAnno = pd.getReadMethod().getAnnotation( BeanPropertyAccess.class );
             if( propAnno != null ) {
                 if( !propAnno.value() ) {
-                    log.trace( "property is annotated and value is false, so do not allow access" );
+                    log.trace( "getPropertyMetaData: property is annotated and value is false, so do not allow access" );
                     return PropertyMetaData.UNKNOWN;
                 } else {
-                    log.trace( "property is annotated and value is true, so allow access" );
+                    log.trace( "getPropertyMetaData: property is annotated and value is true, so allow access" );
                 }
             } else {
                 if( anno.enableByDefault() ) {
-                    log.trace( "no property annotation, property annotation is enable by default so allow access" );
+                    log.trace( "getPropertyMetaData: no property annotation, property annotation is enable by default so allow access" );
                 } else {
-                    log.trace( "no property annotation, class annotation says disable by default, decline access" );
+                    log.trace( "getPropertyMetaData:no property annotation, class annotation says disable by default, decline access" );
                     return PropertyMetaData.UNKNOWN;
                 }
             }

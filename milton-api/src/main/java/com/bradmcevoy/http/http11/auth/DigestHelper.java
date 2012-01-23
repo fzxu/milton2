@@ -63,15 +63,15 @@ public class DigestHelper {
         //   base64(expirationTime + "" + md5Hex(expirationTime + "" + key))
         String plainTextNonce = new String( Base64.decodeBase64( auth.getNonce().getBytes() ) );
         NonceValidity validity = nonceProvider.getNonceValidity( plainTextNonce, nc );
-        if( NonceValidity.INVALID.equals( validity ) ) {
-            log.debug( "invalid nonce: " + plainTextNonce );
-            return null;
-        } else if( NonceValidity.EXPIRED.equals( validity ) ) {
-            log.debug( "expired nonce: " + plainTextNonce );
-            // make this known so that we can add stale field to challenge
-            auth.setNonceStale( true );
-            return null;
-        }
+//        if( NonceValidity.INVALID.equals( validity ) ) {
+//            log.debug( "invalid nonce: " + plainTextNonce );
+//            return null;
+//        } else if( NonceValidity.EXPIRED.equals( validity ) ) {
+//            log.debug( "expired nonce: " + plainTextNonce );
+//            // make this known so that we can add stale field to challenge
+//            auth.setNonceStale( true );
+//            return null;
+//        }
 
         DigestResponse resp = toDigestResponse( auth, method );
         return resp;

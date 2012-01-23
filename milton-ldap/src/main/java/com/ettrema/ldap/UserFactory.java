@@ -1,7 +1,6 @@
 package com.ettrema.ldap;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  *
@@ -18,7 +17,7 @@ public interface UserFactory {
 	 */
 	String getUserPassword(String userName);
 
-	User getUser(String userName, String password);
+	LdapPrincipal getUser(String userName, String password);
 	
 	/**
 	 * Search for contacts in the Global Address List
@@ -28,5 +27,5 @@ public interface UserFactory {
 	 * @param sizeLimit
 	 * @return 
 	 */
-	List<Contact> galFind(Condition equalTo, Set<String> convertLdapToContactReturningAttributes, int sizeLimit);	
+	List<LdapContact> galFind(Condition equalTo, int sizeLimit);	
 }

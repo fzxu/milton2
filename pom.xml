@@ -42,6 +42,7 @@
         <module>milton-gae</module>
         <module>milton-client</module>
 		<module>milton-zsync</module>
+		<module>milton-ldap</module>
         <!--
         <module>milton-filesystem-test</module>
         <module>milton-test</module>

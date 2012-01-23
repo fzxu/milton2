@@ -16,20 +16,24 @@ public class LdapParser {
 
 	private static final Logger log = LoggerFactory.getLogger(LdapParser.class);
 	
+	private final LdapPropertyMapper propertyMapper;
 	private final LdapResponseHandler helper;
 	private final UserFactory userFactory;
+	private final Conditions conditions;
 
-	public LdapParser(LdapResponseHandler helper, UserFactory userFactory) {
+	public LdapParser(LdapPropertyMapper propertyMapper, LdapResponseHandler helper, UserFactory userFactory) {
+		this.propertyMapper = propertyMapper;
 		this.helper = helper;
 		this.userFactory = userFactory;
+		this.conditions = new Conditions(propertyMapper);
 	}
 	
 	
-	public LdapFilter parseFilter(BerDecoder reqBer, User user, String userName) throws IOException {
+	public LdapFilter parseFilter(BerDecoder reqBer, LdapPrincipal user, String userName) throws IOException {
 		LdapFilter ldapFilter;
 		if (reqBer.peekByte() == Ldap.LDAP_FILTER_PRESENT) {
 			String attributeName = reqBer.parseStringWithTag(Ldap.LDAP_FILTER_PRESENT, helper.isLdapV3(), null).toLowerCase();
-			ldapFilter = new SimpleLdapFilter(userFactory, attributeName);
+			ldapFilter = new SimpleLdapFilter( propertyMapper, userFactory, attributeName);
 		} else {
 			int[] seqSize = new int[1];
 			int ldapFilterType = reqBer.parseSeq(seqSize);
@@ -41,17 +45,17 @@ public class LdapParser {
 		return ldapFilter;
 	}
 
-	private LdapFilter parseNestedFilter(BerDecoder reqBer, int ldapFilterType, int end, User user, String userName) throws IOException {
+	private LdapFilter parseNestedFilter(BerDecoder reqBer, int ldapFilterType, int end, LdapPrincipal user, String userName) throws IOException {
 		LdapFilter nestedFilter;
 
 		if ((ldapFilterType == Ldap.LDAP_FILTER_OR) || (ldapFilterType == Ldap.LDAP_FILTER_AND)
 				|| ldapFilterType == Ldap.LDAP_FILTER_NOT) {
-			nestedFilter = new CompoundLdapFilter(ldapFilterType);
+			nestedFilter = new CompoundLdapFilter(conditions, ldapFilterType);
 
 			while (reqBer.getParsePosition() < end && reqBer.bytesLeft() > 0) {
 				if (reqBer.peekByte() == Ldap.LDAP_FILTER_PRESENT) {
 					String attributeName = reqBer.parseStringWithTag(Ldap.LDAP_FILTER_PRESENT, helper.isLdapV3(), null).toLowerCase();
-					nestedFilter.add(new SimpleLdapFilter(userFactory, attributeName));
+					nestedFilter.add(new SimpleLdapFilter(propertyMapper, userFactory, attributeName));
 				} else {
 					int[] seqSize = new int[1];
 					int ldapFilterOperator = reqBer.parseSeq(seqSize);
@@ -68,7 +72,7 @@ public class LdapParser {
 		return nestedFilter;
 	}
 
-	private LdapFilter parseSimpleFilter(BerDecoder reqBer, int ldapFilterOperator, User user, String userName) throws IOException {
+	private LdapFilter parseSimpleFilter(BerDecoder reqBer, int ldapFilterOperator, LdapPrincipal user, String userName) throws IOException {
 		String attributeName = reqBer.parseString(helper.isLdapV3()).toLowerCase();
 		int ldapFilterMode = 0;
 
@@ -102,7 +106,7 @@ public class LdapParser {
 			}
 		}
 
-		return new SimpleLdapFilter(userFactory, attributeName, sValue, ldapFilterOperator, ldapFilterMode);
+		return new SimpleLdapFilter(propertyMapper, userFactory, attributeName, sValue, ldapFilterOperator, ldapFilterMode);
 	}
 
 	public Set<String> parseReturningAttributes(BerDecoder reqBer) throws IOException {

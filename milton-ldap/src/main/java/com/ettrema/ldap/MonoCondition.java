@@ -5,11 +5,11 @@ package com.ettrema.ldap;
  * @author brad
  */
 public class MonoCondition implements Condition {
+	private LdapPropertyMapper propertyMapper;
+	private final String attributeName;
+	private final Operator operator;
 
-	protected final String attributeName;
-	protected final Operator operator;
-
-	protected MonoCondition(String attributeName, Operator operator) {
+	protected MonoCondition(LdapPropertyMapper propertyMapper, String attributeName, Operator operator) {
 		this.attributeName = attributeName;
 		this.operator = operator;
 	}
@@ -20,8 +20,8 @@ public class MonoCondition implements Condition {
 	}
 
 	@Override
-	public boolean isMatch(Contact contact) {
-		String actualValue = contact.get(attributeName);
+	public boolean isMatch(LdapContact contact) {
+		String actualValue = propertyMapper.getLdapPropertyValue(attributeName, contact);
 		return (operator == Operator.IsNull && actualValue == null)
 				|| (operator == Operator.IsFalse && "false".equals(actualValue))
 				|| (operator == Operator.IsTrue && "true".equals(actualValue));

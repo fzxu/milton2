@@ -1,6 +1,5 @@
 package com.ettrema.ldap;
 
-import com.bradmcevoy.http.Resource;
 import java.util.List;
 import java.util.Set;
 
@@ -8,19 +7,20 @@ import java.util.Set;
  *
  * @author brad
  */
-public interface User {
+public interface LdapPrincipal {
 
 
 	String getAlias();
 	
 
 	/**
-	 * I don't know what the difference is between this and galFind
+	 * Search for contacts in this user's private contact list. Generally these contacts
+	 * will not be User accounts
 	 * 
 	 * @param contactReturningAttributes
 	 * @param condition
 	 * @param maxCount
 	 * @return 
 	 */
-	List<Contact> searchContacts(Set<String> contactReturningAttributes, Condition condition, int maxCount);
+	List<LdapContact> searchContacts(Condition condition, int maxCount);
 }

@@ -1,17 +1,22 @@
 package com.ettrema.ldap;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
  * @author brad
  */
 public class CompoundLdapFilter implements LdapFilter {
-	final Set<LdapFilter> criteria = new HashSet<LdapFilter>();
-	final int type;
+	private final Conditions conditions;
+	private final Set<LdapFilter> criteria = new HashSet<LdapFilter>();
+	private final int type;
 
-	CompoundLdapFilter(int filterType) {
+	CompoundLdapFilter(Conditions conditions, int filterType) {
+		this.conditions = conditions;
 		type = filterType;
 	}
 
@@ -68,9 +73,9 @@ public class CompoundLdapFilter implements LdapFilter {
 	public Condition getContactSearchFilter() {
 		MultiCondition condition;
 		if (type == Ldap.LDAP_FILTER_OR) {
-			condition = Conditions.or();
+			condition = conditions.or();
 		} else {
-			condition = Conditions.and();
+			condition = conditions.and();
 		}
 		for (LdapFilter child : criteria) {
 			condition.add(child.getContactSearchFilter());
@@ -85,7 +90,7 @@ public class CompoundLdapFilter implements LdapFilter {
 	 * @return true if filter match
 	 */
 	@Override
-	public boolean isMatch(Map<String, String> person) {
+	public boolean isMatch(LdapContact person) {
 		if (type == Ldap.LDAP_FILTER_OR) {
 			for (LdapFilter child : criteria) {
 				if (!child.isFullSearch()) {
@@ -121,14 +126,14 @@ public class CompoundLdapFilter implements LdapFilter {
 	 * @throws IOException on error
 	 */
 	@Override
-	public List<Contact> findInGAL(User user, Set<String> returningAttributes, int sizeLimit) throws IOException {
-		List<Contact> persons = null;
+	public List<LdapContact> findInGAL(LdapPrincipal user, Set<String> returningAttributes, int sizeLimit) throws IOException {
+		List<LdapContact> persons = null;
 		for (LdapFilter child : criteria) {
 			int currentSizeLimit = sizeLimit;
 			if (persons != null) {
 				currentSizeLimit -= persons.size();
 			}
-			List<Contact> childFind = child.findInGAL(user, returningAttributes, currentSizeLimit);
+			List<LdapContact> childFind = child.findInGAL(user, returningAttributes, currentSizeLimit);
 			if (childFind != null) {
 				if (persons == null) {
 					persons = childFind;
@@ -141,7 +146,7 @@ public class CompoundLdapFilter implements LdapFilter {
 					// we may catch new items that match all child filters in each child search.
 					// Thus, instead of building the intersection, we check each result against
 					// all filters.
-					for (Contact result : childFind) {
+					for (LdapContact result : childFind) {
 						if (isMatch(result)) {
 							// This item from the child result set matches all sub-criteria, add it
 							persons.add(result);
@@ -152,7 +157,7 @@ public class CompoundLdapFilter implements LdapFilter {
 		}
 		if ((persons == null) && !isFullSearch()) {
 			// return an empty map (indicating no results were found)
-			return new ArrayList<Contact>();
+			return new ArrayList<LdapContact>();
 		}
 		return persons;
 	}

@@ -31,5 +31,5 @@ public interface Condition {
 	 * @param contact Exchange Contact
 	 * @return true if contact matches condition
 	 */
-	boolean isMatch(Contact contact);
+	boolean isMatch(LdapContact contact);
 }

@@ -25,10 +25,11 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>com.ettrema</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>milton-api</artifactId>
             <version>${project.version}</version>
-        </dependency>      
+        </dependency>
+		
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit-dep</artifactId>
@@ -48,11 +49,6 @@
             <groupId>commons-lang</groupId>
             <type>jar</type>
             <version>2.4</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>milton-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

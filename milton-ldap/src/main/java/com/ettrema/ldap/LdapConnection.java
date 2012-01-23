@@ -18,6 +18,7 @@
  */
 package com.ettrema.ldap;
 
+import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.property.PropertySource;
 import com.ettrema.common.LogUtils;
 import com.sun.jndi.ldap.Ber;
@@ -62,13 +63,13 @@ public class LdapConnection extends Thread {
 	 */
 	protected BufferedInputStream is;
 	private final UserFactory userFactory;
-	private final List<PropertySource> propertySources;
+	private final LdapPropertyMapper propertyMapper;
 	private final LdapResponseHandler responseHandler;
 	private final LdapParser ldapParser;
     private final Socket client;
 	private final SearchManager searchManager;
 	
-	private User user;
+	private LdapPrincipal user;
     private LineReaderInputStream in;
     private final OutputStream os;
     // user name and password initialized through connection
@@ -87,7 +88,7 @@ public class LdapConnection extends Thread {
         this.client = clientSocket;
         setDaemon(true);		
 		this.userFactory = userSessionFactory;
-		this.propertySources = propertySources;
+		this.propertyMapper = new LdapPropertyMapper(new PropFindPropertyBuilder(propertySources));
 		try {
 			is = new BufferedInputStream(client.getInputStream());
 			os = new BufferedOutputStream(client.getOutputStream());
@@ -96,7 +97,7 @@ public class LdapConnection extends Thread {
 			throw new RuntimeException(e);
 		}
 		responseHandler = new LdapResponseHandler(client, os);
-		ldapParser = new LdapParser(responseHandler, userFactory);
+		ldapParser = new LdapParser(propertyMapper, responseHandler, userFactory);
 		System.out.println("Created LDAP Connection handler");
 	}
 
@@ -306,7 +307,7 @@ public class LdapConnection extends Thread {
 				reqBer.parseBoolean();
 				LdapFilter ldapFilter = ldapParser.parseFilter(reqBer, user, userName);
 				Set<String> returningAttributes = ldapParser.parseReturningAttributes(reqBer);
-				SearchRunnable searchRunnable = new SearchRunnable(userFactory, propertySources , currentMessageId, dn, scope, sizeLimit, timelimit, ldapFilter, returningAttributes, responseHandler, user, searchManager); 
+				SearchRunnable searchRunnable = new SearchRunnable(userFactory, propertyMapper , currentMessageId, dn, scope, sizeLimit, timelimit, ldapFilter, returningAttributes, responseHandler, user, searchManager); 
 				if (Ldap.BASE_CONTEXT.equalsIgnoreCase(dn) || Ldap.OD_USER_CONTEXT.equalsIgnoreCase(dn) || Ldap.OD_USER_CONTEXT_LION.equalsIgnoreCase(dn)) {
 					// launch search in a separate thread
 					searchManager.beginAsyncSearch(this, currentMessageId, searchRunnable);

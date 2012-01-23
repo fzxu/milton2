@@ -1,5 +1,9 @@
 package com.ettrema.ldap;
 
+import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.property.BeanPropertyResource;
 import com.ettrema.common.LogUtils;
 import java.util.*;
 import org.slf4j.Logger;
@@ -24,7 +28,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 
 	public void addUser(String name, String password, String givenName, String surname, String email) {
 		MemoryUser u = new MemoryUser(name, password, givenName, surname);
-		u.setEmail(email);
+		u.setMail(email);
 		users.put(name, u);
 	}
 
@@ -46,7 +50,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 	}
 
 	@Override
-	public User getUser(String userName, String password) {
+	public LdapPrincipal getUser(String userName, String password) {
 		MemoryUser user = getUser(userName);
 		if (user == null) {
 			LogUtils.warn(log, "getUser: user not found", userName);
@@ -63,14 +67,13 @@ public class MemoryUserSessionFactory implements UserFactory {
 	}
 
 	@Override
-	public List<Contact> galFind(Condition condition, Set<String> attributes, int sizeLimit) {
+	public List<LdapContact> galFind(Condition condition, int sizeLimit) {
 		log.trace("galFind");
-		List<Contact> results = new ArrayList<Contact>();
+		List<LdapContact> results = new ArrayList<LdapContact>();
 		for (MemoryUser user : users.values()) {
 			if (condition == null || condition.isMatch(user)) {
 				LogUtils.debug(log, "searchContacts: add to results", user.alias);
-				Contact c = toContact(user, attributes);
-				results.add(c);
+				results.add(user);
 				if (results.size() >= sizeLimit) {
 					break;
 				}
@@ -80,7 +83,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 		return results;
 	}
 
-	private Contact toContact(MemoryUser user, Set<String> attributes) {
+	private LdapContact toContact(MemoryUser user, Set<String> attributes) {
 		MapContact contact = new MapContact(user.getUniqueId());
 		for (String a : attributes) {
 			String value = user.get(a);
@@ -94,7 +97,17 @@ public class MemoryUserSessionFactory implements UserFactory {
 		return contact;
 	}
 
-	public class MemoryUser extends MapContact implements User, Contact {
+	/**
+	 * The BeanPropertyResource annotation makes the bean properties on this class
+	 * available to milton property resolution. The value is the namespace that 
+	 * these properties will be mapped to.
+	 * 
+	 * Note that the LDAP support will, by default, map properties to the "ldap"
+	 * namespace, which must correspond to the namespace used here
+	 * 
+	 */
+	@BeanPropertyResource(value="ldap")
+	public class MemoryUser extends MapContact implements LdapPrincipal, LdapContact {
 
 		private final String alias;
 		private String password;
@@ -112,7 +125,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 			put("bday", sBirth);
 			put("im", alias);
 			setGivenName(givenName);
-			setSurname(surname);
+			setSurName(surname);
 			put("cn", givenName + " " + surname);
 		}
 
@@ -122,7 +135,7 @@ public class MemoryUserSessionFactory implements UserFactory {
 		}
 
 		@Override
-		public List<Contact> searchContacts(Set<String> attributes, Condition condition, int maxCount) {
+		public List<LdapContact> searchContacts(Condition condition, int maxCount) {
 			return Collections.EMPTY_LIST;
 		}
 
@@ -138,11 +151,6 @@ public class MemoryUserSessionFactory implements UserFactory {
 			return this.hashCode() + "";
 		}
 
-		@Override
-		public String get(Object key) {
-			return super.get(key);
-		}
-
 		public String getGivenName() {
 			return get("givenName");
 		}
@@ -151,20 +159,65 @@ public class MemoryUserSessionFactory implements UserFactory {
 			put("givenName", givenName);
 		}
 
-		public String getSurname() {
+		public String getSurName() {
 			return get("sn");
 		}
 
-		public final void setSurname(String surname) {
+		public final void setSurName(String surname) {
 			put("sn", surname);
 		}
 
-		public String getEmail() {
+		public String getMail() {
 			return get("mail");
 		}
 
-		public void setEmail(String s) {
+		public void setMail(String s) {
 			put("mail", s);
 		}
+		
+		public String getCommonName() {
+			return getGivenName() + " " + getSurName();
+		}
+
+		@Override
+		public String getImapUid() {
+			return alias;
+		}
+
+		@Override
+		public Date getCreateDate() {
+			return null;
+		}
+
+		@Override
+		public String getName() {
+			return getAlias();
+		}
+
+		@Override
+		public Object authenticate(String user, String password) {
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
+
+		@Override
+		public boolean authorise(Request request, Method method, Auth auth) {
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
+
+		@Override
+		public String getRealm() {
+			return "ldap";
+		}
+
+		@Override
+		public Date getModifiedDate() {
+			return null;
+		}
+
+		@Override
+		public String checkRedirect(Request request) {
+			return null;
+		}
+		
 	}
 }

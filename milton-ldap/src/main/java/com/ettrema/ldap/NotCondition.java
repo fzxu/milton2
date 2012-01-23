@@ -16,7 +16,7 @@ public class NotCondition implements Condition {
 		return condition.isEmpty();
 	}
 
-	public boolean isMatch(Contact contact) {
+	public boolean isMatch(LdapContact contact) {
 		return !condition.isMatch(contact);
 	}
 

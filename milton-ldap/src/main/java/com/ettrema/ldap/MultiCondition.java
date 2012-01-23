@@ -83,7 +83,7 @@ public class MultiCondition implements Condition {
 		return isEmpty;
 	}
 
-	public boolean isMatch(Contact contact) {
+	public boolean isMatch(LdapContact contact) {
 		if (operator == Operator.And) {
 			for (Condition condition : conditions) {
 				if (!condition.isMatch(contact)) {
