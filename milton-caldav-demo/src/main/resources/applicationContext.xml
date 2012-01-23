@@ -190,7 +190,9 @@
 		<constructor-arg ref="ldap.user.factory" />
 		<constructor-arg ref="protocol.webdav" />
 		<property name="port" value="8389" />
+		<!--
 		<property name="bindAddress" value="localhost" />
+		-->
 		<property name="nosslFlag" value="true"/>
 	</bean>
 	

@@ -1,5 +1,6 @@
 package com.ettrema.http.caldav.demo;
 
+import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.io.StreamUtils;
@@ -17,7 +18,7 @@ import com.ettrema.mail.MessageFolder;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import javax.mail.internet.MimeMessage;
 
@@ -78,6 +79,30 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 		}
 	}
 
+	@Override
+	public List<LdapContact> searchContacts(Condition condition, int maxCount) {		
+		List<LdapContact> results = new ArrayList<LdapContact>();
+		for( Resource rAddressBook : addressBookHome.children) {
+			if( rAddressBook instanceof CollectionResource ) {
+				CollectionResource cr = (CollectionResource) rAddressBook;
+				for( Resource rContact : cr.getChildren() ) {
+					if( rContact instanceof LdapContact) {
+						LdapContact ldapContact = (LdapContact) rContact;						
+						if( condition.isMatch(ldapContact)) {
+							log.trace("searchContacts: contact matches search criteria: " + ldapContact.getName());
+							results.add(ldapContact);
+						} else {
+							log.trace("searchContacts: contact does not match search criteria: " + ldapContact.getName());
+						}
+					}
+				}
+			}
+		}
+		log.trace("searchContacts: " + getName() + ", results ->" + results.size());
+		return results;
+	}
+	
+	
 	@Override
 	public Object authenticate(String requestedUserName, String requestedPassword) {
 		log.debug("authentication: " + requestedUserName + " - " + requestedPassword + " = " + password);
@@ -256,11 +281,6 @@ public class TCalDavPrincipal extends TFolderResource implements CalDavPrincipal
 
 	public void setAddressBookHome(TFolderResource addressBookHome) {
 		this.addressBookHome = addressBookHome;
-	}
-
-	@Override
-	public List<LdapContact> searchContacts(Condition condition, int maxCount) {
-		return Collections.EMPTY_LIST; // not implemented yet
 	}
 
 	public String getGivenName() {

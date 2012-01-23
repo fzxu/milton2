@@ -51,10 +51,14 @@ public class TResourceFactory implements ResourceFactory {
 		
 		TFolderResource addressBooks = new TFolderResource(user, "abs");
 		user.setAddressBookHome(addressBooks);
-		TAddressBookResource addressBook1 = new TAddressBookResource(addressBooks, "ab");
+		TAddressBookResource addressBook1 = new TAddressBookResource(addressBooks, "addressbook");
 		System.out.println("created address book: " + addressBook1.getHref());
 		TContact c1 = new TContact(addressBook1, "contact1.vcf");
 		c1.setData(getCardDavData("111222333"));
+		c1.setGivenName("test");
+		c1.setSurName("test");
+		c1.setMail("test@other.com");
+		c1.setOrganizationName("other company");
 		
         TScheduleInboxResource scheduleInbox = new TScheduleInboxResource(calendars, "inbox");
         TScheduleOutboxResource scheduleOutbox = new TScheduleOutboxResource(calendars, "outbox");
