@@ -3,15 +3,19 @@ package com.ettrema.httpclient;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.DateUtils;
 import com.bradmcevoy.http.DateUtils.DateParseException;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.cache.Cache;
-import java.util.ArrayList;
-import java.util.List;
 import com.ettrema.httpclient.PropFindMethod.Response;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -36,8 +40,7 @@ public abstract class Resource {
     /**
      * does percentage decoding on a path portion of a url
      *
-     * E.g. /foo  > /foo
-     * /with%20space -> /with space
+     * E.g. /foo > /foo /with%20space -> /with space
      *
      * @param href
      */
@@ -71,22 +74,21 @@ public abstract class Resource {
     private final Long quotaUsedBytes;
     private final Long crc;
     final List<ResourceListener> listeners = new ArrayList<ResourceListener>();
-	
-	private String lockOwner;
-	private String lockToken;
+    private String lockOwner;
+    private String lockToken;
 
-    public abstract java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException, Utils.CancelledException;
-
+    public abstract java.io.File downloadTo(java.io.File destFolder, ProgressListener listener) throws FileNotFoundException, IOException, HttpException, Utils.CancelledException, NotAuthorizedException, BadRequestException;
+    
     private static long count = 0;
 
     public static long getCount() {
         return count;
     }
 
-	public abstract String encodedUrl();
-	
+    public abstract String encodedUrl();
+
     /**
-     *  Special constructor for Host
+     * Special constructor for Host
      */
     Resource() {
         this.parent = null;
@@ -109,7 +111,7 @@ public abstract class Resource {
             this.parent = parent;
             name = Resource.decodePath(resp.name);
             displayName = Resource.decodePath(resp.displayName);
-            if( resp.createdDate != null && resp.createdDate.length() > 0 ) {
+            if (resp.createdDate != null && resp.createdDate.length() > 0) {
                 createdDate = DateUtils.parseWebDavDate(resp.createdDate);
             }
             quotaAvailableBytes = resp.quotaAvailableBytes;
@@ -131,9 +133,9 @@ public abstract class Resource {
             } else {
                 modifiedDate = DateUtils.parseDate(resp.modifiedDate);
             }
-			lockToken = resp.lockToken;
-			lockOwner = resp.lockOwner;
-									
+            lockToken = resp.lockToken;
+            lockOwner = resp.lockOwner;
+
             //log.debug( "parsed mod date: " + modifiedDate);
         } catch (DateParseException ex) {
             throw new RuntimeException(ex);
@@ -176,38 +178,34 @@ public abstract class Resource {
         super.finalize();
     }
 
-
-
     public void addListener(ResourceListener l) {
         listeners.add(l);
     }
 
-    public String post(Map<String, String> params) throws HttpException {
+    public String post(Map<String, String> params) throws HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         return host().doPost(encodedUrl(), params);
     }
-	
 
-	
-    public void lock() throws HttpException {
-		if(lockToken != null ) {
-			log.warn("already locked: " + href() + " token: " + lockToken);
-		}
+    public void lock() throws HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
+        if (lockToken != null) {
+            log.warn("already locked: " + href() + " token: " + lockToken);
+        }
         lockToken = host().doLock(encodedUrl());
-    }	
-	
-    public int unlock() throws HttpException {
-		if(lockToken == null ) {
-			throw new IllegalStateException("Can't unlock, is not currently locked (no lock token) - " + href());
-		}
-        return host().doUnLock(encodedUrl(), lockToken);
-    }		
+    }
 
-    public void copyTo(Folder folder) throws IOException, HttpException {
+    public int unlock() throws HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
+        if (lockToken == null) {
+            throw new IllegalStateException("Can't unlock, is not currently locked (no lock token) - " + href());
+        }
+        return host().doUnLock(encodedUrl(), lockToken);
+    }
+
+    public void copyTo(Folder folder) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
         host().doCopy(encodedUrl(), folder.encodedUrl() + this.name);
         folder.flush();
     }
 
-    public void rename(String newName) throws IOException, HttpException {
+    public void rename(String newName) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
         String dest = "";
         if (parent != null) {
             dest = parent.encodedUrl();
@@ -219,7 +217,7 @@ public abstract class Resource {
         }
     }
 
-    public void moveTo(Folder folder) throws IOException, HttpException {
+    public void moveTo(Folder folder) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
         log.info("Move: " + this.href() + " to " + folder.href());
         int res = host().doMove(href(), folder.href() + this.name);
         if (res == 201) {
@@ -232,13 +230,12 @@ public abstract class Resource {
         listeners.remove(l);
     }
 
-
     @Override
     public String toString() {
         return href() + "(" + displayName + ")";
     }
 
-    public void delete() throws IOException, HttpException {
+    public void delete() throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
         host().doDelete(encodedUrl());
         notifyOnDelete();
     }
@@ -260,14 +257,14 @@ public abstract class Resource {
         }
         return h;
     }
-	
+
     public String encodedName() {
-        return com.bradmcevoy.http.Utils.percentEncode( name );
+        return com.bradmcevoy.http.Utils.percentEncode(name);
     }
-	
+
     /**
      * Returns the UN-encoded url
-     * 
+     *
      * @return
      */
     public String href() {
@@ -279,7 +276,7 @@ public abstract class Resource {
             return parent.href() + name;
         }
     }
-	
+
     public Path path() {
         if (parent == null) {
             return Path.root;
@@ -289,7 +286,6 @@ public abstract class Resource {
             return parent.path().child(name);
         }
     }
-	
 
     public Date getModifiedDate() {
         return modifiedDate;
@@ -311,11 +307,11 @@ public abstract class Resource {
         return crc;
     }
 
-	public String getLockToken() {
-		return lockToken;
-	}
+    public String getLockToken() {
+        return lockToken;
+    }
 
-	public String getLockOwner() {
-		return lockOwner;
-	}			
+    public String getLockOwner() {
+        return lockOwner;
+    }
 }

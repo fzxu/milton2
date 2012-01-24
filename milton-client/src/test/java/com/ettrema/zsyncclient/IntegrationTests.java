@@ -58,7 +58,7 @@ public class IntegrationTests {
 	 * @throws IOException
 	 */
 	@Test
-	public void testUpload_Large_Text() throws IOException {
+	public void testUpload_Large_Text() throws Exception {
 		System.out.println("XXXXXXXXXXXXXXXXXXXXx  testUpload_Large_Text   XXXXXXXXXXXXXXXXXXXXXXXXxx ");
 		localcopy = new File( filepath + "large-text-local.txt" );
 		servercopy = new File( filepath + "large-text-server.txt" );		
@@ -83,7 +83,7 @@ public class IntegrationTests {
 	}
 	
 	@Test
-	public void testMakeAndReadSmallTextUpload() throws IOException, ParseException{
+	public void testMakeAndReadSmallTextUpload() throws Exception, ParseException{
 		System.out.println("XXXXXXXXXXXXXXXXXXXXXX testMakeAndReadSmallTextUpload XXXXXXXXXXXXXXXXXXXXXXXXxxxxxx");
 		servercopy = new File(filepath + "small-text-server.txt");
 		localcopy = new File(filepath + "small-text-local.txt");
@@ -111,7 +111,7 @@ public class IntegrationTests {
 	}	
 	
 	@Test
-	public void testMakeAndRead_Large_CSV() throws IOException, ParseException{
+	public void testMakeAndRead_Large_CSV() throws Exception, ParseException{
 		System.out.println("XXXXXXXXXXXXXXXXXXXXXxxx    testMakeAndRead_Large_CSV    XXXXXXXXXXXXXXXXXXXXXXXXXXX");
 		servercopy = new File(filepath + "large-csv-server.csv");
 		localcopy = new File(filepath + "large-csv-local.csv");
@@ -140,7 +140,7 @@ public class IntegrationTests {
 	}		
 	
 	@Test
-	public void testMakeAndRead_Large_Excel() throws IOException, ParseException{
+	public void testMakeAndRead_Large_Excel() throws Exception, ParseException{
 		System.out.println("XXXXXXXXXXXXXXXXXXXXXxxx    Large Excel    XXXXXXXXXXXXXXXXXXXXXXXXXXX");
 		servercopy = new File(filepath + "large-excel-server.xls");
 		localcopy = new File(filepath + "large-excel-local.xls");

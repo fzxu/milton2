@@ -1,6 +1,10 @@
 package com.ettrema.httpclient;
 
 import com.bradmcevoy.http.Range;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.common.LogUtils;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +36,7 @@ public class TransferService {
         this.connectionListeners = connectionListeners;
     }
 
-    public synchronized void get(String url, StreamReceiver receiver, List<Range> rangeList, ProgressListener listener) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
+    public synchronized void get(String url, StreamReceiver receiver, List<Range> rangeList, ProgressListener listener) throws com.ettrema.httpclient.HttpException, Utils.CancelledException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
         LogUtils.trace(log, "get: ", url);
         notifyStartRequest();
         HttpMethodBase m;

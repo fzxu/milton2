@@ -18,4 +18,13 @@ public class NotAuthorizedException extends MiltonException{
         super(r);
     }
 
+	public NotAuthorizedException() {
+	}
+
+	public NotAuthorizedException(String message) {
+		super(message);
+	}
+	
+	
+
 }

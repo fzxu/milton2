@@ -1,6 +1,6 @@
 package com.bradmcevoy.http.exceptions;
 
-import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.Resource;
 
 /**
  *  Indicates that the requested operation could not be performed because of
@@ -25,6 +25,16 @@ public class ConflictException extends MiltonException {
 		super(r);
 		this.message = message;
 	}
+
+	public ConflictException() {
+		this.message = "Conflict";
+	}
+
+	public ConflictException(String message) {
+		this.message = message;
+	}
+	
+	
 
 	@Override
 	public String getMessage() {

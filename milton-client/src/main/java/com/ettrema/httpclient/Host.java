@@ -3,19 +3,16 @@ package com.ettrema.httpclient;
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Response;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
-
 import com.ettrema.common.LogUtils;
 import com.ettrema.httpclient.Utils.CancelledException;
 import com.ettrema.httpclient.zsyncclient.ZSyncClient;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -23,20 +20,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.URI;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.OptionsMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.RequestEntity;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.io.FileUtils;
@@ -151,11 +138,11 @@ public class Host extends Folder {
      * @throws IOException
      * @throws com.ettrema.httpclient.HttpException
      */
-    public Resource find(String path) throws IOException, com.ettrema.httpclient.HttpException {
+    public Resource find(String path) throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException {
         return find(path, false);
     }
 
-    public Resource find(String path, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException {
+    public Resource find(String path, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException {
         if (path == null || path.length() == 0 || path.equals("/")) {
             return this;
         }
@@ -166,7 +153,7 @@ public class Host extends Folder {
         return _find(this, arr, 0, invalidateCache);
     }
 
-    public static Resource _find(Folder parent, String[] arr, int i, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException {
+    public static Resource _find(Folder parent, String[] arr, int i, boolean invalidateCache) throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException {
         String childName = arr[i];
         if (invalidateCache) {
             parent.flush();
@@ -183,7 +170,7 @@ public class Host extends Folder {
         }
     }
 
-    public Folder getFolder(String path) throws IOException, com.ettrema.httpclient.HttpException {
+    public Folder getFolder(String path) throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException {
         Resource res = find(path);
         if (res instanceof Folder) {
             return (Folder) res;
@@ -198,7 +185,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized int doMkCol(String newUri) throws com.ettrema.httpclient.HttpException {
+    public synchronized int doMkCol(String newUri) throws com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         MkColMethod p = new MkColMethod(newUri);
         try {
@@ -225,7 +212,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized String doLock(String uri) throws com.ettrema.httpclient.HttpException {
+    public synchronized String doLock(String uri) throws com.ettrema.httpclient.HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         LockMethod p = new LockMethod(uri);
         try {
@@ -250,7 +237,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized int doUnLock(String uri, String lockToken) throws com.ettrema.httpclient.HttpException {
+    public synchronized int doUnLock(String uri, String lockToken) throws com.ettrema.httpclient.HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         UnLockMethod p = new UnLockMethod(uri, lockToken);
         try {
@@ -287,7 +274,7 @@ public class Host extends Folder {
      * @throws FileNotFoundException
      * @throws HttpException
      */
-    public int doPut(Path remotePath, java.io.File file, ProgressListener listener) throws FileNotFoundException, HttpException {
+    public int doPut(Path remotePath, java.io.File file, ProgressListener listener) throws FileNotFoundException, HttpException, CancelledException, NotAuthorizedException, ConflictException {
         if (zSyncClient != null) {
             try {
                 int bytes = zSyncClient.upload(this, file, remotePath, listener);
@@ -297,7 +284,7 @@ public class Host extends Folder {
                 // ZSync file was not found
                 log.trace("Not found: " + remotePath);
             } catch (IOException ex) {
-                throw new HttpException("Exception doing zsync upload", ex);
+                throw new GenericHttpException(remotePath.toString(), ex);
             }
         }
         InputStream in = null;
@@ -332,7 +319,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException {
+    public synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         CopyMethod m = new CopyMethod(from, newUri);
         try {
@@ -357,7 +344,7 @@ public class Host extends Folder {
      * @throws IOException
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized int doDelete(String url) throws IOException, com.ettrema.httpclient.HttpException {
+    public synchronized int doDelete(String url) throws IOException, com.ettrema.httpclient.HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         DeleteMethod m = new DeleteMethod(url);
         try {
@@ -380,7 +367,7 @@ public class Host extends Folder {
      * @throws IOException
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized int doMove(String sourceUrl, String newUri) throws IOException, com.ettrema.httpclient.HttpException {
+    public synchronized int doMove(String sourceUrl, String newUri) throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         MoveMethod m = new MoveMethod(sourceUrl, newUri);
         try {
@@ -403,7 +390,7 @@ public class Host extends Folder {
      * @throws IOException
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized List<PropFindMethod.Response> doPropFind(String url, int depth) throws IOException, com.ettrema.httpclient.HttpException {
+    public synchronized List<PropFindMethod.Response> doPropFind(String url, int depth) throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException {
         log.trace("doPropFind: " + url);
         notifyStartRequest();
         PropFindMethod m = new PropFindMethod(url);
@@ -423,6 +410,8 @@ public class Host extends Folder {
             } else {
                 return null;
             }
+        } catch (ConflictException ex) {
+            throw new RuntimeException(ex);
         } catch (NotFoundException e) {
             log.trace("not found: " + url);
             return Collections.EMPTY_LIST;
@@ -442,11 +431,11 @@ public class Host extends Folder {
      * @throws com.ettrema.httpclient.HttpException
      * @throws com.ettrema.httpclient.Utils.CancelledException
      */
-    public synchronized void doGet(String url, StreamReceiver receiver, List<Range> rangeList, ProgressListener listener) throws com.ettrema.httpclient.HttpException, Utils.CancelledException {
+    public synchronized void doGet(String url, StreamReceiver receiver, List<Range> rangeList, ProgressListener listener) throws com.ettrema.httpclient.HttpException, Utils.CancelledException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
         transferService.get(url, receiver, rangeList, listener);
     }
 
-    public synchronized void doGet(Path path, final java.io.File file, ProgressListener listener) throws IOException, NotFoundException, com.ettrema.httpclient.HttpException {
+    public synchronized void doGet(Path path, final java.io.File file, ProgressListener listener) throws IOException, NotFoundException, com.ettrema.httpclient.HttpException, CancelledException, NotAuthorizedException, BadRequestException, ConflictException {
         LogUtils.trace(log, "doGet", path);
         if (zSyncClient != null) {
             zSyncClient.download(this, path, file, listener);
@@ -484,12 +473,12 @@ public class Host extends Folder {
      * @throws IOException
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized void options(String path) throws java.net.ConnectException, Unauthorized, UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
+    public synchronized void options(String path) throws java.net.ConnectException, NotAuthorizedException, UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException, NotFoundException {
         String url = this.encodedUrl() + path;
         doOptions(url);
     }
 
-    private synchronized void doOptions(String url) throws NotFoundException, java.net.ConnectException, Unauthorized, java.net.UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
+    private synchronized void doOptions(String url) throws NotFoundException, java.net.ConnectException, NotAuthorizedException, java.net.UnknownHostException, SocketTimeoutException, IOException, com.ettrema.httpclient.HttpException {
         notifyStartRequest();
         String uri = url;
         log.trace("doOptions: {}", url);
@@ -502,6 +491,10 @@ public class Host extends Folder {
                 return;
             }
             Utils.processResultCode(res, url);
+        } catch (ConflictException ex) {
+            throw new RuntimeException(ex);
+        } catch (BadRequestException ex) {
+            throw new RuntimeException(ex);
         } finally {
             Utils.close(in);
             m.releaseConnection();
@@ -517,7 +510,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException {
+    public synchronized byte[] get(String path) throws com.ettrema.httpclient.HttpException, NotAuthorizedException, BadRequestException, ConflictException, NotFoundException {
         String url = this.encodedUrl() + path;
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
@@ -545,7 +538,7 @@ public class Host extends Folder {
      * @param params
      * @return
      */
-    public String doPost(String url, Map<String, String> params) throws com.ettrema.httpclient.HttpException {
+    public String doPost(String url, Map<String, String> params) throws com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         PostMethod m = new PostMethod(url);
         for (Entry<String, String> entry : params.entrySet()) {
@@ -578,7 +571,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public String doPost(String url, Map<String, String> params, Part[] parts) throws com.ettrema.httpclient.HttpException {
+    public String doPost(String url, Map<String, String> params, Part[] parts) throws com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         PostMethod filePost = new PostMethod(url);
         if (params != null) {
@@ -683,7 +676,7 @@ public class Host extends Folder {
         this.propFindXml = propFindXml;
     }
 
-    public com.ettrema.httpclient.Folder getOrCreateFolder(Path remoteParentPath, boolean create) throws com.ettrema.httpclient.HttpException, IOException {
+    public com.ettrema.httpclient.Folder getOrCreateFolder(Path remoteParentPath, boolean create) throws com.ettrema.httpclient.HttpException, IOException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         log.trace("getOrCreateFolder: {}", remoteParentPath);
         com.ettrema.httpclient.Folder f = this;
         if (remoteParentPath != null) {

@@ -1,5 +1,9 @@
 package com.ettrema.httpclient;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.ConflictException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,7 +92,7 @@ public class Utils {
 
     }
 
-    public static void processResultCode(int result, String href) throws com.ettrema.httpclient.HttpException {
+    public static void processResultCode(int result, String href) throws com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         if (result >= 200 && result < 300) {
             return;
         } else if (result >= 300 && result < 400) {
@@ -105,17 +109,17 @@ public class Utils {
         } else if (result >= 400 && result < 500) {
             switch (result) {
                 case 400:
-                    throw new BadRequestException(result, href);
+                    throw new BadRequestException(href);
                 case 401:
-                    throw new Unauthorized(result, href);
+                    throw new NotAuthorizedException(href);
                 case 403:
-                    throw new Unauthorized(result, href);
+                    throw new NotAuthorizedException(href);
                 case 404:
-                    throw new NotFoundException(result, href);
+                    throw new NotFoundException(href);
                 case 405:
                     throw new MethodNotAllowedException(result, href);
                 case 409:
-                    throw new ConflictException(result, href);
+                    throw new ConflictException(href);
                 default:
                     throw new GenericHttpException(result, href);
             }

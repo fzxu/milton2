@@ -1,6 +1,6 @@
 package com.bradmcevoy.http.exceptions;
 
-import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.Resource;
 
 /**
  *  Base class for exceptions during processing requests on resources
@@ -12,6 +12,15 @@ public abstract class MiltonException extends Exception {
     public MiltonException(Resource resource) {
         this.resource = resource;
     }
+
+	public MiltonException() {
+	}
+
+	public MiltonException(String message) {
+		super(message);
+	}
+	
+	
 
     public Resource getResource() {
         return resource;

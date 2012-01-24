@@ -11,7 +11,7 @@ public class NotFoundException extends MiltonException {
 
 	
     public NotFoundException(String reason) {
-        super(null);
+        super();
         this.reason = reason;
     }	
 

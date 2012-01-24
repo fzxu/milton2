@@ -22,7 +22,7 @@ public class BadRequestException extends MiltonException {
     }
 	
     public BadRequestException(String reason) {
-        super(null);
+        super();
         this.reason = reason;
     }	
 
