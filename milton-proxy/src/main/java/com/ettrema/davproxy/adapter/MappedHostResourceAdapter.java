@@ -1,40 +1,45 @@
 package com.ettrema.davproxy.adapter;
 
-import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.FolderResource;
-import com.bradmcevoy.http.Range;
+import com.bradmcevoy.http.MakeCollectionableResource;
+import com.bradmcevoy.http.PutableResource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.httpclient.Folder;
+import com.ettrema.httpclient.Host;
 import com.ettrema.httpclient.HttpException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
+ * Represents a remote DAV host which has been mapped onto the DAV proxy
  *
  * @author brad
  */
-public class FolderResourceAdapter extends AbstractRemoteAdapter implements FolderResource {
+public class MappedHostResourceAdapter extends AbstractRemoteAdapter implements CollectionResource, MakeCollectionableResource, PutableResource {
 
-    private final com.ettrema.httpclient.Folder folder;
+    private final com.ettrema.httpclient.Host remoteHost;
+    private final String name;
 
-    public FolderResourceAdapter(Folder folder, com.bradmcevoy.http.SecurityManager securityManager, String hostName) {
-        super(folder, securityManager, hostName);
-        this.folder = folder;
+    public MappedHostResourceAdapter(String name, Host host, com.bradmcevoy.http.SecurityManager securityManager, String hostName) {
+        super(host, securityManager, hostName);
+        this.remoteHost = host;
+        this.name = name;
     }
 
+    @Override
+    public String getName() {
+        return name;
+    }
+    
     @Override
     public CollectionResource createCollection(String newName) throws NotAuthorizedException, ConflictException, BadRequestException {
         Folder newRemoteFolder;
         try {
-            newRemoteFolder = folder.createFolder(newName);
+            newRemoteFolder = remoteHost.createFolder(newName);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         } catch (NotFoundException ex) {
@@ -60,38 +65,6 @@ public class FolderResourceAdapter extends AbstractRemoteAdapter implements Fold
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    public void copyTo(CollectionResource toCollection, String name) throws NotAuthorizedException, BadRequestException, ConflictException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
-    @Override
-    public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Long getMaxAgeSeconds(Auth auth) {
-        return null;
-    }
-
-    @Override
-    public String getContentType(String accepts) {
-        return null;
-    }
-
-    @Override
-    public Long getContentLength() {
-        return null;
-    }
-
-    @Override
-    public void moveTo(CollectionResource rDest, String name) throws ConflictException, NotAuthorizedException, BadRequestException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Date getCreateDate() {
-        return folder.getCreatedDate();
-    }
 }
+

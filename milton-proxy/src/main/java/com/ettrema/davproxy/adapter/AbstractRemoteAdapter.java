@@ -4,26 +4,25 @@ import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.DeletableResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.SecurityManager;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.httpclient.HttpException;
 import java.io.IOException;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author brad
  */
-public abstract class AbstractRemoteAdapter implements Resource, DeletableResource{
+public abstract class AbstractRemoteAdapter implements Resource, DeletableResource {
+
     private final com.ettrema.httpclient.Resource resource;
     private final com.bradmcevoy.http.SecurityManager securityManager;
     private final String hostName;
 
-    public AbstractRemoteAdapter(com.ettrema.httpclient.Resource resource, SecurityManager securityManager, String hostName) {
+    public AbstractRemoteAdapter(com.ettrema.httpclient.Resource resource, com.bradmcevoy.http.SecurityManager securityManager, String hostName) {
         this.resource = resource;
         this.securityManager = securityManager;
         this.hostName = hostName;
@@ -33,7 +32,7 @@ public abstract class AbstractRemoteAdapter implements Resource, DeletableResour
     public String getName() {
         return resource.name;
     }
-    
+
     @Override
     public String getUniqueId() {
         return null;
@@ -58,17 +57,18 @@ public abstract class AbstractRemoteAdapter implements Resource, DeletableResour
     public Date getModifiedDate() {
         return resource.getModifiedDate();
     }
-    
+
     @Override
     public String checkRedirect(Request request) {
         return null;
-    }    
-    
+    }
 
     @Override
     public void delete() throws NotAuthorizedException, ConflictException, BadRequestException {
         try {
             resource.delete();
+        } catch (NotFoundException ex) {
+            return ; // ok, not there to delete
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         } catch (HttpException ex) {
@@ -76,9 +76,7 @@ public abstract class AbstractRemoteAdapter implements Resource, DeletableResour
         }
     }
 
-    public SecurityManager getSecurityManager() {
+    public com.bradmcevoy.http.SecurityManager getSecurityManager() {
         return securityManager;
     }
-    
-    
 }

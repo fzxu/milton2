@@ -1,13 +1,15 @@
 package com.ettrema.davproxy.adapter;
 
 import com.bradmcevoy.http.*;
-import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.bradmcevoy.http.SecurityManager;
+import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.httpclient.File;
+import com.ettrema.httpclient.HttpException;
+import com.ettrema.httpclient.Utils.CancelledException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Map;
@@ -17,12 +19,12 @@ import java.util.Map;
  *
  * @author brad
  */
-public class FileResourceAdapter extends AbstractRemoteAdapter implements FileResource{
+public class FileResourceAdapter extends AbstractRemoteAdapter implements FileResource, ReplaceableResource{
 
     private final com.ettrema.httpclient.File file;
 
-    public FileResourceAdapter(File file, com.ettrema.httpclient.Resource resource, SecurityManager securityManager, String hostName) {
-        super(resource, securityManager, hostName);
+    public FileResourceAdapter(File file, com.bradmcevoy.http.SecurityManager securityManager, String hostName) {
+        super(file, securityManager, hostName);
         this.file = file;
     }
     
@@ -36,7 +38,13 @@ public class FileResourceAdapter extends AbstractRemoteAdapter implements FileRe
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            file.download(out, null);
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
+        } catch (CancelledException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
@@ -67,6 +75,20 @@ public class FileResourceAdapter extends AbstractRemoteAdapter implements FileRe
     @Override
     public Date getCreateDate() {
         return file.getCreatedDate();
+    }
+
+    @Override
+    public void replaceContent(InputStream in, Long length) throws BadRequestException, ConflictException, NotAuthorizedException {
+        try {
+            file.setContent(in, length);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
+        } catch (NotFoundException ex) {
+            throw new RuntimeException(ex);
+        }
+
     }
     
 }
