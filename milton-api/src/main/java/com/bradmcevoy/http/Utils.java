@@ -1,6 +1,8 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 import com.bradmcevoy.http.webdav.Dest;
 import java.net.URI;
@@ -20,7 +22,7 @@ public class Utils {
 		'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 	};
 
-	public static Resource findChild(Resource parent, Path path) {
+	public static Resource findChild(Resource parent, Path path) throws NotAuthorizedException, BadRequestException {
 		return _findChild(parent, path.getParts(), 0);
 	}
 
@@ -52,7 +54,7 @@ public class Utils {
 		}
 	}
 
-	private static Resource _findChild(Resource parent, String[] arr, int i) {
+	private static Resource _findChild(Resource parent, String[] arr, int i) throws NotAuthorizedException, BadRequestException {
 		if (parent instanceof CollectionResource) {
 			CollectionResource col = (CollectionResource) parent;
 			String childName = arr[i];

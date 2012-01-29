@@ -1,9 +1,10 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,7 @@ public class MultipleResourceFactory implements ResourceFactory {
     }
 
 	@Override
-    public Resource getResource( String host, String url ) {
+    public Resource getResource( String host, String url ) throws NotAuthorizedException, BadRequestException {
         if( log.isTraceEnabled() ) {
             log.trace( "getResource: " + url );
         }
@@ -57,7 +58,7 @@ public class MultipleResourceFactory implements ResourceFactory {
         this.mapOfFactoriesByHost = mapOfFactoriesByHost;
     }
 
-    private Resource findFromFactories( String host, String url ) {
+    private Resource findFromFactories( String host, String url ) throws NotAuthorizedException, BadRequestException {
         for( ResourceFactory rf : factories ) {
             Resource r = rf.getResource( host, url );
             if( r != null ) {

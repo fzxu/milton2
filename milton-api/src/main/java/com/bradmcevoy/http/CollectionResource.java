@@ -1,5 +1,7 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.List;
 
 /**
@@ -12,6 +14,7 @@ import java.util.List;
  */
 public interface CollectionResource extends Resource {
 
-    public Resource child(String childName);
-    List<? extends Resource> getChildren();
+    public Resource child(String childName) throws NotAuthorizedException, BadRequestException;
+	
+    List<? extends Resource> getChildren() throws NotAuthorizedException, BadRequestException;
 }

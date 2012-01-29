@@ -4,6 +4,8 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +20,7 @@ public class FckResourceFactory implements ResourceFactory {
     }
 
     @Override
-    public Resource getResource(String host, String url) {
+    public Resource getResource(String host, String url) throws NotAuthorizedException, BadRequestException {
         Path path = Path.path(url);
         if (FckFileManagerResource.URL.equals(path)) {
             CollectionResource h = getParent(host, path.getParent());
@@ -36,7 +38,7 @@ public class FckResourceFactory implements ResourceFactory {
     }
     
 
-    private CollectionResource getParent( String host, Path path ) {
+    private CollectionResource getParent( String host, Path path ) throws NotAuthorizedException, BadRequestException {
         Resource r = wrappedFactory.getResource( host, path.toString() );
         if( r instanceof CollectionResource ) {
             return (CollectionResource) r;

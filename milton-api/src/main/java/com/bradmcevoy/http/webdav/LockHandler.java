@@ -1,22 +1,16 @@
 package com.bradmcevoy.http.webdav;
 
-import com.bradmcevoy.http.*;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.ConflictException;
-import com.bradmcevoy.http.exceptions.LockedException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.bradmcevoy.http.exceptions.PreConditionFailedException;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
-
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Response.Status;
+import com.bradmcevoy.http.*;
+import com.bradmcevoy.http.exceptions.*;
 import com.ettrema.common.LogUtils;
+import java.io.IOException;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Note that this is both a new entity handler and an existing entity handler
@@ -57,7 +51,7 @@ public class LockHandler implements ResourceHandler {
     }
 
     @Override
-    public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException {
+    public void process( HttpManager manager, Request request, Response response ) throws NotAuthorizedException, BadRequestException {
         if( !handlerHelper.checkExpects( responseHandler, request, response ) ) {
             return;
         }
@@ -128,7 +122,7 @@ public class LockHandler implements ResourceHandler {
      * @param host
      * @param url
      */
-    private void processNonExistingResource( HttpManager manager, Request request, Response response, String host, String url ) throws NotAuthorizedException {
+    private void processNonExistingResource( HttpManager manager, Request request, Response response, String host, String url ) throws NotAuthorizedException, BadRequestException {
         String name;
 
         Path parentPath = Path.path( url );

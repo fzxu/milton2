@@ -2,6 +2,8 @@ package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.Request.Method;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,7 +14,7 @@ import junit.framework.TestCase;
 
 public class TestUtils extends TestCase {
 
-    public void test() {
+    public void test() throws NotAuthorizedException, BadRequestException {
         ColRes col1 = new ColRes("col1");
         ColRes col2 = new ColRes("col2");
         col1.children.put("col2",col2);

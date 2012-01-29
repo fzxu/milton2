@@ -1,6 +1,8 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.Path;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +42,7 @@ public class WellKnownResourceFactory implements ResourceFactory {
 //	}	
 	
 	@Override
-	public Resource getResource(String host, String sPath) {
+	public Resource getResource(String host, String sPath) throws NotAuthorizedException, BadRequestException {
 		if( sPath.startsWith(URI_PREFIX)) {
 			Path path = Path.path(sPath);
 			path = path.getStripFirst();

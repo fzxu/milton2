@@ -201,10 +201,14 @@ public abstract class Resource {
     }
 
     public void copyTo(Folder folder) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
-        host().doCopy(encodedUrl(), folder.encodedUrl() + this.name);
-        folder.flush();
+        copyTo(folder, name);
     }
 
+    public void copyTo(Folder folder, String destName) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
+        host().doCopy(encodedUrl(), folder.encodedUrl() + com.bradmcevoy.http.Utils.percentEncode(destName));
+        folder.flush();
+    }
+    
     public void rename(String newName) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
         String dest = "";
         if (parent != null) {
@@ -218,8 +222,11 @@ public abstract class Resource {
     }
 
     public void moveTo(Folder folder) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
+        moveTo(folder, name);
+    }
+    public void moveTo(Folder folder, String destName) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException  {
         log.info("Move: " + this.href() + " to " + folder.href());
-        int res = host().doMove(href(), folder.href() + this.name);
+        int res = host().doMove(encodedUrl(), folder.href() + com.bradmcevoy.http.Utils.percentEncode(destName));
         if (res == 201) {
             this.parent.flush();
             folder.flush();

@@ -4,6 +4,8 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +48,8 @@ public class SsoResourceFactory implements ResourceFactory {
 	}
 
 
-	public Resource getResource(String host, String url) {
+	@Override
+	public Resource getResource(String host, String url) throws NotAuthorizedException, BadRequestException {
 		Path p = Path.path(url);
 		String firstComp = p.getFirst();
 		Object oUserTag = null;

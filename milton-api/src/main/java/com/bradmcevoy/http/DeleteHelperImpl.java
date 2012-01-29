@@ -28,7 +28,7 @@ public class DeleteHelperImpl implements DeleteHelper {
 	}
 
 	@Override
-	public boolean isLockedOut(Request req, Resource r) {
+	public boolean isLockedOut(Request req, Resource r) throws NotAuthorizedException, BadRequestException {
 		if (r instanceof DeletableCollectionResource) {
 			DeletableCollectionResource dcr = (DeletableCollectionResource) r;
 			boolean locked = dcr.isLockedOutRecursive(req);

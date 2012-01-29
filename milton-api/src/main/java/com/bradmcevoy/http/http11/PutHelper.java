@@ -2,12 +2,7 @@ package com.bradmcevoy.http.http11;
 
 import com.bradmcevoy.common.ContentTypeUtils;
 import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.GetableResource;
-import com.bradmcevoy.http.HttpManager;
-import com.bradmcevoy.http.Range;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
@@ -151,7 +146,7 @@ public class PutHelper {
     }
 
 
-    public CollectionResource findNearestParent( HttpManager manager, String host, Path path ) throws NotAuthorizedException, ConflictException {
+    public CollectionResource findNearestParent( HttpManager manager, String host, Path path ) throws NotAuthorizedException, ConflictException, BadRequestException {
         if( path == null ) return null;
 
         Resource thisResource = manager.getResourceFactory().getResource( host, path.toString() );

@@ -1,12 +1,7 @@
 package com.ettrema.http.fck;
 
 import com.bradmcevoy.common.Path;
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.FileItem;
-import com.bradmcevoy.http.MakeCollectionableResource;
-import com.bradmcevoy.http.PutableResource;
-import com.bradmcevoy.http.Range;
-import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
@@ -43,7 +38,7 @@ public class FckQuickUploaderResource extends FckCommon {
     }
 
     @Override
-    public String processForm( Map<String, String> params, Map<String, FileItem> files ) throws BadRequestException {
+    public String processForm( Map<String, String> params, Map<String, FileItem> files ) throws BadRequestException, NotAuthorizedException {
         if( files == null || files.isEmpty() ) {
             log.warn( "no files to upload" );
             return null;
@@ -54,7 +49,7 @@ public class FckQuickUploaderResource extends FckCommon {
         return null;
     }
 
-    private void processFileUpload( FileItem f, Map<String, String> params ) throws BadRequestException {
+    private void processFileUpload( FileItem f, Map<String, String> params ) throws BadRequestException, NotAuthorizedException {
         CollectionResource target = null;
         if( wrappedResource == null ) {
             throw new BadRequestException(this, "collection not found" );

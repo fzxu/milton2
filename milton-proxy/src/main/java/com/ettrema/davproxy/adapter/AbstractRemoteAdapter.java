@@ -1,24 +1,18 @@
 package com.ettrema.davproxy.adapter;
 
 import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.DeletableResource;
-import com.bradmcevoy.http.GetableResource;
+import com.bradmcevoy.http.DigestResource;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.exceptions.BadRequestException;
-import com.bradmcevoy.http.exceptions.ConflictException;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
-import com.bradmcevoy.http.exceptions.NotFoundException;
-import com.ettrema.httpclient.HttpException;
-import java.io.IOException;
+import com.bradmcevoy.http.http11.auth.DigestResponse;
 import java.util.Date;
 
 /**
  *
  * @author brad
  */
-public abstract class AbstractRemoteAdapter implements Resource, DeletableResource {
+public abstract class AbstractRemoteAdapter implements Resource, DigestResource {
 
     private final com.ettrema.httpclient.Resource resource;
     private final com.bradmcevoy.http.SecurityManager securityManager;
@@ -71,20 +65,23 @@ public abstract class AbstractRemoteAdapter implements Resource, DeletableResour
         return null;
     }
 
-    @Override
-    public void delete() throws NotAuthorizedException, ConflictException, BadRequestException {
-        try {
-            resource.delete();
-        } catch (NotFoundException ex) {
-            return; // ok, not there to delete
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        } catch (HttpException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
     public com.bradmcevoy.http.SecurityManager getSecurityManager() {
         return securityManager;
     }
+    
+    @Override
+    public Object authenticate(DigestResponse digestRequest) {
+        return securityManager.authenticate(digestRequest);
+    }
+
+    @Override
+    public boolean isDigestAllowed() {
+        return true;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+    
+    
 }

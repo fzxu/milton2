@@ -5,6 +5,7 @@ import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Response.Status;
 import com.bradmcevoy.http.Utils;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropFindResponse.NameAndError;
@@ -59,7 +60,7 @@ public class PropFindPropertyBuilder {
 	 * @param url - the URL of the given resource - MUST be correctly encoded
 	 * @return
 	 */
-	public List<PropFindResponse> buildProperties(PropFindableResource pfr, int depth, PropertiesRequest parseResult, String url) throws URISyntaxException {
+	public List<PropFindResponse> buildProperties(PropFindableResource pfr, int depth, PropertiesRequest parseResult, String url) throws URISyntaxException, NotAuthorizedException, BadRequestException {
 		LogUtils.trace(log, "buildProperties: ", pfr.getClass(), "url:", url);
 		url = fixUrl(url);
 		List<PropFindResponse> propFindResponses = new ArrayList<PropFindResponse>();
@@ -79,7 +80,7 @@ public class PropFindPropertyBuilder {
 		return null;
 	}
 
-	private void appendResponses(List<PropFindResponse> responses, PropFindableResource resource, int requestedDepth, PropertiesRequest parseResult, String encodedCollectionUrl) throws URISyntaxException {
+	private void appendResponses(List<PropFindResponse> responses, PropFindableResource resource, int requestedDepth, PropertiesRequest parseResult, String encodedCollectionUrl) throws URISyntaxException, NotAuthorizedException, BadRequestException {
 		String collectionHref = suffixSlash(resource, encodedCollectionUrl);
 		URI parentUri = new URI(collectionHref);
 
@@ -88,7 +89,7 @@ public class PropFindPropertyBuilder {
 
 	}
 
-	public void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropertiesRequest parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) {
+	public void processResource(List<PropFindResponse> responses, PropFindableResource resource, PropertiesRequest parseResult, String href, int requestedDepth, int currentDepth, String collectionHref) throws NotAuthorizedException, BadRequestException {
 		final LinkedHashMap<QName, ValueAndType> knownProperties = new LinkedHashMap<QName, ValueAndType>();
 		final ArrayList<NameAndError> unknownProperties = new ArrayList<NameAndError>();
 

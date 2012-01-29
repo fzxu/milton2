@@ -1,5 +1,8 @@
 package com.bradmcevoy.http;
 
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+
 /**
  * Implementations of ResourceFactory translate URLs to instances of Resource
  * 
@@ -41,7 +44,7 @@ public interface ResourceFactory {
      * @param path  Relative path on server, e.g. /downloads/index.html
      * @return the associated Resource object, or null if there is none.
      */
-    Resource getResource(String host, String path);
+    Resource getResource(String host, String path) throws NotAuthorizedException, BadRequestException;
     
     
 }

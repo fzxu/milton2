@@ -5,37 +5,48 @@
            
 
 
-	<bean id="server.A" class="com.ettrema.httpclient.HostBuilder">
-		<property name="server" value="localhost" />
-		<property name="port" value="8090" />
-		<property name="user" value="me" />
-		<property name="password" value="pwd" />
-		<property name="rootPath" value="/" />
-	</bean>
-
-	<bean id="server.B" class="com.ettrema.httpclient.HostBuilder">
-		<property name="server" value="localhost" />
-		<property name="port" value="8095" />
-		<property name="user" value="me" />
-		<property name="password" value="pwd" />
-		<property name="rootPath" value="/" />
-	</bean>
-	
-    <bean id="davproxy.resource.factory" class="com.ettrema.davproxy.adapter.RemoteDavResourceFactory">
-        <constructor-arg ref="milton.fs.security.manager" />
-		<constructor-arg>
-			<map>
-				<entry key="serverA">
-					<ref local="server.A" />
-				</entry>
-				<entry key="serverB">
-					<ref local="server.B" />
-				</entry>				
-			</map>
-		</constructor-arg>
+    <bean id="server.A" class="com.ettrema.httpclient.HostBuilder">
+        <property name="server" value="localhost" />
+        <property name="port" value="8085" />
+        <property name="user" value="me" />
+        <property name="password" value="pwd" />
+        <property name="rootPath" value="/" />
     </bean>
 
-     <bean id="milton.fs.security.manager" class="com.ettrema.http.fs.SimpleSecurityManager" >
+    <bean id="server.B" class="com.ettrema.httpclient.HostBuilder">
+        <property name="server" value="localhost" />
+        <property name="port" value="8095" />
+        <property name="user" value="me" />
+        <property name="password" value="pwd" />
+        <property name="rootPath" value="/" />
+    </bean>
+
+    <bean id="content.generator" class="com.ettrema.davproxy.content.FolderHtmlContentGenerator">        
+    </bean>
+
+    <bean id="remote.manager" class="com.ettrema.davproxy.adapter.RemoteManager">        
+        <constructor-arg ref="milton.fs.security.manager" />
+        <constructor-arg ref="content.generator" />
+    </bean>
+
+
+    <bean id="davproxy.resource.factory" class="com.ettrema.davproxy.adapter.RemoteDavResourceFactory">
+        <constructor-arg ref="milton.fs.security.manager" />
+        <constructor-arg ref="content.generator" />
+        <constructor-arg ref="remote.manager" />
+        <constructor-arg>
+            <map>
+                <entry key="serverA">
+                    <ref local="server.A" />
+                </entry>
+                <entry key="serverB">
+                    <ref local="server.B" />
+                </entry>				
+            </map>
+        </constructor-arg>
+    </bean>
+
+    <bean id="milton.fs.security.manager" class="com.ettrema.http.fs.SimpleSecurityManager" >
         <property name="realm" value="aRealm" />
         <property name="nameAndPasswords">
             <map>

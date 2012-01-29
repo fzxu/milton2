@@ -4,6 +4,8 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.XmlWriter;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.OutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ public class FolderHtmlContentGenerator {
     
     private String ssoPrefix; // currently not used - BM
     
-    public void generateContent(CollectionResource folder, OutputStream out, String uri) {
+    public void generateContent(CollectionResource folder, OutputStream out, String uri) throws NotAuthorizedException, BadRequestException {
         XmlWriter w = new XmlWriter(out);
         w.open("html");
         w.open("head");
@@ -58,7 +60,7 @@ public class FolderHtmlContentGenerator {
             String path = buildHref(uri, r.getName());
             w.begin("a").writeAtt("href", path).open().writeText(r.getName()).close();
 
-            w.begin("a").writeAtt("href", "#").writeAtt("onclick", "editDocument('" + path + "')").open().writeText("(edit with office)").close();
+            //w.begin("a").writeAtt("href", "#").writeAtt("onclick", "editDocument('" + path + "')").open().writeText("(edit with office)").close();
 
             w.close("td");
 
@@ -78,7 +80,6 @@ public class FolderHtmlContentGenerator {
         if (!abUrl.endsWith("/")) {
             abUrl += "/";
         }
-        log.warn("url: " + abUrl);
         if (ssoPrefix == null) {
             return abUrl + name;
         } else {

@@ -47,14 +47,14 @@ public class FckFileManagerResource extends FckCommon implements GetableResource
     }
 
     @Override
-    public String processForm( Map<String, String> parameters, Map<String, FileItem> files ) throws ConflictException {
+    public String processForm( Map<String, String> parameters, Map<String, FileItem> files ) throws ConflictException, NotAuthorizedException, BadRequestException {
         uploadParams = new FckPostParams( parameters );
         uploadParams.processFileUploadCommand( files );
         return null;
     }
 
     @Override
-    public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException {
+    public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException {
         log.debug( "sendContent" );
         if( uploadParams != null ) {
             String s;
@@ -124,7 +124,7 @@ public class FckFileManagerResource extends FckCommon implements GetableResource
             serverPath = params.get( "ServerPath" );
         }
 
-        void process() throws ConflictException {
+        void process() throws ConflictException, NotAuthorizedException, BadRequestException {
             String relFolder = sFolder.substring( 1 );
             Path p = Path.path( relFolder );
             Resource r = find( wrappedResource, p );
@@ -159,7 +159,7 @@ public class FckFileManagerResource extends FckCommon implements GetableResource
             writer().writeXMLHeader();
         }
 
-        void processGetFoldersCommand( boolean includeFiles ) {
+        void processGetFoldersCommand( boolean includeFiles ) throws NotAuthorizedException, BadRequestException {
             initXml();
             XmlWriter.Element el = writer().begin( "Connector" );
             el.writeAtt( "command", command );
@@ -253,9 +253,9 @@ public class FckFileManagerResource extends FckCommon implements GetableResource
             }
             StringBuilder sb = new StringBuilder();
             sb.append( "<script type='text/javascript'>\n" );
-            sb.append( "window.parent.frames['frmUpload'].OnUploadCompleted(" + uploadParams.code );
+            sb.append("window.parent.frames['frmUpload'].OnUploadCompleted(").append( uploadParams.code);
             if( uploadParams.message != null ) {
-                sb.append( ",'" + uploadParams.message + "'" );
+                sb.append(",'").append(uploadParams.message).append( "'");
             }
             sb.append( ");\n" );
             sb.append( "</script>\n" );
@@ -269,7 +269,7 @@ public class FckFileManagerResource extends FckCommon implements GetableResource
         }
     }
 
-    private Resource find( CollectionResource wrappedResource, Path p ) {
+    private Resource find( CollectionResource wrappedResource, Path p ) throws NotAuthorizedException, BadRequestException {
         Resource r = wrappedResource;
         for( String s : p.getParts() ) {
             if( r instanceof CollectionResource ) {
@@ -297,7 +297,7 @@ public class FckFileManagerResource extends FckCommon implements GetableResource
             super( params );
         }
 
-        void processFileUploadCommand( Map<String, FileItem> files ) throws ConflictException {
+        void processFileUploadCommand( Map<String, FileItem> files ) throws ConflictException, NotAuthorizedException, BadRequestException {
             Collection<FileItem> col = files.values();
             if( col == null || col.isEmpty() ) {
                 log.debug( "no files uploaded" );
@@ -311,7 +311,7 @@ public class FckFileManagerResource extends FckCommon implements GetableResource
             }
         }
 
-        private void processFileUpload( FileItem f ) throws ConflictException {
+        private void processFileUpload( FileItem f ) throws ConflictException, NotAuthorizedException, BadRequestException {
             String sFolder = params.get( "CurrentFolder" );
             log.debug( "sFolder: " + sFolder + " - " + sFolder.length() );
             String relFolder = sFolder.substring( 1 );

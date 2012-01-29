@@ -20,7 +20,9 @@ public abstract class MiltonException extends Exception {
 		super(message);
 	}
 	
-	
+	public MiltonException(Throwable cause) {
+		super(cause);
+	}	
 
     public Resource getResource() {
         return resource;
