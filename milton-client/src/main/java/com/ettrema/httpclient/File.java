@@ -8,7 +8,10 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.common.LogUtils;
 import com.ettrema.httpclient.Utils.CancelledException;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +38,7 @@ public class File extends Resource {
         this.contentLength = contentLength;
     }
 
-    public void setContent(ByteArrayInputStream in, Long contentLength) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
+    public void setContent(InputStream in, Long contentLength) throws IOException, HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         this.parent.upload(this.name, in, contentLength, null);
     }
 

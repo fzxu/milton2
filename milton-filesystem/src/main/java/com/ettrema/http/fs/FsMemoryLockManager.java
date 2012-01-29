@@ -1,10 +1,6 @@
 package com.ettrema.http.fs;
 
-import com.bradmcevoy.http.LockInfo;
-import com.bradmcevoy.http.LockResult;
-import com.bradmcevoy.http.LockTimeout;
-import com.bradmcevoy.http.LockToken;
-import com.bradmcevoy.http.LockableResource;
+import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.io.File;
 import java.util.Date;
@@ -31,6 +27,7 @@ public class FsMemoryLockManager implements LockManager {
         locksByToken = new HashMap<String, CurrentLock>();
     }
 
+    @Override
     public synchronized LockResult lock( LockTimeout timeout, LockInfo lockInfo, LockableResource r ) {
         FsResource resource = (FsResource) r;
         LockToken currentLock = currentLock( resource );
@@ -45,6 +42,7 @@ public class FsMemoryLockManager implements LockManager {
         return LockResult.success( newToken );
     }
 
+    @Override
     public synchronized LockResult refresh( String tokenId, LockableResource resource ) {
         CurrentLock curLock = locksByToken.get( tokenId );
         if( curLock == null ) {
@@ -56,6 +54,7 @@ public class FsMemoryLockManager implements LockManager {
         }
     }
 
+    @Override
     public synchronized void unlock( String tokenId, LockableResource r ) throws NotAuthorizedException {
         FsResource resource = (FsResource) r;
         LockToken lockToken = currentLock( resource );
@@ -93,6 +92,7 @@ public class FsMemoryLockManager implements LockManager {
         }
     }
 
+    @Override
     public LockToken getCurrentToken( LockableResource r ) {
         FsResource resource = (FsResource) r;
         CurrentLock lock = locksByFile.get( resource.getFile() );

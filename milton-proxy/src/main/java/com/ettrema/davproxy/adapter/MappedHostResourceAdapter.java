@@ -9,6 +9,7 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.httpclient.Folder;
 import com.ettrema.httpclient.Host;
+import com.ettrema.httpclient.HostBuilder;
 import com.ettrema.httpclient.HttpException;
 import java.io.IOException;
 import java.io.InputStream;

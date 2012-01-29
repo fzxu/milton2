@@ -5,13 +5,16 @@ import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.*;
 import com.ettrema.common.LogUtils;
 import com.ettrema.httpclient.Host;
+import com.ettrema.httpclient.HostBuilder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  *
@@ -23,9 +26,12 @@ public class RemoteDavResourceFactory implements ResourceFactory {
     private final com.bradmcevoy.http.SecurityManager securityManager;
     private final Map<String,Host> roots;
 
-    public RemoteDavResourceFactory(com.bradmcevoy.http.SecurityManager securityManager, Map<String,Host> roots) {
+    public RemoteDavResourceFactory(com.bradmcevoy.http.SecurityManager securityManager, Map<String,HostBuilder> roots) {
         this.securityManager = securityManager;
-        this.roots = roots;
+        this.roots = new ConcurrentHashMap();
+        for( Entry<String, HostBuilder> entry : roots.entrySet()) {
+            this.roots.put(entry.getKey(), entry.getValue().buildHost());
+        }
     }
 
     @Override

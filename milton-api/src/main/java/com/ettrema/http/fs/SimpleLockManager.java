@@ -31,6 +31,7 @@ public class SimpleLockManager implements LockManager {
         locksByToken = new HashMap<String, CurrentLock>();
     }
 
+	@Override
     public synchronized LockResult lock( LockTimeout timeout, LockInfo lockInfo, LockableResource r ) {
         LockToken currentLock = currentLock( r );
         if( currentLock != null ) {

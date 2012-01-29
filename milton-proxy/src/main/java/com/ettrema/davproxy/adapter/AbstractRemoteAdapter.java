@@ -2,7 +2,9 @@ package com.ettrema.davproxy.adapter;
 
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.DeletableResource;
+import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
@@ -60,6 +62,12 @@ public abstract class AbstractRemoteAdapter implements Resource, DeletableResour
 
     @Override
     public String checkRedirect(Request request) {
+        if (request.getMethod().equals(Method.GET)) {
+            String url = request.getAbsolutePath();
+            if (!url.endsWith("/")) {
+                return url + "/";
+            }
+        }
         return null;
     }
 
@@ -68,7 +76,7 @@ public abstract class AbstractRemoteAdapter implements Resource, DeletableResour
         try {
             resource.delete();
         } catch (NotFoundException ex) {
-            return ; // ok, not there to delete
+            return; // ok, not there to delete
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         } catch (HttpException ex) {

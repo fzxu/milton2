@@ -1,13 +1,11 @@
 package com.ettrema.davproxy.adapter;
 
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.FolderResource;
-import com.bradmcevoy.http.Range;
+import com.bradmcevoy.http.*;
 import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
+import com.ettrema.davproxy.content.FolderHtmlContentGenerator;
 import com.ettrema.httpclient.Folder;
 import com.ettrema.httpclient.HttpException;
 import java.io.IOException;
@@ -25,9 +23,12 @@ public class FolderResourceAdapter extends AbstractRemoteAdapter implements Fold
 
     private final com.ettrema.httpclient.Folder folder;
 
-    public FolderResourceAdapter(Folder folder, com.bradmcevoy.http.SecurityManager securityManager, String hostName) {
+    private final FolderHtmlContentGenerator contentGenerator;
+    
+    public FolderResourceAdapter(Folder folder, com.bradmcevoy.http.SecurityManager securityManager, String hostName, FolderHtmlContentGenerator contentGenerator) {
         super(folder, securityManager, hostName);
         this.folder = folder;
+        this.contentGenerator = contentGenerator;
     }
 
     @Override
@@ -42,7 +43,7 @@ public class FolderResourceAdapter extends AbstractRemoteAdapter implements Fold
         } catch (HttpException ex) {
             throw new RuntimeException(ex);
         }
-        return new FolderResourceAdapter(newRemoteFolder, getSecurityManager(), newName);
+        return new FolderResourceAdapter(newRemoteFolder, getSecurityManager(), newName, contentGenerator);
     }
 
     @Override
@@ -67,7 +68,8 @@ public class FolderResourceAdapter extends AbstractRemoteAdapter implements Fold
 
     @Override
     public void sendContent(OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        String uri = HttpManager.request().getAbsolutePath();
+        contentGenerator.generateContent(this, out, uri);
     }
 
     @Override
