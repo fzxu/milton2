@@ -3,6 +3,8 @@ package com.ettrema.http.caldav;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.PropFindXmlGenerator;
@@ -45,7 +47,7 @@ public class MultiGetReport implements Report {
 	}
 
 	@Override
-	public String process(String host, String path, Resource calendar, Document doc) {
+	public String process(String host, String path, Resource calendar, Document doc) throws NotAuthorizedException, BadRequestException {
 		log.debug("process");
 		// The requested properties
 		Set<QName> props = getProps(doc);

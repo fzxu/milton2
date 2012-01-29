@@ -3,6 +3,8 @@ package com.ettrema.http.caldav;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.http.values.PropFindResponseList;
 import com.bradmcevoy.http.values.ValueAndType;
@@ -151,7 +153,7 @@ public class ExpandPropertyReport implements Report {
 	}
 
 	@Override
-	public String process(String host, String path, Resource calendar, Document doc) {
+	public String process(String host, String path, Resource calendar, Document doc) throws NotAuthorizedException, BadRequestException {
 		log.debug("process");
 
 		PropertiesRequest parseResult = parse(doc.getRootElement());
@@ -235,7 +237,7 @@ public class ExpandPropertyReport implements Report {
 		return "expand-property";
 	}
 
-	private PropFindResponseList toResponseList(String host, HrefList hrefList, Property prop) throws URISyntaxException {
+	private PropFindResponseList toResponseList(String host, HrefList hrefList, Property prop) throws URISyntaxException, NotAuthorizedException, BadRequestException {
 		PropFindResponseList list = new PropFindResponseList();
 		for (String href : hrefList) {
 			Resource r = resourceFactory.getResource(host, href);
@@ -252,7 +254,7 @@ public class ExpandPropertyReport implements Report {
 		return list;
 	}
 
-	private void replaceHrefs(String host, PropFindResponseList propFindResponseList, Property prop) throws URISyntaxException {		
+	private void replaceHrefs(String host, PropFindResponseList propFindResponseList, Property prop) throws URISyntaxException, NotAuthorizedException, BadRequestException {		
 		for (PropFindResponse r : propFindResponseList) {
 			Set<Entry<QName, ValueAndType>> set = r.getKnownProperties().entrySet();
 			set = new HashSet<Entry<QName, ValueAndType>>(set);
