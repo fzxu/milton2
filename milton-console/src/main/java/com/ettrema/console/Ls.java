@@ -20,6 +20,8 @@ public class Ls extends AbstractConsoleCommand{
         this.resultFormatter = resultFormatter;
     }
 
+    
+    
     @Override
     public Result execute() {
         try {
