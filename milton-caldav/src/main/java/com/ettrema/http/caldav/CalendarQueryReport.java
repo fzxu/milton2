@@ -6,10 +6,10 @@ import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Utils;
 import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropFindResponse;
 import com.bradmcevoy.http.webdav.PropFindXmlGenerator;
-import com.bradmcevoy.http.webdav.PropertiesRequest;
 import com.bradmcevoy.http.webdav.PropertiesRequest;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.ettrema.http.CalendarResource;
@@ -52,7 +52,7 @@ public class CalendarQueryReport implements Report {
 	}
 
 	@Override
-	public String process(String host, String path, Resource resource, Document doc) throws BadRequestException {
+	public String process(String host, String path, Resource resource, Document doc) throws BadRequestException, NotAuthorizedException {
 		log.debug("process");
 		// The requested properties
 		Set<QName> props = getProps(doc);
@@ -103,7 +103,7 @@ public class CalendarQueryReport implements Report {
 		return set;
 	}
 
-	private List<ICalResource> findCalendarResources(CalendarResource calendar, Document doc) {
+	private List<ICalResource> findCalendarResources(CalendarResource calendar, Document doc) throws NotAuthorizedException, BadRequestException {
 		// build a list of all calendar resources
 		List<ICalResource> list = new ArrayList<ICalResource>();
 		for (Resource r : calendar.getChildren()) {

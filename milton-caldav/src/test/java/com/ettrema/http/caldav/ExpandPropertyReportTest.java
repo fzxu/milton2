@@ -2,7 +2,6 @@ package com.ettrema.http.caldav;
 
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.ResourceFactory;
-import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.HrefList;
 import com.bradmcevoy.http.values.HrefListValueWriter;
 import com.bradmcevoy.http.values.PropFindResponseListWriter;
@@ -15,7 +14,6 @@ import com.bradmcevoy.http.webdav.PropFindXmlGeneratorHelper;
 import com.bradmcevoy.http.webdav.WebDavProtocol;
 import com.bradmcevoy.property.PropertySource;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +22,6 @@ import junit.framework.TestCase;
 
 import org.jdom.Document;
 import static org.easymock.EasyMock.*;
-import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
 /**
@@ -70,7 +67,7 @@ public class ExpandPropertyReportTest extends TestCase {
 		
 	}
 
-	public void testProcess() throws JDOMException, IOException, NotAuthorizedException {
+	public void testProcess() throws Exception {
 		PropFindableResource pfr = createMock(PropFindableResource.class);
 		SAXBuilder builder = new org.jdom.input.SAXBuilder();
 		String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" +
