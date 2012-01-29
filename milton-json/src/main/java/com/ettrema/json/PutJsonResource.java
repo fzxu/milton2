@@ -209,13 +209,13 @@ public class PutJsonResource extends JsonResource implements PostableResource {
         return base + "_" + cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.MONTH) + "-" + cal.get(Calendar.DAY_OF_MONTH);
     }
 
-    private String findAcceptableName(String initialName) throws ConflictException {
+    private String findAcceptableName(String initialName) throws ConflictException, NotAuthorizedException, BadRequestException {
         String baseName = FileUtils.stripExtension(initialName);
         String ext = FileUtils.getExtension(initialName);
         return findAcceptableName(baseName, ext, 1);
     }
 
-    private String findAcceptableName(String baseName, String ext, int i) throws ConflictException {
+    private String findAcceptableName(String baseName, String ext, int i) throws ConflictException, NotAuthorizedException, BadRequestException {
         String candidateName = baseName + "_" + i;
         if (ext != null && ext.length() > 0) {
             candidateName += "." + ext;

@@ -4,6 +4,8 @@ package com.ettrema.console;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.ettrema.event.EventManager;
 import java.util.List;
 import org.slf4j.Logger;
@@ -28,7 +30,7 @@ public abstract class AbstractConsoleCommand implements ConsoleCommand{
      *
      * @return
      */
-    protected CollectionResource currentResource() {
+    protected CollectionResource currentResource() throws NotAuthorizedException, BadRequestException {
         return (CollectionResource) cursor.getResource();
     }
     
@@ -36,7 +38,7 @@ public abstract class AbstractConsoleCommand implements ConsoleCommand{
         return new Result(cursor.getPath().toString(),msg);
     }    
     
-    protected Resource host() {
+    protected Resource host() throws NotAuthorizedException, BadRequestException {
         return cursor.host();
     }
 

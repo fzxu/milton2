@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +92,7 @@ public class MiltonFtpFile implements FtpFile {
         return r != null;
     }
 
+    @Override
     public boolean isReadable() {
         log.debug( "isReadble" );
         if( r == null || !( r instanceof GetableResource ) ) return false;
@@ -106,23 +106,31 @@ public class MiltonFtpFile implements FtpFile {
     /**
      * Check file write permission.
      */
+    @Override
     public boolean isWritable() {
-        log.debug( "isWritable: " + getAbsolutePath() );
-        if( path.isRoot() ) return false;
-        Auth auth = new Auth( user.getName(), user.getUser() );
-        FtpRequest request = new FtpRequest( Method.DELETE, auth, path.toString() );
-        if( r != null ) {
-            if( r instanceof ReplaceableResource ) {
-                return r.authorise( request, Method.PUT, auth );
+        try {
+            log.debug( "isWritable: " + getAbsolutePath() );
+            if( path.isRoot() ) return false;
+            Auth auth = new Auth( user.getName(), user.getUser() );
+            FtpRequest request = new FtpRequest( Method.DELETE, auth, path.toString() );
+            if( r != null ) {
+                if( r instanceof ReplaceableResource ) {
+                    return r.authorise( request, Method.PUT, auth );
+                }
             }
-        }
-        if( getParent() instanceof PutableResource ) {
-            return getParent().authorise( request, Method.PUT, auth );
-        } else {
-            return false;
+            if( getParent() instanceof PutableResource ) {
+                return getParent().authorise( request, Method.PUT, auth );
+            } else {
+                return false;
+            }
+        } catch (NotAuthorizedException ex) {
+            throw new RuntimeException(ex);
+        } catch (BadRequestException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
+    @Override
     public boolean isRemovable() {
         log.debug( "isRemovable: " + getAbsolutePath() );
         if( r == null ) return false;
@@ -195,6 +203,7 @@ public class MiltonFtpFile implements FtpFile {
         }
     }
 
+    @Override
     public boolean delete() {
         if( r instanceof DeletableResource ) {
             DeletableResource dr = (DeletableResource) r;
@@ -216,27 +225,34 @@ public class MiltonFtpFile implements FtpFile {
         }
     }
 
+    @Override
     public boolean move( FtpFile newFile ) {
         if( r == null ) {
             throw new RuntimeException( "resource not saved yet" );
         } else if( r instanceof MoveableResource ) {
-            MoveableResource src = (MoveableResource) r;
-            MiltonFtpFile dest = (MiltonFtpFile) newFile;
-            CollectionResource crDest;
-            crDest = dest.getParent();
-            String newName = dest.path.getName();
             try {
-                src.moveTo( crDest, newName );
-                return true;
-            } catch( BadRequestException ex ) {
-                log.error( "bad request, can't move", ex );
-                return false;
+                MoveableResource src = (MoveableResource) r;
+                MiltonFtpFile dest = (MiltonFtpFile) newFile;
+                CollectionResource crDest;
+                crDest = dest.getParent();
+                String newName = dest.path.getName();
+                try {
+                    src.moveTo( crDest, newName );
+                    return true;
+                } catch( BadRequestException ex ) {
+                    log.error( "bad request, can't move", ex );
+                    return false;
+                } catch( NotAuthorizedException ex ) {
+                    log.error( "not authorised can't move", ex );
+                    return false;
+                } catch( ConflictException ex ) {
+                    log.error( "can't move", ex );
+                    return false;
+                }
             } catch( NotAuthorizedException ex ) {
-                log.error( "not authorised can't move", ex );
-                return false;
-            } catch( ConflictException ex ) {
-                log.error( "can't move", ex );
-                return false;
+                throw new RuntimeException(ex);
+            } catch (BadRequestException ex) {
+                throw new RuntimeException(ex);
             }
         } else {
             log.debug( "not moveable: " + this.getName() );
@@ -244,18 +260,26 @@ public class MiltonFtpFile implements FtpFile {
         }
     }
 
+    @Override
     public List<FtpFile> listFiles() {
         log.debug( "listfiles" );
         List<FtpFile> list = new ArrayList<FtpFile>();
         if( r instanceof CollectionResource ) {
-            CollectionResource cr = (CollectionResource) r;
-            for( Resource child : cr.getChildren() ) {
-                list.add( ftpFactory.wrap( path.child( child.getName() ), child ) );
+            try {
+                CollectionResource cr = (CollectionResource) r;
+                for( Resource child : cr.getChildren() ) {
+                    list.add( ftpFactory.wrap( path.child( child.getName() ), child ) );
+                }
+            } catch (NotAuthorizedException ex) {
+                throw new RuntimeException(ex);
+            } catch (BadRequestException ex) {
+                throw new RuntimeException(ex);
             }
         }
         return list;
     }
 
+    @Override
     public OutputStream createOutputStream( long offset ) throws IOException {
         log.debug( "createOutputStream: " + offset );
         final BufferingOutputStream out = new BufferingOutputStream( 50000 );
@@ -264,6 +288,7 @@ public class MiltonFtpFile implements FtpFile {
             final ReplaceableResource rr = (ReplaceableResource) r;
             Runnable runnable = new Runnable() {
 
+                @Override
                 public void run() {
                     try {
                         rr.replaceContent(out.getInputStream(), out.getSize());
@@ -280,7 +305,13 @@ public class MiltonFtpFile implements FtpFile {
             return out;
         } else {
             CollectionResource col;
-            col = getParent();
+            try {
+                col = getParent();
+            } catch (NotAuthorizedException ex) {
+                throw new RuntimeException(ex);
+            } catch (BadRequestException ex) {
+                throw new RuntimeException(ex);
+            }
             if( col == null ) {
                 throw new IOException( "parent not found" );
             } else if( col instanceof PutableResource ) {
@@ -288,6 +319,7 @@ public class MiltonFtpFile implements FtpFile {
                 final String newName = path.getName();
                 Runnable runnable = new Runnable() {
 
+                    @Override
                     public void run() {
                         try {
                             putableResource.createNew( newName, out.getInputStream(), out.getSize(), null );
@@ -335,7 +367,7 @@ public class MiltonFtpFile implements FtpFile {
         }
     }
 
-    private CollectionResource getParent() {
+    private CollectionResource getParent() throws NotAuthorizedException, BadRequestException {
         if( parent == null ) {
             MiltonFsView.ResourceAndPath rp = ftpFactory.getResource( path.getParent() );
             if( rp.resource == null ) {

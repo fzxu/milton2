@@ -13,7 +13,10 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.ettrema.common.Service;
+import java.util.logging.Level;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FileSystemFactory;
@@ -126,16 +129,25 @@ public class MiltonFtpAdapter implements FileSystemFactory, Service {
         }
     }
 
-    public Resource getResource( Path path, String host ) {
+    public Resource getResource( Path path, String host ) throws NotAuthorizedException, BadRequestException {
         return resourceFactory.getResource( host, path.toString() );
     }
 
+    @Override
     public FileSystemView createFileSystemView( User user ) throws FtpException {
         MiltonUser mu = (MiltonUser) user;
-        Resource root = resourceFactory.getResource( mu.domain, "/" );
+        Resource root;
+        try {
+            root = resourceFactory.getResource( mu.domain, "/" );
+        } catch (NotAuthorizedException ex) {
+            throw new FtpException(ex);
+        } catch (BadRequestException ex) {
+            throw new FtpException(ex);
+        }
         return new MiltonFsView( Path.root, (CollectionResource) root, resourceFactory, (MiltonUser) user );
     }
 
+    @Override
     public void start() {
         log.debug( "starting the FTP server on port" );
         try {
@@ -145,6 +157,7 @@ public class MiltonFtpAdapter implements FileSystemFactory, Service {
         }
     }
 
+    @Override
     public void stop() {
         server.stop();
     }

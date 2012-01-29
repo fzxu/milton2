@@ -4,6 +4,8 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.FtpFile;
@@ -33,56 +35,74 @@ public class MiltonFsView implements FileSystemView {
         log.debug( "created view on resource: " + current.getName() + " for user: " + user.name + "@" + user.domain );
     }
 
+    @Override
     public FtpFile getHomeDirectory() throws FtpException {
         return wrap( homePath, home );
     }
 
+    @Override
     public FtpFile getWorkingDirectory() throws FtpException {
         return wrap( homePath, current );
     }
 
+    @Override
     public boolean changeWorkingDirectory( String dir ) throws FtpException {
-        log.debug( "cd: " + dir + " from " + currentPath );
-        Path p = Path.path( dir );
-        ResourceAndPath rp = getResource( p );
-        if( rp.resource == null ) {
-            log.debug( "not found: " + p );
-            return false;
-        } else if( rp.resource instanceof CollectionResource ) {
-            current = (CollectionResource) rp.resource;
-            currentPath = rp.path;
-            log.debug( "currentPath is now: " + currentPath);
-            return true;
-        } else {
-            log.debug( "not a collection: " + rp.resource.getName() );
-            return false;
+        try {
+            log.debug( "cd: " + dir + " from " + currentPath );
+            Path p = Path.path( dir );
+            ResourceAndPath rp = getResource( p );
+            if( rp.resource == null ) {
+                log.debug( "not found: " + p );
+                return false;
+            } else if( rp.resource instanceof CollectionResource ) {
+                current = (CollectionResource) rp.resource;
+                currentPath = rp.path;
+                log.debug( "currentPath is now: " + currentPath);
+                return true;
+            } else {
+                log.debug( "not a collection: " + rp.resource.getName() );
+                return false;
+            }
+        } catch (NotAuthorizedException ex) {
+            throw new FtpException(ex);
+        } catch (BadRequestException ex) {
+            throw new FtpException(ex);
         }
     }
 
+    @Override
     public FtpFile getFile( String path ) throws FtpException {
-        log.debug( "getFile: " + path );
-        if( path.startsWith( "." ) ) {
-            path = currentPath.toString() + path.substring( 1 );
-            log.debug( "getFile2: " + path );
-        }
-        Path p = Path.path( path );
-        ResourceAndPath rp = getResource( p );
-        if( rp.resource == null ) {
-            log.debug( "returning new file" );
-            return new MiltonFtpFile( this, rp.path, this.current, null, user );
-        } else {
-            return new MiltonFtpFile( this, rp.path, rp.resource, user );
+        try {
+            log.debug( "getFile: " + path );
+            if( path.startsWith( "." ) ) {
+                path = currentPath.toString() + path.substring( 1 );
+                log.debug( "getFile2: " + path );
+            }
+            Path p = Path.path( path );
+            ResourceAndPath rp = getResource( p );
+            if( rp.resource == null ) {
+                log.debug( "returning new file" );
+                return new MiltonFtpFile( this, rp.path, this.current, null, user );
+            } else {
+                return new MiltonFtpFile( this, rp.path, rp.resource, user );
+            }
+        } catch (NotAuthorizedException ex) {
+            throw new FtpException(ex);
+        } catch (BadRequestException ex) {
+            throw new FtpException(ex);
         }
     }
 
+    @Override
     public boolean isRandomAccessible() throws FtpException {
         return true;
     }
 
+    @Override
     public void dispose() {
     }
 
-    public ResourceAndPath getResource( Path p ) {
+    public ResourceAndPath getResource( Path p ) throws NotAuthorizedException, BadRequestException {
         log.debug( "getResource: " + p );
         if( p.isRelative() ) {
             p = Path.path( currentPath.toString() + '/' + p.toString() );

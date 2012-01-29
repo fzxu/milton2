@@ -2,6 +2,9 @@ package com.ettrema.ftp;
 
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+import java.util.logging.Level;
 import org.apache.ftpserver.ftplet.Authentication;
 import org.apache.ftpserver.ftplet.AuthenticationFailedException;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -45,18 +48,22 @@ public class UserManagerAdapter implements UserManager {
         return userService.getAllUserNames();
     }
 
+    @Override
     public void delete( String name ) throws FtpException {
         userService.delete( name );
     }
 
+    @Override
     public void save( User user ) throws FtpException {
         userService.save( (MiltonUser) user );
     }
 
+    @Override
     public boolean doesExist( String name ) throws FtpException {
         return userService.doesExist( name );
     }
 
+    @Override
     public User authenticate( Authentication authentication ) throws AuthenticationFailedException {
         if( authentication instanceof UsernamePasswordAuthentication ) {
             UsernamePasswordAuthentication upa = (UsernamePasswordAuthentication) authentication;
@@ -68,7 +75,14 @@ public class UserManagerAdapter implements UserManager {
                 log.warn( "invalid login. no domain specified. use form: user#domain" );
                 return null;
             }
-            Resource hostRoot = resourceFactory.getResource( naa.domain, "/" );
+            Resource hostRoot;
+            try {
+                hostRoot = resourceFactory.getResource( naa.domain, "/" );
+            } catch (NotAuthorizedException ex) {
+                throw new RuntimeException(ex);
+            } catch (BadRequestException ex) {
+                throw new RuntimeException(ex);
+            }
             if( hostRoot == null ) {
                 log.warn( "failed to find root for domain: " + naa.domain );
                 return null;

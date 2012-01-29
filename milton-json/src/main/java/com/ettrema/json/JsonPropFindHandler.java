@@ -4,6 +4,7 @@ import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.values.ValueAndType;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
@@ -58,7 +59,7 @@ public class JsonPropFindHandler {
         helper = new Helper();
     }
 
-    public void sendContent(PropFindableResource wrappedResource, String encodedUrl, OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException {
+    public void sendContent(PropFindableResource wrappedResource, String encodedUrl, OutputStream out, Range range, Map<String, String> params, String contentType) throws IOException, NotAuthorizedException, BadRequestException {
         log.debug("sendContent: " + encodedUrl);
         JsonConfig cfg = new JsonConfig();
         cfg.setIgnoreTransientFields(true);

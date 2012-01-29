@@ -28,7 +28,7 @@ public class CursorTest extends TestCase {
         host = "test.host";
     }
 
-    public void testFindChild() {
+    public void testFindChild() throws Exception{
         Cursor cursor = new Cursor( resourceFactory, host, "/abc" );
         expect( resourceFactory.getResource( host, "/abc" ) ).andReturn( col );
         expect( col.child( "x" ) ).andReturn( child );
@@ -39,7 +39,7 @@ public class CursorTest extends TestCase {
         assertEquals( "/abc/x", c2.getPath().toString() );
     }
 
-    public void testFindAbsolute() {
+    public void testFindAbsolute()  throws Exception{
         Cursor cursor = new Cursor( resourceFactory, host, "/abc" );
         expect( resourceFactory.getResource( host, "/" ) ).andReturn( col );
         expect( col.child( "x" ) ).andReturn( child );
@@ -50,7 +50,7 @@ public class CursorTest extends TestCase {
         assertEquals( "/x", c2.getPath().toString() );
     }
 
-    public void testFindSame() {
+    public void testFindSame()  throws Exception{
         Cursor cursor = new Cursor( resourceFactory, host, "/abc" );
         expect( resourceFactory.getResource( host, "/abc" ) ).andReturn( col );
         replay( resourceFactory );
@@ -60,7 +60,7 @@ public class CursorTest extends TestCase {
         assertEquals( "/abc", c2.getPath().toString() );
     }
 
-    public void testFindParent() {
+    public void testFindParent() throws Exception{
         Cursor cursor = new Cursor( resourceFactory, host, "/abc/x" );
         expect( resourceFactory.getResource( host, "/abc/x" ) ).andReturn( child );
         expect( resourceFactory.getResource( host, "/abc" ) ).andReturn( col );
@@ -71,7 +71,7 @@ public class CursorTest extends TestCase {
         assertEquals( "/abc", c2.getPath().toString() );
     }
 
-    public void testFindSequential() {
+    public void testFindSequential()  throws Exception{
         Cursor cursor = new Cursor( resourceFactory, host, "/abc" );
         expect( resourceFactory.getResource( host, "/abc" ) ).andReturn( col ).times( 2 );
 
@@ -85,7 +85,7 @@ public class CursorTest extends TestCase {
         assertEquals( "/abc/a", c2.getPath().toString() );
     }
 
-    public void testFindAllWithRegex() {
+    public void testFindAllWithRegex()  throws Exception{
         Cursor cursor = new Cursor( resourceFactory, host, "/abc" );
         List allChildren = childList();
         expect( resourceFactory.getResource( host, "/abc" ) ).andReturn( col );
@@ -97,7 +97,7 @@ public class CursorTest extends TestCase {
         assertEquals( 3, list.size());
     }
 
-    public void testFindOneWithRegex() {
+    public void testFindOneWithRegex() throws Exception {
         Cursor cursor = new Cursor( resourceFactory, host, "/abc" );
         List allChildren = childList();
         expect( resourceFactory.getResource( host, "/abc" ) ).andReturn( col );

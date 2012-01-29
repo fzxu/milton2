@@ -24,21 +24,29 @@ public class Rm extends AbstractConsoleCommand {
 
     @Override
     public Result execute() {
-        String sPath = args.get( 0 );
-        Path path = Path.path( sPath );
+        try {
+            String sPath = args.get( 0 );
+            Path path = Path.path( sPath );
 
-        Cursor sourceCursor = cursor.find( path );
+            Cursor sourceCursor = cursor.find( path );
 
-        if( !sourceCursor.exists() ) {
-            // try regex
-            List<Resource> list = sourceCursor.getParent().childrenWithFilter( sourceCursor.getPath().getName() );
-            if( list != null ) {
-                return doDelete( list );
+            if( !sourceCursor.exists() ) {
+                // try regex
+                List<Resource> list = sourceCursor.getParent().childrenWithFilter( sourceCursor.getPath().getName() );
+                if( list != null ) {
+                    return doDelete( list );
+                } else {
+                    return result( "Not found: " + path );
+                }
             } else {
-                return result( "Not found: " + path );
+                return doDelete( sourceCursor.getResource() );
             }
-        } else {
-            return doDelete( sourceCursor.getResource() );
+        } catch (NotAuthorizedException ex) {
+            log.error("not authorised", ex);
+            return result(ex.getLocalizedMessage());
+        } catch (BadRequestException ex) {
+            log.error("bad req", ex);
+            return result(ex.getLocalizedMessage());
         }
     }
 

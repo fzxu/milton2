@@ -12,6 +12,8 @@ import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.webdav.PropFindPropertyBuilder;
 import com.bradmcevoy.http.webdav.PropPatchSetter;
 import com.bradmcevoy.property.PropertyAuthoriser;
@@ -55,7 +57,7 @@ public class JsonResourceFactory implements ResourceFactory {
 	}
 
 	@Override
-	public Resource getResource(String host, String sPath) {
+	public Resource getResource(String host, String sPath) throws NotAuthorizedException, BadRequestException {
 		LogUtils.trace(log, "getResource", host, sPath);
 		Path path = Path.path(sPath);
 		Path parent = path.getParent();

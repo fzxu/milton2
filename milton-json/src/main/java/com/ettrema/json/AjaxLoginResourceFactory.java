@@ -4,6 +4,8 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.GetableResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +25,8 @@ public class AjaxLoginResourceFactory implements ResourceFactory{
         this.wrapped = wrapped;
     }
 
-    public Resource getResource( String host, String path ) {
+    @Override
+    public Resource getResource( String host, String path ) throws NotAuthorizedException, BadRequestException {
         if(path.endsWith( suffix )) {
             int i = path.lastIndexOf( suffix);
             String p2 = path.substring( 0, i);

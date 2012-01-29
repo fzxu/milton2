@@ -5,6 +5,8 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.SimpleDigestResource;
 import com.bradmcevoy.http.SimpleResource;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.io.ReadingException;
 import com.bradmcevoy.io.StreamUtils;
 import com.bradmcevoy.io.WritingException;
@@ -54,13 +56,12 @@ public class ConsoleResourceFactory implements ResourceFactory {
             }
         }
         String s = loadContent( "/com/ettrema/console/console.html" );
-        s = s.replace( "CONSOLE_PATH", consolePath );
         this.consolePageContent = loadContent( "console.html" );
         this.dojoJsContent = loadContent( "dojo.js" );
     }
 
 	@Override
-    public Resource getResource( String host, String path ) {        
+    public Resource getResource( String host, String path ) throws NotAuthorizedException, BadRequestException {        
         if( path.startsWith( consolePath ) ) {
             path = stripConsolePath( path, consolePath );
             Resource secureResource = wrappedFactory.getResource( host, secureResourcePath );

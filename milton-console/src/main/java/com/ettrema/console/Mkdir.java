@@ -22,36 +22,44 @@ public class Mkdir extends AbstractConsoleCommand {
 
     @Override
     public Result execute() {
-        String newName = args.get( 0 );
-        log.debug( "mkdir. execute: " + newName );
-        if( !cursor.isFolder() ) {
-            return result( "current dir not found: " + cursor.getPath() );
-        } else {
-            CollectionResource cur = (CollectionResource) cursor.getResource();
-            Result validationResult = validate( cur, newName );
-            if( validationResult != null ) {
-                return validationResult;
-            }
-            if( cur instanceof MakeCollectionableResource ) {
-                MakeCollectionableResource mcr = (MakeCollectionableResource) cur;
-                CollectionResource newCol;
-                try {
-                    newCol = doCreate( mcr, newName );
-                } catch( BadRequestException ex) {
-                    log.debug( "ex", ex );
-                    return result( "BadRequestException exception: " + ex.getMessage() );
-                } catch( ConflictException ex ) {
-                    log.debug( "ex", ex );
-                    return result( "conflict exception: " + ex.getMessage() );
-                } catch( NotAuthorizedException ex ) {
-                    log.debug( "ex", ex );
-                    return result( "you are not authorized to create a folder here: " + ex.getMessage() );
-                }
-                Path newPath = cursor.getPath().child( newName );
-                return new Result( cursor.getPath().toString(), "created: <a href='" + newPath + "'>" + newCol.getName() + "</a>" );
+        try {
+            String newName = args.get( 0 );
+            log.debug( "mkdir. execute: " + newName );
+            if( !cursor.isFolder() ) {
+                return result( "current dir not found: " + cursor.getPath() );
             } else {
-                return result( "current dir does not support creating child collections: " + cursor.getPath() );
+                CollectionResource cur = (CollectionResource) cursor.getResource();
+                Result validationResult = validate( cur, newName );
+                if( validationResult != null ) {
+                    return validationResult;
+                }
+                if( cur instanceof MakeCollectionableResource ) {
+                    MakeCollectionableResource mcr = (MakeCollectionableResource) cur;
+                    CollectionResource newCol;
+                    try {
+                        newCol = doCreate( mcr, newName );
+                    } catch( BadRequestException ex) {
+                        log.debug( "ex", ex );
+                        return result( "BadRequestException exception: " + ex.getMessage() );
+                    } catch( ConflictException ex ) {
+                        log.debug( "ex", ex );
+                        return result( "conflict exception: " + ex.getMessage() );
+                    } catch( NotAuthorizedException ex ) {
+                        log.debug( "ex", ex );
+                        return result( "you are not authorized to create a folder here: " + ex.getMessage() );
+                    }
+                    Path newPath = cursor.getPath().child( newName );
+                    return new Result( cursor.getPath().toString(), "created: <a href='" + newPath + "'>" + newCol.getName() + "</a>" );
+                } else {
+                    return result( "current dir does not support creating child collections: " + cursor.getPath() );
+                }
             }
+        } catch (NotAuthorizedException ex) {
+            log.error("not authorised", ex);
+            return result(ex.getLocalizedMessage());
+        } catch (BadRequestException ex) {
+            log.error("bad req", ex);
+            return result(ex.getLocalizedMessage());
         }
     }
 
@@ -63,7 +71,7 @@ public class Mkdir extends AbstractConsoleCommand {
         return col;
     }
 
-    protected Result validate( CollectionResource cur, String newName ) {
+    protected Result validate( CollectionResource cur, String newName ) throws NotAuthorizedException, BadRequestException {
         Resource existing = cur.child( newName );
         if( existing != null ) {
             return result( "An item of that name already exists. Is a: " + existing.getClass() );

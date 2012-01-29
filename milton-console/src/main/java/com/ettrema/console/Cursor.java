@@ -4,6 +4,8 @@ import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.exceptions.BadRequestException;
+import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -51,15 +53,15 @@ public class Cursor {
         return msg;
     }
 
-    public boolean exists() {
+    public boolean exists() throws NotAuthorizedException, BadRequestException {
         return getResource() != null;
     }
 
-    public boolean isFolder() {
+    public boolean isFolder() throws NotAuthorizedException, BadRequestException {
         return getResource() != null && (getResource() instanceof CollectionResource);
     }
 
-    public Resource getResource() {
+    public Resource getResource() throws NotAuthorizedException, BadRequestException {
         if( !currentLoaded ) {
             current = resourceFactory.getResource( host, path.toString() );
             currentLoaded = true;
@@ -71,16 +73,16 @@ public class Cursor {
         return path;
     }
 
-    protected Resource host() {
+    protected Resource host() throws NotAuthorizedException, BadRequestException {
         return resourceFactory.getResource( host, "/");
     }
 
-    public Cursor find( String newPath ) {
+    public Cursor find( String newPath ) throws BadRequestException, NotAuthorizedException {
         return find( Path.path( newPath ) );
     }
 
 
-    public Cursor find( Path newPath ) {
+    public Cursor find( Path newPath ) throws BadRequestException, NotAuthorizedException {
         log.debug( "find: " + newPath);
         Path lastPath;
         Resource child;
@@ -126,7 +128,7 @@ public class Cursor {
      * @return - null if couldnt search. a list which might contain more then zero
      * elements
      */
-    public List<Resource> childrenWithFilter(String sPattern) {
+    public List<Resource> childrenWithFilter(String sPattern) throws NotAuthorizedException, BadRequestException {
         log.debug("findWithWildCard");
         Resource r = getResource();
         if(  r == null ){
