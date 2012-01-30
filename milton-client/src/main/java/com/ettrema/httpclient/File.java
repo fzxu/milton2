@@ -93,7 +93,7 @@ public class File extends Resource {
         }
         final long[] bytesArr = new long[1];
         try {
-            host().doGet(encodedUrl(), new StreamReceiver() {
+            host().doGet(encodedUrl(), new StreamReceiver() { 
 
                 @Override
                 public void receive(InputStream in) throws IOException {
@@ -110,7 +110,7 @@ public class File extends Resource {
                     }
                 }
             }, rangeList, listener);
-        } catch (CancelledException e) {
+        } catch (CancelledException e) { 
             throw e;
         } catch (Throwable e) {
         } finally {
