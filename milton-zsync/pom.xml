@@ -28,7 +28,12 @@
             <groupId>com.ettrema</groupId>
             <artifactId>milton-api</artifactId>
             <version>${project.version}</version>
-        </dependency>      
+        </dependency>
+        <dependency>
+            <groupId>com.ettrema</groupId>
+            <artifactId>milton-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit-dep</artifactId>
@@ -43,12 +48,6 @@
             <scope>test</scope>
             <type>jar</type>
         </dependency>
-        <dependency>
-            <artifactId>commons-lang</artifactId>
-            <groupId>commons-lang</groupId>
-            <type>jar</type>
-            <version>2.4</version>
-        </dependency>		
     </dependencies>
 </project>
 
