@@ -1,4 +1,4 @@
-package com.ettrema.zsync;
+package com.ettrema.httpclient.zsyncclient;
 
 import com.bradmcevoy.http.Range;
 import java.util.List;

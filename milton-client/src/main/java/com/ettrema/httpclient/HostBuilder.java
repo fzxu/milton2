@@ -1,6 +1,7 @@
 package com.ettrema.httpclient;
 
 import com.ettrema.cache.Cache;
+import com.ettrema.httpclient.zsyncclient.FileSyncer;
 import java.util.List;
 
 /**
@@ -16,10 +17,10 @@ public class HostBuilder {
     private ProxyDetails proxy;
     private Cache<Folder, List<Resource>> cache;
     private int timeoutMillis;
-    private boolean enableZSync;
+    private FileSyncer fileSyncer;
     
     public Host buildHost() {
-        return new Host(server, rootPath, port, user, password, proxy, timeoutMillis, cache, enableZSync);
+        return new Host(server, rootPath, port, user, password, proxy, timeoutMillis, cache, fileSyncer);
     }
 
     /**
@@ -116,11 +117,13 @@ public class HostBuilder {
         this.timeoutMillis = timeoutMillis;
     }
 
-    public boolean isEnableZSync() {
-        return enableZSync;
+    public FileSyncer getFileSyncer() {
+        return fileSyncer;
     }
 
-    public void setEnableZSync(boolean enableZSync) {
-        this.enableZSync = enableZSync;
-    }            
+    public void setFileSyncer(FileSyncer fileSyncer) {
+        this.fileSyncer = fileSyncer;
+    }
+
+    
 }

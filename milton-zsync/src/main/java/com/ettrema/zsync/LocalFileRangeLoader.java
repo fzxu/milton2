@@ -1,5 +1,6 @@
 package com.ettrema.zsync;
 
+import com.ettrema.httpclient.zsyncclient.RangeLoader;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.http11.PartialGetHelper;
 import com.bradmcevoy.io.StreamUtils;

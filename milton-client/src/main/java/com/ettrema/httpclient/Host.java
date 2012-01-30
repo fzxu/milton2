@@ -11,7 +11,7 @@ import com.ettrema.cache.Cache;
 import com.ettrema.cache.MemoryCache;
 import com.ettrema.common.LogUtils;
 import com.ettrema.httpclient.Utils.CancelledException;
-import com.ettrema.httpclient.zsyncclient.ZSyncClient;
+import com.ettrema.httpclient.zsyncclient.FileSyncer;
 import java.io.*;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -60,7 +60,7 @@ public class Host extends Folder {
     private int timeout;
     private final HttpClient client;
     private final TransferService transferService;
-    private final ZSyncClient zSyncClient;
+    private final FileSyncer fileSyncer;
     private final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
     private String propFindXml = PROPFIND_XML;
 
@@ -72,18 +72,18 @@ public class Host extends Folder {
     }
 
     public Host(String server, int port, String user, String password, ProxyDetails proxyDetails) {
-        this(server, null, port, user, password, proxyDetails, 30000, null, false);
+        this(server, null, port, user, password, proxyDetails, 30000, null, null);
     }
 
     public Host(String server, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
-        this(server, null, port, user, password, proxyDetails, 30000, cache, false); // defaul timeout of 30sec
+        this(server, null, port, user, password, proxyDetails, 30000, cache, null); // defaul timeout of 30sec
     }
 
     public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
-        this(server, rootPath, port, user, password, proxyDetails, 30000, cache, false); // defaul timeout of 30sec
+        this(server, rootPath, port, user, password, proxyDetails, 30000, cache, null); // defaul timeout of 30sec
     }
 
-    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeoutMillis, Cache<Folder, List<Resource>> cache, boolean enableZSync) {
+    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeoutMillis, Cache<Folder, List<Resource>> cache, FileSyncer fileSyncer) {
         super((cache != null ? cache : new MemoryCache<Folder, List<Resource>>("resource-cache-default", 50, 20)));
         if (server == null) {
             throw new IllegalArgumentException("host name cannot be null");
@@ -122,11 +122,7 @@ public class Host extends Folder {
         }
         transferService = new TransferService(client, connectionListeners);
         transferService.setTimeout(timeoutMillis);
-        if (enableZSync) {
-            zSyncClient = new ZSyncClient(transferService);
-        } else {
-            zSyncClient = null;
-        }
+        this.fileSyncer = fileSyncer;
     }
 
     /**
@@ -275,10 +271,10 @@ public class Host extends Folder {
      * @throws HttpException
      */
     public int doPut(Path remotePath, java.io.File file, ProgressListener listener) throws FileNotFoundException, HttpException, CancelledException, NotAuthorizedException, ConflictException {
-        if (zSyncClient != null) {
+        if (fileSyncer != null) {
             try {
-                int bytes = zSyncClient.upload(this, file, remotePath, listener);
-                LogUtils.trace(log, "doPut: uploaded: ", bytes, " bytes");
+                fileSyncer.upload(this, file, remotePath, listener);
+                LogUtils.trace(log, "doPut: uploaded");
                 return Response.Status.SC_OK.code;
             } catch (NotFoundException e) {
                 // ZSync file was not found
@@ -437,8 +433,8 @@ public class Host extends Folder {
 
     public synchronized void doGet(Path path, final java.io.File file, ProgressListener listener) throws IOException, NotFoundException, com.ettrema.httpclient.HttpException, CancelledException, NotAuthorizedException, BadRequestException, ConflictException {
         LogUtils.trace(log, "doGet", path);
-        if (zSyncClient != null) {
-            zSyncClient.download(this, path, file, listener);
+        if (fileSyncer != null) {
+            fileSyncer.download(this, path, file, listener);
         } else {
             String url = this.buildEncodedUrl(path);
             transferService.get(url, new StreamReceiver() {
@@ -717,10 +713,6 @@ public class Host extends Folder {
     public void setTimeout(int timeout) {
         this.timeout = timeout;
         transferService.setTimeout(timeout);
-    }
-
-    public ZSyncClient getzSyncClient() {
-        return zSyncClient;
     }
 
     private void notifyStartRequest() {

@@ -1,4 +1,4 @@
-package com.ettrema.zsyncclient;
+package com.ettrema.zsync;
 
 import java.io.File;
 import java.io.FileInputStream;

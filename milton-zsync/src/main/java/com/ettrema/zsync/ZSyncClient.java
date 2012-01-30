@@ -1,4 +1,4 @@
-package com.ettrema.httpclient.zsyncclient;
+package com.ettrema.zsync;
 
 import com.bradmcevoy.common.Path;
 import com.bradmcevoy.http.exceptions.BadRequestException;
@@ -8,8 +8,8 @@ import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.common.LogUtils;
 import com.ettrema.httpclient.*;
 import com.ettrema.httpclient.Utils.CancelledException;
-import com.ettrema.zsync.FileMaker;
-import com.ettrema.zsync.UploadMaker;
+import com.ettrema.httpclient.zsyncclient.FileSyncer;
+import com.ettrema.httpclient.zsyncclient.HttpRangeLoader;
 import java.io.File;
 import java.io.*;
 import org.apache.commons.io.FileUtils;
@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author bradm
  */
-public class ZSyncClient {
+public class ZSyncClient implements FileSyncer{
 
     private static final Logger log = LoggerFactory.getLogger(ZSyncClient.class);
     private TransferService transferService;
@@ -44,6 +44,7 @@ public class ZSyncClient {
      * @throws HttpException
      * @throws NotFoundException - if the remote file does not exist
      */
+    @Override
     public File download(Host host, Path remotePath, File localFile, final ProgressListener listener) throws IOException, NotFoundException, HttpException, CancelledException, NotAuthorizedException, BadRequestException, ConflictException {
         LogUtils.trace(log, "download", host, remotePath);
         final File fRemoteMeta = File.createTempFile("zsync-meta", remotePath.getName());
@@ -101,7 +102,8 @@ public class ZSyncClient {
      * @throws IOException
      * @throws HttpException
      */
-    public int upload(Host host, File localcopy, Path remotePath, final ProgressListener listener) throws IOException, NotFoundException, CancelledException, NotAuthorizedException, ConflictException {
+    @Override
+    public void upload(Host host, File localcopy, Path remotePath, final ProgressListener listener) throws IOException, NotFoundException, CancelledException, NotAuthorizedException, ConflictException {
         final File fRemoteMeta = File.createTempFile("zsync", remotePath.getName());
         String baseUrl = host.getHref(remotePath);
         String url = baseUrl + "/.zsync";
@@ -125,7 +127,8 @@ public class ZSyncClient {
         InputStream uploadIn = null;
         try {
             uploadIn = umx.makeUpload();
-            return transferService.put(url, uploadIn, null, null, listener);
+            long bytes = transferService.put(url, uploadIn, null, null, listener);
+            LogUtils.trace(log, "upload: transferred bytes", bytes);
         } finally {
             IOUtils.closeQuietly(uploadIn);
             FileUtils.deleteQuietly(fRemoteMeta);

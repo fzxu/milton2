@@ -1,5 +1,6 @@
 package com.ettrema.zsync;
 
+import com.ettrema.httpclient.zsyncclient.RangeLoader;
 import java.io.File;
 
 /**

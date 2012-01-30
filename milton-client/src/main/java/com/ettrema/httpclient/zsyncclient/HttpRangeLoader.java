@@ -5,7 +5,6 @@ import com.ettrema.httpclient.File;
 import com.ettrema.httpclient.HttpException;
 import com.ettrema.httpclient.ProgressListener;
 import com.ettrema.httpclient.Utils.CancelledException;
-import com.ettrema.zsync.RangeLoader;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import org.slf4j.Logger;

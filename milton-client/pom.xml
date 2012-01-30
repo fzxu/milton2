@@ -71,7 +71,6 @@ might be something to do with the -jdk15 after the verson number
             <type>jar</type>
             <version>2.0.2</version>
         </dependency>
-
     </dependencies>
 </project>
 

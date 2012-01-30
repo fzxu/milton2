@@ -25,6 +25,7 @@ USA
  */
 package com.ettrema.zsync;
 
+import com.ettrema.httpclient.zsyncclient.RangeLoader;
 import com.bradmcevoy.http.Range;
 import java.io.File;
 import java.io.IOException;

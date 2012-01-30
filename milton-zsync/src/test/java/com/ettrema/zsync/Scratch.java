@@ -1,8 +1,9 @@
-package com.ettrema.zsyncclient;
+package com.ettrema.zsync;
 
 import com.ettrema.httpclient.Host;
 import com.ettrema.httpclient.ProgressListener;
 import com.ettrema.httpclient.Resource;
+import com.ettrema.httpclient.TransferService;
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -30,7 +31,9 @@ public class Scratch {
 		fOrig = new File("src/test/resources/large-text-server.txt"); // this represents the remote file we want to download
 		fUpdated = new File("src/test/resources/large-text-local.txt"); // this represents the current version of the local file we want to update
 		fTemp = File.createTempFile("milton-test", "orig");
-		host = new Host("localhost", "webdav", 8080, "user1", "pwd1", null, 30000, null, true);
+                TransferService transferService = new TransferService(null, null);
+                ZSyncClient zSyncClient = new ZSyncClient(transferService);
+		host = new Host("localhost", "webdav", 8080, "user1", "pwd1", null, 30000, null, zSyncClient);
 		pl = new TestProgressListener();
 		FileUtils.copyFile(fOrig, fTemp);
 	}
