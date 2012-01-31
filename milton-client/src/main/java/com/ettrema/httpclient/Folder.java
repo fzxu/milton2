@@ -281,17 +281,21 @@ public class Folder extends Resource {
     }
 
     void notifyOnChildAdded(Resource child) {
-        List<FolderListener> l2 = new ArrayList<FolderListener>(folderListeners);
+        List<FolderListener> l2 = new ArrayList<FolderListener>(folderListeners); // defensive copy in case the folderListeners is changed by the listeners
         for (FolderListener l : l2) {
             l.onChildAdded(this, child);
         }
+        // the list of children in the cache for this folder is no longer valid, so flush it
+        cache.remove(this);
     }
 
     void notifyOnChildRemoved(Resource child) {
-        List<FolderListener> l2 = new ArrayList<FolderListener>(folderListeners);
+        List<FolderListener> l2 = new ArrayList<FolderListener>(folderListeners);// defensive copy in case the folderListeners is changed by the listeners
         for (FolderListener l : l2) {
             l.onChildRemoved(this, child);
         }
+        // the list of children in the cache for this folder is no longer valid, so flush it
+        cache.remove(this); 
     }
 
     @Override
