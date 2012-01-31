@@ -83,7 +83,7 @@ public class MappedHostResourceAdapter extends AbstractRemoteAdapter implements 
     @Override
     public com.bradmcevoy.http.Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException, ConflictException, NotAuthorizedException, BadRequestException {
         try {
-            File newFile = remoteHost.upload(name, inputStream, length, null);
+            File newFile = remoteHost.upload(newName, inputStream, length, null);
             return new FileResourceAdapter(newFile, getSecurityManager(), hostName, remoteManager);
         } catch (HttpException ex) {
             throw new RuntimeException(ex);

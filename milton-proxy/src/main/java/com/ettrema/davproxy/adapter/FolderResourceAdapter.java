@@ -6,6 +6,7 @@ import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.bradmcevoy.http.exceptions.NotFoundException;
 import com.ettrema.davproxy.content.FolderHtmlContentGenerator;
+import com.ettrema.httpclient.File;
 import com.ettrema.httpclient.Folder;
 import com.ettrema.httpclient.HttpException;
 import java.io.IOException;
@@ -73,7 +74,14 @@ public class FolderResourceAdapter extends AbstractRemoteAdapter implements Fold
 
     @Override
     public com.bradmcevoy.http.Resource createNew(String newName, InputStream inputStream, Long length, String contentType) throws IOException, ConflictException, NotAuthorizedException, BadRequestException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        try {
+            File newFile = folder.upload(newName, inputStream, length, null);
+            return new FileResourceAdapter(newFile, getSecurityManager(), getHostName(), remoteManager);
+        } catch (HttpException ex) {
+            throw new RuntimeException(ex);
+        } catch (NotFoundException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
 
