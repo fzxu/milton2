@@ -1,14 +1,10 @@
 package com.bradmcevoy.http;
 
 import com.bradmcevoy.common.StringUtils;
-import com.bradmcevoy.http.http11.auth.BasicAuthHandler;
-import com.bradmcevoy.http.http11.auth.DigestAuthenticationHandler;
-import com.bradmcevoy.http.http11.auth.NonceProvider;
+import com.bradmcevoy.http.http11.auth.*;
 import com.ettrema.sso.ExternalIdentityProvider;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +15,8 @@ import org.slf4j.LoggerFactory;
 public class AuthenticationService {
 
 	private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
+	
+	
 	private List<AuthenticationHandler> authenticationHandlers;
 	private List<AuthenticationHandler> extraHandlers;
 	private List<AuthenticationHandler> allHandlers;
@@ -55,16 +53,22 @@ public class AuthenticationService {
 	}
 
 	/**
-	 * Creates with Basic and Digest handlers
+	 * Creates with Basic and Digest handlers. It also builds a SimpleMemoryNonceProvider
+	 * and a ExpiredNonceRemover which it starts
 	 *
 	 */
 	public AuthenticationService() {
-		AuthenticationHandler digest = new DigestAuthenticationHandler();
+		Map<UUID, Nonce> nonces = new ConcurrentHashMap<UUID, Nonce>();
+		int nonceValiditySeconds = 60*60*24;
+		ExpiredNonceRemover expiredNonceRemover = new ExpiredNonceRemover(nonces, nonceValiditySeconds);
+		NonceProvider nonceProvider = new SimpleMemoryNonceProvider(nonceValiditySeconds, expiredNonceRemover, nonces);
+		AuthenticationHandler digest = new DigestAuthenticationHandler(nonceProvider);
 		AuthenticationHandler basic = new BasicAuthHandler();
 		authenticationHandlers = new ArrayList<AuthenticationHandler>();
 		authenticationHandlers.add(basic);
 		authenticationHandlers.add(digest);
 		setAllHandlers();
+		expiredNonceRemover.start();
 	}
 
 	public void setDisableBasic(boolean b) {

@@ -1,5 +1,7 @@
 package com.bradmcevoy.http.http11.auth;
 
+import com.bradmcevoy.http.HttpManager;
+import com.ettrema.common.Service;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
@@ -20,7 +22,7 @@ import static java.util.concurrent.TimeUnit.*;
  *
  * @author brad
  */
-public class ExpiredNonceRemover implements Runnable {
+public class ExpiredNonceRemover implements Runnable, Service {
 
     private static final Logger log = LoggerFactory.getLogger( ExpiredNonceRemover.class );
 
@@ -33,10 +35,17 @@ public class ExpiredNonceRemover implements Runnable {
     public ExpiredNonceRemover( Map<UUID, Nonce> nonces, int nonceValiditySeconds ) {
         this.nonces = nonces;
         this.nonceValiditySeconds = nonceValiditySeconds;
-        log.debug( "scheduling checks for expired nonces every " + INTERVAL + " seconds");
-        scheduler = Executors.newScheduledThreadPool( 1, new DaemonThreadFactory() );
-        scheduler.scheduleAtFixedRate( this, 10, INTERVAL, SECONDS );
+        scheduler = Executors.newScheduledThreadPool( 1, new DaemonThreadFactory() );		
     }
+
+	public void start() {
+        log.debug( "scheduling checks for expired nonces every " + INTERVAL + " seconds");
+        scheduler.scheduleAtFixedRate( this, 10, INTERVAL, SECONDS );
+	}	
+	
+	public void stop() {
+		scheduler.shutdown();
+	}
 
     public void run() {
         Iterator<UUID> it = nonces.keySet().iterator();
@@ -55,10 +64,12 @@ public class ExpiredNonceRemover implements Runnable {
         return dif > nonceValiditySeconds;
     }
 
+
+
     private class DaemonThreadFactory implements ThreadFactory {
 
         public Thread newThread( Runnable r ) {
-            Thread t = new Thread( r );
+            Thread t = new Thread( r, ExpiredNonceRemover.class.getCanonicalName() );
             t.setDaemon( true );
             return t;
         }

@@ -24,11 +24,6 @@ public class DigestAuthenticationHandler implements AuthenticationHandler {
         this.digestHelper = new DigestHelper(nonceProvider);
     }
 
-    public DigestAuthenticationHandler() {
-        this.nonceProvider = new SimpleMemoryNonceProvider( 60*60*24 ); // one day
-        this.digestHelper = new DigestHelper(nonceProvider);
-    }
-
     public boolean supports( Resource r, Request request ) {
         Auth auth = request.getAuthorization();
         if( auth == null ) {

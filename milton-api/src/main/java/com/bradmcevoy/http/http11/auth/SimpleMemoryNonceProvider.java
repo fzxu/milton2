@@ -5,7 +5,6 @@ import com.bradmcevoy.http.Resource;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,19 +30,6 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
     private final ExpiredNonceRemover remover;
     private boolean enableNonceCountChecking;
 
-    public SimpleMemoryNonceProvider(int nonceValiditySeconds) {
-        if (log.isTraceEnabled()) {
-            log.trace("Created SimpleMemoryNonceProvider(a): nonceValiditySeconds: " + nonceValiditySeconds);
-        }
-        this.nonces = new ConcurrentHashMap<UUID, Nonce>();
-        this.nonceValiditySeconds = nonceValiditySeconds;
-        this.remover = new ExpiredNonceRemover(nonces, nonceValiditySeconds);
-    }
-
-    public SimpleMemoryNonceProvider(int nonceValiditySeconds, ExpiredNonceRemover remover) {
-        this(nonceValiditySeconds, remover, new ConcurrentHashMap<UUID, Nonce>());
-    }
-
     public SimpleMemoryNonceProvider(int nonceValiditySeconds, ExpiredNonceRemover remover, Map<UUID, Nonce> nonces) {
         if (log.isTraceEnabled()) {
             log.trace("Created SimpleMemoryNonceProvider(b): nonceValiditySeconds: " + nonceValiditySeconds);
@@ -53,11 +39,6 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
         this.remover = remover;
     }
 
-    public SimpleMemoryNonceProvider(int nonceValiditySeconds, Map<UUID, Nonce> nonces) {
-        this.nonces = nonces;
-        this.nonceValiditySeconds = nonceValiditySeconds;
-        this.remover = new ExpiredNonceRemover(nonces, nonceValiditySeconds);
-    }
 
     public Nonce createNonceObject(Resource resource, Request request) {
         UUID id = UUID.randomUUID();

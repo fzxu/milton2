@@ -5,16 +5,10 @@ package com.ettrema.common;
  *
  * @author brad
  */
-public interface Service {
+public interface Service extends Stoppable {
     /**
      * Start the service. Until this is called the service should not be functional
      */
     void start();
 
-    /**
-     * The service should be made unavailable, however it should be able to
-     * be starte again
-     *
-     */
-    void stop();
 }

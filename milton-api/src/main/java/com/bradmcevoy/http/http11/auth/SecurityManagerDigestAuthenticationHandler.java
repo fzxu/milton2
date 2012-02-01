@@ -5,6 +5,9 @@ import com.bradmcevoy.http.AuthenticationHandler;
 import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.SecurityManager;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +30,10 @@ public class SecurityManagerDigestAuthenticationHandler implements Authenticatio
     }
 
     public SecurityManagerDigestAuthenticationHandler(SecurityManager securityManager) {
-        this.nonceProvider = new SimpleMemoryNonceProvider( 60*60*24 ); // one day
+		Map<UUID, Nonce> nonces = new ConcurrentHashMap<UUID, Nonce>();
+		int nonceValiditySeconds = 60*60*24;
+		ExpiredNonceRemover expiredNonceRemover = new ExpiredNonceRemover(nonces, nonceValiditySeconds);
+		this.nonceProvider = new SimpleMemoryNonceProvider(nonceValiditySeconds, expiredNonceRemover, nonces);
         this.securityManager = securityManager;
         digestHelper = new DigestHelper(nonceProvider);
     }
