@@ -76,5 +76,6 @@ public class ServletHttpManager extends HttpManager implements Initable {
                 i.destroy(manager);
             }
         }
+        shutdown();
     }
 }
