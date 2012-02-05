@@ -22,7 +22,7 @@ import java.util.Map;
  *
  * @author brad
  */
-public class MappedHostResourceAdapter extends AbstractRemoteAdapter implements CollectionResource, MakeCollectionableResource, PutableResource, GetableResource, PropFindableResource, DigestResource {
+public class MappedHostResourceAdapter extends AbstractRemoteAdapter implements IFolderAdapter, CollectionResource, MakeCollectionableResource, PutableResource, GetableResource, PropFindableResource, DigestResource {
 
     private final com.ettrema.httpclient.Host remoteHost;
     private final FolderHtmlContentGenerator contentGenerator;
@@ -116,6 +116,10 @@ public class MappedHostResourceAdapter extends AbstractRemoteAdapter implements 
     @Override
     public Date getCreateDate() {
         return null;
+    }
+
+    public Folder getRemoteFolder() {
+        return this.remoteHost;
     }
 }
 

@@ -35,7 +35,7 @@ public class FileResourceAdapter extends AbstractRemoteAdapter implements FileRe
 
     @Override
     public void copyTo(CollectionResource toCollection, String destName) throws NotAuthorizedException, BadRequestException, ConflictException {
-        FolderResourceAdapter destFolderAdapter = (FolderResourceAdapter) toCollection;
+        IFolderAdapter destFolderAdapter = (IFolderAdapter) toCollection;
         Folder destRemoteFolder = destFolderAdapter.getRemoteFolder();
         remoteManager.copyTo(file, destName, destRemoteFolder);
     }
@@ -68,7 +68,7 @@ public class FileResourceAdapter extends AbstractRemoteAdapter implements FileRe
 
     @Override
     public void moveTo(CollectionResource toCollection, String destName) throws ConflictException, NotAuthorizedException, BadRequestException {
-        FolderResourceAdapter destFolderAdapter = (FolderResourceAdapter) toCollection;
+        IFolderAdapter destFolderAdapter = (IFolderAdapter) toCollection;
         Folder destRemoteFolder = destFolderAdapter.getRemoteFolder();
         remoteManager.moveTo(file, destName, destRemoteFolder);
     }

@@ -20,7 +20,7 @@ import java.util.Map;
  *
  * @author brad
  */
-public class FolderResourceAdapter extends AbstractRemoteAdapter implements FolderResource {
+public class FolderResourceAdapter extends AbstractRemoteAdapter implements IFolderAdapter, FolderResource {
 
     private final com.ettrema.httpclient.Folder folder;
 
@@ -87,14 +87,14 @@ public class FolderResourceAdapter extends AbstractRemoteAdapter implements Fold
 
     @Override
     public void copyTo(CollectionResource toCollection, String destName) throws NotAuthorizedException, BadRequestException, ConflictException {
-        FolderResourceAdapter destFolderAdapter = (FolderResourceAdapter) toCollection;
+        IFolderAdapter destFolderAdapter = (IFolderAdapter) toCollection;
         Folder destRemoteFolder = destFolderAdapter.getRemoteFolder();
         remoteManager.copyTo(folder, destName, destRemoteFolder);
     }
 
     @Override
     public void moveTo(CollectionResource toCollection, String destName) throws ConflictException, NotAuthorizedException, BadRequestException {
-        FolderResourceAdapter destFolderAdapter = (FolderResourceAdapter) toCollection;
+        IFolderAdapter destFolderAdapter = (IFolderAdapter) toCollection;
         Folder destRemoteFolder = destFolderAdapter.getRemoteFolder();
         remoteManager.moveTo(folder, destName, destRemoteFolder);
     }
