@@ -54,7 +54,7 @@
 
     <bean id="auth.service" class="com.bradmcevoy.http.AuthenticationService">
         <property name="disableDigest" value="false"/>
-        <property name="disableBasic" value="true"/>
+        <property name="disableBasic" value="false"/>
 <!--		
 		<property name="externalIdentityProviders">
 			<list>

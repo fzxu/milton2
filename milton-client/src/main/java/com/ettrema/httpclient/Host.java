@@ -26,6 +26,7 @@ import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -106,6 +107,8 @@ public class Host extends Folder {
         client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
         client.getParams().setSoTimeout(timeoutMillis);
         client.getParams().setConnectionManagerTimeout(timeoutMillis);
+        HttpMethodRetryHandler handler = new DefaultHttpMethodRetryHandler(0, false); // no retries
+        client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, handler);
         if (proxyDetails != null) {
             if (proxyDetails.isUseSystemProxy()) {
                 System.setProperty("java.net.useSystemProxies", "true");
@@ -297,7 +300,7 @@ public class Host extends Folder {
     /**
      * Uploads the data. Does not do any file syncronisation
      *
-     * @param newUri
+     * @param newUri - encoded full URL
      * @param content
      * @param contentLength
      * @param contentType

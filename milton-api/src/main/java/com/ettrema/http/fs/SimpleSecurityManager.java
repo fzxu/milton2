@@ -85,7 +85,18 @@ public class SimpleSecurityManager implements com.bradmcevoy.http.SecurityManage
 
 
     public boolean authorise( Request request, Method method, Auth auth, Resource resource ) {
-        return auth != null && auth.getTag() != null;
+		if( auth == null ) {
+			log.trace("authorise: declining because there is no auth object");
+			return false;
+		} else {
+			if( auth.getTag() == null ) {
+				log.trace("authorise: declining because there is no auth.getTag() object");
+				return false;
+			} else {
+				log.trace("authorise: permitting because there is an authenticated user associated with this request");
+				return true;
+			}
+		}
     }
 
     public String getRealm(String host) {
