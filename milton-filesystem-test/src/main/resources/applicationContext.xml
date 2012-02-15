@@ -102,7 +102,8 @@
             	Another manifistation of problems with this filter is
             	that Office 2010 will not put up the authentication 
             	requester, nor list the files in a folder.
-            	
+            	-->
+                <!--
                 <ref bean="milton.debug.filter" />
                 -->
             </list>
