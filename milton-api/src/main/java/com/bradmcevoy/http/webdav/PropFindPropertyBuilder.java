@@ -62,7 +62,7 @@ public class PropFindPropertyBuilder {
 	 */
 	public List<PropFindResponse> buildProperties(PropFindableResource pfr, int depth, PropertiesRequest parseResult, String url) throws URISyntaxException, NotAuthorizedException, BadRequestException {
 		LogUtils.trace(log, "buildProperties: ", pfr.getClass(), "url:", url);
-		url = fixUrl(url);
+		url = fixUrlForWindows(url);
 		List<PropFindResponse> propFindResponses = new ArrayList<PropFindResponse>();
 		appendResponses(propFindResponses, pfr, depth, parseResult, url);
 		return propFindResponses;
@@ -202,7 +202,7 @@ public class PropFindPropertyBuilder {
 	 * @param url
 	 * @return 
 	 */
-	private String fixUrl(String url) {
+	public static String fixUrlForWindows(String url) {
 		//return url;
 		return url.replace("&", "%26");
 	}

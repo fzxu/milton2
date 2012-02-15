@@ -257,7 +257,8 @@ public class LockHandler implements ResourceHandler {
         lockWriterHelper.appendOwner( writer, tok.info.lockedByUser );
         lockWriterHelper.appendTimeout( writer, tok.timeout.getSeconds() );
         lockWriterHelper.appendTokenId( writer, tok.tokenId );
-        lockWriterHelper.appendRoot( writer, request.getAbsoluteUrl() );
+		String url = PropFindPropertyBuilder.fixUrlForWindows(request.getAbsoluteUrl());
+        lockWriterHelper.appendRoot( writer, url );
         writer.close( d + ":activelock" );
         writer.close( d + ":lockdiscovery" );
         writer.close( d + ":prop" );

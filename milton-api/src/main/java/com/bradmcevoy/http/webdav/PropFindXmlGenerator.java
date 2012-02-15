@@ -1,5 +1,6 @@
 package com.bradmcevoy.http.webdav;
 
+import com.bradmcevoy.http.HttpManager;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.values.ValueWriters;
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -37,7 +38,11 @@ public class PropFindXmlGenerator {
         helper.appendResponses( writer, propFindResponses, mapOfNamespaces );
         writer.close(WebDavProtocol.NS_DAV.getPrefix(),"multistatus" );
         writer.flush();
-//        log.debug( generatedXml.toString() );
+		if(log.isTraceEnabled()) {
+			log.trace("---- PROPFIND response START: " + HttpManager.request().getAbsolutePath() + " -----");
+			log.trace( generatedXml.toString() );
+			log.trace("---- PROPFIND response END -----");
+		}
         helper.write( generatedXml, responseOutput );
         try {
             return responseOutput.toString( "UTF-8" );
