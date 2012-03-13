@@ -179,12 +179,11 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
 
         @Override
         public String fieldName() {
-            return "address-data";
+            return "calendar-data";
         }
 
         @Override
         public CData getValue(PropFindableResource res) {
-            log.trace("getValue: " + res.getClass());
             if (res instanceof ICalResource) {
                 ICalResource ical = (ICalResource) res;
                 return new CData(ical.getICalData());
@@ -234,10 +233,12 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
      */
     class CalenderHomeSetProperty implements StandardProperty<HrefList> {
 
+        @Override
         public String fieldName() {
             return "calendar-home-set";
         }
 
+        @Override
         public HrefList getValue(PropFindableResource res) {
             if (res instanceof CalDavPrincipal) {
                 return ((CalDavPrincipal) res).getCalendarHomeSet();
@@ -246,6 +247,7 @@ public class CalDavProtocol implements HttpExtension, PropertySource, WellKnownH
             }
         }
 
+        @Override
         public Class<HrefList> getValueClass() {
             return HrefList.class;
         }
