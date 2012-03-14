@@ -3,6 +3,8 @@ package com.ettrema.http.carddav;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.webdav.ResourceTypeHelper;
 import com.ettrema.http.AddressBookResource;
+import com.ettrema.http.caldav.CalDavProtocol;
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 import org.slf4j.Logger;
@@ -22,39 +24,37 @@ public class AddressBookResourceTypeHelper implements ResourceTypeHelper {
         this.wrapped = wrapped;
     }
 
-	@Override
+    @Override
     public List<QName> getResourceTypes(Resource r) {
         if (log.isTraceEnabled()) {
             log.trace("getResourceTypes:" + r.getClass().getCanonicalName());
         }
-		QName qn;
+        QName qn;
         List<QName> list = wrapped.getResourceTypes(r);
-		
-		// Not sure if we need to output addressbook here: BM
-		
-//        if (r instanceof AddressBookResource) { 
-//            log.trace("getResourceTypes: is a calendar");
-//            qn = new QName(CalDavProtocol.CALDAV_NS, "addressbook");
-//            if (list == null) {
-//                list = new ArrayList<QName>();
-//            }
-//            list.add(qn);
-//        } 
+
+        if (r instanceof AddressBookResource) {
+            log.trace("getResourceTypes: is a calendar");
+            qn = new QName(CalDavProtocol.CALDAV_NS, "addressbook");
+            if (list == null) {
+                list = new ArrayList<QName>();
+            }
+            list.add(qn);
+        }
         return list;
     }
 
     /**
-     * 
+     *
      *
      * @param r
      * @return
      */
-	@Override
+    @Override
     public List<String> getSupportedLevels(Resource r) {
         log.debug("getSupportedLevels");
         List<String> list = wrapped.getSupportedLevels(r);
         if (r instanceof AddressBookResource) {
-			list.add("addressbook");
+            list.add("addressbook");
         }
         return list;
     }
