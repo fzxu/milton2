@@ -17,9 +17,13 @@ public class AjaxLoginResourceFactory implements ResourceFactory{
 
     private static final Logger log = LoggerFactory.getLogger( AjaxLoginResourceFactory.class );
 
-    private final String suffix;
+    private String suffix = ".login";
     private final ResourceFactory wrapped;
 
+    public AjaxLoginResourceFactory( ResourceFactory wrapped ) {
+        this.wrapped = wrapped;
+    }    
+    
     public AjaxLoginResourceFactory( String suffix, ResourceFactory wrapped ) {
         this.suffix = suffix;
         this.wrapped = wrapped;
@@ -44,4 +48,14 @@ public class AjaxLoginResourceFactory implements ResourceFactory{
         }
         return wrapped.getResource( host, path );
     }
+
+    public String getSuffix() {
+        return suffix;
+    }
+
+    public void setSuffix(String suffix) {
+        this.suffix = suffix;
+    }
+    
+    
 }
