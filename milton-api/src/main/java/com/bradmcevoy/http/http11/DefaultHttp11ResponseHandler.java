@@ -182,7 +182,26 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 
 	@Override
 	public void respondHead(Resource resource, Response response, Request request) {
-		setRespondContentCommonHeaders(response, resource, Response.Status.SC_NO_CONTENT, request.getAuthorization());
+		//setRespondContentCommonHeaders(response, resource, Response.Status.SC_NO_CONTENT, request.getAuthorization());
+		setRespondContentCommonHeaders(response, resource, Response.Status.SC_OK, request.getAuthorization());
+		if (!(resource instanceof GetableResource)) {
+			return;
+		}
+		GetableResource gr = (GetableResource) resource;
+		Long contentLength = gr.getContentLength();
+		if (contentLength != null) {
+			response.setContentLengthHeader(contentLength);
+		} else {
+			log.trace("No content length is available for HEAD request");
+		}
+		String acc = request.getAcceptHeader();
+		String ct = gr.getContentType(acc);
+		if (ct != null) {
+			ct = pickBestContentType(ct);
+			if( ct != null ) {
+				response.setContentTypeHeader(ct);
+			}
+		}
 	}
 
 	@Override
@@ -310,17 +329,16 @@ public class DefaultHttp11ResponseHandler implements Http11ResponseHandler {
 	}
 
 	/**
-	The modified date response header is used by the client for content
-	caching. It seems obvious that if we have a modified date on the resource
-	we should set it.
-	BUT, because of the interaction with max-age we should always set it
-	to the current date if we have max-age
-	The problem, is that if we find that a condition GET has an expired mod-date
-	(based on maxAge) then we want to respond with content (even if our mod-date
-	hasnt changed. But if we use the actual mod-date in that case, then the
-	browser will continue to use the old mod-date, so will forever more respond
-	with content. So we send a mod-date of now to ensure that future requests
-	will be given a 304 not modified.*
+	 * The modified date response header is used by the client for content
+	 * caching. It seems obvious that if we have a modified date on the resource
+	 * we should set it. BUT, because of the interaction with max-age we should
+	 * always set it to the current date if we have max-age The problem, is that
+	 * if we find that a condition GET has an expired mod-date (based on maxAge)
+	 * then we want to respond with content (even if our mod-date hasnt changed.
+	 * But if we use the actual mod-date in that case, then the browser will
+	 * continue to use the old mod-date, so will forever more respond with
+	 * content. So we send a mod-date of now to ensure that future requests will
+	 * be given a 304 not modified.*
 	 *
 	 * @param response
 	 * @param resource
