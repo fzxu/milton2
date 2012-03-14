@@ -25,6 +25,7 @@ public class AjaxLoginResource extends JsonResource implements GetableResource{
         this.wrapped = wrapped;
     }
 
+    @Override
     public void sendContent( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException, BadRequestException {
         // nothing to send
     }
