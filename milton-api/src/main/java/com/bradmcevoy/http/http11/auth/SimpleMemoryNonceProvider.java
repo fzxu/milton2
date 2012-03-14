@@ -5,6 +5,7 @@ import com.bradmcevoy.http.Resource;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,14 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
         this.remover = remover;
     }
 
+    public SimpleMemoryNonceProvider(int nonceValiditySeconds) {
+        if (log.isTraceEnabled()) {
+            log.trace("Created SimpleMemoryNonceProvider(b): nonceValiditySeconds: " + nonceValiditySeconds);
+        }
+        this.nonces = new ConcurrentHashMap<UUID, Nonce>();
+        this.nonceValiditySeconds = nonceValiditySeconds;
+        this.remover = new ExpiredNonceRemover(nonces, nonceValiditySeconds);
+    }	
 
     public Nonce createNonceObject(Resource resource, Request request) {
         UUID id = UUID.randomUUID();
@@ -48,6 +57,7 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
         return n;
     }
 
+	@Override
     public String createNonce(Resource resource, Request request) {
         String n = createNonceObject(resource, request).getValue().toString();
         if (log.isTraceEnabled()) {
@@ -56,6 +66,7 @@ public class SimpleMemoryNonceProvider implements NonceProvider {
         return n;
     }
 
+	@Override
     public NonceValidity getNonceValidity(String nonce, Long nc) {
         if (log.isTraceEnabled()) {
             log.trace("getNonceValidity: " + nonce);
