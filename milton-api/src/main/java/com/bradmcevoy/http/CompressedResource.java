@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.util.Map;
 
 /**
- * NOT USED YET!!!!!!
+ * 
  * 
  * This is just initial experimental design for solution to already compressed resources problem
  *
