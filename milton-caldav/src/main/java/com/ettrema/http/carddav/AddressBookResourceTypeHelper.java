@@ -3,7 +3,6 @@ package com.ettrema.http.carddav;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.webdav.ResourceTypeHelper;
 import com.ettrema.http.AddressBookResource;
-import com.ettrema.http.caldav.CalDavProtocol;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
@@ -34,7 +33,7 @@ public class AddressBookResourceTypeHelper implements ResourceTypeHelper {
 
         if (r instanceof AddressBookResource) {
             log.trace("getResourceTypes: is a calendar");
-            qn = new QName(CalDavProtocol.CALDAV_NS, "addressbook");
+            qn = new QName(CardDavProtocol.CARDDAV_NS, "addressbook");
             if (list == null) {
                 list = new ArrayList<QName>();
             }
