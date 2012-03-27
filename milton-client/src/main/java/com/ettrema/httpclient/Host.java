@@ -51,7 +51,7 @@ public class Host extends Folder {
             + "</D:lockinfo>";
     private static final Logger log = LoggerFactory.getLogger(Host.class);
     public final String server;
-    public final int port;
+    public final Integer port;
     public final String user;
     public final String password;
     public final String rootPath;
@@ -64,6 +64,7 @@ public class Host extends Folder {
     private final FileSyncer fileSyncer;
     private final List<ConnectionListener> connectionListeners = new ArrayList<ConnectionListener>();
     private String propFindXml = PROPFIND_XML;
+    private boolean secure; // use HTTPS if true
 
     static {
 //    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
@@ -72,19 +73,19 @@ public class Host extends Folder {
 //    System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "debug");    
     }
 
-    public Host(String server, int port, String user, String password, ProxyDetails proxyDetails) {
+    public Host(String server, Integer port, String user, String password, ProxyDetails proxyDetails) {
         this(server, null, port, user, password, proxyDetails, 30000, null, null);
     }
 
-    public Host(String server, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
+    public Host(String server, Integer port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
         this(server, null, port, user, password, proxyDetails, 30000, cache, null); // defaul timeout of 30sec
     }
 
-    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
+    public Host(String server, String rootPath, Integer port, String user, String password, ProxyDetails proxyDetails, Cache<Folder, List<Resource>> cache) {
         this(server, rootPath, port, user, password, proxyDetails, 30000, cache, null); // defaul timeout of 30sec
     }
 
-    public Host(String server, String rootPath, int port, String user, String password, ProxyDetails proxyDetails, int timeoutMillis, Cache<Folder, List<Resource>> cache, FileSyncer fileSyncer) {
+    public Host(String server, String rootPath, Integer port, String user, String password, ProxyDetails proxyDetails, int timeoutMillis, Cache<Folder, List<Resource>> cache, FileSyncer fileSyncer) {
         super((cache != null ? cache : new MemoryCache<Folder, List<Resource>>("resource-cache-default", 50, 20)));
         if (server == null) {
             throw new IllegalArgumentException("host name cannot be null");
@@ -211,7 +212,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized String doLock(String uri) throws com.ettrema.httpclient.HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
+    public synchronized String doLock(String uri) throws com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         LockMethod p = new LockMethod(uri);
         try {
@@ -236,7 +237,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized int doUnLock(String uri, String lockToken) throws com.ettrema.httpclient.HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
+    public synchronized int doUnLock(String uri, String lockToken) throws com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         UnLockMethod p = new UnLockMethod(uri, lockToken);
         try {
@@ -318,7 +319,7 @@ public class Host extends Folder {
      * @return
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
+    public synchronized int doCopy(String from, String newUri) throws com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         CopyMethod m = new CopyMethod(from, newUri);
         try {
@@ -343,7 +344,7 @@ public class Host extends Folder {
      * @throws IOException
      * @throws com.ettrema.httpclient.HttpException
      */
-    public synchronized int doDelete(String url) throws IOException, com.ettrema.httpclient.HttpException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
+    public synchronized int doDelete(String url) throws IOException, com.ettrema.httpclient.HttpException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         notifyStartRequest();
         DeleteMethod m = new DeleteMethod(url);
         try {
@@ -606,8 +607,14 @@ public class Host extends Folder {
 
     @Override
     public String href() {
-        String s = "http://" + server;
-        if (this.port != 80 && this.port > 0) {
+        String s = "http";
+        int defaultPort = 80;
+        if (secure) {
+            s += "s";
+            defaultPort = 443;
+        }
+        s += "://" + server;
+        if (this.port != null && this.port != defaultPort && this.port > 0) {
             s += ":" + this.port;
         }
 
@@ -675,7 +682,7 @@ public class Host extends Folder {
         this.propFindXml = propFindXml;
     }
 
-    public com.ettrema.httpclient.Folder getOrCreateFolder(Path remoteParentPath, boolean create) throws com.ettrema.httpclient.HttpException, IOException , NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
+    public com.ettrema.httpclient.Folder getOrCreateFolder(Path remoteParentPath, boolean create) throws com.ettrema.httpclient.HttpException, IOException, NotAuthorizedException, ConflictException, BadRequestException, NotFoundException {
         log.trace("getOrCreateFolder: {}", remoteParentPath);
         com.ettrema.httpclient.Folder f = this;
         if (remoteParentPath != null) {
@@ -746,4 +753,14 @@ public class Host extends Folder {
         }
         return url;
     }
+
+    public boolean isSecure() {
+        return secure;
+    }
+
+    public void setSecure(boolean secure) {
+        this.secure = secure;
+    }
+    
+    
 }
