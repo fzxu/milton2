@@ -9,7 +9,6 @@ import com.bradmcevoy.http.exceptions.ConflictException;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 import com.ettrema.event.NewFolderEvent;
 import java.io.IOException;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +30,8 @@ public class MkColHandler implements Handler {
 	}
 
 	@Override
-	public boolean isCompatible(Resource handler) {
-		return (handler instanceof MakeCollectionableResource);
+	public boolean isCompatible(Resource r) {
+		return (r instanceof MakeCollectionableResource);
 	}
 
 	@Override
@@ -93,7 +92,7 @@ public class MkColHandler implements Handler {
 		}
 	}
 
-	protected void processMakeCol(HttpManager manager, Request request, Response response, CollectionResource resource, String newName, CollectionResourceCreator creator) throws ConflictException, NotAuthorizedException, BadRequestException, IOException {
+	private void processMakeCol(HttpManager manager, Request request, Response response, CollectionResource resource, String newName, CollectionResourceCreator creator) throws ConflictException, NotAuthorizedException, BadRequestException, IOException {
 		if (!handlerHelper.checkAuthorisation(manager, resource, request)) {
 			responseHandler.respondUnauthorised(resource, response, request);
 			return;
