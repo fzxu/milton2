@@ -10,7 +10,7 @@ public class DateValueWriter implements ValueWriter {
 
 	@Override
     public boolean supports( String nsUri, String localName, Class c ) {
-        return c.isInstance(Date.class); 
+        return c.isAssignableFrom(c);
     }
 
 	@Override
