@@ -8,10 +8,12 @@ import java.util.Map;
 
 public class DateValueWriter implements ValueWriter {
 
+	@Override
     public boolean supports( String nsUri, String localName, Class c ) {
-        return Date.class.equals( c );
+        return c.isInstance(Date.class); 
     }
 
+	@Override
     public void writeValue( XmlWriter writer, String nsUri, String prefix, String localName, Object val, String href, Map<String, String> nsPrefixes ) {
         if( val == null ) {
             writer.writeProperty( prefix, localName );
@@ -22,6 +24,7 @@ public class DateValueWriter implements ValueWriter {
         }
     }
 
+	@Override
     public Object parse( String namespaceURI, String localPart, String value ) {
         if( value == null || value.length() == 0 ) return null;
         Date dt;
