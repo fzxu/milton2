@@ -115,6 +115,12 @@ public class MkColHandler implements Handler {
 				return;
 			}
 		}
+		
+		if( !isCompatible(existingCol)) {
+			responseHandler.respondMethodNotImplemented(existingCol, response, request);
+			return ;
+		}
+		
 		Resource existingChild = existingCol.child(newName);
 		if (existingChild != null) {
 			log.warn("item already exists: " + existingChild.getName());
