@@ -36,6 +36,10 @@ public class DateValueWriterTest extends TestCase {
 	public void testSupports_SqlTimestamp() {
 		assertTrue( dateValueWriter.supports(null, null, Timestamp.class) );
 	}	
+	
+	public void testSupports_FalseForString() {
+		assertFalse( dateValueWriter.supports(null, null, String.class) );
+	}		
 
 
 }
