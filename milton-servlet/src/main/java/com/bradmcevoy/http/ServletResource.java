@@ -297,5 +297,15 @@ public class ServletResource implements GetableResource {
         public void write(byte[] b, int off, int len) throws IOException {
             out.write(b, off, len);
         }
+
+		@Override
+		public String getContentType() {
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
+
+		@Override
+		public void setCharacterEncoding(String charset) {
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
     }
 }
