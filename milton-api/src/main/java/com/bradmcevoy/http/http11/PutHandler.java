@@ -291,7 +291,7 @@ public class PutHandler implements Handler {
 				}
 			} else {
 				// Not a partial update, but resource implements Replaceable, so give it the new data
-				Long l = request.getContentLengthHeader();
+				Long l = putHelper.getContentLength(request);
 				replacee.replaceContent(request.getInputStream(), l);
 			}
 		} catch (IOException ex) {
